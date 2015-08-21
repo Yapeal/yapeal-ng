@@ -1,0 +1,16 @@
+composer.phar
+junk*.php
+test.php
+CreateCustomTables.sql
+composer.lock
+config/yapeal.ini
+config/yapeal.yaml
+*.log
+.idea/
+cache/
+docs/
+ext/
+export/
+upload/
+vendor/
+xdebug/
