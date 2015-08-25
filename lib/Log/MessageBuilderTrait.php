@@ -58,7 +58,7 @@ trait MessageBuilderTrait
             if ($data->hasEveApiArgument('characterID')) {
                 $mess .= ' and characterID = %5$s';
                 $subs[] = $data->getEveApiArgument('characterID');
-            }elseif ($data->hasEveApiArgument('corporationID')) {
+            } elseif ($data->hasEveApiArgument('corporationID')) {
                 $mess .= ' and corporationID = %5$s';
                 $subs[] = $data->getEveApiArgument('corporationID');
             }
@@ -75,6 +75,43 @@ trait MessageBuilderTrait
     protected function getEmittingEventMessage(EveApiReadWriteInterface $data, $eventName)
     {
         $messagePrefix = 'Emitting:';
+        return $this->createEventMessage($messagePrefix, $data, $eventName);
+    }
+    /**
+     * @param EveApiReadWriteInterface $data
+     * @param string                   $eventName
+     *
+     * @return string
+     * @throws \LogicException
+     */
+    protected function getEmptyXmlDataMessage(EveApiReadWriteInterface $data, $eventName)
+    {
+        $messagePrefix = 'XML empty after:';
+        return $this->createEventMessage($messagePrefix, $data, $eventName);
+    }
+    /**
+     * @param EveApiReadWriteInterface $data
+     * @param string                   $eventName
+     * @param string                   $fileName
+     *
+     * @return string
+     * @throws \LogicException
+     */
+    protected function getFailedToWriteFile(EveApiReadWriteInterface $data, $eventName, $fileName)
+    {
+        $messagePrefix = sprintf('Failed writing %s file during:', $fileName);
+        return $this->createEventMessage($messagePrefix, $data, $eventName);
+    }
+    /**
+     * @param EveApiReadWriteInterface $data
+     * @param string                   $eventName
+     *
+     * @return string
+     * @throws \LogicException
+     */
+    protected function getFinishedEventMessage(EveApiReadWriteInterface $data, $eventName)
+    {
+        $messagePrefix = 'Finished:';
         return $this->createEventMessage($messagePrefix, $data, $eventName);
     }
     /**
@@ -112,11 +149,6 @@ trait MessageBuilderTrait
     protected function getSufficientlyHandledEventMessage(EveApiReadWriteInterface $data, $eventName)
     {
         $messagePrefix = 'Sufficiently handled:';
-        return $this->createEventMessage($messagePrefix, $data, $eventName);
-    }
-    protected function getEmptyXmlDataMessage(EveApiReadWriteInterface $data, $eventName)
-    {
-        $messagePrefix = 'XML empty after: ';
         return $this->createEventMessage($messagePrefix, $data, $eventName);
     }
 }
