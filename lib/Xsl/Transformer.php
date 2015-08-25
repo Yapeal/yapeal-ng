@@ -42,6 +42,7 @@ use Yapeal\Event\EveApiEventInterface;
 use Yapeal\Event\EventMediatorInterface;
 use Yapeal\FileSystem\RelativeFileSearchTrait;
 use Yapeal\Log\Logger;
+use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
  * Class Transformer
@@ -65,6 +66,9 @@ class Transformer implements TransformerInterface
      */
     public function getXslDir()
     {
+        if (null === $this->xslDir) {
+            $this->xslDir = __DIR__;
+        }
         return $this->xslDir;
     }
     /**
@@ -89,47 +93,68 @@ class Transformer implements TransformerInterface
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
-    public function transformEveApi(
-        EveApiEventInterface $event,
-        $eventName,
-        EventMediatorInterface $yem
-    ) {
+    public function transformEveApi(EveApiEventInterface $event, $eventName, EventMediatorInterface $yem)
+    {
         $this->setYem($yem);
         $data = $event->getData();
-        $mess = sprintf(
-            'Received %1$s event of %2$s/%3$s in %4$s',
-            $eventName,
-            ucfirst($data->getEveApiSectionName()),
-            $data->getEveApiName(),
-            __CLASS__
-        );
-        if ($data->hasEveApiArgument('keyID')) {
-            $mess .= ' for keyID = ' . $data->getEveApiArgument('keyID');
-        }
         $this->getYem()
-             ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $mess);
-        $fileName = $this->setRelativeBaseDir(__DIR__)
+            ->triggerLogEvent(
+                'Yapeal.Log.log',
+                Logger::DEBUG,
+                $this->getReceivedEventMessage($data, $eventName, __CLASS__)
+            );
+        $fileName = $this->setRelativeBaseDir($this->getXslDir())
                          ->findEveApiFile($data->getEveApiSectionName(), $data->getEveApiName(), 'xsl');
         if ('' === $fileName) {
             return $event;
         }
-        $xml = $this->performTransform($fileName, $data->getEveApiXml());
+        $xml = $this->addYapealProcessingInstructionToXml($data)
+                    ->performTransform($fileName, $data->getEveApiXml());
         if (false === $xml) {
-            $mess = sprintf(
-                'Failed to transform xml of %1$s/%2$s',
-                $data->getEveApiSectionName(),
-                $data->getEveApiName()
+            $mess = 'Failed to transform xml during:';
+            $yem->triggerLogEvent(
+                'Yapeal.Log.log',
+                Logger::WARNING,
+                $this->createEventMessage($mess, $data, $eventName)
             );
-            if ($data->hasEveApiArgument('keyID')) {
-                $mess .= ' for keyID = ' . $data->getEveApiArgument('keyID');
-            }
-            $yem->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $mess);
             return $event;
         }
         $xml = (new tidy())->repairString($xml, $this->tidyConfig, 'utf8');
-        file_put_contents(dirname(dirname(str_replace('\\', '/', __DIR__))) . '/cache/test.xml', $xml);
+        //file_put_contents(dirname(dirname(str_replace('\\', '/', __DIR__))) . '/cache/test.xml', $xml);
         return $event->setData($data->setEveApiXml($xml))
                      ->eventHandled();
+    }
+    /**
+     * Adds Processing Instruction to XML containing json encoding of any post used during retrieve.
+     *
+     * NOTE: This use to be done directly in the network retriever but felt modifying the XML like that belonged in
+     * transform instead.
+     *
+     * @param EveApiReadWriteInterface $data
+     *
+     * @return self Fluent interface.
+     */
+    protected function addYapealProcessingInstructionToXml(EveApiReadWriteInterface $data)
+    {
+        $xml = $data->getEveApiXml();
+        if (false === $xml) {
+            return $this;
+        }
+        $arguments = $data->getEveApiArguments();
+        if (!empty($arguments['vCode'])) {
+            $arguments['vCode'] = substr($arguments['vCode'], 0, 8) . '...';
+        }
+        $json = json_encode($arguments);
+        $xml = str_replace(
+            ["encoding='UTF-8'?>\r\n<eveapi", "encoding='UTF-8'?>\n<eveapi"],
+            [
+                "encoding='UTF-8'?>\r\n<?yapeal.parameters.json " . $json . "?>\r\n<eveapi",
+                "encoding='UTF-8'?>\n<?yapeal.parameters.json " . $json . "?>\n<eveapi"
+            ],
+            $xml
+        );
+        $data->setEveApiXml($xml);
+        return $this;
     }
     /**
      * @param string $fileName
@@ -163,11 +188,11 @@ class Transformer implements TransformerInterface
      * @type array $tidyConfig
      */
     protected $tidyConfig = [
-        'indent'        => true,
+        'indent' => true,
         'indent-spaces' => 4,
-        'output-xml'    => true,
-        'input-xml'     => true,
-        'wrap'          => '1000'
+        'output-xml' => true,
+        'input-xml' => true,
+        'wrap' => '1000'
     ];
     /**
      * Holds base directory where Eve API XSL files can be found.
