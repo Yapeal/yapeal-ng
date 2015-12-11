@@ -52,10 +52,6 @@ abstract class AbstractDatabaseCommon extends Command
 {
     use CommandToolsTrait, FilePathNormalizerTrait;
     /**
-     * @param OutputInterface $output
-     */
-    abstract protected function processSql(OutputInterface $output);
-    /**
      *
      */
     protected function addOptions()
@@ -66,48 +62,48 @@ abstract class AbstractDatabaseCommon extends Command
             InputOption::VALUE_REQUIRED,
             'Configuration file to get settings from.'
         )
-             ->addOption(
-                 'database',
-                 'd',
-                 InputOption::VALUE_REQUIRED,
-                 'Name of the database.'
-             )
-             ->addOption(
-                 'hostName',
-                 'o',
-                 InputOption::VALUE_REQUIRED,
-                 'Host name for database server.'
-             )
-             ->addOption(
-                 'password',
-                 'p',
-                 InputOption::VALUE_REQUIRED,
-                 'Password used to access database.'
-             )
-             ->addOption(
-                 'platform',
-                 null,
-                 InputOption::VALUE_REQUIRED,
-                 'Platform of database driver. Currently only "mysql".'
-             )
-             ->addOption(
-                 'port',
-                 null,
-                 InputOption::VALUE_REQUIRED,
-                 'Port number for remote server. Only needed if using http connection.'
-             )
-             ->addOption(
-                 'tablePrefix',
-                 't',
-                 InputOption::VALUE_REQUIRED,
-                 'Prefix for database table names.'
-             )
-             ->addOption(
-                 'userName',
-                 'u',
-                 InputOption::VALUE_REQUIRED,
-                 'User name used to access database.'
-             );
+            ->addOption(
+                'database',
+                'd',
+                InputOption::VALUE_REQUIRED,
+                'Name of the database.'
+            )
+            ->addOption(
+                'hostName',
+                'o',
+                InputOption::VALUE_REQUIRED,
+                'Host name for database server.'
+            )
+            ->addOption(
+                'password',
+                'p',
+                InputOption::VALUE_REQUIRED,
+                'Password used to access database.'
+            )
+            ->addOption(
+                'platform',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Platform of database driver. Currently only "mysql".'
+            )
+            ->addOption(
+                'port',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Port number for remote server. Only needed if using http connection.'
+            )
+            ->addOption(
+                'tablePrefix',
+                't',
+                InputOption::VALUE_REQUIRED,
+                'Prefix for database table names.'
+            )
+            ->addOption(
+                'userName',
+                'u',
+                InputOption::VALUE_REQUIRED,
+                'User name used to access database.'
+            );
     }
     /**
      * Executes the current command.
@@ -144,11 +140,8 @@ abstract class AbstractDatabaseCommon extends Command
      * @throws YapealConsoleException
      * @throws YapealDatabaseException
      */
-    protected function executeSqlStatements(
-        $sqlStatements,
-        $fileName,
-        OutputInterface $output
-    ) {
+    protected function executeSqlStatements($sqlStatements, $fileName, OutputInterface $output)
+    {
         $templates = [
             ';',
             '{database}',
@@ -210,17 +203,7 @@ abstract class AbstractDatabaseCommon extends Command
     protected function processCliOptions(array $options)
     {
         $base = 'Yapeal.Database.';
-        foreach (
-            [
-                'class',
-                'database',
-                'hostName',
-                'password',
-                'platform',
-                'tablePrefix',
-                'userName'
-            ] as $option
-        ) {
+        foreach (['class', 'database', 'hostName', 'password', 'platform', 'tablePrefix', 'userName'] as $option) {
             if (!empty($options[$option])) {
                 $this->getDic()[$base . $option] = $options[$option];
             }
@@ -231,4 +214,8 @@ abstract class AbstractDatabaseCommon extends Command
         }
         return $this;
     }
+    /**
+     * @param OutputInterface $output
+     */
+    abstract protected function processSql(OutputInterface $output);
 }

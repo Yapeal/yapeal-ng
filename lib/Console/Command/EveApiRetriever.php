@@ -169,8 +169,8 @@ EOF;
          */
         $data = $this->getDic()['Yapeal.Xml.Data'];
         $data = $data->setEveApiName($input->getArgument('api_name'))
-                     ->setEveApiSectionName($input->getArgument('section_name'))
-                     ->setEveApiArguments($posts);
+            ->setEveApiSectionName($input->getArgument('section_name'))
+            ->setEveApiArguments($posts);
         $retriever = $this->getDic()['Yapeal.Network.Retriever'];
         /**
          * @type EveApiRetrieverInterface $retriever

@@ -35,6 +35,7 @@ namespace Yapeal\Network;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
+use LogicException;
 use Yapeal\Event\EveApiEventEmitterTrait;
 use Yapeal\Event\EveApiEventInterface;
 use Yapeal\Event\EventMediatorInterface;
@@ -63,7 +64,7 @@ class GuzzleNetworkRetriever
      * @param EventMediatorInterface $yem
      *
      * @return EveApiEventInterface
-     * @throws \LogicException
+     * @throws LogicException
      */
     public function retrieveEveApi(EveApiEventInterface $event, $eventName, EventMediatorInterface $yem)
     {
@@ -74,42 +75,28 @@ class GuzzleNetworkRetriever
                  Logger::DEBUG,
                  $this->getReceivedEventMessage($data, $eventName, __CLASS__)
              );
-        $mess = sprintf(
-            'Started network retrieve of %1$s/%2$s',
-            $data->getEveApiSectionName(),
-            $data->getEveApiName()
-        );
-        if ($data->hasEveApiArgument('keyID')) {
-            $mess .= ' for keyID = ' . $data->getEveApiArgument('keyID');
-        }
-        $yem->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $mess);
         $uri = sprintf('/%1$s/%2$s.xml.aspx', strtolower($data->getEveApiSectionName()), $data->getEveApiName());
         try {
             $response = $this->getClient()
                              ->post($uri, ['form_params' => $data->getEveApiArguments()]);
         } catch (RequestException $exc) {
-            $mess = sprintf(
-                'Could NOT get XML data from %1$s/%2$s',
-                $data->getEveApiSectionName(),
-                $data->getEveApiName()
+            $messagePrefix = 'Could NOT retrieve XML data during:';
+            $yem->triggerLogEvent(
+                'Yapeal.Log.log',
+                Logger::DEBUG,
+                $this->createEventMessage($messagePrefix, $data, $eventName),
+                ['exception' => $exc]
             );
-            if ($data->hasEveApiArgument('keyID')) {
-                $mess .= ' for keyID = ' . $data->getEveApiArgument('keyID');
-            }
-            $yem->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $mess, ['exception' => $exc]);
             return $event;
         }
         $body = (string)$response->getBody();
         if ('' === $body) {
-            $mess = sprintf(
-                'Received empty body from %1$s/%2$s',
-                $data->getEveApiSectionName(),
-                $data->getEveApiName()
+            $messagePrefix = 'Received empty body during:';
+            $yem->triggerLogEvent(
+                'Yapeal.Log.log',
+                Logger::NOTICE,
+                $this->createEventMessage($messagePrefix, $data, $eventName)
             );
-            if ($data->hasEveApiArgument('keyID')) {
-                $mess .= ' for keyID = ' . $data->getEveApiArgument('keyID');
-            }
-            $yem->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
         }
         $data->setEveApiXml($body);
         $yem->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->getFinishedEventMessage($data, $eventName));
@@ -128,9 +115,14 @@ class GuzzleNetworkRetriever
     }
     /**
      * @return Client
+     * @throws LogicException
      */
     protected function getClient()
     {
+        if (null === $this->client) {
+            $mess = 'Tried to use client before it was set';
+            throw new LogicException($mess);
+        }
         return $this->client;
     }
     /**

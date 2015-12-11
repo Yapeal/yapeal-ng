@@ -49,6 +49,30 @@ class Validator
 {
     use EveApiEventEmitterTrait, RelativeFileSearchTrait;
     /**
+     * Constructor.
+     *
+     * @param null /string $xsdDir
+     */
+    public function __construct($xsdDir = null)
+    {
+        $this->setXsdDir($xsdDir);
+    }
+    /**
+     * Fluent interface setter for $xsdDir.
+     *
+     * @param null|string $value
+     *
+     * @return self Fluent interface.
+     */
+    public function setXsdDir($value = null)
+    {
+        if (null === $value) {
+            $value = __DIR__;
+        }
+        $this->xsdDir = (string)$value;
+        return $this;
+    }
+    /**
      * @param EveApiEventInterface   $event
      * @param string                 $eventName
      * @param EventMediatorInterface $yem
@@ -58,27 +82,18 @@ class Validator
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
-    public function validateEveApi(
-        EveApiEventInterface $event,
-        $eventName,
-        EventMediatorInterface $yem
-    ) {
+    public function validateEveApi(EveApiEventInterface $event, $eventName, EventMediatorInterface $yem)
+    {
         $this->setYem($yem);
         $data = $event->getData();
-        $mess = sprintf(
-            'Received %1$s event of %2$s/%3$s in %4$s',
-            $eventName,
-            ucfirst($data->getEveApiSectionName()),
-            $data->getEveApiName(),
-            __CLASS__
-        );
-        if ($data->hasEveApiArgument('keyID')) {
-            $mess .= ' for keyID = ' . $data->getEveApiArgument('keyID');
-        }
         $this->getYem()
-             ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $mess);
-        $fileName = $this->setRelativeBaseDir(__DIR__)
-                         ->findEveApiFile($data->getEveApiSectionName(), $data->getEveApiName(), 'xsd');
+            ->triggerLogEvent(
+                'Yapeal.Log.log',
+                Logger::DEBUG,
+                $this->getReceivedEventMessage($data, $eventName, __CLASS__)
+            );
+        $fileName = $this->setRelativeBaseDir($this->getXsdDir())
+            ->findEveApiFile($data->getEveApiSectionName(), $data->getEveApiName(), 'xsd');
         if ('' === $fileName) {
             return $event;
         }
@@ -104,6 +119,15 @@ class Validator
         return $event->eventHandled();
     }
     /**
+     * Getter for $xsdDir.
+     *
+     * @return null|string
+     */
+    protected function getXsdDir()
+    {
+        return $this->xsdDir;
+    }
+    /**
      * @param EveApiReadWriteInterface $data
      * @param EventMediatorInterface   $yem
      *
@@ -121,7 +145,8 @@ class Validator
             return $data;
         }
         $code = (int)$simple->error[0]['code'];
-        $mess = sprintf('Eve Error (%3$s): Received from API %1$s/%2$s - %4$s',
+        $mess = sprintf(
+            'Eve Error (%3$s): Received from API %1$s/%2$s - %4$s',
             $data->getEveApiSectionName(),
             $data->getEveApiName(),
             $code,
@@ -149,4 +174,10 @@ class Validator
         $yem->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $mess);
         return $data->setCacheInterval(300);
     }
+    /**
+     * Holds base directory path for XSDs.
+     *
+     * @type string $xsdDir
+     */
+    protected $xsdDir;
 }

@@ -127,7 +127,7 @@ HELP;
         $output->writeln($name);
         $this->executeSqlStatements(
             $this->getCsq()
-                 ->getDropAddOrModifyColumnProcedure(),
+                ->getDropAddOrModifyColumnProcedure(),
             $name,
             $output
         );
@@ -144,10 +144,10 @@ HELP;
     protected function getLatestDatabaseVersion(OutputInterface $output)
     {
         $sql = $this->getCsq()
-                    ->getUtilLatestDatabaseVersion();
+            ->getUtilLatestDatabaseVersion();
         try {
             $result = $this->getPdo()
-                           ->query($sql, PDO::FETCH_NUM);
+                ->query($sql, PDO::FETCH_NUM);
             $version = $result->fetchColumn();
             $result->closeCursor();
         } catch (PDOException $exc) {
@@ -190,7 +190,7 @@ HELP;
                 continue;
             }
             $fileNames[] = $this->getFpn()
-                                ->normalizeFile($fileInfo->getPathname());
+                ->normalizeFile($fileInfo->getPathname());
         }
         asort($fileNames);
         return $fileNames;
@@ -253,7 +253,7 @@ HELP;
     protected function updateDatabaseVersion($updateVersion)
     {
         $sql = $this->getCsq()
-                    ->getUtilLatestDatabaseVersionUpdate();
+            ->getUtilLatestDatabaseVersionUpdate();
         try {
             $pdo = $this->getPdo();
             $pdo->beginTransaction();
@@ -271,7 +271,7 @@ HELP;
             );
             if ($this->getPdo()->inTransaction()) {
                 $this->getPdo()
-                     ->rollBack();
+                    ->rollBack();
             }
             throw new YapealDatabaseException($mess, 2);
         }

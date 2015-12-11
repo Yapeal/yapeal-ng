@@ -33,6 +33,7 @@
  */
 namespace Yapeal\Configuration;
 
+use InvalidArgumentException;
 use Yapeal\Exception\YapealDatabaseException;
 use Yapeal\Exception\YapealException;
 
@@ -41,6 +42,7 @@ use Yapeal\Exception\YapealException;
  */
 class ConsoleWiring extends Wiring
 {
+    /** @noinspection PhpMissingParentCallCommonInspection */
     /**
      * @return self Fluent interface.
      * @throws \DomainException
@@ -51,38 +53,16 @@ class ConsoleWiring extends Wiring
     public function wireAll()
     {
         $this->wireConfig()
-             ->wireError()
-             ->wireEvent()
-             ->wireLog()
-             ->wireXml()
-             ->wireXsl()
-             ->wireXsd()
-             ->wireCache()
-             ->wireNetwork()
-             ->wireDatabase();
-        return $this;
-    }
-    /**
-     * @return self Fluent interface.
-     */
-    protected function wireCache()
-    {
-        $dic = $this->dic;
-        if ('none' !== $dic['Yapeal.Cache.fileSystemMode']) {
-            if (empty($dic['Yapeal.FileSystem.CachePreserver'])) {
-                $dic['Yapeal.FileSystem.CachePreserver'] = function () use ($dic) {
-                    return new $dic['Yapeal.Cache.Handlers.preserver']($dic['Yapeal.Cache.cacheDir']);
-                };
-            }
-            /**
-             * @type \Yapeal\Event\EventMediatorInterface $mediator
-             */
-            $mediator = $dic['Yapeal.Event.EventMediator'];
-            $mediator->addServiceSubscriberByEventList(
-                'Yapeal.FileSystem.CachePreserver',
-                ['Yapeal.EveApi.preserve' => ['preserveEveApi', 'last']]
-            );
-        }
+            ->wireError()
+            ->wireEvent()
+            ->wireLog()
+            ->wireXml()
+            ->wireXsl()
+            ->wireXsd()
+            ->wireCache()
+            ->wireNetwork()
+            ->wireDatabase()
+            ->wireEveApi();
         return $this;
     }
 }

@@ -60,18 +60,6 @@ class Transformer implements TransformerInterface
         $this->setXslDir($xslDir);
     }
     /**
-     * Getter for $xslDir.
-     *
-     * @return string
-     */
-    public function getXslDir()
-    {
-        if (null === $this->xslDir) {
-            $this->xslDir = __DIR__;
-        }
-        return $this->xslDir;
-    }
-    /**
      * Fluent interface setter for $xslDir.
      *
      * @param string $xslDir
@@ -98,11 +86,11 @@ class Transformer implements TransformerInterface
         $this->setYem($yem);
         $data = $event->getData();
         $this->getYem()
-            ->triggerLogEvent(
-                'Yapeal.Log.log',
-                Logger::DEBUG,
-                $this->getReceivedEventMessage($data, $eventName, __CLASS__)
-            );
+             ->triggerLogEvent(
+                 'Yapeal.Log.log',
+                 Logger::DEBUG,
+                 $this->getReceivedEventMessage($data, $eventName, __CLASS__)
+             );
         $fileName = $this->setRelativeBaseDir($this->getXslDir())
                          ->findEveApiFile($data->getEveApiSectionName(), $data->getEveApiName(), 'xsl');
         if ('' === $fileName) {
@@ -120,7 +108,6 @@ class Transformer implements TransformerInterface
             return $event;
         }
         $xml = (new tidy())->repairString($xml, $this->tidyConfig, 'utf8');
-        //file_put_contents(dirname(dirname(str_replace('\\', '/', __DIR__))) . '/cache/test.xml', $xml);
         return $event->setData($data->setEveApiXml($xml))
                      ->eventHandled();
     }
@@ -155,6 +142,18 @@ class Transformer implements TransformerInterface
         );
         $data->setEveApiXml($xml);
         return $this;
+    }
+    /**
+     * Getter for $xslDir.
+     *
+     * @return string
+     */
+    protected function getXslDir()
+    {
+        if (null === $this->xslDir) {
+            $this->xslDir = __DIR__;
+        }
+        return $this->xslDir;
     }
     /**
      * @param string $fileName

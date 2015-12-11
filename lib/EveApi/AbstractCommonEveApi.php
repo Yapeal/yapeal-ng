@@ -49,6 +49,35 @@ abstract class AbstractCommonEveApi
 {
     use EveApiToolsTrait, EveApiEventEmitterTrait, FilePathNormalizerTrait;
     /**
+     * @param EveApiReadWriteInterface $data
+     *
+     * @return bool
+     * @throws LogicException
+     */
+    public function oneShot(EveApiReadWriteInterface $data)
+    {
+        if (!$this->gotApiLock($data)) {
+            return false;
+        }
+        $eventSuffixes = ['retrieve', 'create', 'transform', 'validate', 'preserve'];
+        foreach ($eventSuffixes as $eventSuffix) {
+            if (false === $this->emitEvents($data, $eventSuffix)) {
+                return false;
+            }
+            if (false === $data->getEveApiXml()) {
+                $this->getYem()
+                    ->triggerLogEvent(
+                        'Yapeal.Log.log',
+                        Logger::NOTICE,
+                        $this->getEmptyXmlDataMessage($data, $eventSuffix)
+                    );
+                return false;
+            }
+        }
+        $this->releaseApiLock($data);
+        return true;
+    }
+    /**
      * @param string $apiName
      * @param string $sectionName
      * @param string $ownerID
@@ -128,6 +157,46 @@ abstract class AbstractCommonEveApi
     }
     /**
      * @param EveApiReadWriteInterface $data
+     *
+     * @throws LogicException
+     * @return bool
+     */
+    protected function releaseApiLock(EveApiReadWriteInterface $data)
+    {
+        $sql = $this->getCsq()
+            ->getApiLockRelease($data->getHash());
+        $this->getYem()
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
+        try {
+            $stmt = $this->getPdo()
+                ->query($sql);
+            $lock = (bool)$stmt->fetchColumn();
+            if (true === $lock) {
+                $mess = sprintf('Released lock for %1$s/%2$s', $data->getEveApiSectionName(), $data->getEveApiName());
+                $this->getYem()
+                    ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $mess);
+                return true;
+            }
+            $mess = sprintf(
+                'Could NOT release lock for %1$s/%2$s',
+                $data->getEveApiSectionName(),
+                $data->getEveApiName()
+            );
+            $this->getYem()
+                ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $mess);
+        } catch (PDOException $exc) {
+            $mess = sprintf(
+                'Could NOT release lock for %1$s/%2$s',
+                $data->getEveApiSectionName(),
+                $data->getEveApiName()
+            );
+            $this->getYem()
+                ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $mess, ['exception' => $exc]);
+        }
+        return false;
+    }
+    /**
+     * @param EveApiReadWriteInterface $data
      * @param string                   $ownerID
      *
      * @throws LogicException
@@ -182,66 +251,5 @@ abstract class AbstractCommonEveApi
         );
         $this->getYem()
              ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $mess);
-    }
-    /**
-     * @param EveApiReadWriteInterface $data
-     *
-     * @throws LogicException
-     * @return bool
-     */
-    protected function releaseApiLock(EveApiReadWriteInterface $data)
-    {
-        $sql = $this->getCsq()
-                    ->getApiLockRelease($data->getHash());
-        $this->getYem()
-             ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
-        try {
-            $stmt = $this->getPdo()
-                         ->query($sql);
-            $lock = (bool)$stmt->fetchColumn();
-            if (true === $lock) {
-                $mess = sprintf('Released lock for %1$s/%2$s', $data->getEveApiSectionName(), $data->getEveApiName());
-                $this->getYem()
-                     ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $mess);
-                return true;
-            }
-            $mess = sprintf('Could NOT release lock for %1$s/%2$s', $data->getEveApiSectionName(), $data->getEveApiName());
-            $this->getYem()
-                 ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $mess);
-        } catch (PDOException $exc) {
-            $mess = sprintf('Could NOT release lock for %1$s/%2$s', $data->getEveApiSectionName(), $data->getEveApiName());
-            $this->getYem()
-                 ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $mess, ['exception' => $exc]);
-        }
-        return false;
-    }
-    /**
-     * @param EveApiReadWriteInterface $data
-     *
-     * @return bool
-     * @throws LogicException
-     */
-    public function oneShot(EveApiReadWriteInterface $data)
-    {
-        if (!$this->gotApiLock($data)) {
-            return false;
-        }
-        $eventSuffixes = ['retrieve', 'transform', 'validate', 'preserve'];
-        foreach ($eventSuffixes as $eventSuffix) {
-            if (false === $this->emitEvents($data, $eventSuffix)) {
-                return false;
-            }
-            if (false === $data->getEveApiXml()) {
-                $this->getYem()
-                     ->triggerLogEvent(
-                         'Yapeal.Log.log',
-                         Logger::NOTICE,
-                         $this->getEmptyXmlDataMessage($data, $eventSuffix)
-                     );
-                return false;
-            }
-        }
-        $this->releaseApiLock($data);
-        return true;
     }
 }

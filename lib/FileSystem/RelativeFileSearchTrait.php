@@ -21,22 +21,6 @@ use Yapeal\Log\Logger;
 trait RelativeFileSearchTrait
 {
     /**
-     * Getter for $relativeBaseDir.
-     *
-     * Note that if it is NOT set beforehand it will default to the directory of the using class.
-     *
-     * @return string
-     * @throws LogicException
-     */
-    protected function getRelativeBaseDir()
-    {
-        if (null === $this->relativeBaseDir) {
-            $mess = 'Tried to use relativeBaseDir before it was set';
-            throw new LogicException($mess);
-        }
-        return $this->relativeBaseDir;
-    }
-    /**
      * Fluent interface setter for $relativeBaseDir.
      *
      * @param string $value
@@ -92,6 +76,22 @@ trait RelativeFileSearchTrait
         $this->getYem()
              ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $mess);
         return '';
+    }
+    /**
+     * Getter for $relativeBaseDir.
+     *
+     * Note that if it is NOT set beforehand it will default to the directory of the using class.
+     *
+     * @return string
+     * @throws LogicException
+     */
+    protected function getRelativeBaseDir()
+    {
+        if (null === $this->relativeBaseDir) {
+            $mess = 'Tried to use relativeBaseDir before it was set';
+            throw new LogicException($mess);
+        }
+        return $this->relativeBaseDir;
     }
     /**
      * Holds the path that is prepended for searches.

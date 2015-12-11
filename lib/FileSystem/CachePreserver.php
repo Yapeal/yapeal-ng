@@ -67,11 +67,8 @@ class CachePreserver
      * @return EveApiEventInterface
      * @throws LogicException
      */
-    public function preserveEveApi(
-        EveApiEventInterface $event,
-        $eventName,
-        EventMediatorInterface $yem
-    ) {
+    public function preserveEveApi(EveApiEventInterface $event, $eventName, EventMediatorInterface $yem)
+    {
         $data = $event->getData();
         $this->setYem($yem);
         $yem->triggerLogEvent(

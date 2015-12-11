@@ -123,7 +123,7 @@ HELP;
                 }
                 $fileList[] =
                     $this->getFpn()
-                         ->normalizeFile($fileInfo->getPathname());
+                        ->normalizeFile($fileInfo->getPathname());
             }
         }
         $fileNames = [

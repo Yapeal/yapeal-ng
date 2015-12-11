@@ -67,11 +67,8 @@ class CacheRetriever implements EveApiRetrieverInterface
      * @return EveApiEventInterface
      * @throws LogicException
      */
-    public function retrieveEveApi(
-        EveApiEventInterface $event,
-        $eventName,
-        EventMediatorInterface $yem
-    ) {
+    public function retrieveEveApi(EveApiEventInterface $event, $eventName, EventMediatorInterface $yem)
+    {
         $this->setYem($yem);
         $data = $event->getData();
         $yem->triggerLogEvent(
@@ -99,7 +96,7 @@ class CacheRetriever implements EveApiRetrieverInterface
         $this->getYem()
              ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $mess);
         return $event->setData($data->setEveApiXml($result))
-                      ->eventHandled();
+            ->eventHandled();
     }
     /**
      * @param string|null $value

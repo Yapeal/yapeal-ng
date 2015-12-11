@@ -4,8 +4,8 @@ Yapeal:
         cacheDir: '{Yapeal.baseDir}cache/'
         fileSystemMode: none
         Handlers:
-            preserver: Yapeal\FileSystem\CachePreserver
-            retriever: Yapeal\FileSystem\CacheRetriever
+            preserve: Yapeal\FileSystem\CachePreserver
+            retrieve: Yapeal\FileSystem\CacheRetriever
     Database:
         class: PDO
         database: yapeal
@@ -17,6 +17,9 @@ Yapeal:
         sqlDir: '{Yapeal.baseDir}lib/Sql/'
         tablePrefix: ''
         userName: YapealUser
+    EveApi:
+        create: Yapeal\EveApi\Creator
+        start: Yapeal\EveApi\Creator
     Error:
         bufferSize: 25
         channel: php
@@ -68,14 +71,16 @@ Yapeal:
             'Connection': 'Keep-Alive'
             'Keep-Alive': '300'
     Sql:
+        create: Yapeal\Sql\Creator
         sqlDir: '{Yapeal.baseDir}Sql/'
     Xml:
-        class: Yapeal\Xml\EveApiXmlData
+        data: Yapeal\Xml\EveApiXmlData
         xmlDir: '{Yapeal.baseDir}Xml/'
     Xsd:
-        class: Yapeal\Xsd\Validator
+        create: Yapeal\Xsd\Creator
+        validate: Yapeal\Xsd\Validator
         xsdDir: '{Yapeal.baseDir}Xsd/'
     Xsl:
-        class: Yapeal\Xsl\Transformer
+        transform: Yapeal\Xsl\Transformer
         xslDir: '{Yapeal.baseDir}Xsl/'
 ...
