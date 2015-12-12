@@ -310,7 +310,7 @@ class Wiring
         if (0 !== count($settings)) {
             // Assure NOT overwriting already existing settings.
             foreach ($settings as $key => $value) {
-                $dic[$key] = empty($dic[$key]) ? $dic[$key] : $value;
+                $dic[$key] = empty($dic[$key]) ? $value : $dic[$key];
             }
         }
         return $this;
