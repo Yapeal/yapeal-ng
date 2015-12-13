@@ -56,12 +56,12 @@ class ConsoleWiring extends Wiring
             ->wireError()
             ->wireEvent()
             ->wireLog()
+            ->wireSql()
             ->wireXml()
             ->wireXsl()
             ->wireXsd()
             ->wireCache()
             ->wireNetwork()
-            ->wireDatabase()
             ->wireEveApi();
         return $this;
     }

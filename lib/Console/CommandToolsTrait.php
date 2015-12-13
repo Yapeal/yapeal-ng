@@ -98,7 +98,7 @@ trait CommandToolsTrait
     protected function getCsq()
     {
         if (null === $this->csq) {
-            $this->csq = $this->getDic()['Yapeal.Database.CommonQueries'];
+            $this->csq = $this->getDic()['Yapeal.Sql.CommonQueries'];
         }
         if (!$this->csq instanceof CommonSqlQueries) {
             $mess = 'Tried to use csq before it was set';
@@ -134,7 +134,7 @@ trait CommandToolsTrait
     {
         if (null === $this->pdo) {
             try {
-                $this->pdo = $this->getDic()['Yapeal.Database.Connection'];
+                $this->pdo = $this->getDic()['Yapeal.Sql.Connection'];
             } catch (PDOException $exc) {
                 $mess = sprintf(
                     'Could NOT connect to database. Database error was (%1$s) %2$s',

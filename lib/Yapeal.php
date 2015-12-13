@@ -85,7 +85,7 @@ class Yapeal implements WiringInterface
         /**
          * @type CommonSqlQueries $csq
          */
-        $csq = $dic['Yapeal.Database.CommonQueries'];
+        $csq = $dic['Yapeal.Sql.CommonQueries'];
         $sql = $csq->getActiveApis();
         $this->getYem()
              ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $sql);
@@ -93,7 +93,7 @@ class Yapeal implements WiringInterface
             /**
              * @type PDO $pdo
              */
-            $pdo = $dic['Yapeal.Database.Connection'];
+            $pdo = $dic['Yapeal.Sql.Connection'];
             /**
              * @type PDOStatement $smt
              */

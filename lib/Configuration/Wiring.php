@@ -80,12 +80,12 @@ class Wiring
             ->wireError()
             ->wireEvent()
             ->wireLog()
+            ->wireSql()
             ->wireXml()
             ->wireXsl()
             ->wireXsd()
             ->wireCache()
             ->wireNetwork()
-            ->wireDatabase()
             ->wireEveApi();
         return $this;
     }
@@ -241,12 +241,12 @@ class Wiring
         if ('none' !== $dic['Yapeal.Cache.fileSystemMode']) {
             if (empty($dic['Yapeal.FileSystem.CachePreserver'])) {
                 $dic['Yapeal.FileSystem.CachePreserver'] = function () use ($dic) {
-                    return new $dic['Yapeal.Cache.Handlers.preserve']($dic['Yapeal.Cache.cacheDir']);
+                    return new $dic['Yapeal.Cache.Handlers.preserve']($dic['Yapeal.Cache.dir']);
                 };
             }
             if (empty($dic['Yapeal.FileSystem.CacheRetriever'])) {
                 $dic['Yapeal.FileSystem.CacheRetriever'] = function () use ($dic) {
-                    return new $dic['Yapeal.Cache.Handlers.retrieve']($dic['Yapeal.Cache.cacheDir']);
+                    return new $dic['Yapeal.Cache.Handlers.retrieve']($dic['Yapeal.Cache.dir']);
                 };
             }
             /**
@@ -277,6 +277,9 @@ class Wiring
         $path = $fpn->normalizePath(dirname(dirname(__DIR__)));
         if (empty($dic['Yapeal.baseDir'])) {
             $dic['Yapeal.baseDir'] = $path;
+        }
+        if (empty($dic['Yapeal.libDir'])) {
+            $dic['Yapeal.libDir'] = $path . 'lib/';
         }
         $configFiles = [
             $fpn->normalizeFile(__DIR__ . '/yapeal_defaults.yaml'),
@@ -317,50 +320,6 @@ class Wiring
     }
     /**
      * @return self Fluent interface.
-     * @throws YapealDatabaseException
-     */
-    protected function wireDatabase()
-    {
-        $dic = $this->dic;
-        if (empty($dic['Yapeal.Database.CommonQueries'])) {
-            $dic['Yapeal.Database.CommonQueries'] = function ($dic) {
-                return new $dic['Yapeal.Database.sharedSql'](
-                    $dic['Yapeal.Database.database'], $dic['Yapeal.Database.tablePrefix']
-                );
-            };
-        }
-        if (!empty($dic['Yapeal.Database.Connection'])) {
-            return $this;
-        }
-        if ('mysql' !== $dic['Yapeal.Database.platform']) {
-            $mess = 'Unknown platform, was given ' . $dic['Yapeal.Database.platform'];
-            throw new YapealDatabaseException($mess);
-        }
-        $dic['Yapeal.Database.Connection'] = function ($dic) {
-            $dsn = $dic['Yapeal.Database.platform'] . ':host=' . $dic['Yapeal.Database.hostName'] . ';charset=utf8';
-            if (!empty($dic['Yapeal.Database.port'])) {
-                $dsn .= ';port=' . $dic['Yapeal.Database.port'];
-            }
-            /**
-             * @type PDO $database
-             */
-            $database = new $dic['Yapeal.Database.class'](
-                $dsn, $dic['Yapeal.Database.userName'], $dic['Yapeal.Database.password']
-            );
-            $database->setAttribute(
-                PDO::ATTR_ERRMODE,
-                PDO::ERRMODE_EXCEPTION
-            );
-            $database->exec('SET SESSION SQL_MODE=\'ANSI,TRADITIONAL\'');
-            $database->exec('SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE');
-            $database->exec('SET SESSION TIME_ZONE=\'+00:00\'');
-            $database->exec('SET NAMES utf8 COLLATE utf8_unicode_ci');
-            return $database;
-        };
-        return $this;
-    }
-    /**
-     * @return self Fluent interface.
      */
     protected function wireError()
     {
@@ -379,7 +338,7 @@ class Wiring
                 );
             }
             $group[] = new $dic['Yapeal.Error.Handlers.stream'](
-                $dic['Yapeal.Error.logDir'] . $dic['Yapeal.Error.fileName'], 100
+                $dic['Yapeal.Error.dir'] . $dic['Yapeal.Error.fileName'], 100
             );
             $logger->pushHandler(
                 new $dic['Yapeal.Error.Handlers.fingersCrossed'](
@@ -445,8 +404,8 @@ class Wiring
                          * @type \Yapeal\EveApi\AbstractCommonEveApi $callable
                          */
                         $callable = new $class();
-                        return $callable->setCsq($dic['Yapeal.Database.CommonQueries'])
-                            ->setPdo($dic['Yapeal.Database.Connection']);
+                        return $callable->setCsq($dic['Yapeal.Sql.CommonQueries'])
+                            ->setPdo($dic['Yapeal.Sql.Connection']);
                     };
                 }
                 $events = [$service . '.start' => ['startEveApi', 'last']];
@@ -525,7 +484,7 @@ class Wiring
                     $group[] = $handler;
                 }
                 $handler = new $dic['Yapeal.Log.Handlers.stream'](
-                    $dic['Yapeal.Log.logDir'] . $dic['Yapeal.Log.fileName'], 100
+                    $dic['Yapeal.Log.dir'] . $dic['Yapeal.Log.fileName'], 100
                 );
                 $handler->setFormatter($lineFormatter);
                 $group[] = $handler;
@@ -643,14 +602,50 @@ class Wiring
     /**
      * @return self Fluent interface.
      * @throws InvalidArgumentException
+     * @throws YapealDatabaseException
      */
     protected function wireSql()
     {
         $dic = $this->dic;
+        if (empty($dic['Yapeal.Sql.CommonQueries'])) {
+            $dic['Yapeal.Sql.CommonQueries'] = function ($dic) {
+                return new $dic['Yapeal.Sql.sharedSql'](
+                    $dic['Yapeal.Sql.database'], $dic['Yapeal.Sql.tablePrefix']
+                );
+            };
+        }
+        if (!empty($dic['Yapeal.Sql.Connection'])) {
+            return $this;
+        }
+        if ('mysql' !== $dic['Yapeal.Sql.platform']) {
+            $mess = 'Unknown platform, was given ' . $dic['Yapeal.Sql.platform'];
+            throw new YapealDatabaseException($mess);
+        }
+        $dic['Yapeal.Sql.Connection'] = function ($dic) {
+            $dsn = $dic['Yapeal.Sql.platform'] . ':host=' . $dic['Yapeal.Sql.hostName'] . ';charset=utf8';
+            if (!empty($dic['Yapeal.Sql.port'])) {
+                $dsn .= ';port=' . $dic['Yapeal.Sql.port'];
+            }
+            /**
+             * @type PDO $database
+             */
+            $database = new $dic['Yapeal.Sql.class'](
+                $dsn, $dic['Yapeal.Sql.userName'], $dic['Yapeal.Sql.password']
+            );
+            $database->setAttribute(
+                PDO::ATTR_ERRMODE,
+                PDO::ERRMODE_EXCEPTION
+            );
+            $database->exec('SET SESSION SQL_MODE=\'ANSI,TRADITIONAL\'');
+            $database->exec('SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE');
+            $database->exec('SET SESSION TIME_ZONE=\'+00:00\'');
+            $database->exec('SET NAMES utf8 COLLATE utf8_unicode_ci');
+            return $database;
+        };
         if (empty($dic['Yapeal.Sql.Creator'])) {
             $dic['Yapeal.Sql.Creator'] = $dic->factory(
                 function ($dic) {
-                    return new $dic['Yapeal.Sql.create']($dic['Yapeal.Sql.sqlDir']);
+                    return new $dic['Yapeal.Sql.create']($dic['Yapeal.Sql.dir']);
                 }
             );
         }
@@ -693,14 +688,14 @@ class Wiring
         if (empty($dic['Yapeal.Xsd.Creator'])) {
             $dic['Yapeal.Xsd.Creator'] = $dic->factory(
                 function ($dic) {
-                    return new $dic['Yapeal.Xsd.create']($dic['Yapeal.Xsd.xsdDir']);
+                    return new $dic['Yapeal.Xsd.create']($dic['Yapeal.Xsd.dir']);
                 }
             );
         }
         if (empty($dic['Yapeal.Xsd.Validator'])) {
             $dic['Yapeal.Xsd.Validator'] = $dic->factory(
                 function ($dic) {
-                    return new $dic['Yapeal.Xsd.validate']($dic['Yapeal.Xsd.xsdDir']);
+                    return new $dic['Yapeal.Xsd.validate']($dic['Yapeal.Xsd.dir']);
                 }
             );
         }
@@ -730,7 +725,7 @@ class Wiring
         if (empty($dic['Yapeal.Xsl.Transformer'])) {
             $dic['Yapeal.Xsl.Transformer'] = $dic->factory(
                 function ($dic) {
-                    return new $dic['Yapeal.Xsl.transform']($dic['Yapeal.Xsl.xslDir']);
+                    return new $dic['Yapeal.Xsl.transform']($dic['Yapeal.Xsl.dir']);
                 }
             );
         }
