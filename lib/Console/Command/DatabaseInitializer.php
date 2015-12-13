@@ -100,7 +100,7 @@ HELP;
     protected function getCreateFileList(OutputInterface $output)
     {
         $sections = ['Database', 'Account', 'Api', 'Char', 'Corp', 'Eve', 'Map', 'Server', 'Util'];
-        $path = $this->getDic()['Yapeal.Database.sqlDir'];
+        $path = $this->getDic()['Yapeal.Sql.dir'];
         if (!is_readable($path)) {
             $mess = sprintf(
                 '<info>Could NOT access Sql directory %1$s</info>',

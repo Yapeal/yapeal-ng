@@ -173,7 +173,7 @@ HELP;
     protected function getUpdateFileList(OutputInterface $output)
     {
         $fileNames = [];
-        $path = $this->getDic()['Yapeal.Database.sqlDir'] . 'updates/';
+        $path = $this->getDic()['Yapeal.Sql.dir'] . 'updates/';
         if (!is_readable($path) || !is_dir($path)) {
             $mess = sprintf(
                 '<info>Could NOT access update directory %1$s</info>',

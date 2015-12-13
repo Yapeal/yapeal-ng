@@ -152,10 +152,10 @@ abstract class AbstractDatabaseCommon extends Command
         ];
         $replacements = [
             '',
-            $this->getDic()['Yapeal.Database.database'],
-            $this->getDic()['Yapeal.Database.engine'],
-            $this->getDic()['Yapeal.Database.engine'],
-            $this->getDic()['Yapeal.Database.tablePrefix'],
+            $this->getDic()['Yapeal.Sql.database'],
+            $this->getDic()['Yapeal.Sql.engine'],
+            $this->getDic()['Yapeal.Sql.engine'],
+            $this->getDic()['Yapeal.Sql.tablePrefix'],
             ';'
         ];
         $pdo = $this->getPdo();
@@ -202,7 +202,7 @@ abstract class AbstractDatabaseCommon extends Command
      */
     protected function processCliOptions(array $options)
     {
-        $base = 'Yapeal.Database.';
+        $base = 'Yapeal.Sql.';
         foreach (['class', 'database', 'hostName', 'password', 'platform', 'tablePrefix', 'userName'] as $option) {
             if (!empty($options[$option])) {
                 $this->getDic()[$base . $option] = $options[$option];

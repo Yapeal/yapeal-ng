@@ -1,22 +1,11 @@
 ---
 Yapeal:
     Cache:
-        cacheDir: '{Yapeal.baseDir}cache/'
+        dir: '{Yapeal.baseDir}cache/'
         fileSystemMode: none
         Handlers:
             preserve: Yapeal\FileSystem\CachePreserver
             retrieve: Yapeal\FileSystem\CacheRetriever
-    Database:
-        class: PDO
-        database: yapeal
-        engine: InnoDB
-        hostName: localhost
-        password: secret
-        platform: mysql
-        sharedSql: Yapeal\Sql\CommonSqlQueries
-        sqlDir: '{Yapeal.baseDir}lib/Sql/'
-        tablePrefix: ''
-        userName: YapealUser
     EveApi:
         create: Yapeal\EveApi\Creator
         start: Yapeal\EveApi\Creator
@@ -24,8 +13,8 @@ Yapeal:
         bufferSize: 25
         channel: php
         class: Monolog\Logger
+        dir: '{Yapeal.baseDir}log/'
         fileName: yapeal.log
-        logDir: '{Yapeal.baseDir}log/'
         threshold: 400
         Handlers:
             error: Monolog\ErrorHandler
@@ -41,8 +30,8 @@ Yapeal:
         bufferSize: 25
         channel: yapeal
         class: Yapeal\Log\Logger
+        dir: '{Yapeal.baseDir}log/'
         fileName: yapeal.log
-        logDir: '{Yapeal.baseDir}log/'
         # TODO: Must reset to 300 before merge to master.
         threshold: 100
         Handlers:
@@ -71,16 +60,25 @@ Yapeal:
             'Connection': 'Keep-Alive'
             'Keep-Alive': '300'
     Sql:
+        class: PDO
         create: Yapeal\Sql\Creator
-        sqlDir: '{Yapeal.baseDir}Sql/'
+        database: yapeal
+        dir: '{Yapeal.libDir}Sql/'
+        engine: InnoDB
+        hostName: localhost
+        password: secret
+        platform: mysql
+        sharedSql: Yapeal\Sql\CommonSqlQueries
+        tablePrefix: ''
+        userName: YapealUser
     Xml:
         data: Yapeal\Xml\EveApiXmlData
-        xmlDir: '{Yapeal.baseDir}Xml/'
+        xmlDir: '{Yapeal.libDir}Xml/'
     Xsd:
         create: Yapeal\Xsd\Creator
         validate: Yapeal\Xsd\Validator
-        xsdDir: '{Yapeal.baseDir}Xsd/'
+        xsdDir: '{Yapeal.libDir}Xsd/'
     Xsl:
         transform: Yapeal\Xsl\Transformer
-        xslDir: '{Yapeal.baseDir}Xsl/'
+        xslDir: '{Yapeal.libDir}Xsl/'
 ...
