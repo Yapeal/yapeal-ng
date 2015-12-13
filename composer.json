@@ -76,7 +76,7 @@
         "guzzlehttp/guzzle": "~6.0",
         "monolog/monolog": "~1.11",
         "pimple/pimple": "~3.0",
-        "php": ">=5.4.20",
+        "php": ">=5.4.20,<7.1",
         "symfony/console": "~2.5",
         "symfony/yaml": "~2.5",
         "twig/twig": "<2.0"
