@@ -64,6 +64,16 @@ class Creator
                 Logger::DEBUG,
                 $this->getReceivedEventMessage($data, $eventName, __CLASS__)
             );
+        // Only work with raw unaltered XML data.
+        if (false !== strpos($data->getEveApiXml(), '<?yapeal.parameters.json')) {
+            return $event->setHandledSufficiently();
+        }
+        $outputFile = sprintf(
+            '%1$s%2$s/%3$s.sql',
+            $this->getBaseDir(),
+            $data->getEveApiSectionName(),
+            $data->getEveApiName()
+        );
         $apiName = $data->getEveApiName();
         $sectionName = $data->getEveApiSectionName();
         $xml = $data->getEveApiXml();

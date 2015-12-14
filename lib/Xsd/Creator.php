@@ -85,7 +85,7 @@ class Creator
             $data->getEveApiSectionName(),
             $data->getEveApiName()
         );
-        // Nothing to do if file exists and NOT overwriting.
+        // Nothing to do if NOT overwriting and file exists.
         if (false === $this->isOverwrite() && is_file($outputFile)) {
             return $event;
         }

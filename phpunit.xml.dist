@@ -5,12 +5,15 @@
          stopOnError="true"
          stopOnFailure="true">
     <filter>
-        <blacklist>
-            <directory>tests</directory>
-            <directory>vendor</directory>
-            <directory>docs</directory>
-            <directory>subtree</directory>
-        </blacklist>
+        <whitelist>
+            <directory>./</directory>
+            <exclude>
+                <directory>tests</directory>
+                <directory>vendor</directory>
+                <directory>docs</directory>
+                <directory>subtree</directory>
+            </exclude>
+        </whitelist>
     </filter>
     <logging>
         <log type="coverage-html"
