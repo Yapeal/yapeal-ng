@@ -73,12 +73,12 @@ Yapeal:
         userName: YapealUser
     Xml:
         data: Yapeal\Xml\EveApiXmlData
-        xmlDir: '{Yapeal.libDir}Xml/'
+        dir: '{Yapeal.libDir}Xml/'
     Xsd:
         create: Yapeal\Xsd\Creator
         validate: Yapeal\Xsd\Validator
-        xsdDir: '{Yapeal.libDir}Xsd/'
+        dir: '{Yapeal.libDir}Xsd/'
     Xsl:
         transform: Yapeal\Xsl\Transformer
-        xslDir: '{Yapeal.libDir}Xsl/'
+        dir: '{Yapeal.libDir}Xsl/'
 ...

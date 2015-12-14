@@ -1,9 +1,9 @@
 YAPEAL (Yet Another PHP Eve Api Library)
 ========================================
 
-Master: [![Build Status](https://travis-ci.org/Dragonrun1/yapeal.svg?branch=master)](https://travis-ci.org/Dragonrun1/yapeal)
+Master: [![Build Status](https://travis-ci.org/Yapeal/yapeal-ng.svg?branch=master)](https://travis-ci.org/Yapeal/yapeal-ng.svg?branch=master)
 
-Master: [![Coverage Status](https://img.shields.io/coveralls/Dragonrun1/yapeal.svg?branch=master)](https://coveralls.io/r/Dragonrun1/yapeal?branch=master)
+Master: [![Coverage Status](https://coveralls.io/repos/Yapeal/yapeal-ng/badge.svg?branch=master&service=github)](https://coveralls.io/github/Yapeal/yapeal-ng?branch=master)
 
 ## Installing
 
