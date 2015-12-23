@@ -58,11 +58,12 @@ trait EveApiEventEmitterTrait
     /**
      * @param EveApiReadWriteInterface $data
      * @param string                   $eventSuffix
+     * @param string                   $eventPrefix
      *
      * @return bool
      * @throws \LogicException
      */
-    protected function emitEvents(EveApiReadWriteInterface $data, $eventSuffix)
+    protected function emitEvents(EveApiReadWriteInterface $data, $eventSuffix, $eventPrefix = 'Yapeal.EveApi')
     {
         // Yapeal.EveApi.Section.Api.Suffix, Yapeal.EveApi.Api.Suffix,
         // Yapeal.EveApi.Section.Suffix, Yapeal.EveApi.Suffix
@@ -72,35 +73,34 @@ trait EveApiEventEmitterTrait
                 '%3$s.%1$s.%2$s.%4$s,%3$s.%2$s.%4$s,%3$s.%1$s.%4$s,%3$s.%4$s',
                 ucfirst($data->getEveApiSectionName()),
                 $data->getEveApiName(),
-                'Yapeal.EveApi',
+                $eventPrefix,
                 $eventSuffix
             )
         );
         $event = null;
         foreach ($eventNames as $eventName) {
             $this->getYem()
-                 ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->getEmittingEventMessage($data, $eventName));
-            $event =
-                $this->getYem()
-                     ->triggerEveApiEvent($eventName, $data);
+                ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->getEmittingEventMessage($data, $eventName));
+            $event = $this->getYem()
+                ->triggerEveApiEvent($eventName, $data);
             $data = $event->getData();
             if ($event->isSufficientlyHandled()) {
                 $this->getYem()
-                     ->triggerLogEvent(
-                         'Yapeal.Log.log',
-                         Logger::INFO,
-                         $this->getSufficientlyHandledEventMessage($data, $eventName)
-                     );
+                    ->triggerLogEvent(
+                        'Yapeal.Log.log',
+                        Logger::INFO,
+                        $this->getSufficientlyHandledEventMessage($data, $eventName)
+                    );
                 continue;
             }
         }
         if (null === $event || !$event->isSufficientlyHandled()) {
             $this->getYem()
-                 ->triggerLogEvent(
-                     'Yapeal.Log.log',
-                     Logger::WARNING,
-                     $this->getNonHandledEventMessage($data, $eventSuffix)
-                 );
+                ->triggerLogEvent(
+                    'Yapeal.Log.log',
+                    Logger::NOTICE,
+                    $this->getNonHandledEventMessage($data, $eventSuffix)
+                );
             return false;
         }
         return true;
