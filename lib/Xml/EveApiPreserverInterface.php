@@ -40,9 +40,9 @@ namespace Yapeal\Xml;
 interface EveApiPreserverInterface
 {
     /**
-     * @param EveApiReadInterface $data
+     * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
      */
-    public function preserveEveApi(EveApiReadInterface $data);
+    public function preserveEveApi(EveApiReadWriteInterface $data);
 }
