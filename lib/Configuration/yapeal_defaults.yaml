@@ -8,6 +8,7 @@ Yapeal:
             retrieve: Yapeal\FileSystem\CacheRetriever
     EveApi:
         create: Yapeal\EveApi\Creator
+        dir: '{Yapeal.libDir}EveApi/'
         start: Yapeal\EveApi\Creator
     Error:
         bufferSize: 25
@@ -32,8 +33,7 @@ Yapeal:
         class: Yapeal\Log\Logger
         dir: '{Yapeal.baseDir}log/'
         fileName: yapeal.log
-        # TODO: Must reset to 300 before merge to master.
-        threshold: 100
+        threshold: 300
         Handlers:
             logger: Monolog\Logger
             fingersCrossed: Monolog\Handler\FingersCrossedHandler
