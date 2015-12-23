@@ -49,6 +49,8 @@ use RecursiveIteratorIterator;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Parser;
 use Traversable;
+use Twig_Environment;
+use Twig_Loader_Filesystem;
 use Yapeal\Container\ContainerInterface;
 use Yapeal\Exception\YapealDatabaseException;
 use Yapeal\Exception\YapealException;
@@ -154,26 +156,23 @@ class Wiring
         $rdi = new RecursiveDirectoryIterator($this->dic['Yapeal.baseDir'] . '/lib/EveApi/');
         $rdi->setFlags($flags);
         $rcfi = new RecursiveCallbackFilterIterator(
-            $rdi,
-            function ($current, $key, $rdi) {
-                /**
-                 * @type \RecursiveDirectoryIterator $rdi
-                 */
-                if ($rdi->hasChildren()) {
-                    return true;
-                }
-                $dirs = ['Account', 'Api', 'Char', 'Corp', 'Eve', 'Map', 'Server'];
-                /**
-                 * @type \SplFileInfo $current
-                 */
-                $dirExists = in_array(basename(dirname($key)), $dirs, true);
-                return ($dirExists && $current->isFile() && 'php' === $current->getExtension());
+            $rdi, function ($current, $key, $rdi) {
+            /**
+             * @type \RecursiveDirectoryIterator $rdi
+             */
+            if ($rdi->hasChildren()) {
+                return true;
             }
+            $dirs = ['Account', 'Api', 'Char', 'Corp', 'Eve', 'Map', 'Server'];
+            /**
+             * @type \SplFileInfo $current
+             */
+            $dirExists = in_array(basename(dirname($key)), $dirs, true);
+            return ($dirExists && $current->isFile() && 'php' === $current->getExtension());
+        }
         );
         $rii = new RecursiveIteratorIterator(
-            $rcfi,
-            RecursiveIteratorIterator::LEAVES_ONLY,
-            RecursiveIteratorIterator::CATCH_GET_CHILD
+            $rcfi, RecursiveIteratorIterator::LEAVES_ONLY, RecursiveIteratorIterator::CATCH_GET_CHILD
         );
         $rii->setMaxDepth(3);
         $fpn = $this->getFpn();
@@ -229,8 +228,7 @@ class Wiring
                 $keys
             )] = $leafValue;
         }
-        $settings = $this->doSubs($settings);
-        return $settings;
+        return $this->doSubs($settings);
     }
     /**
      * @return self Fluent interface.
@@ -420,16 +418,20 @@ class Wiring
         }
         if (empty($dic['Yapeal.EveApi.Creator'])) {
             $dic['Yapeal.EveApi.Creator'] = function () use ($dic) {
-                return new $dic['Yapeal.EveApi.create'];
+                $loader = new Twig_Loader_Filesystem($dic['Yapeal.EveApi.dir']);
+                $twig = new Twig_Environment(
+                    $loader, ['debug' => true, 'strict_variables' => true, 'autoescape' => false]
+                );
+                return new $dic['Yapeal.EveApi.create']($dic['Yapeal.EveApi.dir'], $twig);
             };
             $mediator->addServiceSubscriberByEventList(
                 'Yapeal.EveApi.Creator',
                 ['Yapeal.EveApi.create' => ['createEveApi', 'last']]
             );
-            $mediator->addServiceSubscriberByEventList(
-                'Yapeal.EveApi.Creator',
-                ['Yapeal.EveApi.start' => ['startEveApi', 'last']]
-            );
+//            $mediator->addServiceSubscriberByEventList(
+//                'Yapeal.EveApi.Creator',
+//                ['Yapeal.EveApi.start' => ['startEveApi', 'last']]
+//            );
         }
         return $this;
     }
@@ -645,7 +647,11 @@ class Wiring
         if (empty($dic['Yapeal.Sql.Creator'])) {
             $dic['Yapeal.Sql.Creator'] = $dic->factory(
                 function ($dic) {
-                    return new $dic['Yapeal.Sql.create']($dic['Yapeal.Sql.dir']);
+                    $loader = new Twig_Loader_Filesystem($dic['Yapeal.Sql.dir']);
+                    $twig = new Twig_Environment(
+                        $loader, ['debug' => true, 'strict_variables' => true, 'autoescape' => false]
+                    );
+                    return new $dic['Yapeal.Sql.create']($dic['Yapeal.Sql.dir'], $twig);
                 }
             );
         }
@@ -655,7 +661,7 @@ class Wiring
         $mediator = $dic['Yapeal.Event.EventMediator'];
         $mediator->addServiceSubscriberByEventList(
             'Yapeal.Sql.Creator',
-            ['Yapeal.EveApi.create' => ['createEveApi', 'last']]
+            ['Yapeal.EveApi.create' => ['createSql', 'last']]
         );
         return $this;
     }
@@ -688,7 +694,11 @@ class Wiring
         if (empty($dic['Yapeal.Xsd.Creator'])) {
             $dic['Yapeal.Xsd.Creator'] = $dic->factory(
                 function ($dic) {
-                    return new $dic['Yapeal.Xsd.create']($dic['Yapeal.Xsd.dir']);
+                    $loader = new Twig_Loader_Filesystem($dic['Yapeal.Xsd.dir']);
+                    $twig = new Twig_Environment(
+                        $loader, ['debug' => true, 'strict_variables' => true, 'autoescape' => false]
+                    );
+                    return new $dic['Yapeal.Xsd.create']($dic['Yapeal.Xsd.dir'], $twig);
                 }
             );
         }
@@ -705,7 +715,7 @@ class Wiring
         $mediator = $dic['Yapeal.Event.EventMediator'];
         $mediator->addServiceSubscriberByEventList(
             'Yapeal.Xsd.Creator',
-            ['Yapeal.EveApi.create' => ['createEveApi', 'last']]
+            ['Yapeal.EveApi.create' => ['createXsd', 'last']]
         );
         $mediator->addServiceSubscriberByEventList(
             'Yapeal.Xsd.Validator',
