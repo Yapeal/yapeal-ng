@@ -33,12 +33,10 @@ use SimpleXMLElement;
 use SimpleXMLIterator;
 use tidy;
 use Twig_Environment;
-use Twig_Loader_Filesystem;
 use Yapeal\Console\Command\EveApiCreatorTrait;
 use Yapeal\Event\EveApiEventInterface;
 use Yapeal\Event\EventMediatorInterface;
 use Yapeal\Log\Logger;
-use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
  * Class Creator
@@ -47,13 +45,15 @@ class Creator
 {
     use EveApiCreatorTrait;
     /**
-     * Constructor.
+     * Creator constructor.
      *
-     * @param null|string $xsdDir
+     * @param string           $dir
+     * @param Twig_Environment $twig
      */
-    public function __construct($xsdDir = null)
+    public function __construct($dir = __DIR__, Twig_Environment $twig)
     {
-        $this->setXsdDir($xsdDir);
+        $this->setDir($dir);
+        $this->setTwig($twig);
     }
     /**
      * @param EveApiEventInterface   $event
@@ -65,7 +65,7 @@ class Creator
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
-    public function createEveApi(EveApiEventInterface $event, $eventName, EventMediatorInterface $yem)
+    public function createXsd(EveApiEventInterface $event, $eventName, EventMediatorInterface $yem)
     {
         $this->setYem($yem);
         $data = $event->getData();
@@ -81,7 +81,7 @@ class Creator
         }
         $outputFile = sprintf(
             '%1$s%2$s/%3$s.xsd',
-            $this->getXsdDir(),
+            $this->getDir(),
             $data->getEveApiSectionName(),
             $data->getEveApiName()
         );
@@ -89,7 +89,30 @@ class Creator
         if (false === $this->isOverwrite() && is_file($outputFile)) {
             return $event;
         }
-        $contents = $this->processTemplate($this->getSubs($data), $this->getTemplate('xsd'));
+        $this->sectionName = $data->getEveApiSectionName();
+        $xml = $data->getEveApiXml();
+        $sxi = new SimpleXMLIterator($xml);
+        $vars = [
+            'elementsVO'   => $this->processValueOnly($sxi),
+            'elementsWKNA' => $this->processWithKidsAndNoAttributes($sxi),
+            //'elementsNRS'  => $this->processNonRowset($sxi),
+            'elementsNRS'  => [],
+            'elementsRS'   => $this->processRowset($sxi)
+        ];
+        try {
+            $contents = $this->getTwig()
+                ->render('xsd.twig', $vars);
+        } catch (\Twig_Error $exp) {
+            $this->getYem()
+                ->triggerLogEvent('Yapeal.Log.log', Logger::ERROR, 'Twig error', ['exception' => $exp]);
+            $this->getYem()
+                ->triggerLogEvent(
+                    'Yapeal.Log.log',
+                    Logger::WARNING,
+                    $this->getFailedToWriteFile($data, $eventName, $outputFile)
+                );
+            return $event;
+        }
         $tidyConfig = [
             'indent'        => true,
             'indent-spaces' => 4,
@@ -110,85 +133,6 @@ class Creator
         return $event->setHandledSufficiently();
     }
     /**
-     * Getter for $overwrite.
-     *
-     * @return boolean
-     */
-    public function isOverwrite()
-    {
-        return $this->overwrite;
-    }
-    /**
-     * Fluent interface setter for $overwrite.
-     *
-     * @param boolean $value
-     *
-     * @return self Fluent interface.
-     */
-    public function setOverwrite($value = true)
-    {
-        $this->overwrite = (bool)$value;
-        return $this;
-    }
-    /**
-     * Fluent interface setter for $xsdDir.
-     *
-     * @param null|string $value
-     *
-     * @return self Fluent interface.
-     */
-    public function setXsdDir($value = null)
-    {
-        if (null === $value) {
-            $value = __DIR__;
-        }
-        $this->xsdDir = (string)$value;
-        return $this;
-    }
-    /**
-     * @param EveApiReadWriteInterface $data
-     *
-     * @return array
-     */
-    protected function getSubs(EveApiReadWriteInterface $data)
-    {
-        $sxi = new SimpleXMLIterator($data->getEveApiXml());
-        $subs = [
-            'elementsVO'   => $this->processValueOnly($sxi),
-            'elementsWKNA' => $this->processWithKidsAndNoAttributes($sxi),
-            'elementsNRS'  => $this->processNonRowset($sxi),
-            'elementsRS'   => $this->processRowset($sxi)
-        ];
-        return $subs;
-    }
-    /**
-     * @return Twig_Environment
-     */
-    protected function getTwig()
-    {
-        $options = [
-            'debug'               => true,
-            'charset'             => 'utf-8',
-            'base_template_class' => 'Twig_Template',
-            'cache'               => $this->getXsdDir() . 'twig/',
-            'auto_reload'         => true,
-            'strict_variables'    => true,
-            'autoescape'          => 'filename',
-            'optimizations'       => -1
-        ];
-        $loader = new Twig_Loader_Filesystem($this->getXsdDir(), $options);
-        return new Twig_Environment($loader);
-    }
-    /**
-     * Getter for $xsdDir.
-     *
-     * @return null|string
-     */
-    protected function getXsdDir()
-    {
-        return $this->xsdDir;
-    }
-    /**
      * Used to infer(choose) type from element or attribute's name.
      *
      * @param string $name     Name of the element or attribute.
@@ -204,11 +148,13 @@ class Creator
         $lcName = strtolower($name);
         $type = $forValue ? 'xs:string' : 'xs:token';
         foreach ([
-                     'descr' => 'xs:string',
-                     'name'  => 'eveNameType',
-                     'tax'   => 'eveISKType',
-                     'time'  => 'eveNEDTType',
-                     'date'  => 'eveNEDTType'
+                     'descr'          => 'xs:string',
+                     'name'           => 'eveNameType',
+                     'tax'            => 'eveISKType',
+                     'balance'        => 'eveISKType',
+                     'time'           => 'eveNEDTType',
+                     'timeefficiency' => 'xs:unsignedByte',
+                     'date'           => 'eveNEDTType'
                  ] as $search => $replace) {
             if (false !== strpos($lcName, $search)) {
                 $type = $replace;
@@ -274,11 +220,11 @@ class Creator
         foreach ($elements as $ele) {
             $name = (string)$ele['name'];
             $columns = explode(',', (string)$ele['columns']);
-            sort($columns);
             $children = [];
             foreach ($columns as $cName) {
                 $children[$cName] = $this->inferTypeFromName($cName, true);
             }
+            ksort($children);
             $rows[$name] = $children;
         }
         ksort($rows);
@@ -335,15 +281,7 @@ class Creator
         return $rows;
     }
     /**
-     * Used to decide if existing file should be overwritten.
-     *
-     * @type bool $overwrite
+     * @type string $sectionName
      */
-    protected $overwrite = false;
-    /**
-     * Holds base directory path for XSDs.
-     *
-     * @type string $xsdDir
-     */
-    protected $xsdDir;
+    protected $sectionName;
 }

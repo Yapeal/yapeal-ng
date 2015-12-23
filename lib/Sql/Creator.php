@@ -31,12 +31,11 @@ namespace Yapeal\Sql;
 
 use SimpleXMLElement;
 use SimpleXMLIterator;
-use Symfony\Component\Console\Input\InputInterface;
+use Twig_Environment;
 use Yapeal\Console\Command\EveApiCreatorTrait;
 use Yapeal\Event\EveApiEventInterface;
 use Yapeal\Event\EventMediatorInterface;
 use Yapeal\Log\Logger;
-use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
  * Class Creator
@@ -44,6 +43,17 @@ use Yapeal\Xml\EveApiReadWriteInterface;
 class Creator
 {
     use EveApiCreatorTrait;
+    /**
+     * Creator constructor.
+     *
+     * @param string           $dir
+     * @param Twig_Environment $twig
+     */
+    public function __construct($dir = __DIR__, Twig_Environment $twig)
+    {
+        $this->setDir($dir);
+        $this->setTwig($twig);
+    }
     /**
      * @param EveApiEventInterface   $event
      * @param string                 $eventName
@@ -54,7 +64,7 @@ class Creator
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
-    public function createEveApi(EveApiEventInterface $event, $eventName, EventMediatorInterface $yem)
+    public function createSql(EveApiEventInterface $event, $eventName, EventMediatorInterface $yem)
     {
         $this->setYem($yem);
         $data = $event->getData();
@@ -69,85 +79,70 @@ class Creator
             return $event->setHandledSufficiently();
         }
         $outputFile = sprintf(
-            '%1$s%2$s/%3$s.sql',
-            $this->getBaseDir(),
+            '%1$s/%2$s/%3$s.sql',
+            $this->getDir(),
             $data->getEveApiSectionName(),
             $data->getEveApiName()
         );
-        $apiName = $data->getEveApiName();
-        $sectionName = $data->getEveApiSectionName();
+        // Nothing to do if NOT overwriting and file exists.
+        if (false === $this->isOverwrite() && is_file($outputFile)) {
+            return $event;
+        }
+        $this->sectionName = $data->getEveApiSectionName();
         $xml = $data->getEveApiXml();
         $sxi = new SimpleXMLIterator($xml);
-        $vars = ['tableName' => lcfirst($sectionName) . $apiName, 'columns' => $this->processValueOnly($sxi)];
-        $options = [
-            'elementsVO'   => $this->processValueOnly($sxi),
+        $tableNameVO = $this->sectionName . $data->getEveApiName();
+        $vars = [
+            'elementsVO'   => [$tableNameVO => $this->processValueOnly($sxi)],
             'elementsWKNA' => $this->processWithKidsAndNoAttributes($sxi),
             'elementsNRS'  => $this->processNonRowset($sxi),
             'elementsRS'   => $this->processRowset($sxi)
         ];
-    }
-    /**
-     * @param  array $columnNames
-     * @param string $sectionName
-     *
-     * @return string
-     */
-    protected function getColumnList(array $columnNames, $sectionName)
-    {
-        if (in_array(strtolower($sectionName), ['char', 'corp', 'account'], true)) {
-            $columnNames[] = 'ownerID';
+        try {
+            $contents = $this->getTwig()
+                ->render('sql.twig', $vars);
+        } catch (\Twig_Error $exp) {
+            $this->getYem()
+                ->triggerLogEvent('Yapeal.Log.log', Logger::ERROR, 'Twig error', ['exception' => $exp]);
+            $this->getYem()
+                ->triggerLogEvent(
+                    'Yapeal.Log.log',
+                    Logger::WARNING,
+                    $this->getFailedToWriteFile($data, $eventName, $outputFile)
+                );
+            return $event;
         }
-        $columnNames = array_unique($columnNames);
-        sort($columnNames);
-        $longestName = array_reduce(
-            $columnNames,
-            function ($arg1, $arg2) {
-                return (strlen($arg1) > strlen($arg2)) ? $arg1 : $arg2;
-            }
-        );
-        $maxWidth = strlen($longestName) + 2;
-        $columns = [];
-        foreach ($columnNames as $name) {
-            $columns[] = sprintf('"%1$-' . $maxWidth . 's" %2$s', $name, $this->inferTypeFromName($name));
+        if (false === $this->saveToFile($outputFile, $contents)) {
+            $this->getYem()
+                ->triggerLogEvent(
+                    $eventName,
+                    Logger::WARNING,
+                    $this->getFailedToWriteFile($data, $eventName, $outputFile)
+                );
+            return $event;
         }
-        return implode(",\n" . str_repeat(' ', 4), $columns);
+        return $event->setHandledSufficiently();
     }
     /**
      * @param string[] $keyNames
-     * @param string   $sectionName
      *
      * @return string
      */
-    protected function getSqlKeys(array $keyNames, $sectionName)
+    protected function getSqlKeys(array $keyNames)
     {
-        if (in_array(strtolower($sectionName), ['account', 'char', 'corp'], true)) {
+        if ($this->hasOwner()) {
             array_unshift($keyNames, 'ownerID');
         }
-        $keyNames = array_unique($keyNames);
-        return '"' . implode('", "', $keyNames) . '"';
+        return array_unique($keyNames);
     }
     /**
-     * @param EveApiReadWriteInterface $data
-     * @param InputInterface           $input
+     * Used to determine if API is in section that has an owner.
      *
-     * @return array
+     * @return bool
      */
-    protected function getSubs(EveApiReadWriteInterface $data, InputInterface $input)
+    protected function hasOwner()
     {
-        $apiName = ucfirst($input->getArgument('api_name'));
-        $sectionName = $input->getArgument('section_name');
-        $sxi = new SimpleXMLIterator($data->getEveApiXml());
-        $columnNames = [];
-        $subs = [
-            'columnList'   => $this->getColumnList($columnNames, $sectionName),
-            'elementsVO'   => $this->processValueOnly($sxi),
-            'elementsWKNA' => $this->processWithKidsAndNoAttributes($sxi),
-            'elementsNRS'  => $this->processNonRowset($sxi),
-            'elementsRS'   => $this->processRowset($sxi),
-            'sectionName'  => ucfirst($sectionName),
-            'tableName'    => lcfirst($sectionName) . $apiName
-        ];
-        return $subs;
+        return in_array(strtolower($this->sectionName), ['account', 'char', 'corp'], true);
     }
     /**
      * Used to infer(choose) type from element or attribute's name.
@@ -159,21 +154,23 @@ class Creator
      */
     protected function inferTypeFromName($name, $forValue = false)
     {
-        $lcName = strtolower($name);
-        $column = $forValue ? 'TEXT                NOT NULL' : 'VARCHAR(255) DEFAULT \'\'';
+        if ('ID' === substr($name, -2)) {
+            return 'BIGINT(20) UNSIGNED NOT NULL';
+        }
+        $name = strtolower($name);
+        $column = $forValue ? 'TEXT NOT NULL' : 'VARCHAR(255) DEFAULT \'\'';
         foreach ([
-                     'descr' => 'TEXT                NOT NULL',
-                     'name'  => 'CHAR(100)           NOT NULL',
-                     'tax'   => 'DECIMAL(17, 2)      NOT NULL',
-                     'time'  => 'DATETIME            NOT NULL',
-                     'date'  => 'DATETIME            NOT NULL'
+                     'descr'          => 'TEXT NOT NULL',
+                     'name'           => 'CHAR(100) NOT NULL',
+                     'balance'        => 'DECIMAL(17, 2) NOT NULL',
+                     'tax'            => 'DECIMAL(17, 2) NOT NULL',
+                     'time'           => 'DATETIME NOT NULL',
+                     'timeefficiency' => 'TINYINT(3) UNSIGNED NOT NULL',
+                     'date'           => 'DATETIME NOT NULL'
                  ] as $search => $replace) {
-            if (false !== strpos($lcName, $search)) {
+            if (false !== strpos($name, $search)) {
                 $column = $replace;
             }
-        }
-        if ('ID' === substr($name, -2)) {
-            $column = 'BIGINT(20) UNSIGNED NOT NULL';
         }
         return $column;
     }
@@ -202,7 +199,23 @@ class Creator
         if (0 === count($elements)) {
             return [];
         }
-        return [];
+        $rows = [];
+        foreach ($elements as $ele) {
+            $name = (string)$ele['name'];
+            $columns = explode(',', (string)$ele['columns']);
+            $children = [];
+            foreach ($columns as $cName) {
+                $children[$cName] = $this->inferTypeFromName($cName, true);
+            }
+            if ($this->hasOwner()) {
+                $children['ownerID'] = 'BIGINT(20) UNSIGNED NOT NULL';
+            }
+            ksort($children);
+            $keyNames = explode(',', (string)$ele['key']);
+            $rows[$name] = ['columns' => $children, 'keys' => $this->getSqlKeys($keyNames)];
+        }
+        ksort($rows);
+        return $rows;
     }
     /**
      * @param SimpleXMLIterator $sxi
@@ -224,7 +237,7 @@ class Creator
             $rows[$name] = $this->inferTypeFromName($name, true);
         }
         ksort($rows);
-        return $rows;
+        return ['columns' => $rows, 'keys' => $this->getSqlKeys([])];
     }
     /**
      * @param SimpleXMLIterator $sxi
@@ -240,6 +253,10 @@ class Creator
         $rows = [];
         return $rows;
     }
+    /**
+     * @type string $sectionName
+     */
+    protected $sectionName;
     /**
      * @type integer $tableCount
      */

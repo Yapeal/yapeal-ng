@@ -9,21 +9,31 @@
  */
 namespace Yapeal\EveApi;
 
+use SimpleXMLElement;
 use SimpleXMLIterator;
-use Symfony\Component\Console\Input\InputInterface;
-use tidy;
+use Twig_Environment;
 use Yapeal\Console\Command\EveApiCreatorTrait;
 use Yapeal\Event\EveApiEventInterface;
 use Yapeal\Event\EventMediatorInterface;
 use Yapeal\Log\Logger;
-use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
  * Class Creator
  */
-class Creator extends AbstractCommonEveApi
+class Creator
 {
     use EveApiCreatorTrait;
+    /**
+     * Creator constructor.
+     *
+     * @param string           $dir
+     * @param Twig_Environment $twig
+     */
+    public function __construct($dir = __DIR__, Twig_Environment $twig)
+    {
+        $this->setDir($dir);
+        $this->setTwig($twig);
+    }
     /**
      * @param EveApiEventInterface   $event
      * @param string                 $eventName
@@ -38,160 +48,204 @@ class Creator extends AbstractCommonEveApi
     {
         $this->setYem($yem);
         $data = $event->getData();
-        $xml = $data->getEveApiXml();
         $this->getYem()
             ->triggerLogEvent(
                 'Yapeal.Log.log',
                 Logger::DEBUG,
                 $this->getReceivedEventMessage($data, $eventName, __CLASS__)
             );
-        $xsd = <<<'XSD'
-<?xml version="1.0" encoding="UTF-8"?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified" elementFormDefault="qualified">
-    <xs:include schemaLocation="../common.xsd"/>
-    <xs:complexType name="resultType">
-        <xs:sequence>
-            {elementsVO}
-            {elementsWKNA}
-            {elementsNRS}
-            {elementsRS}
-        </xs:sequence>
-    </xs:complexType>
-</xs:schema>
-XSD;
-        $xsdFile = __DIR__ . '/test.xsd';
-        $sxi = new SimpleXMLIterator($xml);
-        $output = str_replace(
-            ['{elementsVO}', '{elementsWKNA}', '{elementsNRS}', '{elementsRS}'],
-            [processValueOnly($sxi), processWithKidsAndNoAttributes($sxi), processNonRowset($sxi), processRowset($sxi)],
-            $xsd
+        // Only work with raw unaltered XML data.
+        if (false !== strpos($data->getEveApiXml(), '<?yapeal.parameters.json')) {
+            return $event->setHandledSufficiently();
+        }
+        $outputFile = sprintf(
+            '%1$s%2$s/%3$s.php',
+            $this->getDir(),
+            $data->getEveApiSectionName(),
+            $data->getEveApiName()
         );
-        $tidyConfig = [
-            'indent'        => true,
-            'indent-spaces' => 4,
-            'output-xml'    => true,
-            'input-xml'     => true,
-            'wrap'          => '120'
-        ];
-        $xml = (new tidy())->repairString($output, $tidyConfig, 'utf8');
-        file_put_contents($xsdFile, $xml);
-    }
-    /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param EventMediatorInterface $yem
-     *
-     * @return EveApiEventInterface
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
-     */
-    public function startEveApi(EveApiEventInterface $event, $eventName, EventMediatorInterface $yem)
-    {
-        $this->setYem($yem);
-        $data = $event->getData();
-        $this->getYem()
-            ->triggerLogEvent(
-                'Yapeal.Log.log',
-                Logger::DEBUG,
-                $this->getReceivedEventMessage($data, $eventName, __CLASS__)
-            );
-        if (!$this->gotApiLock($data)) {
+        // Nothing to do if NOT overwriting and file exists.
+        if (false === $this->isOverwrite() && is_file($outputFile)) {
             return $event;
         }
-        $eventSuffixes = ['retrieve', 'create', 'transform', 'validate', 'preserve'];
-        foreach ($eventSuffixes as $eventSuffix) {
-            if (false === $this->emitEvents($data, $eventSuffix)) {
-                return $event;
-            }
-            if (false === $data->getEveApiXml()) {
-                $this->getYem()
-                    ->triggerLogEvent(
-                        'Yapeal.Log.log',
-                        Logger::NOTICE,
-                        $this->getEmptyXmlDataMessage($data, $eventSuffix)
-                    );
-                return $event;
-            }
+        $this->sectionName = $data->getEveApiSectionName();
+        $xml = $data->getEveApiXml();
+        $sxi = new SimpleXMLIterator($xml);
+        $vars = [
+            'className'    => ucfirst($data->getEveApiName()),
+            'elementsVO'   => $this->processValueOnly($sxi),
+            'elementsWKNA' => $this->processWithKidsAndNoAttributes($sxi),
+            //'elementsNRS'  => $this->processNonRowset($sxi),
+            'elementsNRS'  => [],
+            'elementsRS'   => $this->processRowset($sxi),
+            'mask'         => $data->getEveApiArgument('mask'),
+            'namespace'    => 'Yapeal\\EveApi\\' . ucfirst($this->sectionName),
+            'sectionName'  => ucfirst($this->sectionName),
+            'tableName'    => lcfirst($this->sectionName) . ucfirst($data->getEveApiName())
+        ];
+        try {
+            $contents = $this->getTwig()
+                ->render('php.twig', $vars);
+        } catch (\Twig_Error $exp) {
+            $this->getYem()
+                ->triggerLogEvent('Yapeal.Log.log', Logger::ERROR, 'Twig error', ['exception' => $exp]);
+            $this->getYem()
+                ->triggerLogEvent(
+                    'Yapeal.Log.log',
+                    Logger::WARNING,
+                    $this->getFailedToWriteFile($data, $eventName, $outputFile)
+                );
+            return $event;
         }
-        $this->releaseApiLock($data);
+        if (false === $this->saveToFile($outputFile, $contents)) {
+            $this->getYem()
+                ->triggerLogEvent(
+                    $eventName,
+                    Logger::WARNING,
+                    $this->getFailedToWriteFile($data, $eventName, $outputFile)
+                );
+            return $event;
+        }
         return $event->setHandledSufficiently();
     }
     /**
-     * @param string[] $columnNames
-     * @param string   $sectionName
-     *
      * @return string
      */
-    protected function getColumnDefaults($columnNames, $sectionName)
+    protected function getNamespace()
     {
-        if (in_array(strtolower($sectionName), ['char', 'corp', 'account'], true)) {
-            $columnNames[] = 'ownerID';
-        }
-        $columnNames = array_unique($columnNames);
-        sort($columnNames);
-        $columns = [];
-        foreach ($columnNames as $name) {
-            $column = '\'' . $name . '\' => null';
-            if ('ownerID' === $name) {
-                $column = '\'' . $name . '\' => $ownerID';
-            }
-            $columns[] = $column;
-        }
-        return implode(",\n" . str_repeat(' ', 12), $columns);
+        return 'Yapeal\EveApi\\' . ucfirst($this->sectionName);
     }
     /**
-     * @param string $sectionName
+     * Used to determine if API is in section that has an owner.
      *
-     * @return string
+     * @return bool
      */
-    protected function getDeleteFromTable($sectionName)
+    protected function hasOwner()
     {
-        if (in_array(strtolower($sectionName), ['char', 'corp', 'account'], true)) {
-            return 'getDeleteFromTableWithOwnerID($tableName, $ownerID)';
-        }
-        return 'getDeleteFromTable($tableName)';
+        return in_array(strtolower($this->sectionName), ['account', 'char', 'corp'], true);
     }
     /**
-     * @param string $sectionName
-     *
-     * @return string
-     */
-    protected function getNamespace($sectionName)
-    {
-        return 'Yapeal\EveApi\\' . ucfirst($sectionName);
-    }
-    /**
-     * @param EveApiReadWriteInterface $data
-     * @param InputInterface           $input
+     * @param SimpleXMLIterator $sxi
      *
      * @return array
      */
-    protected function getSubs(EveApiReadWriteInterface $data, InputInterface $input)
+    protected function processNonRowsetWithSimpleChildren(SimpleXMLIterator $sxi)
     {
-        list($columnNames, $keyNames, $rowsetName) = $this->processXml($data);
-        $apiName = ucfirst($input->getArgument('api_name'));
-        $sectionName = $input->getArgument('section_name');
-        $sxi = new SimpleXMLIterator($data->getEveApiXml());
-        $subs = [
-            'className'      => $apiName,
-            'columnDefaults' => $this->getColumnDefaults($columnNames, $sectionName),
-            'columnList'     => $this->getColumnList($columnNames, $sectionName),
-            'copyright'      => gmdate('Y'),
-            'elementsVO'     => $this->processValueOnly($sxi),
-            'elementsWKNA'   => $this->processWithKidsAndNoAttributes($sxi),
-            'elementsNRS'    => $this->processNonRowset($sxi),
-            'elementsRS'     => $this->processRowset($sxi),
-            'getDelete'      => $this->getDeleteFromTable($sectionName),
-            'keys'           => $this->getSqlKeys($keyNames, $sectionName),
-            'mask'           => $input->getArgument('mask'),
-            'namespace'      => $this->getNamespace($sectionName),
-            'sectionName'    => ucfirst($sectionName),
-            'tableName'      => lcfirst($sectionName) . $apiName,
-            'rowAttributes'  => $this->getRowAttributes($columnNames),
-            'rowsetName'     => $rowsetName,
-            'updateName'     => gmdate('YmdHi')
-        ];
-        return $subs;
+        $elements = $sxi->xpath('//result/child::*[@* and not(@name|@key) and child::*[not(*|@*)]]');
+        if (0 === count($elements)) {
+            return [];
+        }
+        $rows = [];
+        /**
+         * @type SimpleXMLIterator $ele
+         */
+        foreach ($elements as $ele) {
+            $name = (string)$ele->getName();
+            $columns = $ele->attributes();
+            $attributes = [];
+            /**
+             * @type SimpleXMLElement $attr
+             */
+            foreach ($columns as $attr) {
+                $aName = (string)$attr->getName();
+                $attributes[$aName] = 'null';
+            }
+            ksort($attributes);
+            $children = [];
+            /**
+             * @type SimpleXMLIterator $child
+             */
+            foreach ($ele->children() as $child) {
+                $cName = (string)$child->getName();
+                $children[$cName] = 'null';
+            }
+            ksort($children);
+            $rows[$name] = ['children' => $children, 'attributes' => $attributes];
+        }
+        ksort($rows);
+        return $rows;
     }
+    /**
+     * @param SimpleXMLIterator $sxi
+     * @param string            $xPath
+     *
+     * @return array
+     */
+    protected function processRowset(SimpleXMLIterator $sxi, $xPath = '//result/rowset')
+    {
+        $elements = $sxi->xpath($xPath);
+        if (0 === count($elements)) {
+            return [];
+        }
+        $rows = [];
+        foreach ($elements as $ele) {
+            $name = ucfirst((string)$ele['name']);
+            $columns = explode(',', (string)$ele['columns']);
+            $children = [];
+            foreach ($columns as $cName) {
+                $children[$cName] = 'null';
+            }
+            if ($this->hasOwner()) {
+                $children['ownerID'] = '$ownerID';
+            }
+            ksort($children);
+            $rows[$name] = $children;
+        }
+        ksort($rows);
+        return $rows;
+    }
+    /**
+     * @param SimpleXMLIterator $sxi
+     *
+     * @return array
+     */
+    protected function processValueOnly(SimpleXMLIterator $sxi)
+    {
+        $elements = $sxi->xpath('//result/child::*[not(*|@*)]');
+        if (0 === count($elements)) {
+            return [];
+        }
+        $rows = [];
+        /**
+         * @type SimpleXMLElement $ele
+         */
+        foreach ($elements as $ele) {
+            $name = (string)$ele->getName();
+            $rows[$name] = 'null';
+        }
+        ksort($rows);
+        return $rows;
+    }
+    /**
+     * @param SimpleXMLIterator $sxi
+     *
+     * @return array
+     */
+    protected function processWithKidsAndNoAttributes(SimpleXMLIterator $sxi)
+    {
+        $elements = $sxi->xpath('//result/child::*[* and not(@*)]');
+        if (0 === count($elements)) {
+            return [];
+        }
+        $rows = [];
+        foreach ($elements as $ele) {
+            $name = (string)$ele->getName();
+            $children = [];
+            /**
+             * @type SimpleXMLElement $child
+             */
+            foreach ($ele->children() as $child) {
+                $cName = (string)$child->getName();
+                $children[$cName] = 'null';
+            }
+            ksort($children);
+            $rows[$name] = $children;
+        }
+        ksort($rows);
+        return $rows;
+    }
+    /**
+     * @type string $sectionName
+     */
+    protected $sectionName;
 }
