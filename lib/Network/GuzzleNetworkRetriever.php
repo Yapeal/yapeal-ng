@@ -40,7 +40,7 @@ use Yapeal\Event\EveApiEventEmitterTrait;
 use Yapeal\Event\EveApiEventInterface;
 use Yapeal\Event\EventMediatorInterface;
 use Yapeal\Log\Logger;
-use Yapeal\Log\MessageBuilderTrait;
+use Yapeal\Xml\EveApiRetrieverInterface;
 
 /**
  * Class GuzzleNetworkRetriever
@@ -48,9 +48,9 @@ use Yapeal\Log\MessageBuilderTrait;
  * @author Stephen Gulick <stephenmg12@gmail.com>
  * @author Michael Cummings <mgcummings@yahoo.com>
  */
-class GuzzleNetworkRetriever
+class GuzzleNetworkRetriever implements EveApiRetrieverInterface
 {
-    use EveApiEventEmitterTrait, MessageBuilderTrait;
+    use EveApiEventEmitterTrait;
     /**
      * @param Client|null $client
      */
@@ -69,16 +69,15 @@ class GuzzleNetworkRetriever
     public function retrieveEveApi(EveApiEventInterface $event, $eventName, EventMediatorInterface $yem)
     {
         $data = $event->getData();
-        $this->getYem()
-             ->triggerLogEvent(
-                 'Yapeal.Log.log',
-                 Logger::DEBUG,
-                 $this->getReceivedEventMessage($data, $eventName, __CLASS__)
-             );
+        $yem->triggerLogEvent(
+            'Yapeal.Log.log',
+            Logger::DEBUG,
+            $this->getReceivedEventMessage($data, $eventName, __CLASS__)
+        );
         $uri = sprintf('/%1$s/%2$s.xml.aspx', strtolower($data->getEveApiSectionName()), $data->getEveApiName());
         try {
             $response = $this->getClient()
-                             ->post($uri, ['form_params' => $data->getEveApiArguments()]);
+                ->post($uri, ['form_params' => $data->getEveApiArguments()]);
         } catch (RequestException $exc) {
             $messagePrefix = 'Could NOT retrieve XML data during:';
             $yem->triggerLogEvent(
@@ -101,7 +100,7 @@ class GuzzleNetworkRetriever
         $data->setEveApiXml($body);
         $yem->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->getFinishedEventMessage($data, $eventName));
         return $event->setData($data)
-                     ->eventHandled();
+            ->eventHandled();
     }
     /**
      * @param Client|null $value
