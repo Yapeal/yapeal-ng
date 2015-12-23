@@ -1,0 +1,21 @@
+-- Sql/updates/{{ "now"|date("YmdHi", "GMT") }}.sql
+{% for tableName, element in elementsVO %}
+CREATE TABLE IF NOT EXISTS "{database}"."{table_prefix}{{ tableName }}" (
+{% for name, type in element.columns %}
+    "{{ name }}" {{ type }},
+{% endfor %}
+PRIMARY KEY ("{{ element.keys }}"))
+ENGINE = {engine}
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
+{% endfor %}
+{% for tableName, element in elementsRS %}
+CREATE TABLE IF NOT EXISTS "{database}"."{table_prefix}{{ tableName }}" (
+{% for name, type in element.columns %}
+    "{{ name }}" {{ type }},
+{% endfor %}
+PRIMARY KEY ("{% for key in element.keys %}{% if not loop.last %}{{ key }}","{% else %}{{ key }}{% endif %}{% endfor %}"))
+ENGINE = {engine}
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
+{% endfor %}
