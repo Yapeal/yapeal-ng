@@ -55,6 +55,8 @@ class DatabaseUpdater extends AbstractDatabaseCommon
      *
      * @throws LogicException
      * @throws InvalidArgumentException
+     * @throws \Symfony\Component\Console\Exception\LogicException
+     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
      */
     public function __construct($name, $cwd, ContainerInterface $dic)
     {
@@ -79,9 +81,7 @@ class DatabaseUpdater extends AbstractDatabaseCommon
         $output->writeln($name);
         $csq = $this->getCsq();
         $this->executeSqlStatements(
-            $csq->getDropAddOrModifyColumnProcedure()
-            . PHP_EOL
-            . $csq->getCreateAddOrModifyColumnProcedure(),
+            $csq->getDropAddOrModifyColumnProcedure() . PHP_EOL . $csq->getCreateAddOrModifyColumnProcedure(),
             $name,
             $output
         );
@@ -93,8 +93,7 @@ class DatabaseUpdater extends AbstractDatabaseCommon
     protected function configure()
     {
         $this->addOptions();
-        $help
-            = <<<'HELP'
+        $help = <<<'HELP'
 The <info>%command.full_name%</info> command is used to initialize (create) a new
  database and tables to be used by Yapeal. If you already have a
  config/yapeal.yaml file setup you can use the following:
@@ -151,8 +150,7 @@ HELP;
             $version = $result->fetchColumn();
             $result->closeCursor();
         } catch (PDOException $exc) {
-            $mess
-                = '<warning>Could NOT get latest database version using default 197001010001</warning>';
+            $mess = '<warning>Could NOT get latest database version using default 197001010001</warning>';
             $output->writeln([$sql, $mess]);
             $mess = sprintf(
                 '<info>Error message from database connection was %s</info>',
@@ -185,7 +183,7 @@ HELP;
         foreach (new DirectoryIterator($path) as $fileInfo) {
             if ($fileInfo->isDot() || $fileInfo->isDir()) {
                 continue;
-            };
+            }
             if ('sql' !== $fileInfo->getExtension()) {
                 continue;
             }
@@ -262,14 +260,14 @@ HELP;
             $pdo->commit();
         } catch (PDOException $exc) {
             $mess = $sql . PHP_EOL;
-            $mess .=
-                sprintf('Database error message was %s', $exc->getMessage())
-                . PHP_EOL;
+            $mess .= sprintf('Database error message was %s', $exc->getMessage()) . PHP_EOL;
             $mess .= sprintf(
                 'Database "version" update failed for %1$s',
                 $updateVersion
             );
-            if ($this->getPdo()->inTransaction()) {
+            if ($this->getPdo()
+                ->inTransaction()
+            ) {
                 $this->getPdo()
                     ->rollBack();
             }

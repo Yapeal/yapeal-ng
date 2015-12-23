@@ -45,19 +45,19 @@ use Yapeal\Configuration\ConsoleWiring;
 use Yapeal\Configuration\WiringInterface;
 use Yapeal\Console\CommandToolsTrait;
 use Yapeal\Container\ContainerInterface;
+use Yapeal\Event\EveApiEventEmitterTrait;
+use Yapeal\Event\EventMediatorInterface;
 use Yapeal\Exception\YapealConsoleException;
 use Yapeal\Exception\YapealDatabaseException;
 use Yapeal\Exception\YapealException;
-use Yapeal\Xml\EveApiPreserverInterface;
 use Yapeal\Xml\EveApiReadWriteInterface;
-use Yapeal\Xml\EveApiRetrieverInterface;
 
 /**
  * Class EveApiRetriever
  */
 class EveApiRetriever extends Command implements WiringInterface
 {
-    use CommandToolsTrait, FilePathNormalizerTrait;
+    use CommandToolsTrait, FilePathNormalizerTrait, EveApiEventEmitterTrait;
     /**
      * @param string|null        $name
      * @param string             $cwd
@@ -65,6 +65,8 @@ class EveApiRetriever extends Command implements WiringInterface
      *
      * @throws InvalidArgumentException
      * @throws LogicException
+     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
+     * @throws \Symfony\Component\Console\Exception\LogicException
      */
     public function __construct($name, $cwd, ContainerInterface $dic)
     {
@@ -115,8 +117,7 @@ class EveApiRetriever extends Command implements WiringInterface
             InputOption::VALUE_REQUIRED,
             'Directory that XML will be sent to.'
         );
-        $help
-            = <<<EOF
+        $help = <<<EOF
 The <info>%command.full_name%</info> command retrieves the XML data from the Eve Api
 server and stores it in a file. By default it will put the file in the current
 working directory.
@@ -130,6 +131,7 @@ Save current server status in current directory.
 EOF;
         $this->setHelp($help);
     }
+    /** @noinspection PhpMissingParentCallCommonInspection */
     /**
      * Executes the current command.
      *
@@ -145,11 +147,53 @@ EOF;
      *
      * @throws \DomainException
      * @throws \InvalidArgumentException
+     * @throws \LogicException
      * @throws YapealException
      * @throws YapealConsoleException
+     * @throws YapealDatabaseException
      * @see    setCode()
      */
     protected function execute(InputInterface $input, OutputInterface $output)
+    {
+        $posts = $this->processPost($input);
+        $dic = $this->getDic();
+        $this->wire($dic);
+        $apiName = $input->getArgument('api_name');
+        $sectionName = $input->getArgument('section_name');
+        /**
+         * @type EventMediatorInterface $yem
+         */
+        $this->yem = $dic['Yapeal.Event.EventMediator'];
+        /**
+         * Get new Data instance from factory.
+         *
+         * @type EveApiReadWriteInterface $data
+         */
+        /** @noinspection DisconnectedForeachInstructionInspection */
+        $data = $dic['Yapeal.Xml.Data'];
+        $data->setEveApiName($apiName)
+            ->setEveApiSectionName($sectionName)
+            ->setEveApiArguments($posts);
+        foreach (['retrieve', 'preserve'] as $eventName) {
+            $this->emitEvents($data, 'Yapeal.EveApi.' . $eventName);
+        }
+        if (false === $data->getEveApiXml()) {
+            $mess = sprintf(
+                '<error>Could NOT retrieve Eve Api data for %1$s/%2$s</error>',
+                strtolower($sectionName),
+                $apiName
+            );
+            $output->writeln($mess);
+            return 2;
+        }
+        return 0;
+    }
+    /**
+     * @param InputInterface $input
+     *
+     * @return array
+     */
+    protected function processPost(InputInterface $input)
     {
         /**
          * @type array $posts
@@ -162,26 +206,8 @@ EOF;
                 $arguments[$key] = $value;
             }
             $posts = $arguments;
+            return $posts;
         }
-        $this->wire($this->getDic());
-        /**
-         * @type EveApiReadWriteInterface $data
-         */
-        $data = $this->getDic()['Yapeal.Xml.Data'];
-        $data = $data->setEveApiName($input->getArgument('api_name'))
-            ->setEveApiSectionName($input->getArgument('section_name'))
-            ->setEveApiArguments($posts);
-        $retriever = $this->getDic()['Yapeal.Network.Retriever'];
-        /**
-         * @type EveApiRetrieverInterface $retriever
-         */
-        $retriever->retrieveEveApi($data);
-        if (false !== $data->getEveApiXml()) {
-            /**
-             * @type EveApiPreserverInterface $preserver
-             */
-            $preserver = $this->getDic()['Yapeal.Xml.Preserver'];
-            $preserver->preserveEveApi($data);
-        }
+        return $posts;
     }
 }

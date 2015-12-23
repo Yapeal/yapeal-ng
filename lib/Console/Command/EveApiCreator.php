@@ -54,8 +54,8 @@ class EveApiCreator extends Command implements WiringInterface
 {
     use CommandToolsTrait, EveApiEventEmitterTrait;
     /**
-     * @param string|null $name
-     * @param string $cwd
+     * @param string|null        $name
+     * @param string             $cwd
      * @param ContainerInterface $dic
      *
      * @throws \InvalidArgumentException
@@ -114,10 +114,11 @@ lib/{EveApi, Xsd, Sql}/Char/ directories.
 EOF;
         $this->setHelp($help);
     }
+    /** @noinspection PhpMissingParentCallCommonInspection */
     /**
      * Executes the current command.
      *
-     * @param InputInterface $input An InputInterface instance
+     * @param InputInterface  $input  An InputInterface instance
      * @param OutputInterface $output An OutputInterface instance
      *
      * @return null|int null or 0 if everything went fine, or an error code
@@ -150,25 +151,12 @@ EOF;
         $data->setEveApiName($apiName)
             ->setEveApiSectionName($sectionName)
             ->setEveApiArguments($posts);
+        $data->addEveApiArgument('mask', $input->getArgument('mask'));
         foreach (['retrieve', 'create', 'transform', 'preserve'] as $eventName) {
             if (false === $this->emitEvents($data, $eventName)) {
                 return 2;
             }
         }
-        //        $subs = $this->getSubs($data, $input);
-        //        foreach (['EveApi' => 'php', 'Sql' => 'sql', 'Xsd' => 'xsd'] as $dirName => $suffix) {
-        //            $template = $this->getTemplate($suffix, $output);
-        //            $contents = $this->processTemplate($subs, $template);
-        //            $fileName = sprintf(
-        //                '%1$s/lib/%2$s/%3$s/%4$s.%5$s',
-        //                $this->getDic()['Yapeal.baseDir'],
-        //                $dirName,
-        //                ucfirst($sectionName),
-        //                $apiName,
-        //                $suffix
-        //            );
-        //            $this->saveToFile($fileName, $contents);
-        //        }
         return 0;
     }
     /**
@@ -182,15 +170,14 @@ EOF;
          * @type array $posts
          */
         $posts = (array)$input->getArgument('post');
-        if (0 !== count($posts)) {
-            $arguments = [];
-            foreach ($posts as $post) {
-                list($key, $value) = explode('=', $post);
-                $arguments[$key] = $value;
-            }
-            $posts = $arguments;
-            return $posts;
+        if (0 === count($posts)) {
+            return [];
         }
-        return $posts;
+        $arguments = [];
+        foreach ($posts as $post) {
+            list($key, $value) = explode('=', $post);
+            $arguments[$key] = $value;
+        }
+        return $arguments;
     }
 }
