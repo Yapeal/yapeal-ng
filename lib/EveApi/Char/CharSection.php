@@ -29,142 +29,47 @@
  */
 namespace Yapeal\EveApi\Char;
 
-use LogicException;
 use PDO;
 use PDOException;
-use Yapeal\EveApi\AbstractCommonEveApi;
-use Yapeal\Event\EveApiEventInterface;
-use Yapeal\Event\EventMediatorInterface;
+use Yapeal\EveApi\CommonEveApiTrait;
 use Yapeal\Log\Logger;
+use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
  * Class CharSection
  */
-class CharSection extends AbstractCommonEveApi
+class CharSection
 {
+    use CommonEveApiTrait;
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param EventMediatorInterface $yem
+     * @param EveApiReadWriteInterface $data
      *
-     * @return EveApiEventInterface
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
+     * @return array
      * @throws \LogicException
      */
-    public function preserveEveApi(EveApiEventInterface $event, $eventName, EventMediatorInterface $yem)
+    protected function getActive(EveApiReadWriteInterface $data)
     {
-        $this->setYem($yem);
-        $data = $event->getData();
-        $xml = $data->getEveApiXml();
-        $ownerID = $data->getEveApiArgument('characterID');
-        $pTo = 'preserveTo' . $data->getEveApiName();
+        $sql = $this->getCsq()
+            ->getActiveRegisteredCharacters($this->getMask());
         $this->getYem()
-             ->triggerLogEvent(
-                 'Yapeal.Log.log',
-                 Logger::DEBUG,
-                 $this->getReceivedEventMessage($data, $eventName, __CLASS__)
-             );
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
         try {
-            $this->getPdo()
-                 ->beginTransaction();
-            $this->{$pTo}($xml, $ownerID);
-            $this->getPdo()
-                 ->commit();
-        } catch (PDOException $exc) {
-            $mess = sprintf(
-                'Failed to upsert data from Eve API %1$s/%2$s for %3$s',
-                ucfirst($data->getEveApiSectionName()),
-                $data->getEveApiName(),
-                $ownerID
-            );
-            $this->getYem()
-                 ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $mess, ['exception' => $exc]);
-            $this->getPdo()
-                 ->rollBack();
-            return $event;
-        }
-        return $event->setHandledSufficiently();
-    }
-    /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param EventMediatorInterface $yem
-     *
-     * @return EveApiEventInterface
-     * @throws LogicException
-     */
-    public function startEveApi(EveApiEventInterface $event, $eventName, EventMediatorInterface $yem)
-    {
-        $this->setYem($yem);
-        $data = $event->getData();
-        $this->getYem()
-             ->triggerLogEvent(
-                 'Yapeal.Log.log',
-                 Logger::DEBUG,
-                 $this->getReceivedEventMessage($data, $eventName, __CLASS__)
-             );
-        $active = $this->getActive();
-        if (0 === count($active)) {
-            $mess = 'No active characters found';
-            $this->getYem()
-                 ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess);
-            return $this->getYem()
-                        ->triggerEveApiEvent('Yapeal.EveApi.end', $data);
-        }
-        $untilInterval = $data->getCacheInterval();
-        foreach ($active as $key) {
-            $ownerID = $key['characterID'];
-            if ($this->cacheNotExpired($data->getEveApiName(), $data->getEveApiSectionName(), $ownerID)) {
-                continue;
-            }
-            // Set arguments, reset interval, and clear xml data.
-            $data->setEveApiArguments($key)
-                 ->setCacheInterval($untilInterval)
-                 ->setEveApiXml();
-            if (!$this->oneShot($data)) {
-                continue;
-            }
-            $this->updateCachedUntil($data, $ownerID);
-        }
-        return $this->getYem()
-                    ->triggerEveApiEvent('Yapeal.EveApi.end', $data);
-    }
-    /**
-     * @return array
-     * @throws LogicException
-     */
-    protected function getActive()
-    {
-        $sql =
-            $this->getCsq()
-                 ->getActiveRegisteredCharacters($this->getMask());
-        $this->getYem()
-             ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
-        try {
-            $stmt =
-                $this->getPdo()
-                     ->query($sql);
+            /**
+             * @type \PDOStatement $stmt
+             */
+            $stmt = $this->getPdo()
+                ->query($sql);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $exc) {
-            $mess = 'Could NOT get a list of active characters';
+            $mess = 'Could NOT get a list of active owners for';
             $this->getYem()
-                 ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $mess);
-            $mess = 'Database error message was ' . $exc->getMessage();
-            $this->getYem()
-                 ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $mess);
+                ->triggerLogEvent(
+                    'Yapeal.Log.log',
+                    Logger::WARNING,
+                    $this->createEveApiMessage($mess, $data),
+                    ['exception' => $exc]
+                );
             return [];
         }
     }
-    /**
-     * @return int
-     */
-    protected function getMask()
-    {
-        return $this->mask;
-    }
-    /**
-     * @type int $mask
-     */
-    protected $mask;
 }

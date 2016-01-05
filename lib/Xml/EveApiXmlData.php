@@ -53,6 +53,9 @@ class EveApiXmlData implements EveApiReadWriteInterface
      */
     public function addEveApiArgument($name, $value)
     {
+        if (null === $value) {
+            return $this;
+        }
         if (!is_string($name)) {
             $mess = 'Name MUST be string but given ' . gettype($name);
             throw new InvalidArgumentException($mess);

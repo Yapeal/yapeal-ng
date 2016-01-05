@@ -33,10 +33,8 @@
  */
 namespace Yapeal\EveApi;
 
-use EventMediator\ContainerMediatorInterface;
 use LogicException;
 use PDO;
-use Yapeal\Event\EventMediatorInterface;
 use Yapeal\Sql\CommonSqlQueries;
 
 /**

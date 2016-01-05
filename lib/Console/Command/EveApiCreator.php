@@ -42,7 +42,7 @@ use Yapeal\Configuration\WiringInterface;
 use Yapeal\Console\CommandToolsTrait;
 use Yapeal\Container\ContainerInterface;
 use Yapeal\Event\EveApiEventEmitterTrait;
-use Yapeal\Event\EventMediatorInterface;
+use Yapeal\Event\MediatorInterface;
 use Yapeal\Exception\YapealDatabaseException;
 use Yapeal\Exception\YapealException;
 use Yapeal\Xml\EveApiReadWriteInterface;
@@ -139,9 +139,9 @@ EOF;
         $apiName = $input->getArgument('api_name');
         $sectionName = $input->getArgument('section_name');
         /**
-         * @type EventMediatorInterface $yem
+         * @type MediatorInterface $yem
          */
-        $this->yem = $dic['Yapeal.Event.EventMediator'];
+        $this->yem = $dic['Yapeal.Event.Mediator'];
         /**
          * Get new Data instance from factory.
          *
@@ -152,7 +152,7 @@ EOF;
             ->setEveApiSectionName($sectionName)
             ->setEveApiArguments($posts);
         $data->addEveApiArgument('mask', $input->getArgument('mask'));
-        foreach (['retrieve', 'create', 'transform', 'preserve'] as $eventName) {
+        foreach (['retrieve', 'create', 'transform', 'validate', 'preserve'] as $eventName) {
             if (false === $this->emitEvents($data, $eventName)) {
                 return 2;
             }

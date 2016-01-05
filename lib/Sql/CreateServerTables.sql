@@ -5,4 +5,5 @@ CREATE TABLE "{database}"."{table_prefix}serverServerStatus" (
     PRIMARY KEY ("serverName")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;

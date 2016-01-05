@@ -5,7 +5,8 @@ CREATE TABLE "{database}"."{table_prefix}apiCallGroups" (
     PRIMARY KEY ("groupID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}apiCalls" (
     "accessMask"  BIGINT(20) UNSIGNED             NOT NULL,
     "description" TEXT                            NOT NULL,
@@ -15,4 +16,5 @@ CREATE TABLE "{database}"."{table_prefix}apiCalls" (
     PRIMARY KEY ("accessMask","type")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;

@@ -35,7 +35,7 @@
 namespace Yapeal\Xsl;
 
 use Yapeal\Event\EveApiEventInterface;
-use Yapeal\Event\EventMediatorInterface;
+use Yapeal\Event\MediatorInterface;
 
 /**
  * Interface Transformer.
@@ -43,14 +43,14 @@ use Yapeal\Event\EventMediatorInterface;
 interface TransformerInterface
 {
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param EventMediatorInterface $yem
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
-    public function transformEveApi(EveApiEventInterface $event, $eventName, EventMediatorInterface $yem);
+    public function transformEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem);
 }

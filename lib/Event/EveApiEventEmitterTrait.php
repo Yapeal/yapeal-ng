@@ -46,11 +46,11 @@ trait EveApiEventEmitterTrait
 {
     use MessageBuilderTrait;
     /**
-     * @param EventMediatorInterface $value
+     * @param MediatorInterface $value
      *
      * @return self Fluent interface.
      */
-    public function setYem(EventMediatorInterface $value)
+    public function setYem(MediatorInterface $value)
     {
         $this->yem = $value;
         return $this;
@@ -65,8 +65,8 @@ trait EveApiEventEmitterTrait
      */
     protected function emitEvents(EveApiReadWriteInterface $data, $eventSuffix, $eventPrefix = 'Yapeal.EveApi')
     {
-        // Yapeal.EveApi.Section.Api.Suffix, Yapeal.EveApi.Api.Suffix,
-        // Yapeal.EveApi.Section.Suffix, Yapeal.EveApi.Suffix
+        // Prefix.Section.Api.Suffix, Prefix.Api.Suffix,
+        // Prefix.Section.Suffix, Prefix.Suffix
         $eventNames = explode(
             ',',
             sprintf(
@@ -91,7 +91,7 @@ trait EveApiEventEmitterTrait
                         Logger::INFO,
                         $this->getSufficientlyHandledEventMessage($data, $eventName)
                     );
-                continue;
+                break;
             }
         }
         if (null === $event || !$event->isSufficientlyHandled()) {
@@ -106,7 +106,7 @@ trait EveApiEventEmitterTrait
         return true;
     }
     /**
-     * @return EventMediatorInterface
+     * @return MediatorInterface
      * @throws LogicException
      */
     protected function getYem()
@@ -118,7 +118,7 @@ trait EveApiEventEmitterTrait
         return $this->yem;
     }
     /**
-     * @type EventMediatorInterface $yem
+     * @type MediatorInterface $yem
      */
     protected $yem;
 }

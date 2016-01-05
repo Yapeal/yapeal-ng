@@ -39,7 +39,7 @@ use tidy;
 use XSLTProcessor;
 use Yapeal\Event\EveApiEventEmitterTrait;
 use Yapeal\Event\EveApiEventInterface;
-use Yapeal\Event\EventMediatorInterface;
+use Yapeal\Event\MediatorInterface;
 use Yapeal\FileSystem\RelativeFileSearchTrait;
 use Yapeal\Log\Logger;
 use Yapeal\Xml\EveApiReadWriteInterface;
@@ -72,16 +72,16 @@ class Transformer implements TransformerInterface
         return $this;
     }
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param EventMediatorInterface $yem
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
-    public function transformEveApi(EveApiEventInterface $event, $eventName, EventMediatorInterface $yem)
+    public function transformEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
     {
         $this->setYem($yem);
         $data = $event->getData();
@@ -151,7 +151,7 @@ class Transformer implements TransformerInterface
     protected function getXslDir()
     {
         if (null === $this->xslDir) {
-            $this->xslDir = __DIR__;
+            $this->xslDir = __DIR__ .'/';
         }
         return $this->xslDir;
     }

@@ -43,6 +43,30 @@ trait MessageBuilderTrait
     /**
      * @param string                   $messagePrefix
      * @param EveApiReadWriteInterface $data
+     *
+     * @return string
+     * @throws \LogicException
+     */
+    protected function createEveApiMessage($messagePrefix, EveApiReadWriteInterface $data)
+    {
+        $mess = $messagePrefix . ' Eve API %1$s/%2$s';
+        $subs = [lcfirst($data->getEveApiSectionName()), $data->getEveApiName()];
+        if ($data->hasEveApiArgument('keyID')) {
+            $mess .= ' for keyID = %3$s';
+            $subs[] = $data->getEveApiArgument('keyID');
+            if ($data->hasEveApiArgument('characterID')) {
+                $mess .= ' and characterID = %4$s';
+                $subs[] = $data->getEveApiArgument('characterID');
+            } elseif ($data->hasEveApiArgument('corporationID')) {
+                $mess .= ' and corporationID = %4$s';
+                $subs[] = $data->getEveApiArgument('corporationID');
+            }
+        }
+        return vsprintf($mess, $subs);
+    }
+    /**
+     * @param string                   $messagePrefix
+     * @param EveApiReadWriteInterface $data
      * @param string                   $eventName
      *
      * @return string
@@ -50,20 +74,8 @@ trait MessageBuilderTrait
      */
     protected function createEventMessage($messagePrefix, EveApiReadWriteInterface $data, $eventName)
     {
-        $mess = $messagePrefix . ' %3$s event of Eve API %1$s/%2$s';
-        $subs = [lcfirst($data->getEveApiSectionName()), $data->getEveApiName(), $eventName];
-        if ($data->hasEveApiArgument('keyID')) {
-            $mess .= ' for keyID = %4$s';
-            $subs[] = $data->getEveApiArgument('keyID');
-            if ($data->hasEveApiArgument('characterID')) {
-                $mess .= ' and characterID = %5$s';
-                $subs[] = $data->getEveApiArgument('characterID');
-            } elseif ($data->hasEveApiArgument('corporationID')) {
-                $mess .= ' and corporationID = %5$s';
-                $subs[] = $data->getEveApiArgument('corporationID');
-            }
-        }
-        return vsprintf($mess, $subs);
+        $messagePrefix .= sprintf(' %s event from', $eventName);
+        return $this->createEveApiMessage($messagePrefix, $data);
     }
     /**
      * @param EveApiReadWriteInterface $data
@@ -74,7 +86,7 @@ trait MessageBuilderTrait
      */
     protected function getEmittingEventMessage(EveApiReadWriteInterface $data, $eventName)
     {
-        $messagePrefix = 'Emitting:';
+        $messagePrefix = 'Emitting';
         return $this->createEventMessage($messagePrefix, $data, $eventName);
     }
     /**
@@ -86,7 +98,7 @@ trait MessageBuilderTrait
      */
     protected function getEmptyXmlDataMessage(EveApiReadWriteInterface $data, $eventName)
     {
-        $messagePrefix = 'XML empty after:';
+        $messagePrefix = 'XML empty after';
         return $this->createEventMessage($messagePrefix, $data, $eventName);
     }
     /**
@@ -99,7 +111,7 @@ trait MessageBuilderTrait
      */
     protected function getFailedToWriteFile(EveApiReadWriteInterface $data, $eventName, $fileName)
     {
-        $messagePrefix = sprintf('Failed writing %s file during:', $fileName);
+        $messagePrefix = sprintf('Failed writing %s file during', $fileName);
         return $this->createEventMessage($messagePrefix, $data, $eventName);
     }
     /**
@@ -111,7 +123,7 @@ trait MessageBuilderTrait
      */
     protected function getFinishedEventMessage(EveApiReadWriteInterface $data, $eventName)
     {
-        $messagePrefix = 'Finished:';
+        $messagePrefix = 'Finished';
         return $this->createEventMessage($messagePrefix, $data, $eventName);
     }
     /**
@@ -123,7 +135,7 @@ trait MessageBuilderTrait
      */
     protected function getNonHandledEventMessage(EveApiReadWriteInterface $data, $eventName)
     {
-        $messagePrefix = 'Nothing reported handling:';
+        $messagePrefix = 'Nothing reported handling';
         return $this->createEventMessage($messagePrefix, $data, $eventName);
     }
     /**
@@ -136,7 +148,7 @@ trait MessageBuilderTrait
      */
     protected function getReceivedEventMessage(EveApiReadWriteInterface $data, $eventName, $location)
     {
-        $messagePrefix = sprintf('Received in %s:', $location);
+        $messagePrefix = sprintf('Received in %s', $location);
         return $this->createEventMessage($messagePrefix, $data, $eventName);
     }
     /**
@@ -148,7 +160,7 @@ trait MessageBuilderTrait
      */
     protected function getSufficientlyHandledEventMessage(EveApiReadWriteInterface $data, $eventName)
     {
-        $messagePrefix = 'Sufficiently handled:';
+        $messagePrefix = 'Sufficiently handled';
         return $this->createEventMessage($messagePrefix, $data, $eventName);
     }
 }

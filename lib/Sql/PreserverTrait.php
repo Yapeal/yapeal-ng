@@ -41,18 +41,7 @@ use Yapeal\Log\Logger;
  */
 trait PreserverTrait
 {
-    /**
-     * @return \Yapeal\Sql\CommonSqlQueries
-     */
-    abstract protected function getCsq();
-    /**
-     * @return \PDO
-     */
-    abstract protected function getPdo();
-    /**
-     * @return \Yapeal\Event\EventMediatorInterface
-     */
-    abstract protected function getYem();
+    /** @noinspection MoreThanThreeArgumentsInspection */
     /**
      * @param string $xml
      * @param array  $columnDefaults
@@ -75,12 +64,11 @@ trait PreserverTrait
         $columnNames = array_keys($columnDefaults);
         foreach ($rowChunks as $chunk) {
             $columns = $this->processXmlRows($columnDefaults, $chunk);
-            $sql =
-                $this->getCsq()
-                     ->getUpsert($tableName, $columnNames, count($chunk));
+            $sql = $this->getCsq()
+                ->getUpsert($tableName, $columnNames, count($chunk));
             $mess = preg_replace('/(,\(\?(?:,\?)*\))+/', ',...', $sql);
             $this->getYem()
-                 ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess);
+                ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess);
             $this->flush($columns, $columnNames, $tableName);
         }
         return $this;
@@ -103,22 +91,32 @@ trait PreserverTrait
         $rowCount = count($columns) / count($columnNames);
         $mess = sprintf('Have %1$s row(s) to upsert into %2$s table', $rowCount, $tableName);
         $this->getYem()
-             ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess);
-        $sql =
-            $this->getCsq()
-                 ->getUpsert($tableName, $columnNames, $rowCount);
+            ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess);
+        $sql = $this->getCsq()
+            ->getUpsert($tableName, $columnNames, $rowCount);
         $mess = preg_replace('/(,\(\?(?:,\?)*\))+/', ',...', $sql);
         $this->getYem()
-             ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess);
+            ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess);
         $mess = substr(implode(',', $columns), 0, 255);
         $this->getYem()
-             ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $mess);
-        $stmt =
-            $this->getPdo()
-                 ->prepare($sql);
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $mess);
+        $stmt = $this->getPdo()
+            ->prepare($sql);
         $stmt->execute($columns);
         return $this;
     }
+    /**
+     * @return \Yapeal\Sql\CommonSqlQueries
+     */
+    abstract protected function getCsq();
+    /**
+     * @return \PDO
+     */
+    abstract protected function getPdo();
+    /**
+     * @return \Yapeal\Event\MediatorInterface
+     */
+    abstract protected function getYem();
     /**
      * @param array               $columnDefaults
      * @param SimpleXMLIterator[] $rows
@@ -143,6 +141,7 @@ trait PreserverTrait
         }
         return $columns;
     }
+    /** @noinspection MoreThanThreeArgumentsInspection */
     /**
      * @param string $xml
      * @param array  $columnDefaults
@@ -169,10 +168,6 @@ trait PreserverTrait
                 $columnDefaults[$columnName] = (string)$column;
             }
         }
-        $this->flush(
-            array_values($columnDefaults),
-            array_keys($columnDefaults),
-            $tableName
-        );
+        $this->flush(array_values($columnDefaults), array_keys($columnDefaults), $tableName);
     }
 }

@@ -46,7 +46,7 @@ use Yapeal\Configuration\WiringInterface;
 use Yapeal\Console\CommandToolsTrait;
 use Yapeal\Container\ContainerInterface;
 use Yapeal\Event\EveApiEventEmitterTrait;
-use Yapeal\Event\EventMediatorInterface;
+use Yapeal\Event\MediatorInterface;
 use Yapeal\Exception\YapealConsoleException;
 use Yapeal\Exception\YapealDatabaseException;
 use Yapeal\Exception\YapealException;
@@ -161,9 +161,9 @@ EOF;
         $apiName = $input->getArgument('api_name');
         $sectionName = $input->getArgument('section_name');
         /**
-         * @type EventMediatorInterface $yem
+         * @type MediatorInterface $yem
          */
-        $this->yem = $dic['Yapeal.Event.EventMediator'];
+        $this->yem = $dic['Yapeal.Event.Mediator'];
         /**
          * Get new Data instance from factory.
          *
@@ -175,7 +175,7 @@ EOF;
             ->setEveApiSectionName($sectionName)
             ->setEveApiArguments($posts);
         foreach (['retrieve', 'preserve'] as $eventName) {
-            $this->emitEvents($data, 'Yapeal.EveApi.' . $eventName);
+            $this->emitEvents($data, $eventName);
         }
         if (false === $data->getEveApiXml()) {
             $mess = sprintf(

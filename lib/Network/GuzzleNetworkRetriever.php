@@ -38,7 +38,7 @@ use GuzzleHttp\Exception\RequestException;
 use LogicException;
 use Yapeal\Event\EveApiEventEmitterTrait;
 use Yapeal\Event\EveApiEventInterface;
-use Yapeal\Event\EventMediatorInterface;
+use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
 use Yapeal\Xml\EveApiRetrieverInterface;
 
@@ -59,14 +59,14 @@ class GuzzleNetworkRetriever implements EveApiRetrieverInterface
         $this->setClient($client);
     }
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param EventMediatorInterface $yem
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
      * @throws LogicException
      */
-    public function retrieveEveApi(EveApiEventInterface $event, $eventName, EventMediatorInterface $yem)
+    public function retrieveEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
     {
         $data = $event->getData();
         $yem->triggerLogEvent(
@@ -79,7 +79,7 @@ class GuzzleNetworkRetriever implements EveApiRetrieverInterface
             $response = $this->getClient()
                 ->post($uri, ['form_params' => $data->getEveApiArguments()]);
         } catch (RequestException $exc) {
-            $messagePrefix = 'Could NOT retrieve XML data during:';
+            $messagePrefix = 'Could NOT retrieve XML data during';
             $yem->triggerLogEvent(
                 'Yapeal.Log.log',
                 Logger::DEBUG,
@@ -90,7 +90,7 @@ class GuzzleNetworkRetriever implements EveApiRetrieverInterface
         }
         $body = (string)$response->getBody();
         if ('' === $body) {
-            $messagePrefix = 'Received empty body during:';
+            $messagePrefix = 'Received empty body during';
             $yem->triggerLogEvent(
                 'Yapeal.Log.log',
                 Logger::NOTICE,

@@ -6,13 +6,15 @@ CREATE TABLE "{database}"."{table_prefix}utilCachedUntil" (
     PRIMARY KEY ("apiName","ownerID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}utilDatabaseVersion" (
     "version" CHAR(12) NOT NULL,
     PRIMARY KEY ("version")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 INSERT INTO "{database}"."{table_prefix}utilDatabaseVersion" ("version")
 VALUES
     ('201507202210');
@@ -25,7 +27,8 @@ CREATE TABLE "{database}"."{table_prefix}utilEveApi" (
     PRIMARY KEY ("apiName","sectionName")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 START TRANSACTION;
 INSERT INTO "{database}"."{table_prefix}utilEveApi" ("sectionName","apiName","mask","interval","active")
 VALUES
@@ -118,7 +121,8 @@ CREATE TABLE "{database}"."{table_prefix}utilRegisteredKey" (
     PRIMARY KEY ("keyID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 INSERT INTO "{database}"."{table_prefix}utilRegisteredKey" ("activeAPIMask","active","keyID","vCode")
 VALUES
     (8388608,1,1156,'abc123');
@@ -130,7 +134,8 @@ CREATE TABLE "{database}"."{table_prefix}utilRegisteredUploader" (
     PRIMARY KEY ("ownerID","uploadDestinationID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}utilUploadDestination" (
     "active"              TINYINT(1)   DEFAULT NULL,
     "name"                VARCHAR(25)  DEFAULT NULL,
@@ -139,7 +144,8 @@ CREATE TABLE "{database}"."{table_prefix}utilUploadDestination" (
     PRIMARY KEY ("uploadDestinationID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}utilXmlCache" (
     "apiName"     CHAR(32)  NOT NULL,
     "hash"        CHAR(40)  NOT NULL,
@@ -149,6 +155,7 @@ CREATE TABLE "{database}"."{table_prefix}utilXmlCache" (
     PRIMARY KEY ("hash")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 ALTER TABLE "{database}"."{table_prefix}utilXmlCache" ADD INDEX "utilXmlCache1" ("sectionName");
 ALTER TABLE "{database}"."{table_prefix}utilXmlCache" ADD INDEX "utilXmlCache2" ("apiName");

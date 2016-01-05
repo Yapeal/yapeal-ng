@@ -37,7 +37,7 @@ use DOMDocument;
 use SimpleXMLElement;
 use Yapeal\Event\EveApiEventEmitterTrait;
 use Yapeal\Event\EveApiEventInterface;
-use Yapeal\Event\EventMediatorInterface;
+use Yapeal\Event\MediatorInterface;
 use Yapeal\FileSystem\RelativeFileSearchTrait;
 use Yapeal\Log\Logger;
 use Yapeal\Xml\EveApiReadWriteInterface;
@@ -51,38 +51,35 @@ class Validator
     /**
      * Constructor.
      *
-     * @param null /string $xsdDir
+     * @param string $dir
      */
-    public function __construct($xsdDir = null)
+    public function __construct($dir = __DIR__)
     {
-        $this->setXsdDir($xsdDir);
+        $this->setDir($dir);
     }
     /**
      * Fluent interface setter for $xsdDir.
      *
-     * @param null|string $value
+     * @param string $value
      *
      * @return self Fluent interface.
      */
-    public function setXsdDir($value = null)
+    public function setDir($value)
     {
-        if (null === $value) {
-            $value = __DIR__;
-        }
-        $this->xsdDir = (string)$value;
+        $this->dir = (string)$value;
         return $this;
     }
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param EventMediatorInterface $yem
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
-    public function validateEveApi(EveApiEventInterface $event, $eventName, EventMediatorInterface $yem)
+    public function validateEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
     {
         $this->setYem($yem);
         $data = $event->getData();
@@ -92,7 +89,7 @@ class Validator
                 Logger::DEBUG,
                 $this->getReceivedEventMessage($data, $eventName, __CLASS__)
             );
-        $fileName = $this->setRelativeBaseDir($this->getXsdDir())
+        $fileName = $this->setRelativeBaseDir($this->getDir())
             ->findEveApiFile($data->getEveApiSectionName(), $data->getEveApiName(), 'xsd');
         if ('' === $fileName) {
             return $event;
@@ -111,10 +108,10 @@ class Validator
         }
         libxml_clear_errors();
         libxml_use_internal_errors($oldErrors);
-        if (false !== strpos($data->getEveApiXml(), '<error')) {
+        if (false !== strpos($data->getEveApiXml(), '<error ')) {
             $data = $this->processEveApiXmlError($data, $yem);
             $event->setData($data);
-            $this->emitEvents($data, 'xmlError');
+            $this->emitEvents($data, 'error', 'Yapeal.Xml');
         }
         return $event->eventHandled();
     }
@@ -123,13 +120,13 @@ class Validator
      *
      * @return null|string
      */
-    protected function getXsdDir()
+    protected function getDir()
     {
-        return $this->xsdDir;
+        return $this->dir;
     }
     /**
      * @param EveApiReadWriteInterface $data
-     * @param EventMediatorInterface   $yem
+     * @param MediatorInterface        $yem
      *
      * @return EveApiReadWriteInterface
      * @throws \DomainException
@@ -138,46 +135,40 @@ class Validator
      */
     protected function processEveApiXmlError(
         EveApiReadWriteInterface $data,
-        EventMediatorInterface $yem
+        MediatorInterface $yem
     ) {
         $simple = new SimpleXMLElement($data->getEveApiXml());
+        /** @noinspection PhpUndefinedFieldInspection */
         if (empty($simple->error[0]['code'])) {
             return $data;
         }
+        /** @noinspection PhpUndefinedFieldInspection */
         $code = (int)$simple->error[0]['code'];
-        $mess = sprintf(
-            'Eve Error (%3$s): Received from API %1$s/%2$s - %4$s',
-            $data->getEveApiSectionName(),
-            $data->getEveApiName(),
-            $code,
-            (string)$simple->error[0]
-        );
-        if ($data->hasEveApiArgument('keyID')) {
-            $mess .= ' for keyID = ' . $data->getEveApiArgument('keyID');
-        }
+        /** @noinspection PhpUndefinedFieldInspection */
+        $mess = sprintf('Received XML error (%1$s) - %2$s from', $code, (string)$simple->error[0]);
         if ($code < 200) {
             if (strpos($mess, 'retry after') !== false) {
                 $data->setCacheInterval(strtotime(substr($mess, -19) . '+00:00') - time());
             }
-            $yem->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $mess);
+            $yem->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $this->createEveApiMessage($mess, $data));
             return $data;
         }
         if ($code < 300) {
-            $yem->triggerLogEvent('Yapeal.Log.log', Logger::ERROR, $mess);
+            $yem->triggerLogEvent('Yapeal.Log.log', Logger::ERROR, $this->createEveApiMessage($mess, $data));
             return $data->setCacheInterval(86400);
         }
         if ($code > 903 && $code < 905) {
             // Major application or Yapeal error.
-            $yem->triggerLogEvent('Yapeal.Log.log', Logger::ALERT, $mess);
+            $yem->triggerLogEvent('Yapeal.Log.log', Logger::ALERT, $this->createEveApiMessage($mess, $data));
             return $data->setCacheInterval(86400);
         }
-        $yem->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $mess);
+        $yem->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $this->createEveApiMessage($mess, $data));
         return $data->setCacheInterval(300);
     }
     /**
      * Holds base directory path for XSDs.
      *
-     * @type string $xsdDir
+     * @type string $dir
      */
-    protected $xsdDir;
+    protected $dir;
 }

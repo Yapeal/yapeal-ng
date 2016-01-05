@@ -6,7 +6,8 @@ CREATE TABLE "{database}"."{table_prefix}charAccountBalance" (
     PRIMARY KEY ("ownerID","accountKey")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charAllianceContactLabels" (
     "ownerID" BIGINT(20) UNSIGNED NOT NULL,
     "labelID" BIGINT(20) UNSIGNED NOT NULL,
@@ -14,7 +15,8 @@ CREATE TABLE "{database}"."{table_prefix}charAllianceContactLabels" (
     PRIMARY KEY ("ownerID","labelID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charAllianceContactList" (
     "ownerID"       BIGINT(20) UNSIGNED NOT NULL,
     "contactID"     BIGINT(20) UNSIGNED NOT NULL,
@@ -25,7 +27,8 @@ CREATE TABLE "{database}"."{table_prefix}charAllianceContactList" (
     PRIMARY KEY ("ownerID","contactID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charAssetList" (
     "ownerID"     BIGINT(20) UNSIGNED  NOT NULL,
     "flag"        SMALLINT(5) UNSIGNED NOT NULL,
@@ -41,7 +44,8 @@ CREATE TABLE "{database}"."{table_prefix}charAssetList" (
     PRIMARY KEY ("ownerID","itemID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 ALTER TABLE "{database}"."{table_prefix}charAssetList" ADD INDEX "charAssetList1"  ("lft");
 ALTER TABLE "{database}"."{table_prefix}charAssetList" ADD INDEX "charAssetList2"  ("locationID");
 CREATE TABLE "{database}"."{table_prefix}charAttackers" (
@@ -62,7 +66,8 @@ CREATE TABLE "{database}"."{table_prefix}charAttackers" (
     PRIMARY KEY ("killID","characterID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charAttributes" (
     "charisma"     TINYINT(2) UNSIGNED NOT NULL,
     "intelligence" TINYINT(2) UNSIGNED NOT NULL,
@@ -73,7 +78,8 @@ CREATE TABLE "{database}"."{table_prefix}charAttributes" (
     PRIMARY KEY ("ownerID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charBlueprints" (
     "ownerID"            BIGINT(20) UNSIGNED NOT NULL,
     "itemID"             BIGINT(20) UNSIGNED NOT NULL,
@@ -88,7 +94,8 @@ CREATE TABLE "{database}"."{table_prefix}charBlueprints" (
     PRIMARY KEY ("ownerID","itemID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charCalendarEventAttendees" (
     "ownerID"       BIGINT(20) UNSIGNED NOT NULL,
     "characterID"   BIGINT(20) UNSIGNED NOT NULL,
@@ -97,14 +104,16 @@ CREATE TABLE "{database}"."{table_prefix}charCalendarEventAttendees" (
     PRIMARY KEY ("ownerID","characterID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charCertificates" (
     "ownerID"       BIGINT(20) UNSIGNED NOT NULL,
     "certificateID" BIGINT(20) UNSIGNED NOT NULL,
     PRIMARY KEY ("ownerID","certificateID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charCharacterSheet" (
     "allianceID"        BIGINT(20) UNSIGNED          DEFAULT 0,
     "allianceName"      CHAR(50)                     DEFAULT '',
@@ -135,7 +144,8 @@ CREATE TABLE "{database}"."{table_prefix}charCharacterSheet" (
     PRIMARY KEY ("characterID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charContactLabels" (
     "ownerID" BIGINT(20) UNSIGNED NOT NULL,
     "labelID" BIGINT(20) UNSIGNED NOT NULL,
@@ -143,7 +153,8 @@ CREATE TABLE "{database}"."{table_prefix}charContactLabels" (
     PRIMARY KEY ("ownerID","labelID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charContactList" (
     "ownerID"       BIGINT(20) UNSIGNED NOT NULL,
     "contactID"     BIGINT(20) UNSIGNED NOT NULL,
@@ -155,7 +166,8 @@ CREATE TABLE "{database}"."{table_prefix}charContactList" (
     PRIMARY KEY ("ownerID","contactID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charContactNotifications" (
     "ownerID"        BIGINT(20) UNSIGNED NOT NULL,
     "notificationID" BIGINT(20) UNSIGNED NOT NULL,
@@ -166,7 +178,8 @@ CREATE TABLE "{database}"."{table_prefix}charContactNotifications" (
     PRIMARY KEY ("ownerID","notificationID","senderID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charContracts" (
     "acceptorID"     BIGINT(20) UNSIGNED    NOT NULL,
     "assigneeID"     BIGINT(20) UNSIGNED    NOT NULL,
@@ -194,7 +207,8 @@ CREATE TABLE "{database}"."{table_prefix}charContracts" (
     PRIMARY KEY ("ownerID","contractID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charContractItems" (
     "contractID"  BIGINT(20) UNSIGNED NOT NULL,
     "included"    TINYINT(1) UNSIGNED NOT NULL,
@@ -206,7 +220,8 @@ CREATE TABLE "{database}"."{table_prefix}charContractItems" (
     PRIMARY KEY ("contractID","recordID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charContractBids" (
     "amount"     DECIMAL(17,2)       NOT NULL,
     "bidID"      BIGINT(20) UNSIGNED NOT NULL,
@@ -216,7 +231,8 @@ CREATE TABLE "{database}"."{table_prefix}charContractBids" (
     PRIMARY KEY ("contractID","bidID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charCorporateContactLabels" (
     "ownerID" BIGINT(20) UNSIGNED NOT NULL,
     "labelID" BIGINT(20) UNSIGNED NOT NULL,
@@ -224,7 +240,8 @@ CREATE TABLE "{database}"."{table_prefix}charCorporateContactLabels" (
     PRIMARY KEY ("ownerID","labelID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charCorporateContactList" (
     "ownerID"       BIGINT(20) UNSIGNED NOT NULL,
     "contactID"     BIGINT(20) UNSIGNED NOT NULL,
@@ -235,7 +252,8 @@ CREATE TABLE "{database}"."{table_prefix}charCorporateContactList" (
     PRIMARY KEY ("ownerID","contactID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charCorporationRoles" (
     "ownerID"  BIGINT(20) UNSIGNED NOT NULL,
     "roleID"   BIGINT(20) UNSIGNED NOT NULL,
@@ -243,7 +261,8 @@ CREATE TABLE "{database}"."{table_prefix}charCorporationRoles" (
     PRIMARY KEY ("ownerID","roleID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charCorporationRolesAtBase" (
     "ownerID"  BIGINT(20) UNSIGNED NOT NULL,
     "roleID"   BIGINT(20) UNSIGNED NOT NULL,
@@ -251,7 +270,8 @@ CREATE TABLE "{database}"."{table_prefix}charCorporationRolesAtBase" (
     PRIMARY KEY ("ownerID","roleID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charCorporationRolesAtHQ" (
     "ownerID"  BIGINT(20) UNSIGNED NOT NULL,
     "roleID"   BIGINT(20) UNSIGNED NOT NULL,
@@ -259,7 +279,8 @@ CREATE TABLE "{database}"."{table_prefix}charCorporationRolesAtHQ" (
     PRIMARY KEY ("ownerID","roleID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charCorporationRolesAtOther" (
     "ownerID"  BIGINT(20) UNSIGNED NOT NULL,
     "roleID"   BIGINT(20) UNSIGNED NOT NULL,
@@ -267,7 +288,8 @@ CREATE TABLE "{database}"."{table_prefix}charCorporationRolesAtOther" (
     PRIMARY KEY ("ownerID","roleID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charCorporationTitles" (
     "ownerID"   BIGINT(20) UNSIGNED NOT NULL,
     "titleID"   BIGINT(20) UNSIGNED NOT NULL,
@@ -275,7 +297,8 @@ CREATE TABLE "{database}"."{table_prefix}charCorporationTitles" (
     PRIMARY KEY ("ownerID","titleID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charFacWarStats" (
     "ownerID"                BIGINT(20) UNSIGNED NOT NULL,
     "factionID"              BIGINT(20) UNSIGNED NOT NULL,
@@ -292,7 +315,8 @@ CREATE TABLE "{database}"."{table_prefix}charFacWarStats" (
     PRIMARY KEY ("ownerID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 ALTER TABLE "{database}"."{table_prefix}charFacWarStats" ADD INDEX "charFacWarStats1"  ("factionID");
 CREATE TABLE "{database}"."{table_prefix}charImplants" (
     "ownerID"  BIGINT(20) UNSIGNED NOT NULL,
@@ -301,7 +325,8 @@ CREATE TABLE "{database}"."{table_prefix}charImplants" (
     PRIMARY KEY ("ownerID","typeID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charIndustryJobs" (
     "ownerID"              BIGINT(20) UNSIGNED NOT NULL,
     "activityID"           TINYINT(2) UNSIGNED NOT NULL,
@@ -335,7 +360,8 @@ CREATE TABLE "{database}"."{table_prefix}charIndustryJobs" (
     PRIMARY KEY ("ownerID","jobID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charItems" (
     "flag"         SMALLINT(5) UNSIGNED NOT NULL,
     "killID"       BIGINT(20) UNSIGNED  NOT NULL,
@@ -349,7 +375,8 @@ CREATE TABLE "{database}"."{table_prefix}charItems" (
     PRIMARY KEY ("killID","lft")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charJumpCloneImplants" (
     "jumpCloneID" BIGINT(20) UNSIGNED NOT NULL,
     "ownerID"     BIGINT(20) UNSIGNED NOT NULL,
@@ -358,7 +385,8 @@ CREATE TABLE "{database}"."{table_prefix}charJumpCloneImplants" (
     PRIMARY KEY ("ownerID","jumpCloneID","typeID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charJumpClones" (
     "jumpCloneID" BIGINT(20) UNSIGNED NOT NULL,
     "locationID"  BIGINT(20) UNSIGNED NOT NULL,
@@ -368,7 +396,8 @@ CREATE TABLE "{database}"."{table_prefix}charJumpClones" (
     PRIMARY KEY ("ownerID","jumpCloneID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charKillMails" (
     "killID"        BIGINT(20) UNSIGNED NOT NULL,
     "killTime"      DATETIME            NOT NULL,
@@ -377,7 +406,8 @@ CREATE TABLE "{database}"."{table_prefix}charKillMails" (
     PRIMARY KEY ("killID","killTime")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charMailBodies" (
     "ownerID"   BIGINT(20) UNSIGNED NOT NULL,
     "body"      TEXT,
@@ -385,7 +415,8 @@ CREATE TABLE "{database}"."{table_prefix}charMailBodies" (
     PRIMARY KEY ("ownerID","messageID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charMailingLists" (
     "ownerID"     BIGINT(20) UNSIGNED NOT NULL,
     "displayName" CHAR(50)            NOT NULL,
@@ -393,7 +424,8 @@ CREATE TABLE "{database}"."{table_prefix}charMailingLists" (
     PRIMARY KEY ("ownerID","listID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charMailMessages" (
     "ownerID"            BIGINT(20) UNSIGNED NOT NULL,
     "messageID"          BIGINT(20) UNSIGNED NOT NULL,
@@ -408,7 +440,8 @@ CREATE TABLE "{database}"."{table_prefix}charMailMessages" (
     PRIMARY KEY ("ownerID","messageID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charMarketOrders" (
     "ownerID"      BIGINT(20) UNSIGNED  NOT NULL,
     "accountKey"   SMALLINT(4) UNSIGNED NOT NULL,
@@ -429,7 +462,8 @@ CREATE TABLE "{database}"."{table_prefix}charMarketOrders" (
     PRIMARY KEY ("ownerID","orderID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charNotifications" (
     "ownerID"        BIGINT(20) UNSIGNED  NOT NULL,
     "notificationID" BIGINT(20) UNSIGNED  NOT NULL,
@@ -441,7 +475,8 @@ CREATE TABLE "{database}"."{table_prefix}charNotifications" (
     PRIMARY KEY ("ownerID","notificationID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charNotificationTexts" (
     "ownerID"        BIGINT(20) UNSIGNED NOT NULL,
     "notificationID" BIGINT(20) UNSIGNED NOT NULL,
@@ -449,7 +484,8 @@ CREATE TABLE "{database}"."{table_prefix}charNotificationTexts" (
     PRIMARY KEY ("ownerID","notificationID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charResearch" (
     "ownerID"           BIGINT(20) UNSIGNED NOT NULL,
     "agentID"           BIGINT(20) UNSIGNED NOT NULL,
@@ -460,7 +496,8 @@ CREATE TABLE "{database}"."{table_prefix}charResearch" (
     PRIMARY KEY ("ownerID","agentID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charSkillInTraining" (
     "currentTQTime"         DATETIME                     DEFAULT NULL,
     "offset"                TINYINT(2)          NOT NULL,
@@ -475,7 +512,8 @@ CREATE TABLE "{database}"."{table_prefix}charSkillInTraining" (
     PRIMARY KEY ("ownerID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charSkillQueue" (
     "endSP"         BIGINT(20) UNSIGNED NOT NULL,
     "endTime"       DATETIME            NOT NULL DEFAULT '1970-01-01 00:00:01',
@@ -488,7 +526,8 @@ CREATE TABLE "{database}"."{table_prefix}charSkillQueue" (
     PRIMARY KEY ("ownerID","queuePosition")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charSkills" (
     "level"       TINYINT(1) UNSIGNED NOT NULL,
     "ownerID"     BIGINT(20) UNSIGNED NOT NULL,
@@ -498,7 +537,8 @@ CREATE TABLE "{database}"."{table_prefix}charSkills" (
     PRIMARY KEY ("ownerID","typeID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charStandingsFromAgents" (
     "ownerID"  BIGINT(20) UNSIGNED NOT NULL,
     "fromID"   BIGINT(20) UNSIGNED NOT NULL,
@@ -507,7 +547,8 @@ CREATE TABLE "{database}"."{table_prefix}charStandingsFromAgents" (
     PRIMARY KEY ("ownerID","fromID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charStandingsFromFactions" (
     "ownerID"  BIGINT(20) UNSIGNED NOT NULL,
     "fromID"   BIGINT(20) UNSIGNED NOT NULL,
@@ -516,7 +557,8 @@ CREATE TABLE "{database}"."{table_prefix}charStandingsFromFactions" (
     PRIMARY KEY ("ownerID","fromID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charStandingsFromNPCCorporations" (
     "ownerID"  BIGINT(20) UNSIGNED NOT NULL,
     "fromID"   BIGINT(20) UNSIGNED NOT NULL,
@@ -525,7 +567,8 @@ CREATE TABLE "{database}"."{table_prefix}charStandingsFromNPCCorporations" (
     PRIMARY KEY ("ownerID","fromID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charVictim" (
     "killID"          BIGINT(20) UNSIGNED NOT NULL,
     "allianceID"      BIGINT(20) UNSIGNED NOT NULL,
@@ -541,7 +584,8 @@ CREATE TABLE "{database}"."{table_prefix}charVictim" (
     PRIMARY KEY ("killID","characterID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charWalletJournal" (
     "ownerID"       BIGINT(20) UNSIGNED  NOT NULL,
     "accountKey"    SMALLINT(4) UNSIGNED NOT NULL,
@@ -564,7 +608,8 @@ CREATE TABLE "{database}"."{table_prefix}charWalletJournal" (
     PRIMARY KEY ("ownerID","refID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}charWalletTransactions" (
     "ownerID"              BIGINT(20) UNSIGNED  NOT NULL,
     "accountKey"           SMALLINT(4) UNSIGNED NOT NULL,
@@ -585,4 +630,5 @@ CREATE TABLE "{database}"."{table_prefix}charWalletTransactions" (
     PRIMARY KEY ("ownerID","transactionID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;

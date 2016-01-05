@@ -40,7 +40,7 @@ use InvalidArgumentException;
 use LogicException;
 use Yapeal\Event\EveApiEventEmitterTrait;
 use Yapeal\Event\EveApiEventInterface;
-use Yapeal\Event\EventMediatorInterface;
+use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
 
 /**
@@ -60,14 +60,14 @@ class CachePreserver
         $this->setCachePath($cachePath);
     }
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param EventMediatorInterface $yem
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
      * @throws LogicException
      */
-    public function preserveEveApi(EveApiEventInterface $event, $eventName, EventMediatorInterface $yem)
+    public function preserveEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
     {
         $data = $event->getData();
         $this->setYem($yem);
@@ -93,7 +93,7 @@ class CachePreserver
             $yem->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
             return $event;
         }
-        return $event->eventHandled();
+        return $event->setHandledSufficiently();
     }
     /**
      * @param string|null $value

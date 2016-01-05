@@ -35,7 +35,7 @@ use tidy;
 use Twig_Environment;
 use Yapeal\Console\Command\EveApiCreatorTrait;
 use Yapeal\Event\EveApiEventInterface;
-use Yapeal\Event\EventMediatorInterface;
+use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
 
 /**
@@ -47,25 +47,25 @@ class Creator
     /**
      * Creator constructor.
      *
-     * @param string           $dir
      * @param Twig_Environment $twig
+     * @param string           $dir
      */
-    public function __construct($dir = __DIR__, Twig_Environment $twig)
+    public function __construct(Twig_Environment $twig, $dir = __DIR__)
     {
         $this->setDir($dir);
         $this->setTwig($twig);
     }
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param EventMediatorInterface $yem
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
-    public function createXsd(EveApiEventInterface $event, $eventName, EventMediatorInterface $yem)
+    public function createXsd(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
     {
         $this->setYem($yem);
         $data = $event->getData();
@@ -92,19 +92,21 @@ class Creator
         $this->sectionName = $data->getEveApiSectionName();
         $xml = $data->getEveApiXml();
         $sxi = new SimpleXMLIterator($xml);
+        $this->tables = [];
+        $this->processValueOnly($sxi, lcfirst($data->getEveApiName()));
+        $this->processRowset($sxi);
+        ksort($this->tables);
         $vars = [
-            'elementsVO'   => $this->processValueOnly($sxi),
-            'elementsWKNA' => $this->processWithKidsAndNoAttributes($sxi),
-            //'elementsNRS'  => $this->processNonRowset($sxi),
-            'elementsNRS'  => [],
-            'elementsRS'   => $this->processRowset($sxi)
+            'className'   => lcfirst($data->getEveApiName()),
+            'tables'      => $this->tables,
+            'sectionName' => lcfirst($this->sectionName)
         ];
         try {
             $contents = $this->getTwig()
                 ->render('xsd.twig', $vars);
-        } catch (\Twig_Error $exp) {
+        } catch (\Twig_Error $exc) {
             $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::ERROR, 'Twig error', ['exception' => $exp]);
+                ->triggerLogEvent('Yapeal.Log.log', Logger::ERROR, 'Twig error', ['exception' => $exc]);
             $this->getYem()
                 ->triggerLogEvent(
                     'Yapeal.Log.log',
@@ -145,143 +147,80 @@ class Creator
         if ('ID' === substr($name, -2)) {
             return 'eveIDType';
         }
-        $lcName = strtolower($name);
-        $type = $forValue ? 'xs:string' : 'xs:token';
+        $name = strtolower($name);
         foreach ([
                      'descr'          => 'xs:string',
                      'name'           => 'eveNameType',
-                     'tax'            => 'eveISKType',
                      'balance'        => 'eveISKType',
-                     'time'           => 'eveNEDTType',
+                     'isk'            => 'eveISKType',
+                     'tax'            => 'eveISKType',
                      'timeefficiency' => 'xs:unsignedByte',
-                     'date'           => 'eveNEDTType'
+                     'date'           => 'eveNEDTType',
+                     'time'           => 'eveNEDTType',
+                     'until'          => 'eveNEDTType'
                  ] as $search => $replace) {
-            if (false !== strpos($lcName, $search)) {
-                $type = $replace;
+            if (false !== strpos($name, $search)) {
+                return $replace;
             }
         }
-        return $type;
+        return $forValue ? 'xs:string' : 'xs:token';
+    }
+    /**
+     * @param SimpleXMLIterator $sxi
+     * @param string            $xpath
+     */
+    protected function processRowset(SimpleXMLIterator $sxi, $xpath = '//result/rowset')
+    {
+        $items = $sxi->xpath($xpath);
+        if (0 === count($items)) {
+            return;
+        }
+        foreach ($items as $ele) {
+            $tableName = (string)$ele['name'];
+            $colNames = explode(',', (string)$ele['columns']);
+            $keyNames = explode(',', (string)$ele['key']);
+            $columns = [];
+            foreach ($keyNames as $keyName) {
+                $columns[$keyName] = $this->inferTypeFromName($keyName);
+            }
+            foreach ($colNames as $colName) {
+                $columns[$colName] = $this->inferTypeFromName($colName);
+            }
+            ksort($columns);
+            $this->tables[$tableName] = ['attributes' => $columns];
+        }
     }
     /**
      * @param SimpleXMLIterator $sxi
      *
-     * @return array
-     */
-    protected function processNonRowsetWithSimpleChildren(SimpleXMLIterator $sxi)
-    {
-        $elements = $sxi->xpath('//result/child::*[@* and not(@name|@key) and child::*[not(*|@*)]]');
-        if (0 === count($elements)) {
-            return [];
-        }
-        $rows = [];
-        /**
-         * @type SimpleXMLIterator $ele
-         */
-        foreach ($elements as $ele) {
-            $name = (string)$ele->getName();
-            $columns = $ele->attributes();
-            $attributes = [];
-            /**
-             * @type SimpleXMLElement $attr
-             */
-            foreach ($columns as $attr) {
-                $aName = (string)$attr->getName();
-                $attributes[$aName] = $this->inferTypeFromName($aName);
-            }
-            ksort($attributes);
-            $children = [];
-            /**
-             * @type SimpleXMLIterator $child
-             */
-            foreach ($ele->children() as $child) {
-                $cName = (string)$child->getName();
-                $children[$cName] = $this->inferTypeFromName($cName, true);
-            }
-            ksort($children);
-            $rows[$name] = ['children' => $children, 'attributes' => $attributes];
-        }
-        ksort($rows);
-        $xsd = implode("\n", $rows);
-        return $xsd;
-    }
-    /**
-     * @param SimpleXMLIterator $sxi
-     * @param string            $xPath
+     * @param string            $tableName
+     * @param string            $xpath
      *
      * @return array
      */
-    protected function processRowset(SimpleXMLIterator $sxi, $xPath = '//result/rowset')
+    protected function processValueOnly(SimpleXMLIterator $sxi, $tableName, $xpath = '//result/child::*[not(*|@*)]')
     {
-        $elements = $sxi->xpath($xPath);
-        if (0 === count($elements)) {
-            return [];
+        $items = $sxi->xpath($xpath);
+        if (0 === count($items)) {
+            return;
         }
-        $rows = [];
-        foreach ($elements as $ele) {
-            $name = (string)$ele['name'];
-            $columns = explode(',', (string)$ele['columns']);
-            $children = [];
-            foreach ($columns as $cName) {
-                $children[$cName] = $this->inferTypeFromName($cName, true);
-            }
-            ksort($children);
-            $rows[$name] = $children;
-        }
-        ksort($rows);
-        return $rows;
-    }
-    /**
-     * @param SimpleXMLIterator $sxi
-     *
-     * @return array
-     */
-    protected function processValueOnly(SimpleXMLIterator $sxi)
-    {
-        $elements = $sxi->xpath('//result/child::*[not(*|@*)]');
-        if (0 === count($elements)) {
-            return [];
-        }
-        $rows = [];
+        $columns = [];
         /**
          * @type SimpleXMLElement $ele
          */
-        foreach ($elements as $ele) {
+        foreach ($items as $ele) {
             $name = (string)$ele->getName();
-            $rows[$name] = $this->inferTypeFromName($name, true);
+            $columns[$name] = $this->inferTypeFromName($name, true);
         }
-        ksort($rows);
-        return $rows;
-    }
-    /**
-     * @param SimpleXMLIterator $sxi
-     *
-     * @return array
-     */
-    protected function processWithKidsAndNoAttributes(SimpleXMLIterator $sxi)
-    {
-        $elements = $sxi->xpath('//result/child::*[* and not(@*)]');
-        if (0 === count($elements)) {
-            return [];
-        }
-        $rows = [];
-        foreach ($elements as $ele) {
-            $name = (string)$ele->getName();
-            $children = [];
-            /**
-             * @type SimpleXMLElement $child
-             */
-            foreach ($ele->children() as $child) {
-                $cName = (string)$child->getName();
-                $children[$cName] = $this->inferTypeFromName($cName, true);
-            }
-            ksort($children);
-            $rows[$name] = $children;
-        }
-        ksort($rows);
-        return $rows;
+        ksort($columns);
+        $this->tables[$tableName] = ['values' => $columns];
     }
     /**
      * @type string $sectionName
      */
     protected $sectionName;
+    /**
+     * @type array $tables
+     */
+    protected $tables;
 }

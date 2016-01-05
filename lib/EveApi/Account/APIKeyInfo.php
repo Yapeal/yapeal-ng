@@ -2,13 +2,13 @@
 /**
  * Contains APIKeyInfo class.
  *
- * PHP version 5.5
+ * PHP version 5.4
  *
  * LICENSE:
  * This file is part of Yet Another Php Eve Api Library also know as Yapeal
  * which can be used to access the Eve Online API data and place it into a
  * database.
- * Copyright (C) 2014-2015 Michael Cummings
+ * Copyright (C) 2016 Michael Cummings
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by the
@@ -27,69 +27,101 @@
  * You should be able to find a copy of this license in the LICENSE.md file. A
  * copy of the GNU GPL should also be available in the GNU-GPL.md file.
  *
- * @copyright 2014-2015 Michael Cummings
+ * @copyright 2016 Michael Cummings
  * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
  * @author    Michael Cummings <mgcummings@yahoo.com>
  */
 namespace Yapeal\EveApi\Account;
 
+use PDO;
 use PDOException;
-use Yapeal\Sql\PreserverTrait;
 use Yapeal\Event\EveApiEventInterface;
-use Yapeal\Event\EventMediatorInterface;
+use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
-use Yapeal\Log\MessageBuilderTrait;
+use Yapeal\Sql\PreserverTrait;
+use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
  * Class APIKeyInfo
  */
 class APIKeyInfo extends AccountSection
 {
-    use MessageBuilderTrait, PreserverTrait;
+    use PreserverTrait;
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param EventMediatorInterface $yem
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
-    public function preserveEveApi(EveApiEventInterface $event, $eventName, EventMediatorInterface $yem)
+    public function preserveEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
     {
         $this->setYem($yem);
         $data = $event->getData();
         $xml = $data->getEveApiXml();
-        $ownerID = $data->getEveApiArgument('keyID');
+        $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $this->getYem()
-             ->triggerLogEvent(
-                 'Yapeal.Log.log',
-                 Logger::DEBUG,
-                 $this->getReceivedEventMessage($data, $eventName, __CLASS__)
-             );
-        try {
-            $this->getPdo()
-                 ->beginTransaction();
-            $this->preserveToAPIKeyInfo($xml, $ownerID)
-                 ->preserveToCharacters($xml)
-                 ->preserveToKeyBridge($xml, $ownerID);
-            $this->getPdo()
-                 ->commit();
-        } catch (PDOException $exc) {
-            $mess = sprintf(
-                'Failed to upsert data from Eve API %1$s/%2$s for %3$s',
-                strtolower($data->getEveApiSectionName()),
-                $data->getEveApiName(),
-                $ownerID
+            ->triggerLogEvent(
+                'Yapeal.Log.log',
+                Logger::DEBUG,
+                $this->getReceivedEventMessage($data, $eventName, __CLASS__)
             );
-            $this->getYem()
-                 ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $mess, ['exception' => $exc]);
+        $this->getPdo()
+            ->beginTransaction();
+        try {
+            $this->preserveToAPIKeyInfo($xml, $ownerID)
+                ->preserveToCharacters($xml)
+                ->preserveToKeyBridge($xml, $ownerID);
             $this->getPdo()
-                 ->rollBack();
+                ->commit();
+        } catch (PDOException $exc) {
+            $mess = 'Failed to upsert data of';
+            $this->getYem()
+                ->triggerLogEvent(
+                    'Yapeal.Log.log',
+                    Logger::WARNING,
+                    $this->createEveApiMessage($mess, $data),
+                    ['exception' => $exc]
+                );
+            $this->getPdo()
+                ->rollBack();
             return $event;
         }
         return $event->setHandledSufficiently();
+    }
+    /**
+     * @param EveApiReadWriteInterface $data
+     *
+     * @return array
+     * @throws \LogicException
+     */
+    protected function getActive(EveApiReadWriteInterface $data)
+    {
+        $sql = $this->getCsq()
+            ->getActiveRegisteredKeys();
+        $this->getYem()
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
+        try {
+            /**
+             * @type \PDOStatement $stmt
+             */
+            $stmt = $this->getPdo()
+                ->query($sql);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $exc) {
+            $mess = 'Could NOT get a list of active owners for';
+            $this->getYem()
+                ->triggerLogEvent(
+                    'Yapeal.Log.log',
+                    Logger::WARNING,
+                    $this->createEveApiMessage($mess, $data),
+                    ['exception' => $exc]
+                );
+            return [];
+        }
     }
     /**
      * @param string $xml
@@ -102,13 +134,14 @@ class APIKeyInfo extends AccountSection
      */
     protected function preserveToAPIKeyInfo($xml, $ownerID)
     {
+        $tableName = 'accountAPIKeyInfo';
         $columnDefaults = [
-            'keyID' => $ownerID,
             'accessMask' => null,
-            'expires' => '2038-01-19 03:14:07',
-            'type' => null
+            'expires'    => '2038-01-19 03:14:07',
+            'keyID'      => $ownerID,
+            'type'       => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, 'accountAPIKeyInfo', '//key');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//key');
         return $this;
     }
     /**
@@ -121,19 +154,21 @@ class APIKeyInfo extends AccountSection
      */
     protected function preserveToCharacters($xml)
     {
+        $tableName = 'accountCharacters';
         $columnDefaults = [
-            'characterID' => null,
-            'characterName' => null,
-            'corporationID' => null,
+            'allianceID'      => null,
+            'allianceName'    => null,
+            'characterID'     => null,
+            'characterName'   => null,
+            'corporationID'   => null,
             'corporationName' => null,
-            'allianceID' => null,
-            'allianceName' => null,
-            'factionID' => null,
-            'factionName' => null
+            'factionID'       => null,
+            'factionName'     => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, 'accountCharacters');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//characters/row');
         return $this;
     }
+    /** @noinspection PhpMissingParentCallCommonInspection */
     /**
      * @param string $xml
      * @param string $ownerID
@@ -145,8 +180,9 @@ class APIKeyInfo extends AccountSection
      */
     protected function preserveToKeyBridge($xml, $ownerID)
     {
+        $tableName = 'accountKeyBridge';
         $columnDefaults = ['keyID' => $ownerID, 'characterID' => null];
-        $this->attributePreserveData($xml, $columnDefaults, 'accountKeyBridge');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//characters/row');
         return $this;
     }
 }

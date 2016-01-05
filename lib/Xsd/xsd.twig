@@ -1,55 +1,34 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?><!-- Xsd/{{ sectionName|ucFirst }}/{{ className|ucFirst }}.xsd
+version {{ "now"|date("YmdHi", "GMT") }} -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified" elementFormDefault="qualified">
     <xs:include schemaLocation="../common.xsd"/>
     <xs:complexType name="resultType">
         <xs:sequence>
-            {% for name, type in elementsVO %}
-                <xs:element type="{{ type }}" name="{{ name }}"/>
-            {% endfor %}
-            {% for name, element in elementsWKNA %}
-            <xs:element name="{{ name }}">
+            {% for tableName, table in tables %}
+                {% if table.attributes is defined %}
+                    <xs:element name="{{ tableName|lcFirst }}" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
                     <xs:sequence>
-                        {% for cname, ctype in element %}
-                            <xs:element type="{{ ctype }}" name="{{ cname }}"/>
-                        {% endfor %}
+                        <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:simpleContent>
+                                    <xs:extension base="xs:string">
+                                        {% for name, type in table.attributes %}
+                                            <xs:attribute use="required" type="{{ type }}" name="{{ name }}"/>
+                                        {% endfor %}
+                                    </xs:extension>
+                                </xs:simpleContent>
+                            </xs:complexType>
+                        </xs:element>
                     </xs:sequence>
+                    <xs:attributeGroup ref="rowsetAttrs"/>
                 </xs:complexType>
             </xs:element>
-            {% endfor %}
-            {% for name, element in elementsNRS %}
-                <xs:element name="{{ name }}">
-                    <xs:complexType>
-                        <xs:sequence>
-                            {% for cname, ctype in element.children %}
-                            <xs:element type="{{ ctype }}" name="{{  cname }}" minOccurs="0" maxOccurs="1"/>
-                            {% endfor %}
-                        </xs:sequence>
-                        {% for aname, atype in element.attributes %}
-                        <xs:attribute type="{{ atype }}" name="{{ aname }}" use="required"/>
-                        {% endfor %}
-                    </xs:complexType>
-                </xs:element>
-            {% endfor %}
-            {% for name, element in elementsRS %}
-                <xs:element name="{{ name }}" minOccurs="0" maxOccurs="1">
-                    <xs:complexType>
-                        <xs:sequence>
-                            <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
-                                <xs:complexType>
-                                    <xs:simpleContent>
-                                        <xs:extension base="xs:string">
-                                            {% for aname, atype in element %}
-                                            <xs:attribute type="{{ atype }}" name="{{ aname }}" use="required"/>
-                                            {% endfor %}
-                                        </xs:extension>
-                                    </xs:simpleContent>
-                                </xs:complexType>
-                            </xs:element>
-                        </xs:sequence>
-                        <xs:attributeGroup ref="rowsetAttrs"/>
-                    </xs:complexType>
-                </xs:element>
+                {% else %}
+                    {% for name, type in table.values %}
+                        <xs:element type="{{ type }}" name="{{ name }}"/>
+                    {% endfor %}
+                {% endif %}
             {% endfor %}
         </xs:sequence>
     </xs:complexType>

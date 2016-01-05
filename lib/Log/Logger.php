@@ -9,27 +9,16 @@
  */
 namespace Yapeal\Log;
 
-use EventMediator\SubscriberInterface;
 use Monolog\Logger as MLogger;
 use Yapeal\Event\LogEventInterface;
 
 /**
  * Class Logger
  */
-class Logger extends MLogger implements SubscriberInterface, EventAwareLoggerInterface
+class Logger extends MLogger implements EventAwareLoggerInterface
 {
     /**
-     * @inheritdoc
-     *
-     * @api
-     */
-    public function getSubscribedEvents()
-    {
-        $events = ['Yapeal.Log.log' => ['logEvent', 'last']];
-        return $events;
-    }
-    /**
-     * @inheritdoc
+     * @param LogEventInterface $event
      */
     public function logEvent(LogEventInterface $event)
     {

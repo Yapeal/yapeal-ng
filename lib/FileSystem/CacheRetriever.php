@@ -40,7 +40,7 @@ use LogicException;
 use SimpleXMLElement;
 use Yapeal\Event\EveApiEventEmitterTrait;
 use Yapeal\Event\EveApiEventInterface;
-use Yapeal\Event\EventMediatorInterface;
+use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
 use Yapeal\Xml\EveApiRetrieverInterface;
 
@@ -60,14 +60,14 @@ class CacheRetriever implements EveApiRetrieverInterface
         $this->setCachePath($cachePath);
     }
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param EventMediatorInterface $yem
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
      * @throws LogicException
      */
-    public function retrieveEveApi(EveApiEventInterface $event, $eventName, EventMediatorInterface $yem)
+    public function retrieveEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
     {
         $this->setYem($yem);
         $data = $event->getData();

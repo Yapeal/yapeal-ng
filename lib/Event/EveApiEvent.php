@@ -43,7 +43,10 @@ use Yapeal\Xml\EveApiReadWriteInterface;
 class EveApiEvent extends Event implements EveApiEventInterface
 {
     /**
-     * @inheritdoc
+     * Get data object.
+     *
+     * @return EveApiReadWriteInterface
+     * @throws \LogicException Throws exception if code tries to access data before it is set.
      */
     public function getData()
     {
@@ -54,7 +57,23 @@ class EveApiEvent extends Event implements EveApiEventInterface
         return $this->data;
     }
     /**
-     * @inheritdoc
+     * Used to check if event was handled sufficiently by any listener(s).
+     *
+     * This should return true when a listener uses setHandledSufficiently() and/or eventHandled() methods for the
+     * event.
+     *
+     * @return bool
+     */
+    public function isSufficientlyHandled()
+    {
+        return ($this->handledSufficiently || $this->handled);
+    }
+    /**
+     * Set data object.
+     *
+     * @param EveApiReadWriteInterface $value
+     *
+     * @return self Fluent interface.
      */
     public function setData(EveApiReadWriteInterface $value)
     {
@@ -71,18 +90,6 @@ class EveApiEvent extends Event implements EveApiEventInterface
     {
         $this->handledSufficiently = true;
         return $this;
-    }
-    /**
-     * Used to check if event was handled sufficiently by any listener(s).
-     *
-     * This should return true when a listener uses setHandledSufficiently() and/or eventHandled() methods for the
-     * event.
-     *
-     * @return bool
-     */
-    public function isSufficientlyHandled()
-    {
-        return ($this->handledSufficiently || $this->handled);
     }
     /**
      * Holds the data instance.

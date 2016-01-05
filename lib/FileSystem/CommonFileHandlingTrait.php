@@ -33,7 +33,7 @@
  */
 namespace Yapeal\FileSystem;
 
-use Yapeal\Event\EventMediatorInterface;
+use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
 
 /**
@@ -43,7 +43,7 @@ trait CommonFileHandlingTrait
 {
     /**
      * @param                        $fileName
-     * @param EventMediatorInterface $yem
+     * @param MediatorInterface      $yem
      * @param string                 $mode
      *
      * @return bool|resource
@@ -51,7 +51,7 @@ trait CommonFileHandlingTrait
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
-    protected function acquireLockedHandle($fileName, EventMediatorInterface $yem, $mode = 'cb+')
+    protected function acquireLockedHandle($fileName, MediatorInterface $yem, $mode = 'cb+')
     {
         $handle = fopen($fileName, $mode, false);
         if (false === $handle) {
@@ -88,15 +88,15 @@ trait CommonFileHandlingTrait
     /**
      * Used to delete a file when unlink might fail and it needs to be retried.
      *
-     * @param string                 $fileName
-     * @param EventMediatorInterface $yem
+     * @param string            $fileName
+     * @param MediatorInterface $yem
      *
      * @return bool
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
-    protected function deleteWithRetry($fileName, EventMediatorInterface $yem)
+    protected function deleteWithRetry($fileName, MediatorInterface $yem)
     {
         clearstatcache(true, $fileName);
         if (!is_file($fileName)) {

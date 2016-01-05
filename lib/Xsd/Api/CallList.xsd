@@ -1,49 +1,47 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-           attributeFormDefault="unqualified"
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified"
            elementFormDefault="qualified">
     <xs:include schemaLocation="../common.xsd"/>
-    <xs:complexType name="callsRowType">
-        <xs:simpleContent>
-            <xs:extension base="xs:string">
-                <xs:attribute type="eveIDType" name="groupID" use="required"/>
-                <xs:attribute type="xs:string" name="name" use="required"/>
-                <xs:attribute type="xs:string" name="description"
-                              use="required"/>
-                <xs:attribute type="eveIDType" name="accessMask"
-                              use="required"/>
-                <xs:attribute type="xs:string" name="type" use="required"/>
-            </xs:extension>
-        </xs:simpleContent>
-    </xs:complexType>
-    <xs:complexType name="callGroupsRowType">
-        <xs:simpleContent>
-            <xs:extension base="xs:string">
-                <xs:attribute type="eveIDType" name="groupID" use="required"/>
-                <xs:attribute type="xs:string" name="name" use="required"/>
-                <xs:attribute type="xs:string" name="description"
-                              use="required"/>
-            </xs:extension>
-        </xs:simpleContent>
-    </xs:complexType>
-    <xs:complexType name="callGroupsType">
-        <xs:sequence>
-            <xs:element type="callGroupsRowType" name="row"
-                        maxOccurs="unbounded" minOccurs="1"/>
-        </xs:sequence>
-        <xs:attributeGroup ref="rowsetAttrs"/>
-    </xs:complexType>
     <xs:complexType name="resultType">
         <xs:sequence>
-            <xs:element type="callGroupsType" name="callGroups"/>
-            <xs:element type="callsType" name="calls"/>
+            <xs:element name="callGroups" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:simpleContent>
+                                    <xs:extension base="xs:string">
+                                        <xs:attribute type="xs:string" name="description" use="required"/>
+                                        <xs:attribute type="eveIDType" name="groupID" use="required"/>
+                                        <xs:attribute type="eveNameType" name="name" use="required"/>
+                                    </xs:extension>
+                                </xs:simpleContent>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                    <xs:attributeGroup ref="rowsetAttrs"/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="calls" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:simpleContent>
+                                    <xs:extension base="xs:string">
+                                        <xs:attribute type="xs:string" name="accessMask" use="required"/>
+                                        <xs:attribute type="xs:string" name="description" use="required"/>
+                                        <xs:attribute type="eveIDType" name="groupID" use="required"/>
+                                        <xs:attribute type="eveNameType" name="name" use="required"/>
+                                        <xs:attribute type="xs:string" name="type" use="required"/>
+                                    </xs:extension>
+                                </xs:simpleContent>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                    <xs:attributeGroup ref="rowsetAttrs"/>
+                </xs:complexType>
+            </xs:element>
         </xs:sequence>
-    </xs:complexType>
-    <xs:complexType name="callsType">
-        <xs:sequence>
-            <xs:element type="callsRowType" name="row" maxOccurs="unbounded"
-                        minOccurs="1"/>
-        </xs:sequence>
-        <xs:attributeGroup ref="rowsetAttrs"/>
     </xs:complexType>
 </xs:schema>

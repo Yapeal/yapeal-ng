@@ -51,6 +51,7 @@ use Symfony\Component\Yaml\Parser;
 use Traversable;
 use Twig_Environment;
 use Twig_Loader_Filesystem;
+use Twig_SimpleFilter;
 use Yapeal\Container\ContainerInterface;
 use Yapeal\Exception\YapealDatabaseException;
 use Yapeal\Exception\YapealException;
@@ -153,7 +154,7 @@ class Wiring
             | FilesystemIterator::KEY_AS_PATHNAME
             | FilesystemIterator::SKIP_DOTS
             | FilesystemIterator::UNIX_PATHS;
-        $rdi = new RecursiveDirectoryIterator($this->dic['Yapeal.baseDir'] . '/lib/EveApi/');
+        $rdi = new RecursiveDirectoryIterator($this->dic['Yapeal.EveApi.dir']);
         $rdi->setFlags($flags);
         $rcfi = new RecursiveCallbackFilterIterator(
             $rdi, function ($current, $key, $rdi) {
@@ -248,9 +249,9 @@ class Wiring
                 };
             }
             /**
-             * @type \Yapeal\Event\EventMediatorInterface $mediator
+             * @type \Yapeal\Event\MediatorInterface $mediator
              */
-            $mediator = $dic['Yapeal.Event.EventMediator'];
+            $mediator = $dic['Yapeal.Event.Mediator'];
             $mediator->addServiceSubscriberByEventList(
                 'Yapeal.FileSystem.CachePreserver',
                 ['Yapeal.EveApi.preserve' => ['preserveEveApi', 'last']]
@@ -372,9 +373,9 @@ class Wiring
          */
         $dic = $this->dic;
         /**
-         * @type \Yapeal\Event\EventMediatorInterface $mediator
+         * @type \Yapeal\Event\MediatorInterface $mediator
          */
-        $mediator = $dic['Yapeal.Event.EventMediator'];
+        $mediator = $dic['Yapeal.Event.Mediator'];
         $internal = $this->getFilteredEveApiSubscriberList();
         if (0 !== count($internal)) {
             $base = 'Yapeal.EveApi';
@@ -386,16 +387,9 @@ class Wiring
                     '%1$s.%2$s.%3$s',
                     $base,
                     basename(dirname($subscriber)),
-                    basename(
-                        $subscriber,
-                        '.php'
-                    )
+                    basename($subscriber, '.php')
                 );
-                if (!array_key_exists(
-                    $service,
-                    $dic
-                )
-                ) {
+                if (!array_key_exists($service, $dic)) {
                     $dic[$service] = function () use ($dic, $service, $mediator) {
                         $class = '\\' . str_replace('.', '\\', $service);
                         /**
@@ -410,10 +404,7 @@ class Wiring
                 if (false === strpos($subscriber, 'Section')) {
                     $events[$service . '.preserve'] = ['preserveEveApi', 'last'];
                 }
-                $mediator->addServiceSubscriberByEventList(
-                    $service,
-                    $events
-                );
+                $mediator->addServiceSubscriberByEventList($service, $events);
             }
         }
         if (empty($dic['Yapeal.EveApi.Creator'])) {
@@ -422,16 +413,24 @@ class Wiring
                 $twig = new Twig_Environment(
                     $loader, ['debug' => true, 'strict_variables' => true, 'autoescape' => false]
                 );
+                $filter = new Twig_SimpleFilter(
+                    'ucFirst', function ($value) {
+                    return ucfirst($value);
+                }
+                );
+                $twig->addFilter($filter);
+                $filter = new Twig_SimpleFilter(
+                    'lcFirst', function ($value) {
+                    return lcfirst($value);
+                }
+                );
+                $twig->addFilter($filter);
                 return new $dic['Yapeal.EveApi.create']($dic['Yapeal.EveApi.dir'], $twig);
             };
             $mediator->addServiceSubscriberByEventList(
                 'Yapeal.EveApi.Creator',
                 ['Yapeal.EveApi.create' => ['createEveApi', 'last']]
             );
-//            $mediator->addServiceSubscriberByEventList(
-//                'Yapeal.EveApi.Creator',
-//                ['Yapeal.EveApi.start' => ['startEveApi', 'last']]
-//            );
         }
         return $this;
     }
@@ -456,8 +455,8 @@ class Wiring
                 }
             );
         }
-        if (empty($dic['Yapeal.Event.EventMediator'])) {
-            $dic['Yapeal.Event.EventMediator'] = function ($dic) {
+        if (empty($dic['Yapeal.Event.Mediator'])) {
+            $dic['Yapeal.Event.Mediator'] = function ($dic) {
                 return new $dic['Yapeal.Event.mediator']($dic);
             };
         }
@@ -502,9 +501,9 @@ class Wiring
             };
         }
         /**
-         * @type \Yapeal\Event\EventMediatorInterface $mediator
+         * @type \Yapeal\Event\MediatorInterface $mediator
          */
-        $mediator = $dic['Yapeal.Event.EventMediator'];
+        $mediator = $dic['Yapeal.Event.Mediator'];
         $mediator->addServiceSubscriberByEventList(
             'Yapeal.Log.Logger',
             ['Yapeal.Log.log' => ['logEvent', 'last']]
@@ -592,9 +591,9 @@ class Wiring
             };
         }
         /**
-         * @type \Yapeal\Event\EventMediatorInterface $mediator
+         * @type \Yapeal\Event\MediatorInterface $mediator
          */
-        $mediator = $dic['Yapeal.Event.EventMediator'];
+        $mediator = $dic['Yapeal.Event.Mediator'];
         $mediator->addServiceSubscriberByEventList(
             'Yapeal.Network.Retriever',
             ['Yapeal.EveApi.retrieve' => ['retrieveEveApi', 'last']]
@@ -641,7 +640,7 @@ class Wiring
             $database->exec('SET SESSION SQL_MODE=\'ANSI,TRADITIONAL\'');
             $database->exec('SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE');
             $database->exec('SET SESSION TIME_ZONE=\'+00:00\'');
-            $database->exec('SET NAMES utf8 COLLATE utf8_unicode_ci');
+            $database->exec('SET NAMES utf8mb4 COLLATE utf8mb4_unicode_520_ci');
             return $database;
         };
         if (empty($dic['Yapeal.Sql.Creator'])) {
@@ -651,14 +650,26 @@ class Wiring
                     $twig = new Twig_Environment(
                         $loader, ['debug' => true, 'strict_variables' => true, 'autoescape' => false]
                     );
-                    return new $dic['Yapeal.Sql.create']($dic['Yapeal.Sql.dir'], $twig);
+                    $filter = new Twig_SimpleFilter(
+                        'ucFirst', function ($value) {
+                        return ucfirst($value);
+                    }
+                    );
+                    $twig->addFilter($filter);
+                    $filter = new Twig_SimpleFilter(
+                        'lcFirst', function ($value) {
+                        return lcfirst($value);
+                    }
+                    );
+                    $twig->addFilter($filter);
+                    return new $dic['Yapeal.Sql.create']($twig, $dic['Yapeal.Sql.dir'], $dic['Yapeal.Sql.platform']);
                 }
             );
         }
         /**
-         * @type \Yapeal\Event\EventMediatorInterface $mediator
+         * @type \Yapeal\Event\MediatorInterface $mediator
          */
-        $mediator = $dic['Yapeal.Event.EventMediator'];
+        $mediator = $dic['Yapeal.Event.Mediator'];
         $mediator->addServiceSubscriberByEventList(
             'Yapeal.Sql.Creator',
             ['Yapeal.EveApi.create' => ['createSql', 'last']]
@@ -698,7 +709,19 @@ class Wiring
                     $twig = new Twig_Environment(
                         $loader, ['debug' => true, 'strict_variables' => true, 'autoescape' => false]
                     );
-                    return new $dic['Yapeal.Xsd.create']($dic['Yapeal.Xsd.dir'], $twig);
+                    $filter = new Twig_SimpleFilter(
+                        'ucFirst', function ($value) {
+                        return ucfirst($value);
+                    }
+                    );
+                    $twig->addFilter($filter);
+                    $filter = new Twig_SimpleFilter(
+                        'lcFirst', function ($value) {
+                        return lcfirst($value);
+                    }
+                    );
+                    $twig->addFilter($filter);
+                    return new $dic['Yapeal.Xsd.create']($twig, $dic['Yapeal.Xsd.dir']);
                 }
             );
         }
@@ -710,9 +733,9 @@ class Wiring
             );
         }
         /**
-         * @type \Yapeal\Event\EventMediatorInterface $mediator
+         * @type \Yapeal\Event\MediatorInterface $mediator
          */
-        $mediator = $dic['Yapeal.Event.EventMediator'];
+        $mediator = $dic['Yapeal.Event.Mediator'];
         $mediator->addServiceSubscriberByEventList(
             'Yapeal.Xsd.Creator',
             ['Yapeal.EveApi.create' => ['createXsd', 'last']]
@@ -740,9 +763,9 @@ class Wiring
             );
         }
         /**
-         * @type \Yapeal\Event\EventMediatorInterface $mediator
+         * @type \Yapeal\Event\MediatorInterface $mediator
          */
-        $mediator = $dic['Yapeal.Event.EventMediator'];
+        $mediator = $dic['Yapeal.Event.Mediator'];
         $mediator->addServiceSubscriberByEventList(
             'Yapeal.Xsl.Transformer',
             ['Yapeal.EveApi.transform' => ['transformEveApi', 'last']]

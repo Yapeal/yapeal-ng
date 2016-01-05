@@ -11,14 +11,16 @@ CREATE TABLE "{database}"."{table_prefix}mapFacWarSystems" (
     PRIMARY KEY ("solarSystemID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}mapJumps" (
     "shipJumps"     BIGINT(20) UNSIGNED NOT NULL,
     "solarSystemID" BIGINT(20) UNSIGNED NOT NULL,
     PRIMARY KEY ("solarSystemID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}mapKills" (
     "factionKills"  BIGINT(20) UNSIGNED NOT NULL,
     "podKills"      BIGINT(20) UNSIGNED NOT NULL,
@@ -27,7 +29,8 @@ CREATE TABLE "{database}"."{table_prefix}mapKills" (
     PRIMARY KEY ("solarSystemID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}mapSovereignty" (
     "allianceID"      BIGINT(20) UNSIGNED NOT NULL,
     "corporationID"   BIGINT(20) UNSIGNED NOT NULL,
@@ -37,4 +40,5 @@ CREATE TABLE "{database}"."{table_prefix}mapSovereignty" (
     PRIMARY KEY ("solarSystemID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;

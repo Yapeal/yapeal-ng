@@ -10,13 +10,13 @@
 namespace Yapeal\FileSystem;
 
 use LogicException;
-use Yapeal\Event\EventMediatorInterface;
+use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
 
 /**
  * Trait RelativeFileSearchTrait
  *
- * @method EventMediatorInterface getYem()
+ * @method MediatorInterface getYem()
  */
 trait RelativeFileSearchTrait
 {
@@ -47,7 +47,7 @@ trait RelativeFileSearchTrait
     protected function findEveApiFile($sectionName, $apiName, $suffix)
     {
         $fileNames = sprintf(
-            '%3$s/%1$s/%2$s.%4$s,%3$s/%2$s.%4$s,%3$s/%1$s/%1$s.%4$s,%3$s/common.%4$s',
+            '%3$s%1$s/%2$s.%4$s,%3$s%2$s.%4$s,%3$s%1$s/%1$s.%4$s,%3$scommon.%4$s',
             $sectionName,
             $apiName,
             $this->getRelativeBaseDir(),
@@ -56,7 +56,7 @@ trait RelativeFileSearchTrait
         foreach (explode(',', $fileNames) as $fileName) {
             if (is_readable($fileName) && is_file($fileName)) {
                 $mess = sprintf(
-                    'Using %4$s file %3$s for %1$s/%2$s',
+                    'Using %4$s file %3$s for Eve API %1$s/%2$s',
                     ucfirst($sectionName),
                     $apiName,
                     $fileName,

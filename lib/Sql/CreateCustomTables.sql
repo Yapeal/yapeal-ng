@@ -1,8 +1,10 @@
 SET SESSION SQL_MODE = 'ANSI,TRADITIONAL';
+SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE;
 SET SESSION TIME_ZONE = '+00:00';
-SET NAMES UTF8;
+SET NAMES utf8mb4
+COLLATE utf8mb4_unicode_520_ci;
 START TRANSACTION;
-REPLACE INTO "{database}"."{table_prefix}utilRegisteredKey" ("activeAPIMask","isActive","keyID","vCode")
+REPLACE INTO "{database}"."{table_prefix}utilRegisteredKey" ("activeAPIMask", "active", "keyID", "vCode")
 VALUES
     (
         268435455,

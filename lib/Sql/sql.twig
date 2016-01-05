@@ -1,21 +1,16 @@
--- Sql/updates/{{ "now"|date("YmdHi", "GMT") }}.sql
-{% for tableName, element in elementsVO %}
-CREATE TABLE IF NOT EXISTS "{database}"."{table_prefix}{{ tableName }}" (
-{% for name, type in element.columns %}
+-- Sql/{{ sectionName|ucFirst }}/Create{{ className|ucFirst }}.sql-- version {{ "now"|date("YmdHi", "GMT") }}
+{% for tableName, table in tables %}
+    CREATE TABLE "{database}"."{table_prefix}{{ sectionName }}{{ tableName|ucFirst }}" (
+    {% for name, type in table.columns %}
     "{{ name }}" {{ type }},
 {% endfor %}
-PRIMARY KEY ("{{ element.keys }}"))
+    PRIMARY KEY ("{% for key in table.keys %}{{ key }}{% if not loop.last %}","{% endif %}{% endfor %}"))
 ENGINE = {engine}
 DEFAULT CHARSET = utf8mb4
 COLLATE = utf8mb4_unicode_520_ci;
 {% endfor %}
-{% for tableName, element in elementsRS %}
-CREATE TABLE IF NOT EXISTS "{database}"."{table_prefix}{{ tableName }}" (
-{% for name, type in element.columns %}
-    "{{ name }}" {{ type }},
-{% endfor %}
-PRIMARY KEY ("{% for key in element.keys %}{% if not loop.last %}{{ key }}","{% else %}{{ key }}{% endif %}{% endfor %}"))
-ENGINE = {engine}
-DEFAULT CHARSET = utf8mb4
-COLLATE = utf8mb4_unicode_520_ci;
-{% endfor %}
+{% if addView is defined %}
+    CREATE OR REPLACE VIEW "{database}"."{table_prefix}{{ sectionName }}{{ className|ucFirst }}" AS SELECT
+    {% for name, type in addView.columns %}"{{ name }}"{% if not loop.last %},{% else %}{{ "\n" }}{% endif %}{% endfor %}
+    FROM "{database}"."{table_prefix}{{ sectionName }}{{ addView.tableName|ucFirst }}";
+{% endif %}

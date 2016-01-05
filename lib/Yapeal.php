@@ -78,7 +78,7 @@ class Yapeal implements WiringInterface
     public function autoMagic()
     {
         $dic = $this->getDic();
-        $this->setYem($dic['Yapeal.Event.EventMediator']);
+        $this->setYem($dic['Yapeal.Event.Mediator']);
         $mess = 'Let the magic begin!';
         $this->getYem()
              ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess);
@@ -115,12 +115,12 @@ class Yapeal implements WiringInterface
             ]
         );
         foreach ($result as $record) {
+            /** @noinspection DisconnectedForeachInstructionInspection */
             /**
              * Get new Data instance from factory.
              *
              * @type EveApiReadWriteInterface $data
              */
-            /** @noinspection DisconnectedForeachInstructionInspection */
             $data = $dic['Yapeal.Xml.Data'];
             $data->setEveApiName($record['apiName'])
                  ->setEveApiSectionName($record['sectionName'])

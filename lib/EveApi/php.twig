@@ -31,15 +31,13 @@
  * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
  * @author    Michael Cummings <mgcummings@yahoo.com>
  */
-namespace {{ namespace }};
-
+namespace {{ namespace }};use PDOException;use Yapeal\Event\EveApiEventInterface;use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
 
 /**
  * Class {{ className }}
- */
-class {{ className }} extends {{ sectionName }}Section
+ */class {{ className }} extends {{ sectionName|ucFirst }}Section
 {
     use PreserverTrait;
     /**
@@ -49,28 +47,38 @@ class {{ className }} extends {{ sectionName }}Section
     {
         $this->mask = {{ mask }};
     }
-{% for columns in elementsRS %}
+    /*** @param EveApiEventInterface   $event* @param string                 $eventName* @param MediatorInterface $yem** @return EveApiEventInterface* @throws \DomainException* @throws \InvalidArgumentException* @throws \LogicException*/public function preserveEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem){$this->setYem($yem);$data = $event->getData();$xml = $data->getEveApiXml();
+{% if hasOwner %}        $ownerID = $this->extractOwnerID($data->getEveApiArguments());{{ "\n" }}{% endif %}
+$this->getYem()->triggerLogEvent('Yapeal.Log.log',Logger::DEBUG,$this->getReceivedEventMessage($data, $eventName, __CLASS__));$this->getPdo()->beginTransaction();try {$this{% for tableName in tableNames %}{% if not loop.first %}                {% endif %}->preserveTo{{ tableName|ucFirst }}($xml{% if hasOwner %}, $ownerID{% endif %}){% if loop.last %};{% endif %}{{ "\n" }}{% endfor %}
+$this->getPdo()->commit();} catch (PDOException $exc) {$mess = 'Failed to upsert data of';$this->getYem()->triggerLogEvent('Yapeal.Log.log',Logger::WARNING,$this->createEveApiMessage($mess, $data),['exception' => $exc]);$this->getPdo()->rollBack();return $event;}return $event->setHandledSufficiently();}
+{% for tableName, table in tables %}
     /**
      * @param string $xml
-     * @param string $ownerID
+    {% if hasOwner %}     * @param string $ownerID{{ "\n" }}{% endif %}
      *
      * @return self Fluent interface.
      * @throws \LogicException
      */
-    protected function preserveTo{{ className }}($xml, $ownerID)
+    protected function preserveTo{{ tableName|ucFirst }}($xml{% if hasOwner %}, $ownerID{% endif %})
     {
-        $columnDefaults = [
-            {% for name, value in columns %}'{{ name }}' => {{ value }}{% if not loop.last %}{{ ",\n            " }}{% else %}{{ "\n" }}{% endif %}{% endfor %}
-        ];
-        $tableName = '{{ tableName }}';
-        $sql =
-            $this->getCsq()
-                 ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
+    $tableName = '{{ sectionName|lcFirst }}{{ tableName|ucFirst }}';
+    $sql = $this->getCsq()
+    ->getDeleteFromTable{% if hasOwner %}WithOwnerID{% endif %}($tableName{% if hasOwner %}, $ownerID{% endif %});
         $this->getYem()
-             ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $sql);
+    ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
         $this->getPdo()
-             ->exec($sql);
-        $this->attributePreserveData($xml, $columnDefaults, $tableName);
+    ->exec($sql);
+    {% if table.attributes is defined %}
+        $columnDefaults = [
+        {% for name, value in table.attributes %}'{{ name }}' => {{ value }}{% if not loop.last %}{{ ",\n            " }}{% else %}{{ "\n" }}{% endif %}{% endfor %}
+        ];
+        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//{{ tableName|lcFirst }}/row');
+    {% else %}
+        $columnDefaults = [
+        {% for name, value in table.values %}'{{ name }}' => {{ value }}{% if not loop.last %}{{ ",\n            " }}{% else %}{{ "\n" }}{% endif %}{% endfor %}
+        ];
+        $this->valuesPreserveData($xml, $columnDefaults, $tableName);
+    {% endif %}
         return $this;
     }
 {% endfor %}

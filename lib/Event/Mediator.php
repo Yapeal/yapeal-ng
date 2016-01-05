@@ -1,6 +1,6 @@
 <?php
 /**
- * Contains EventMediator class.
+ * Contains Mediator class.
  *
  * PHP version 5.5
  *
@@ -37,10 +37,11 @@ use EventMediator\PimpleContainerMediator;
 use Yapeal\Log\Logger;
 use Yapeal\Xml\EveApiReadWriteInterface;
 
+/** @noinspection LongInheritanceChainInspection */
 /**
- * Class EventMediator
+ * Class Mediator
  */
-class EventMediator extends PimpleContainerMediator implements EventMediatorInterface
+class Mediator extends PimpleContainerMediator implements MediatorInterface
 {
     /**
      * @param string                   $eventName
@@ -62,6 +63,7 @@ class EventMediator extends PimpleContainerMediator implements EventMediatorInte
         $event->setData($data);
         return $this->trigger($eventName, $event);
     }
+    /** @noinspection MoreThanThreeArgumentsInspection */
     /**
      * @param string            $eventName
      * @param mixed             $level

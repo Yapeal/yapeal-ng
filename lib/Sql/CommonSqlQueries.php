@@ -104,9 +104,11 @@ SQL;
         return sprintf(str_replace(["\n", "\r\n"], '', $sql), $this->databaseName, $this->tablePrefix, $ownerID);
     }
     /**
+     * @param int $mask
+     *
      * @return string
      */
-    public function getActiveRegisteredAccountStatus()
+    public function getActiveRegisteredAccountStatus($mask)
     {
         $sql = <<<'SQL'
 SELECT urk."keyID",urk."vCode"
@@ -116,9 +118,9 @@ SELECT urk."keyID",urk."vCode"
  WHERE
  aaki."type" IN ('Account','Character')
  AND urk."active"=1
- AND (urk."activeAPIMask" & aaki."accessMask" & 33554432) <> 0
+ AND (urk."activeAPIMask" & aaki."accessMask" & %3$s) <> 0
 SQL;
-        return sprintf(str_replace(["\n", "\r\n"], '', $sql), $this->databaseName, $this->tablePrefix);
+        return sprintf(str_replace(["\n", "\r\n"], '', $sql), $this->databaseName, $this->tablePrefix, $mask);
     }
     /**
      * @param int $mask

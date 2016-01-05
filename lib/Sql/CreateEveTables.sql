@@ -8,7 +8,8 @@ CREATE TABLE "{database}"."{table_prefix}eveAllianceList" (
     PRIMARY KEY ("allianceID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}eveCharacterAffiliation" (
     "allianceID"      BIGINT(20) UNSIGNED NOT NULL,
     "allianceName"    CHAR(50)            NOT NULL,
@@ -21,7 +22,8 @@ CREATE TABLE "{database}"."{table_prefix}eveCharacterAffiliation" (
     PRIMARY KEY ("characterID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 ALTER TABLE "{database}"."{table_prefix}eveCharacterAffiliation" ADD INDEX "eveCharacterAffiliation1"  ("corporationID");
 CREATE TABLE "{database}"."{table_prefix}eveCharacterInfo" (
     "accountBalance"    DECIMAL(17,2)       NOT NULL,
@@ -48,7 +50,8 @@ CREATE TABLE "{database}"."{table_prefix}eveCharacterInfo" (
     PRIMARY KEY ("characterID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}eveCharactersKillsLastWeek" (
     "characterID"   BIGINT(20) UNSIGNED NOT NULL,
     "characterName" CHAR(50) DEFAULT NULL,
@@ -56,7 +59,8 @@ CREATE TABLE "{database}"."{table_prefix}eveCharactersKillsLastWeek" (
     PRIMARY KEY ("characterID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}eveCharactersKillsTotal" (
     "characterID"   BIGINT(20) UNSIGNED NOT NULL,
     "characterName" CHAR(50) DEFAULT NULL,
@@ -64,7 +68,8 @@ CREATE TABLE "{database}"."{table_prefix}eveCharactersKillsTotal" (
     PRIMARY KEY ("characterID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}eveCharactersKillsYesterday" (
     "characterID"   BIGINT(20) UNSIGNED NOT NULL,
     "characterName" CHAR(50) DEFAULT NULL,
@@ -72,7 +77,8 @@ CREATE TABLE "{database}"."{table_prefix}eveCharactersKillsYesterday" (
     PRIMARY KEY ("characterID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}eveCharactersVictoryPointsLastWeek" (
     "characterID"   BIGINT(20) UNSIGNED NOT NULL,
     "characterName" CHAR(50) DEFAULT NULL,
@@ -80,7 +86,8 @@ CREATE TABLE "{database}"."{table_prefix}eveCharactersVictoryPointsLastWeek" (
     PRIMARY KEY ("characterID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}eveCharactersVictoryPointsTotal" (
     "characterID"   BIGINT(20) UNSIGNED NOT NULL,
     "characterName" CHAR(50) DEFAULT NULL,
@@ -88,7 +95,8 @@ CREATE TABLE "{database}"."{table_prefix}eveCharactersVictoryPointsTotal" (
     PRIMARY KEY ("characterID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}eveCharactersVictoryPointsYesterday" (
     "characterID"   BIGINT(20) UNSIGNED NOT NULL,
     "characterName" CHAR(50) DEFAULT NULL,
@@ -96,7 +104,8 @@ CREATE TABLE "{database}"."{table_prefix}eveCharactersVictoryPointsYesterday" (
     PRIMARY KEY ("characterID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}eveConquerableStationList" (
     "corporationID"   BIGINT(20) UNSIGNED NOT NULL,
     "corporationName" CHAR(50)            NOT NULL,
@@ -110,7 +119,8 @@ CREATE TABLE "{database}"."{table_prefix}eveConquerableStationList" (
     PRIMARY KEY ("stationID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}eveCorporationsKillsLastWeek" (
     "corporationID"   BIGINT(20) UNSIGNED NOT NULL,
     "corporationName" CHAR(50) DEFAULT NULL,
@@ -118,7 +128,8 @@ CREATE TABLE "{database}"."{table_prefix}eveCorporationsKillsLastWeek" (
     PRIMARY KEY ("corporationID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}eveCorporationsKillsTotal" (
     "corporationID"   BIGINT(20) UNSIGNED NOT NULL,
     "corporationName" CHAR(50) DEFAULT NULL,
@@ -126,7 +137,8 @@ CREATE TABLE "{database}"."{table_prefix}eveCorporationsKillsTotal" (
     PRIMARY KEY ("corporationID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}eveCorporationsKillsYesterday" (
     "corporationID"   BIGINT(20) UNSIGNED NOT NULL,
     "corporationName" CHAR(50) DEFAULT NULL,
@@ -134,7 +146,8 @@ CREATE TABLE "{database}"."{table_prefix}eveCorporationsKillsYesterday" (
     PRIMARY KEY ("corporationID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}eveCorporationsVictoryPointsLastWeek" (
     "corporationID"   BIGINT(20) UNSIGNED NOT NULL,
     "corporationName" CHAR(50) DEFAULT NULL,
@@ -142,7 +155,8 @@ CREATE TABLE "{database}"."{table_prefix}eveCorporationsVictoryPointsLastWeek" (
     PRIMARY KEY ("corporationID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}eveCorporationsVictoryPointsTotal" (
     "corporationID"   BIGINT(20) UNSIGNED NOT NULL,
     "corporationName" CHAR(50) DEFAULT NULL,
@@ -150,7 +164,8 @@ CREATE TABLE "{database}"."{table_prefix}eveCorporationsVictoryPointsTotal" (
     PRIMARY KEY ("corporationID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}eveCorporationsVictoryPointsYesterday" (
     "corporationID"   BIGINT(20) UNSIGNED NOT NULL,
     "corporationName" CHAR(50) DEFAULT NULL,
@@ -158,14 +173,16 @@ CREATE TABLE "{database}"."{table_prefix}eveCorporationsVictoryPointsYesterday" 
     PRIMARY KEY ("corporationID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}eveErrorList" (
     "errorCode" SMALLINT(4) UNSIGNED NOT NULL,
     "errorText" TEXT,
     PRIMARY KEY ("errorCode")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}eveEmploymentHistory" (
     "ownerID"         BIGINT(20) UNSIGNED NOT NULL,
     "recordID"        BIGINT(20) UNSIGNED NOT NULL,
@@ -175,7 +192,8 @@ CREATE TABLE "{database}"."{table_prefix}eveEmploymentHistory" (
     PRIMARY KEY ("ownerID","recordID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 #ALTER TABLE "{database}"."{table_prefix}eveEmploymentHistory" ADD INDEX "eveEmploymentHistory1"  ("corporationID");
 CREATE TABLE "{database}"."{table_prefix}eveFactions" (
     "factionID"              BIGINT(20) UNSIGNED NOT NULL,
@@ -191,7 +209,8 @@ CREATE TABLE "{database}"."{table_prefix}eveFactions" (
     PRIMARY KEY ("factionID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}eveFactionsKillsLastWeek" (
     "factionID"   BIGINT(20) UNSIGNED NOT NULL,
     "factionName" CHAR(50) DEFAULT NULL,
@@ -199,7 +218,8 @@ CREATE TABLE "{database}"."{table_prefix}eveFactionsKillsLastWeek" (
     PRIMARY KEY ("factionID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}eveFactionsKillsTotal" (
     "factionID"   BIGINT(20) UNSIGNED NOT NULL,
     "factionName" CHAR(50) DEFAULT NULL,
@@ -207,7 +227,8 @@ CREATE TABLE "{database}"."{table_prefix}eveFactionsKillsTotal" (
     PRIMARY KEY ("factionID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}eveFactionsKillsYesterday" (
     "factionID"   BIGINT(20) UNSIGNED NOT NULL,
     "factionName" CHAR(50) DEFAULT NULL,
@@ -215,7 +236,8 @@ CREATE TABLE "{database}"."{table_prefix}eveFactionsKillsYesterday" (
     PRIMARY KEY ("factionID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}eveFactionsVictoryPointsLastWeek" (
     "factionID"     BIGINT(20) UNSIGNED NOT NULL,
     "factionName"   CHAR(50) DEFAULT NULL,
@@ -223,7 +245,8 @@ CREATE TABLE "{database}"."{table_prefix}eveFactionsVictoryPointsLastWeek" (
     PRIMARY KEY ("factionID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}eveFactionsVictoryPointsTotal" (
     "factionID"     BIGINT(20) UNSIGNED NOT NULL,
     "factionName"   CHAR(50) DEFAULT NULL,
@@ -231,7 +254,8 @@ CREATE TABLE "{database}"."{table_prefix}eveFactionsVictoryPointsTotal" (
     PRIMARY KEY ("factionID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}eveFactionsVictoryPointsYesterday" (
     "factionID"     BIGINT(20) UNSIGNED NOT NULL,
     "factionName"   CHAR(50) DEFAULT NULL,
@@ -239,7 +263,8 @@ CREATE TABLE "{database}"."{table_prefix}eveFactionsVictoryPointsYesterday" (
     PRIMARY KEY ("factionID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}eveFactionWars" (
     "factionID"   BIGINT(20) UNSIGNED NOT NULL,
     "factionName" CHAR(50) DEFAULT NULL,
@@ -247,7 +272,8 @@ CREATE TABLE "{database}"."{table_prefix}eveFactionWars" (
     "againstName" CHAR(50) DEFAULT NULL
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}eveFacWarStats" (
     "killsYesterday"         BIGINT(20) UNSIGNED NOT NULL,
     "killsLastWeek"          BIGINT(20) UNSIGNED NOT NULL,
@@ -257,7 +283,8 @@ CREATE TABLE "{database}"."{table_prefix}eveFacWarStats" (
     "victoryPointsTotal"     BIGINT(20) UNSIGNED NOT NULL
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}eveMemberCorporations" (
     "allianceID"    BIGINT(20) UNSIGNED NOT NULL,
     "corporationID" BIGINT(20) UNSIGNED NOT NULL,
@@ -265,18 +292,21 @@ CREATE TABLE "{database}"."{table_prefix}eveMemberCorporations" (
     PRIMARY KEY ("corporationID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}eveRefTypes" (
     "refTypeID"   SMALLINT(5) UNSIGNED NOT NULL,
     "refTypeName" VARCHAR(255) DEFAULT NULL,
     PRIMARY KEY ("refTypeID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}eveTypeName" (
     "typeID"   SMALLINT(5) UNSIGNED NOT NULL,
     "typeName" CHAR(255)            NOT NULL,
     PRIMARY KEY ("typeID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;

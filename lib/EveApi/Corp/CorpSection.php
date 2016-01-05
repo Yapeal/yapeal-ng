@@ -32,27 +32,28 @@ namespace Yapeal\EveApi\Corp;
 use LogicException;
 use PDO;
 use PDOException;
-use Yapeal\EveApi\AbstractCommonEveApi;
+use Yapeal\EveApi\CommonEveApiTrait;
 use Yapeal\Event\EveApiEventInterface;
-use Yapeal\Event\EventMediatorInterface;
+use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
 
 /**
  * Class CorpSection
  */
-class CorpSection extends AbstractCommonEveApi
+class CorpSection
 {
+    use CommonEveApiTrait;
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param EventMediatorInterface $yem
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
-    public function preserveEveApi(EveApiEventInterface $event, $eventName, EventMediatorInterface $yem)
+    public function preserveEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
     {
         $this->setYem($yem);
         $data = $event->getData();
@@ -87,50 +88,6 @@ class CorpSection extends AbstractCommonEveApi
         return $event->setHandledSufficiently();
     }
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param EventMediatorInterface $yem
-     *
-     * @return EveApiEventInterface
-     * @throws LogicException
-     */
-    public function startEveApi(EveApiEventInterface $event, $eventName, EventMediatorInterface $yem)
-    {
-        $this->setYem($yem);
-        $data = $event->getData();
-        $this->getYem()
-             ->triggerLogEvent(
-                 'Yapeal.Log.log',
-                 Logger::DEBUG,
-                 $this->getReceivedEventMessage($data, $eventName, __CLASS__)
-             );
-        $active = $this->getActive();
-        if (0 === count($active)) {
-            $mess = 'No active corporations found';
-            $this->getYem()
-                 ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess);
-            return $this->getYem()
-                        ->triggerEveApiEvent('Yapeal.EveApi.end', $data);
-        }
-        $untilInterval = $data->getCacheInterval();
-        foreach ($active as $key) {
-            $ownerID = $key['corporationID'];
-            if ($this->cacheNotExpired($data->getEveApiName(), $data->getEveApiSectionName(), $ownerID)) {
-                continue;
-            }
-            // Set arguments, reset interval, and clear xml data.
-            $data->setEveApiArguments($key)
-                 ->setCacheInterval($untilInterval)
-                 ->setEveApiXml();
-            if (!$this->oneShot($data)) {
-                continue;
-            }
-            $this->updateCachedUntil($data, $ownerID);
-        }
-        return $this->getYem()
-                    ->triggerEveApiEvent('Yapeal.EveApi.end', $data);
-    }
-    /**
      * @return array
      * @throws LogicException
      */
@@ -159,12 +116,4 @@ class CorpSection extends AbstractCommonEveApi
     /**
      * @return int
      */
-    protected function getMask()
-    {
-        return $this->mask;
-    }
-    /**
-     * @type int $mask
-     */
-    protected $mask;
 }

@@ -32,10 +32,13 @@ namespace Yapeal\Sql;
 use SimpleXMLElement;
 use SimpleXMLIterator;
 use Twig_Environment;
+use Twig_Error;
 use Yapeal\Console\Command\EveApiCreatorTrait;
 use Yapeal\Event\EveApiEventInterface;
-use Yapeal\Event\EventMediatorInterface;
+use Yapeal\Event\MediatorInterface;
+use Yapeal\Exception\YapealException;
 use Yapeal\Log\Logger;
+use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
  * Class Creator
@@ -46,25 +49,28 @@ class Creator
     /**
      * Creator constructor.
      *
-     * @param string           $dir
      * @param Twig_Environment $twig
+     * @param string           $dir
+     * @param string           $platform
      */
-    public function __construct($dir = __DIR__, Twig_Environment $twig)
+    public function __construct(Twig_Environment $twig, $dir = __DIR__, $platform = 'MySql')
     {
         $this->setDir($dir);
+        $this->setPlatform($platform);
         $this->setTwig($twig);
     }
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param EventMediatorInterface $yem
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
+     * @throws YapealException
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
-    public function createSql(EveApiEventInterface $event, $eventName, EventMediatorInterface $yem)
+    public function createSql(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
     {
         $this->setYem($yem);
         $data = $event->getData();
@@ -79,7 +85,7 @@ class Creator
             return $event->setHandledSufficiently();
         }
         $outputFile = sprintf(
-            '%1$s/%2$s/%3$s.sql',
+            '%1$s%2$s/%3$s.sql',
             $this->getDir(),
             $data->getEveApiSectionName(),
             $data->getEveApiName()
@@ -89,27 +95,33 @@ class Creator
             return $event;
         }
         $this->sectionName = $data->getEveApiSectionName();
-        $xml = $data->getEveApiXml();
-        $sxi = new SimpleXMLIterator($xml);
-        $tableNameVO = $this->sectionName . $data->getEveApiName();
+        $sxi = new SimpleXMLIterator($data->getEveApiXml());
+        $this->tables = [];
+        $this->processValueOnly($sxi, $this->sectionName . $data->getEveApiName());
+        $this->processRowset($sxi);
+        $tableNames = array_keys($this->tables);
+        ksort($this->tables);
         $vars = [
-            'elementsVO'   => [$tableNameVO => $this->processValueOnly($sxi)],
-            'elementsWKNA' => $this->processWithKidsAndNoAttributes($sxi),
-            'elementsNRS'  => $this->processNonRowset($sxi),
-            'elementsRS'   => $this->processRowset($sxi)
+            'className'   => lcfirst($data->getEveApiName()),
+            'tables'      => $this->tables,
+            'sectionName' => lcfirst($this->sectionName)
         ];
+        // Add create or replace view.
+        if (!in_array(strtolower($data->getEveApiName()), array_map('strtolower', $tableNames), true)) {
+            $vars['addView'] = ['tableName' => $tableNames[0], 'columns' => $this->tables[$tableNames[0]]['columns']];
+        }
         try {
             $contents = $this->getTwig()
-                ->render('sql.twig', $vars);
-        } catch (\Twig_Error $exp) {
-            $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::ERROR, 'Twig error', ['exception' => $exp]);
+                ->render($this->getSqlTemplateName($data, $this->getPlatform()), $vars);
+        } catch (Twig_Error $exp) {
             $this->getYem()
                 ->triggerLogEvent(
                     'Yapeal.Log.log',
                     Logger::WARNING,
                     $this->getFailedToWriteFile($data, $eventName, $outputFile)
                 );
+            $this->getYem()
+                ->triggerLogEvent('Yapeal.Log.log', Logger::ERROR, 'Twig error', ['exception' => $exp]);
             return $event;
         }
         if (false === $this->saveToFile($outputFile, $contents)) {
@@ -124,16 +136,69 @@ class Creator
         return $event->setHandledSufficiently();
     }
     /**
+     * @param string $platform
+     *
+     * @return self Fluent interface.
+     */
+    public function setPlatform($platform)
+    {
+        $this->platform = $platform;
+        return $this;
+    }
+    /**
+     * @return string
+     */
+    protected function getPlatform()
+    {
+        return $this->platform;
+    }
+    /**
      * @param string[] $keyNames
      *
      * @return string
      */
-    protected function getSqlKeys(array $keyNames)
+    protected function getSqlKeys(array $keyNames = [])
     {
         if ($this->hasOwner()) {
             array_unshift($keyNames, 'ownerID');
         }
         return array_unique($keyNames);
+    }
+    /**
+     * @param EveApiReadWriteInterface $data
+     * @param string                   $platform
+     * @param string                   $suffix
+     *
+     * @return string
+     * @throws YapealException
+     * @throws \LogicException
+     */
+    protected function getSqlTemplateName(EveApiReadWriteInterface $data, $platform = 'MySql', $suffix = 'twig')
+    {
+        // Section/Api.Platform.Suffix, Section/Api.Suffix, Section/Platform.Suffix,
+        // Api.Platform.Suffix, Api.Suffix, Platform.Suffix, sql.Suffix
+        $names = explode(
+            ',',
+            sprintf(
+                '%1$s/%2$s.%3$s.%4$s,%1$s/%2$s.%4$s,%1$s/%3$s.%4$s,' . '%2$s.%3$s.%4$s,%2$s.%4$s,%3$s.%4$s,sql.%4$s',
+                ucfirst($data->getEveApiSectionName()),
+                $data->getEveApiName(),
+                $platform,
+                $suffix
+            )
+        );
+        foreach ($names as $fileName) {
+            if (is_file($this->getDir() . $fileName)) {
+                return $fileName;
+            }
+        }
+        $mess = sprintf(
+            'Failed to find usable sql template file for EveApi %1$s/%2$s with platform of %3$s',
+            ucfirst($data->getEveApiSectionName()),
+            $data->getEveApiName(),
+            $platform
+        );
+        throw new YapealException($mess);
     }
     /**
      * Used to determine if API is in section that has an owner.
@@ -158,101 +223,80 @@ class Creator
             return 'BIGINT(20) UNSIGNED NOT NULL';
         }
         $name = strtolower($name);
-        $column = $forValue ? 'TEXT NOT NULL' : 'VARCHAR(255) DEFAULT \'\'';
         foreach ([
                      'descr'          => 'TEXT NOT NULL',
                      'name'           => 'CHAR(100) NOT NULL',
                      'balance'        => 'DECIMAL(17, 2) NOT NULL',
+                     'isk'            => 'DECIMAL(17, 2) NOT NULL',
                      'tax'            => 'DECIMAL(17, 2) NOT NULL',
-                     'time'           => 'DATETIME NOT NULL',
                      'timeefficiency' => 'TINYINT(3) UNSIGNED NOT NULL',
-                     'date'           => 'DATETIME NOT NULL'
+                     'date'           => 'DATETIME NOT NULL DEFAULT \'1970-01-01 00:00:01\'',
+                     'time'           => 'DATETIME NOT NULL DEFAULT \'1970-01-01 00:00:01\'',
+                     'until'          => 'DATETIME NOT NULL DEFAULT \'1970-01-01 00:00:01\''
                  ] as $search => $replace) {
             if (false !== strpos($name, $search)) {
-                $column = $replace;
+                return $replace;
             }
         }
-        return $column;
-    }
-    /**
-     * @param SimpleXMLIterator $sxi
-     *
-     * @return array
-     */
-    protected function processNonRowset(SimpleXMLIterator $sxi)
-    {
-        $elements = $sxi->xpath('//result/child::*[* and @* and not(@name|@key)]');
-        if (0 === count($elements)) {
-            return [];
-        }
-        return [];
+        return $forValue ? 'TEXT NOT NULL' : 'VARCHAR(255) DEFAULT \'\'';
     }
     /**
      * @param SimpleXMLIterator $sxi
      * @param string            $xPath
-     *
-     * @return array
      */
     protected function processRowset(SimpleXMLIterator $sxi, $xPath = '//result/rowset')
     {
-        $elements = $sxi->xpath($xPath);
-        if (0 === count($elements)) {
-            return [];
+        $items = $sxi->xpath($xPath);
+        if (0 === count($items)) {
+            return;
         }
-        $rows = [];
-        foreach ($elements as $ele) {
-            $name = (string)$ele['name'];
-            $columns = explode(',', (string)$ele['columns']);
-            $children = [];
-            foreach ($columns as $cName) {
-                $children[$cName] = $this->inferTypeFromName($cName, true);
+        foreach ($items as $ele) {
+            $tableName = ucfirst((string)$ele['name']);
+            $colNames = explode(',', (string)$ele['columns']);
+            $keyNames = explode(',', (string)$ele['key']);
+            $columns = [];
+            foreach ($keyNames as $keyName) {
+                $columns[$keyName] = $this->inferTypeFromName($keyName);
+            }
+            foreach ($colNames as $colName) {
+                $columns[$colName] = $this->inferTypeFromName($colName);
             }
             if ($this->hasOwner()) {
-                $children['ownerID'] = 'BIGINT(20) UNSIGNED NOT NULL';
+                $columns['ownerID'] = 'BIGINT(20) UNSIGNED NOT NULL';
             }
-            ksort($children);
-            $keyNames = explode(',', (string)$ele['key']);
-            $rows[$name] = ['columns' => $children, 'keys' => $this->getSqlKeys($keyNames)];
+            ksort($columns);
+            $this->tables[$tableName] = ['columns' => $columns, 'keys' => $this->getSqlKeys($keyNames)];
         }
-        ksort($rows);
-        return $rows;
     }
     /**
      * @param SimpleXMLIterator $sxi
-     *
-     * @return array
+     * @param string            $tableName
+     * @param string            $xpath
      */
-    protected function processValueOnly(SimpleXMLIterator $sxi)
+    protected function processValueOnly(SimpleXMLIterator $sxi, $tableName, $xpath = '//result/child::*[not(*|@*)]')
     {
-        $elements = $sxi->xpath('//result/child::*[not(*|@*)]');
-        if (0 === count($elements)) {
-            return [];
+        $items = $sxi->xpath($xpath);
+        if (0 === count($items)) {
+            return;
         }
-        $rows = [];
+        $columns = [];
         /**
          * @type SimpleXMLElement $ele
          */
-        foreach ($elements as $ele) {
+        foreach ($items as $ele) {
             $name = (string)$ele->getName();
-            $rows[$name] = $this->inferTypeFromName($name, true);
+            $columns[$name] = $this->inferTypeFromName($name, true);
         }
-        ksort($rows);
-        return ['columns' => $rows, 'keys' => $this->getSqlKeys([])];
+        if ($this->hasOwner()) {
+            $columns['ownerID'] = 'BIGINT(20) UNSIGNED NOT NULL';
+        }
+        ksort($columns);
+        $this->tables[$tableName] = ['columns' => $columns, 'keys' => $this->getSqlKeys()];
     }
     /**
-     * @param SimpleXMLIterator $sxi
-     *
-     * @return array
+     * @type string $platform Sql connection platform being used.
      */
-    protected function processWithKidsAndNoAttributes(SimpleXMLIterator $sxi)
-    {
-        $elements = $sxi->xpath('//result/child::*[* and not(@*)]');
-        if (0 === count($elements)) {
-            return [];
-        }
-        $rows = [];
-        return $rows;
-    }
+    protected $platform;
     /**
      * @type string $sectionName
      */
@@ -261,4 +305,8 @@ class Creator
      * @type integer $tableCount
      */
     protected $tableCount = 0;
+    /**
+     * @type array $tables
+     */
+    protected $tables;
 }

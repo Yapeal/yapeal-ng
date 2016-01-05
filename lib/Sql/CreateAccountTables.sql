@@ -7,7 +7,8 @@ CREATE TABLE "{database}"."{table_prefix}accountAccountStatus" (
     PRIMARY KEY ("keyID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}accountAPIKeyInfo" (
     "keyID"      BIGINT(20) UNSIGNED                       NOT NULL,
     "accessMask" BIGINT(20) UNSIGNED                       NOT NULL,
@@ -16,7 +17,8 @@ CREATE TABLE "{database}"."{table_prefix}accountAPIKeyInfo" (
     PRIMARY KEY ("keyID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 ALTER TABLE "{database}"."{table_prefix}accountAPIKeyInfo" ADD INDEX "accountAPIKeyInfo1"  ("type");
 CREATE TABLE "{database}"."{table_prefix}accountCharacters" (
     "characterID"     BIGINT(20) UNSIGNED NOT NULL,
@@ -30,7 +32,8 @@ CREATE TABLE "{database}"."{table_prefix}accountCharacters" (
     PRIMARY KEY ("characterID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 ALTER TABLE "{database}"."{table_prefix}accountCharacters" ADD INDEX "accountCharacters1"  ("corporationID");
 CREATE TABLE "{database}"."{table_prefix}accountKeyBridge" (
     "keyID"       BIGINT(20) UNSIGNED NOT NULL,
@@ -38,7 +41,8 @@ CREATE TABLE "{database}"."{table_prefix}accountKeyBridge" (
     PRIMARY KEY ("keyID","characterID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 ALTER TABLE "{database}"."{table_prefix}accountKeyBridge" ADD UNIQUE INDEX "accountKeyBridge1"  ("characterID","keyID");
 CREATE TABLE "{database}"."{table_prefix}accountMultiCharacterTraining" (
     "trainingEnd" DATETIME            NOT NULL,
@@ -46,7 +50,8 @@ CREATE TABLE "{database}"."{table_prefix}accountMultiCharacterTraining" (
     PRIMARY KEY ("keyID","trainingEnd")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
 CREATE TABLE "{database}"."{table_prefix}accountOffers" (
     "from"        CHAR(20)            NOT NULL,
     "ISK"         DECIMAL(17,2)       NOT NULL,
@@ -57,4 +62,5 @@ CREATE TABLE "{database}"."{table_prefix}accountOffers" (
     PRIMARY KEY ("keyID","offerID")
 )
 ENGINE = { engine}
-COLLATE utf8_unicode_ci;
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_520_ci;
