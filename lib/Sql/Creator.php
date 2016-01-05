@@ -85,10 +85,10 @@ class Creator
             return $event->setHandledSufficiently();
         }
         $outputFile = sprintf(
-            '%1$s%2$s/%3$s.sql',
+            '%1$s%2$s/Create%3$s.sql',
             $this->getDir(),
-            $data->getEveApiSectionName(),
-            $data->getEveApiName()
+            ucfirst($data->getEveApiSectionName()),
+            ucfirst($data->getEveApiName())
         );
         // Nothing to do if NOT overwriting and file exists.
         if (false === $this->isOverwrite() && is_file($outputFile)) {
