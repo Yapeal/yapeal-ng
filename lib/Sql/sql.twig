@@ -4,13 +4,15 @@
     {% for name, type in table.columns %}
     "{{ name }}" {{ type }},
 {% endfor %}
-    PRIMARY KEY ("{% for key in table.keys %}{{ key }}{% if not loop.last %}","{% endif %}{% endfor %}"))
+    PRIMARY KEY ("{% for key in table.keys %}{{ key }}{% if not loop.last %}","{% endif %}{% endfor %}")
+    )
 ENGINE = {engine}
 DEFAULT CHARSET = utf8mb4
 COLLATE = utf8mb4_unicode_520_ci;
 {% endfor %}
 {% if addView is defined %}
-    CREATE OR REPLACE VIEW "{database}"."{table_prefix}{{ sectionName }}{{ className|ucFirst }}" AS SELECT
-    {% for name, type in addView.columns %}"{{ name }}"{% if not loop.last %},{% else %}{{ "\n" }}{% endif %}{% endfor %}
+    CREATE OR REPLACE VIEW "{database}"."{table_prefix}{{ sectionName }}{{ className|ucFirst }}" AS
+    SELECT
+    {% for name, type in addView.columns %}        "{{ name }}"{% if not loop.last %}{{ "," }}{% endif %}{{ "\n" }}{% endfor %}
     FROM "{database}"."{table_prefix}{{ sectionName }}{{ addView.tableName|ucFirst }}";
 {% endif %}

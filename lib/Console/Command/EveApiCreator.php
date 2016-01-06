@@ -36,6 +36,7 @@ namespace Yapeal\Console\Command;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Yapeal\Configuration\ConsoleWiring;
 use Yapeal\Configuration\WiringInterface;
@@ -99,15 +100,20 @@ class EveApiCreator extends Command implements WiringInterface
                 'Optional list of additional POST parameter(s) to send to server.',
                 []
             );
+        $this->addOption(
+            'overwrite',
+            null,
+            InputOption::VALUE_NONE,
+            'Causes command to overwrite any existing per Eve API files.'
+        );
         $help = <<<EOF
 The <info>%command.full_name%</info> command retrieves the XML data from the Eve Api
-server and creates Yapeal Eve API Database class, xsd, and update sql files
-for most API types.
+server and creates Yapeal Eve API Database class, xsd, and sql files for most API types.
 
     <info>php %command.full_name% section_name api_name mask [<post>]...</info>
 
 EXAMPLES:
-Create Char/AccountBalance class, xsd, and update sql files in their respective
+Create Char/AccountBalance class, xsd, and sql files in their respective
 lib/{EveApi, Xsd, Sql}/Char/ directories.
     <info>%command.name% char AccountBalance 1 "keyID=1156" "vCode=abc123"</info>
 
@@ -135,6 +141,9 @@ EOF;
     {
         $posts = $this->processPost($input);
         $dic = $this->getDic();
+        if ($input->hasOption('overwrite')) {
+            $dic['Yapeal.Create.overwrite'] = true;
+        }
         $this->wire($dic);
         $apiName = $input->getArgument('api_name');
         $sectionName = $input->getArgument('section_name');
