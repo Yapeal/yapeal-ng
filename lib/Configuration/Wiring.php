@@ -393,7 +393,7 @@ class Wiring
                     $dic[$service] = function () use ($dic, $service, $mediator) {
                         $class = '\\' . str_replace('.', '\\', $service);
                         /**
-                         * @type \Yapeal\EveApi\AbstractCommonEveApi $callable
+                         * @type \Yapeal\EveApi\EveApiToolsTrait $callable
                          */
                         $callable = new $class();
                         return $callable->setCsq($dic['Yapeal.Sql.CommonQueries'])
@@ -425,7 +425,12 @@ class Wiring
                 }
                 );
                 $twig->addFilter($filter);
-                return new $dic['Yapeal.EveApi.create']($dic['Yapeal.EveApi.dir'], $twig);
+                /**
+                 * @type \Yapeal\EveApi\Creator $create
+                 */
+                $create = new $dic['Yapeal.EveApi.create']($twig, $dic['Yapeal.EveApi.dir']);
+                $create->setOverwrite($dic['Yapeal.Create.overwrite']);
+                return $create;
             };
             $mediator->addServiceSubscriberByEventList(
                 'Yapeal.EveApi.Creator',
@@ -662,7 +667,12 @@ class Wiring
                     }
                     );
                     $twig->addFilter($filter);
-                    return new $dic['Yapeal.Sql.create']($twig, $dic['Yapeal.Sql.dir'], $dic['Yapeal.Sql.platform']);
+                    /**
+                     * @type \Yapeal\Sql\Creator $create
+                     */
+                    $create = new $dic['Yapeal.Sql.create']($twig, $dic['Yapeal.Sql.dir'], $dic['Yapeal.Sql.platform']);
+                    $create->setOverwrite($dic['Yapeal.Create.overwrite']);
+                    return $create;
                 }
             );
         }
@@ -721,7 +731,12 @@ class Wiring
                     }
                     );
                     $twig->addFilter($filter);
-                    return new $dic['Yapeal.Xsd.create']($twig, $dic['Yapeal.Xsd.dir']);
+                    /**
+                     * @type \Yapeal\Xsd\Creator $create
+                     */
+                    $create = new $dic['Yapeal.Xsd.create']($twig, $dic['Yapeal.Xsd.dir']);
+                    $create->setOverwrite($dic['Yapeal.Create.overwrite']);
+                    return $create;
                 }
             );
         }

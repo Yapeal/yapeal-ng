@@ -26,10 +26,10 @@ class Creator
     /**
      * Creator constructor.
      *
-     * @param string           $dir
      * @param Twig_Environment $twig
+     * @param string           $dir
      */
-    public function __construct($dir = __DIR__, Twig_Environment $twig)
+    public function __construct(Twig_Environment $twig, $dir = __DIR__)
     {
         $this->setDir($dir);
         $this->setTwig($twig);
