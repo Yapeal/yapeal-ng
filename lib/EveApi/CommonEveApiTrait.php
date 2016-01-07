@@ -60,7 +60,7 @@ trait CommonEveApiTrait
             return false;
         }
         $result = true;
-        $eventSuffixes = ['retrieve', 'transform', 'validate', 'preserve'];
+        $eventSuffixes = ['retrieve', 'transform', 'validate', 'cache', 'preserve'];
         foreach ($eventSuffixes as $eventSuffix) {
             if (false === $this->emitEvents($data, $eventSuffix)) {
                 $result = false;

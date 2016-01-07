@@ -254,7 +254,7 @@ class Wiring
             $mediator = $dic['Yapeal.Event.Mediator'];
             $mediator->addServiceSubscriberByEventList(
                 'Yapeal.FileSystem.CachePreserver',
-                ['Yapeal.EveApi.preserve' => ['preserveEveApi', 'last']]
+                ['Yapeal.EveApi.cache' => ['preserveEveApi', 'last']]
             );
             $mediator->addServiceSubscriberByEventList(
                 'Yapeal.FileSystem.CacheRetriever',
