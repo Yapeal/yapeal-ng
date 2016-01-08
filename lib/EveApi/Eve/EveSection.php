@@ -34,7 +34,6 @@
 namespace Yapeal\EveApi\Eve;
 
 use Yapeal\EveApi\CommonEveApiTrait;
-use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
  * Class EveSection
@@ -42,8 +41,11 @@ use Yapeal\Xml\EveApiReadWriteInterface;
 class EveSection
 {
     use CommonEveApiTrait;
-    protected function getActive(EveApiReadWriteInterface $data)
+    /**
+     * EveSection constructor.
+     */
+    public function __construct()
     {
-        return [[null]];
+        // Place Holder
     }
 }
