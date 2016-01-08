@@ -56,7 +56,7 @@
     },
     "require": {
         "dragonrun1/file_path_normalizer": "1.1.*",
-        "dragonrun1/event-mediator": "dev-master",
+        "dragonrun1/event-mediator": "<1.1.0",
         "ext-curl": "*",
         "ext-date": "*",
         "ext-hash": "*",
@@ -70,7 +70,6 @@
         "ext-xmlreader": "*",
         "ext-xsl": "*",
         "fabpot/php-cs-fixer": "<2.0",
-        "jdorn/sql-formatter": "<1.3",
         "lib-curl": ">=7.15.0",
         "lib-openssl": ">=0.9.8",
         "guzzlehttp/guzzle": "~6.0",
