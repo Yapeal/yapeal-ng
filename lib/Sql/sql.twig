@@ -1,18 +1,19 @@
--- Sql/{{ sectionName|ucFirst }}/Create{{ className|ucFirst }}.sql-- version {{ "now"|date("YmdHi", "GMT") }}
+-- Sql/{{ sectionName|ucFirst }}/Create{{ className|ucFirst }}.sql
+-- version {{ "now"|date("YmdHi", "GMT") }}
 {% for tableName, table in tables %}
-    CREATE TABLE "{database}"."{table_prefix}{{ sectionName }}{{ tableName|ucFirst }}" (
-    {% for name, type in table.columns %}
+CREATE TABLE "{database}"."{table_prefix}{{ sectionName }}{{ tableName|ucFirst }}" (
+{% for name, type in table.columns %}
     "{{ name }}" {{ type }},
 {% endfor %}
     PRIMARY KEY ("{% for key in table.keys %}{{ key }}{% if not loop.last %}","{% endif %}{% endfor %}")
-    )
+)
 ENGINE = {engine}
 DEFAULT CHARSET = utf8mb4
 COLLATE = utf8mb4_unicode_520_ci;
 {% endfor %}
 {% if addView is defined %}
-    CREATE OR REPLACE VIEW "{database}"."{table_prefix}{{ sectionName }}{{ className|ucFirst }}" AS
+CREATE OR REPLACE VIEW "{database}"."{table_prefix}{{ sectionName }}{{ className|ucFirst }}" AS
     SELECT
-    {% for name, type in addView.columns %}        "{{ name }}"{% if not loop.last %}{{ "," }}{% endif %}{{ "\n" }}{% endfor %}
+{% for name, type in addView.columns %}        "{{ name }}"{% if not loop.last %}{{ "," }}{% endif %}{{ "\n" }}{% endfor %}
     FROM "{database}"."{table_prefix}{{ sectionName }}{{ addView.tableName|ucFirst }}";
 {% endif %}
