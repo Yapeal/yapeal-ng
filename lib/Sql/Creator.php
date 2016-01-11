@@ -99,7 +99,17 @@ class Creator
         $this->tables = [];
         $this->processValueOnly($sxi, $this->sectionName . $data->getEveApiName());
         $this->processRowset($sxi);
+        $tCount = count($this->tables);
+        if (0 === $tCount) {
+            $mess = 'No SQL tables to create for';
+            $this->getYem()->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $this->createEveApiMessage($mess, $data));
+        }
         $tableNames = array_keys($this->tables);
+        if (1 === $tCount) {
+            $this->tables[$data->getEveApiName()] = $this->tables[$tableNames[0]];
+            unset($this->tables[$tableNames[0]]);
+            $tableNames[0] = $data->getEveApiName();
+        }
         ksort($this->tables);
         $vars = [
             'className'   => lcfirst($data->getEveApiName()),

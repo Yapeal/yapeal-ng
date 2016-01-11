@@ -161,7 +161,7 @@ EOF;
             ->setEveApiSectionName($sectionName)
             ->setEveApiArguments($posts);
         $data->addEveApiArgument('mask', $input->getArgument('mask'));
-        foreach (['retrieve', 'create', 'transform', 'validate', 'cache', 'preserve'] as $eventName) {
+        foreach (['retrieve', 'create', 'transform', 'validate', 'cache'] as $eventName) {
             if (false === $this->emitEvents($data, $eventName)) {
                 return 2;
             }

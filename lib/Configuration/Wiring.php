@@ -646,6 +646,8 @@ class Wiring
             $database->exec('SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE');
             $database->exec('SET SESSION TIME_ZONE=\'+00:00\'');
             $database->exec('SET NAMES utf8mb4 COLLATE utf8mb4_unicode_520_ci');
+            $database->exec('SET COLLATION_CONNECTION=utf8mb4_unicode_520_ci');
+            $database->exec('SET DEFAULT_STORAGE_ENGINE=' . $dic['Yapeal.Sql.engine']);
             return $database;
         };
         if (empty($dic['Yapeal.Sql.Creator'])) {

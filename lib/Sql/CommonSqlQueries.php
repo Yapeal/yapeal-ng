@@ -81,6 +81,7 @@ SQL;
      */
     public function getActiveApis()
     {
+        /** @lang MySQL */
         $sql = <<<'SQL'
 SELECT "apiName","interval","sectionName"
  FROM "%1$s"."%2$sutilEveApi"

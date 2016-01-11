@@ -105,6 +105,7 @@ abstract class AbstractDatabaseCommon extends Command
                 'User name used to access database.'
             );
     }
+    /** @noinspection PhpMissingParentCallCommonInspection */
     /**
      * Executes the current command.
      *
