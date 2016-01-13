@@ -80,7 +80,7 @@ class CacheRetriever implements EveApiRetrieverInterface
         list($cachePath, $cacheFile) = explode(
             ',',
             sprintf(
-                '%1$s%2$s,%1$s%2$s/%3$s%4$s.xml,%1$s%2$s/%3$s%4$s.tmp',
+                '%1$s%2$s,%1$s%2$s/%3$s%4$s.xml',
                 $this->getCachePath(),
                 ucfirst($data->getEveApiSectionName()),
                 ucfirst($data->getEveApiName()),
