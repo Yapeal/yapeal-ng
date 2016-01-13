@@ -99,7 +99,7 @@ HELP;
      */
     protected function getCreateFileList(OutputInterface $output)
     {
-        $sections = ['Database', 'Account', 'Api', 'Char', 'Corp', 'Eve', 'Map', 'Server', 'Util'];
+        $sections = ['Database', 'Util', 'Account', 'Api', 'Char', 'Corp', 'Eve', 'Map', 'Server'];
         $path = $this->getDic()['Yapeal.Sql.dir'];
         if (!is_readable($path)) {
             $mess = sprintf(
@@ -114,7 +114,7 @@ HELP;
             foreach (new DirectoryIterator($path . $dir . '/') as $fileInfo) {
                 if ($fileInfo->isDot() || $fileInfo->isDir()) {
                     continue;
-                };
+                }
                 if (!$fileInfo->isFile()
                     || 'sql' !== $fileInfo->getExtension()
                     || 'Create' !== substr($fileInfo->getBasename(), 0, 6)
