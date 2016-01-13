@@ -76,12 +76,21 @@ class CacheRetriever implements EveApiRetrieverInterface
             Logger::DEBUG,
             $this->getReceivedEventMessage($data, $eventName, __CLASS__)
         );
-        $cachePath = $this->getSectionCachePath($data->getEveApiSectionName());
-        if (false === $cachePath || false === $this->isUsableCachePath($cachePath)) {
-            return $event;
-        }
-        $cacheFile = $cachePath . $data->getEveApiName() . $data->getHash() . '.xml';
-        if (false === $this->isUsableCacheFile($cacheFile)) {
+        // BaseSection,BaseSection/ApiHash.xml
+        list($cachePath, $cacheFile) = explode(
+            ',',
+            sprintf(
+                '%1$s%2$s,%1$s%2$s/%3$s%4$s.xml,%1$s%2$s/%3$s%4$s.tmp',
+                $this->getCachePath(),
+                ucfirst($data->getEveApiSectionName()),
+                ucfirst($data->getEveApiName()),
+                $data->getHash()
+            )
+        );
+        if ('' === $cachePath
+            || false === $this->isUsableCachePath($cachePath)
+            || false === $this->isUsableCacheFile($cacheFile)
+        ) {
             return $event;
         }
         $result = $this->readXmlData($cacheFile);
@@ -94,7 +103,7 @@ class CacheRetriever implements EveApiRetrieverInterface
         }
         $mess = sprintf('Found usable cache file %1$s', $cacheFile);
         $this->getYem()
-             ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $mess);
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $mess);
         return $event->setData($data->setEveApiXml($result))
             ->eventHandled();
     }
@@ -110,10 +119,11 @@ class CacheRetriever implements EveApiRetrieverInterface
             $value = dirname(dirname(__DIR__)) . '/cache/';
         }
         if (!is_string($value)) {
-            $mess = 'Cache path MUST be string but given ' . gettype($value);
+            $mess = 'Cache path MUST be string, but given ' . gettype($value);
             throw new InvalidArgumentException($mess);
         }
-        $this->cachePath = $value;
+        $this->cachePath = $this->getFpn()
+            ->normalizePath($value);
         return $this;
     }
     /**
@@ -127,27 +137,7 @@ class CacheRetriever implements EveApiRetrieverInterface
             throw new LogicException($mess);
         }
         return $this->getFpn()
-                    ->normalizePath($this->cachePath);
-    }
-    /**
-     * @param string $sectionName
-     *
-     * @return string|false
-     * @throws LogicException
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     */
-    protected function getSectionCachePath($sectionName)
-    {
-        try {
-            return $this->getFpn()
-                        ->normalizePath($this->getCachePath() . strtolower($sectionName));
-        } catch (DomainException $exc) {
-            $mess = 'Could NOT get cache path';
-            $this->getYem()
-                 ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess, ['exception' => $exc]);
-            return false;
-        }
+            ->normalizePath($this->cachePath);
     }
     /**
      * @param string $xml
@@ -163,13 +153,13 @@ class CacheRetriever implements EveApiRetrieverInterface
         if (null === $simple->currentTime[0]) {
             $mess = 'Xml file missing required currentTime element';
             $this->getYem()
-                 ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
+                ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
             return true;
         }
         if (null === $simple->cachedUntil[0]) {
             $mess = 'Xml file missing required cachedUntil element';
             $this->getYem()
-                 ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
+                ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
             return true;
         }
         $now = time();
@@ -183,14 +173,14 @@ class CacheRetriever implements EveApiRetrieverInterface
         if ($until <= $current) {
             $mess = sprintf('CachedUntil is invalid was given %1$s and currentTime is %2$s', $until, $current);
             $this->getYem()
-                 ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $mess);
+                ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $mess);
             return true;
         }
         // Now plus a day.
         if ($until > ($now + 86400)) {
             $mess = sprintf('CachedUntil is excessively long was given %1$s and currentTime is %2$s', $until, $current);
             $this->getYem()
-                 ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
+                ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
             return true;
         }
         return ($until <= $now);
@@ -206,9 +196,9 @@ class CacheRetriever implements EveApiRetrieverInterface
     protected function isUsableCacheFile($cacheFile)
     {
         if (!is_readable($cacheFile) || !is_file($cacheFile)) {
-            $mess = 'Could NOT find accessible cache file was given ' . $cacheFile;
+            $mess = 'Could NOT find accessible cache file, was given ' . $cacheFile;
             $this->getYem()
-                 ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess);
+                ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess);
             return false;
         }
         return true;
@@ -224,15 +214,15 @@ class CacheRetriever implements EveApiRetrieverInterface
     protected function isUsableCachePath($cachePath)
     {
         if (!is_readable($cachePath)) {
-            $mess = 'Cache path is NOT readable or does NOT exist was given ' . $cachePath;
+            $mess = 'Cache path is NOT readable or does NOT exist, was given ' . $cachePath;
             $this->getYem()
-                 ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
+                ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
             return false;
         }
         if (!is_dir($cachePath)) {
-            $mess = 'Cache path is NOT a directory was given ' . $cachePath;
+            $mess = 'Cache path is NOT a directory, was given ' . $cachePath;
             $this->getYem()
-                 ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
+                ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
             return false;
         }
         return true;
@@ -260,7 +250,7 @@ class CacheRetriever implements EveApiRetrieverInterface
             if (++$tries > 10 || time() > $timeout) {
                 $mess = sprintf('Giving up could NOT finish reading data from %1$s', $fileName);
                 $this->getYem()
-                     ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
+                    ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
                 $this->releaseHandle($handle);
                 return false;
             }

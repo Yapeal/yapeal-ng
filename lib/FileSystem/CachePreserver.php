@@ -76,14 +76,21 @@ class CachePreserver
             Logger::DEBUG,
             $this->getReceivedEventMessage($data, $eventName, __CLASS__)
         );
-        $cachePath = $this->getSectionCachePath($data->getEveApiSectionName());
-        if (false === $cachePath || false === $this->isUsableCachePath($cachePath)) {
+        // BaseSection,BaseSection/ApiHash.xml,BaseSection/ApiHash.tmp
+        list($cachePath, $cacheFile, $cacheTemp) = explode(
+            ',',
+            sprintf(
+                '%1$s%2$s,%1$s%2$s/%3$s%4$s.xml,%1$s%2$s/%3$s%4$s.tmp',
+                $this->getCachePath(),
+                ucfirst($data->getEveApiSectionName()),
+                ucfirst($data->getEveApiName()),
+                $data->getHash()
+            )
+        );
+        if ('' === $cachePath || false === $this->isUsableCachePath($cachePath)) {
             return $event;
         }
         // Insures retriever never see partly written file by deleting old file and using temp file for writing.
-        $cacheBase = $cachePath . $data->getEveApiName() . $data->getHash();
-        $cacheFile = $cacheBase . '.xml';
-        $cacheTemp = $cacheBase . '.tmp';
         if (false === $this->deleteWithRetry($cacheFile, $yem)) {
             return $event;
         }
@@ -108,14 +115,15 @@ class CachePreserver
             $value = dirname(dirname(__DIR__)) . '/cache/';
         }
         if (!is_string($value)) {
-            $mess = 'Cache path MUST be string but was given ' . gettype($value);
+            $mess = 'Cache path MUST be string, but was given ' . gettype($value);
             throw new InvalidArgumentException($mess);
         }
         if ('' === $this->cachePath) {
             $mess = 'Cache path can NOT be empty';
             throw new DomainException($mess);
         }
-        $this->cachePath = $value;
+        $this->cachePath = $this->getFpn()
+            ->normalizePath($value);
         return $this;
     }
     /**
@@ -125,26 +133,6 @@ class CachePreserver
     protected function getCachePath()
     {
         return $this->cachePath;
-    }
-    /**
-     * @param string $sectionName
-     *
-     * @return false|string
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
-     */
-    protected function getSectionCachePath($sectionName)
-    {
-        try {
-            return $this->getFpn()
-                        ->normalizePath($this->getCachePath() . strtolower($sectionName));
-        } catch (Exception $exc) {
-            $mess = 'Could NOT get cache path';
-            $this->getYem()
-                 ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess, ['exception' => $exc]);
-            return false;
-        }
     }
     /**
      * @param string $cachePath
@@ -157,21 +145,21 @@ class CachePreserver
     protected function isUsableCachePath($cachePath)
     {
         if (!is_readable($cachePath)) {
-            $mess = 'Cache path is NOT readable or does NOT exist was given ' . $cachePath;
+            $mess = 'Cache path is NOT readable or does NOT exist, was given ' . $cachePath;
             $this->getYem()
-                 ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
+                ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
             return false;
         }
         if (!is_dir($cachePath)) {
-            $mess = 'Cache path is NOT a directory was given ' . $cachePath;
+            $mess = 'Cache path is NOT a directory, was given ' . $cachePath;
             $this->getYem()
-                 ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
+                ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
             return false;
         }
         if (!is_writable($cachePath)) {
-            $mess = 'Cache path is NOT writable was given ' . $cachePath;
+            $mess = 'Cache path is NOT writable, was given ' . $cachePath;
             $this->getYem()
-                 ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
+                ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
             return false;
         }
         return true;
@@ -198,9 +186,9 @@ class CachePreserver
             if (++$tries > 10 || time() > $timeout) {
                 $mess = sprintf('Giving up could NOT finish writing data to %1$s', $fileName);
                 $this->getYem()
-                     ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
+                    ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
                 $this->releaseHandle($handle)
-                     ->deleteWithRetry($fileName, $this->getYem());
+                    ->deleteWithRetry($fileName, $this->getYem());
                 return false;
             }
             $written = fwrite($handle, $xml);
