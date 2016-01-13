@@ -84,20 +84,21 @@ class Creator
         if (false !== strpos($data->getEveApiXml(), '<?yapeal.parameters.json')) {
             return $event->setHandledSufficiently();
         }
+        $this->sectionName = $data->getEveApiSectionName();
+        $this->apiName = $data->getEveApiName();
         $outputFile = sprintf(
             '%1$s%2$s/Create%3$s.sql',
             $this->getDir(),
-            ucfirst($data->getEveApiSectionName()),
-            ucfirst($data->getEveApiName())
+            ucfirst($this->sectionName),
+            ucfirst($this->apiName)
         );
         // Nothing to do if NOT overwriting and file exists.
         if (false === $this->isOverwrite() && is_file($outputFile)) {
             return $event;
         }
-        $this->sectionName = $data->getEveApiSectionName();
         $sxi = new SimpleXMLIterator($data->getEveApiXml());
         $this->tables = [];
-        $this->processValueOnly($sxi, $this->sectionName . $data->getEveApiName());
+        $this->processValueOnly($sxi, lcfirst($this->apiName));
         $this->processRowset($sxi);
         $tCount = count($this->tables);
         if (0 === $tCount) {
@@ -106,18 +107,18 @@ class Creator
         }
         $tableNames = array_keys($this->tables);
         if (1 === $tCount) {
-            $this->tables[$data->getEveApiName()] = $this->tables[$tableNames[0]];
+            $this->tables[lcfirst($this->apiName)] = $this->tables[$tableNames[0]];
             unset($this->tables[$tableNames[0]]);
-            $tableNames[0] = $data->getEveApiName();
+            $tableNames[0] = lcfirst($this->apiName);
         }
         ksort($this->tables);
         $vars = [
-            'className'   => lcfirst($data->getEveApiName()),
+            'className'   => lcfirst($this->apiName),
             'tables'      => $this->tables,
             'sectionName' => lcfirst($this->sectionName)
         ];
         // Add create or replace view.
-        if (!in_array(strtolower($data->getEveApiName()), array_map('strtolower', $tableNames), true)) {
+        if (!in_array(strtolower($this->apiName), array_map('strtolower', $tableNames), true)) {
             $vars['addView'] = ['tableName' => $tableNames[0], 'columns' => $this->tables[$tableNames[0]]['columns']];
         }
         try {
@@ -303,6 +304,10 @@ class Creator
         ksort($columns);
         $this->tables[$tableName] = ['columns' => $columns, 'keys' => $this->getSqlKeys()];
     }
+    /**
+     * @type string $apiName
+     */
+    protected $apiName;
     /**
      * @type string $platform Sql connection platform being used.
      */
