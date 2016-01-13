@@ -95,7 +95,6 @@ class Creator
         $this->tables = [];
         $this->processValueOnly($sxi, lcfirst($data->getEveApiName()));
         $this->processRowset($sxi);
-        ksort($this->tables);
         $vars = [
             'className'   => lcfirst($data->getEveApiName()),
             'tables'      => $this->tables,
