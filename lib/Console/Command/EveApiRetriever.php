@@ -174,7 +174,7 @@ EOF;
         $data->setEveApiName($apiName)
             ->setEveApiSectionName($sectionName)
             ->setEveApiArguments($posts);
-        foreach (['retrieve', 'preserve'] as $eventName) {
+        foreach (['retrieve', 'cache'] as $eventName) {
             $this->emitEvents($data, $eventName);
         }
         if (false === $data->getEveApiXml()) {
