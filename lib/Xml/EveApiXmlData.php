@@ -153,6 +153,9 @@ class EveApiXmlData implements EveApiReadWriteInterface
     {
         $hash = $this->getEveApiName() . $this->getEveApiSectionName();
         foreach ($this->getEveApiArguments() as $key => $value) {
+            if ('mask' === $key) {
+                continue;
+            }
             $hash .= $key . $value;
         }
         return hash('md5', $hash);
