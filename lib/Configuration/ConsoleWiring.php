@@ -52,17 +52,7 @@ class ConsoleWiring extends Wiring
      */
     public function wireAll()
     {
-        $this->wireConfig()
-            ->wireError()
-            ->wireEvent()
-            ->wireLog()
-            ->wireSql()
-            ->wireXml()
-            ->wireXsl()
-            ->wireXsd()
-            ->wireCache()
-            ->wireNetwork()
-            ->wireEveApi();
+        parent::wireAll();
         return $this;
     }
 }

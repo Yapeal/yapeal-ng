@@ -302,7 +302,11 @@ class Creator
             $columns['ownerID'] = 'BIGINT(20) UNSIGNED NOT NULL';
         }
         ksort($columns);
-        $this->tables[$tableName] = ['columns' => $columns, 'keys' => $this->getSqlKeys()];
+        $this->tables[$tableName] = ['columns' => $columns];
+        $keys = $this->getSqlKeys();
+        if (0 !== count($keys)) {
+            $this->tables[$tableName]['keys'] = $keys;
+        }
     }
     /**
      * @type string $apiName

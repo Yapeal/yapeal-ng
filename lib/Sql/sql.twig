@@ -3,9 +3,11 @@
 {% for tableName, table in tables %}
 CREATE TABLE "{database}"."{table_prefix}{{ sectionName }}{{ tableName|ucFirst }}" (
 {% for name, type in table.columns %}
-    "{{ name }}" {{ type }},
+    "{{ name }}" {{ type }}{% if not loop.last %}{{ ",\n" }}{% endif %}
 {% endfor %}
+{% if table.keys is defined %},
     PRIMARY KEY ("{% for key in table.keys %}{{ key }}{% if not loop.last %}","{% endif %}{% endfor %}")
+{% else %}{{ "\n" }}{% endif %}
 );
 {% endfor %}
 {% if addView is defined %}
