@@ -71,7 +71,7 @@ class Creator
         $this->sectionName = $data->getEveApiSectionName();
         $sxi = new SimpleXMLIterator($data->getEveApiXml());
         $this->tables = [];
-        $this->processValueOnly($sxi, ucfirst($this->sectionName) . $data->getEveApiName());
+        $this->processValueOnly($sxi, $data->getEveApiName());
         $this->processRowset($sxi);
         ksort($this->tables);
         $vars = [
