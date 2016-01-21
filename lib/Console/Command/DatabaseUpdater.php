@@ -50,7 +50,6 @@ class DatabaseUpdater extends AbstractDatabaseCommon
 {
     /**
      * @param string|null        $name
-     * @param string             $cwd
      * @param ContainerInterface $dic
      *
      * @throws LogicException
@@ -58,13 +57,12 @@ class DatabaseUpdater extends AbstractDatabaseCommon
      * @throws \Symfony\Component\Console\Exception\LogicException
      * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
      */
-    public function __construct($name, $cwd, ContainerInterface $dic)
+    public function __construct($name, ContainerInterface $dic)
     {
         $this->setDescription(
             'Retrieves SQL from files and updates database'
         );
         $this->setName($name);
-        $this->setCwd($cwd);
         $this->setDic($dic);
         parent::__construct($name);
     }
