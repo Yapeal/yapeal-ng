@@ -109,31 +109,27 @@ HELP;
             $output->writeln($mess);
             return [];
         }
-        $fileList = [];
         foreach ($sections as $dir) {
             foreach (new DirectoryIterator($path . $dir . '/') as $fileInfo) {
-                if ($fileInfo->isDot() || $fileInfo->isDir()) {
-                    continue;
-                }
                 if (!$fileInfo->isFile()
                     || 'sql' !== $fileInfo->getExtension()
                     || 'Create' !== substr($fileInfo->getBasename(), 0, 6)
                 ) {
                     continue;
                 }
-                $fileList[] =
-                    $this->getFpn()
-                        ->normalizeFile($fileInfo->getPathname());
+                $fileList[] = $this->getFpn()
+                    ->normalizeFile($fileInfo->getPathname());
             }
         }
-        $fileNames = [
-            $path . 'CustomTables.sql',
-            $this->getDic()['Yapeal.baseDir'] . 'config/CustomTables.sql'
-        ];
+        $fileNames = '%1$sCreateCustomTables.sql,%2$sconfig/CreateCustomTables.sql';
+        $vendorPath = '';
         if (!empty($this->getDic()['Yapeal.vendorParentDir'])) {
-            $fileNames[] = $this->getDic()['Yapeal.vendorParentDir'] . 'config/CustomTables.sql';
+            $fileNames .= ',%3$sconfig/CreateCustomTables.sql';
+            $vendorPath = $this->getDic()['Yapeal.vendorParentDir'];
         }
-        foreach ($fileNames as $fileName) {
+        $fileList = [];
+        foreach (explode(',', sprintf($fileNames, $path, $this->getDic()['Yapeal.baseDir'], $vendorPath)) as $fileName)
+        {
             if (!is_readable($fileName) || !is_file($fileName)) {
                 continue;
             }
