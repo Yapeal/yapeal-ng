@@ -33,7 +33,7 @@ Next you will want to read the configure instructions in [CONFIG.md][1].
 If you are NOT using Composer in your project you can clone Yapeal using
 [Git](http://git-scm.com/) from the main project page:
 
-https://github.com/Dragonrun1/yapeal
+https://github.com/Yapeal/yapeal
 
 The following instruction assume you are manually running the commands from a
 command line interface like Bash (Linux) or CMD (Windows).
@@ -41,7 +41,7 @@ command line interface like Bash (Linux) or CMD (Windows).
 An example Git clone command:
 
 ```
-git clone https://github.com/Dragonrun1/yapeal.git
+git clone https://github.com/Yapeal/yapeal.git
 ```
 
 This will create a `yapeal/` directory in the current path where it is run so
@@ -84,7 +84,7 @@ Next you will want to read the configure instructions in [CONFIG.md](CONFIG.md).
 
 You can download a zp file for Yapeal from the main project page at:
 
-https://github.com/Dragonrun1/yapeal
+https://github.com/Yapeal/yapeal
 
 After un-zipping where you want Yapeal installed you will need to run Composer
 to install Yapeal's dependencies.

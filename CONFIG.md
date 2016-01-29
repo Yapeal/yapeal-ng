@@ -50,9 +50,9 @@ The example has comments for all the settings that you might need to change so
 make sure to have a look at it but we will be going over the most common
 settings that you will probably want to change below.
 
-### Database Section
+### Sql Section
 
-Located in the `Database` section of `yapeal.yaml` are the settings that most
+Located in the `Sql` section of `yapeal.yaml` are the settings that most
 people will need to change.
 
 The first two settings we will talk about are the `userName` and `password` ones.
@@ -83,7 +83,7 @@ Let say you have a `config/yapeal.yaml` file that has these settings:
 
 ```
 Yapeal:
-  Database:
+  Sql:
     database: yapeal
     password: secret
     tablePrefix: ''
@@ -176,19 +176,8 @@ will then override/set any settings that weren't in the config file and check
 that the required settings are all available.
 
 After connecting to the database server it will start looking for the
-`Create*.sql` files in `bin/sql/` and process them. The order it processes them
-in is:
-
-  * CreateDatabase.sql
-  * CreateAccountTables.sql
-  * CreateApiTables.sql
-  * CreateCharTable.sql
-  * CreateCorpTables.sql
-  * CreateEveTables.sql
-  * CreateMapTables.sql
-  * CreateServerTables.sql
-  * CreateUtilTables.sql
-  * CreateCustomTables.sql
+`Create*.sql` files in `lib/Sql/*/` directories and process them. The order it
+processes the directories in is 'Database', 'Util', 'Account', 'Char', etc.
 
 The first one of course drops then recreates the database and the others do the
 same for the tables in each section. The `CreateCustomTables.sql` is of special
@@ -206,7 +195,7 @@ hopefully useful error message.
 ### Database Updating Using `yc D:U`
 
 All the same conditions and settings are assumed as in the initial install above.
-The command will look in the `bin/sql/updates/` directory for any `###.sql`
+The command will look in the `lib/Sql/updates/` directory for any `###.sql`
 files and compare them with the latest version it finds in the
 `utilDatabaseVersion` and apply any with a newer date-time stamp name. Note that
 this command in addition to the permissions like `CREATE TABLE` needs by
