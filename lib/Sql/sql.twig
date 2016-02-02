@@ -1,5 +1,5 @@
 -- Sql/{{ sectionName|ucFirst }}/Create{{ className|ucFirst }}.sql
--- version {{ "now"|date("YmdHi", "GMT") }}
+-- version {{ version }}
 {% for tableName, table in tables %}
 CREATE TABLE "{database}"."{table_prefix}{{ sectionName }}{{ tableName|ucFirst }}" (
 {% for name, type in table.columns %}
@@ -16,3 +16,9 @@ CREATE OR REPLACE VIEW "{database}"."{table_prefix}{{ sectionName }}{{ className
 {% for name, type in addView.columns %}        "{{ name }}"{% if not loop.last %}{{ "," }}{% endif %}{{ "\n" }}{% endfor %}
     FROM "{database}"."{table_prefix}{{ sectionName }}{{ addView.tableName|ucFirst }}";
 {% endif %}
+START TRANSACTION;
+INSERT INTO "{database}"."{table_prefix}utilDatabaseVersion" ("version")
+VALUES
+('{{ version }}')
+ON DUPLICATE KEY UPDATE "version" = VALUES("version");
+COMMIT;

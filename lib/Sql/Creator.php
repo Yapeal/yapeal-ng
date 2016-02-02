@@ -99,11 +99,12 @@ class Creator
         $sxi = new SimpleXMLIterator($data->getEveApiXml());
         $this->tables = [];
         $this->processValueOnly($sxi, lcfirst($this->apiName));
-        $this->processRowset($sxi);
+        $this->processRowset($sxi, $this->apiName);
         $tCount = count($this->tables);
         if (0 === $tCount) {
             $mess = 'No SQL tables to create for';
-            $this->getYem()->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $this->createEveApiMessage($mess, $data));
+            $this->getYem()
+                ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $this->createEveApiMessage($mess, $data));
         }
         $tableNames = array_keys($this->tables);
         if (1 === $tCount) {
@@ -112,10 +113,12 @@ class Creator
             $tableNames[0] = lcfirst($this->apiName);
         }
         ksort($this->tables);
+        list($mSec, $sec) = explode(' ', microtime());
         $vars = [
             'className'   => lcfirst($this->apiName),
             'tables'      => $this->tables,
-            'sectionName' => lcfirst($this->sectionName)
+            'sectionName' => lcfirst($this->sectionName),
+            'version' => gmdate('YmdHis', $sec) . sprintf('.%0-3s', floor($mSec * 1000))
         ];
         // Add create or replace view.
         if (!in_array(strtolower($this->apiName), array_map('strtolower', $tableNames), true)) {
@@ -243,7 +246,9 @@ class Creator
                      'timeefficiency' => 'TINYINT(3) UNSIGNED NOT NULL',
                      'date'           => 'DATETIME NOT NULL DEFAULT \'1970-01-01 00:00:01\'',
                      'time'           => 'DATETIME NOT NULL DEFAULT \'1970-01-01 00:00:01\'',
-                     'until'          => 'DATETIME NOT NULL DEFAULT \'1970-01-01 00:00:01\''
+                     'until'          => 'DATETIME NOT NULL DEFAULT \'1970-01-01 00:00:01\'',
+                     'errorcode'      => 'SMALLINT(4) UNSIGNED NOT NULL',
+                     'level'          => 'SMALLINT(4) UNSIGNED NOT NULL'
                  ] as $search => $replace) {
             if (false !== strpos($name, $search)) {
                 return $replace;
@@ -253,16 +258,17 @@ class Creator
     }
     /**
      * @param SimpleXMLIterator $sxi
+     * @param string            $apiName
      * @param string            $xPath
      */
-    protected function processRowset(SimpleXMLIterator $sxi, $xPath = '//result/rowset')
+    protected function processRowset(SimpleXMLIterator $sxi, $apiName, $xPath = '//result/rowset')
     {
         $items = $sxi->xpath($xPath);
         if (0 === count($items)) {
             return;
         }
         foreach ($items as $ele) {
-            $tableName = ucfirst((string)$ele['name']);
+            $rsName = ucfirst((string)$ele['name']);
             $colNames = explode(',', (string)$ele['columns']);
             $keyNames = explode(',', (string)$ele['key']);
             $columns = [];
@@ -276,7 +282,11 @@ class Creator
                 $columns['ownerID'] = 'BIGINT(20) UNSIGNED NOT NULL';
             }
             ksort($columns);
-            $this->tables[$tableName] = ['columns' => $columns, 'keys' => $this->getSqlKeys($keyNames)];
+            if (0 === count($this->tables)) {
+                $this->tables[$apiName] = ['columns' => $columns, 'keys' => $this->getSqlKeys($keyNames)];
+            } else {
+                $this->tables[$rsName] = ['columns' => $columns, 'keys' => $this->getSqlKeys($keyNames)];
+            }
         }
     }
     /**
@@ -284,8 +294,11 @@ class Creator
      * @param string            $tableName
      * @param string            $xpath
      */
-    protected function processValueOnly(SimpleXMLIterator $sxi, $tableName, $xpath = '//result/child::*[not(*|@*)]')
-    {
+    protected function processValueOnly(
+        SimpleXMLIterator $sxi,
+        $tableName,
+        $xpath = '//result/child::*[not(*|@*|self::dataTime)]'
+    ) {
         $items = $sxi->xpath($xpath);
         if (0 === count($items)) {
             return;
