@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Xsd/Char/UpcomingCalendarEvents.xsd
+version 20160201053951.651 -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified"
+elementFormDefault="qualified">
+    <xs:include schemaLocation="../common.xsd" />
+    <xs:complexType name="resultType">
+        <xs:sequence>
+            <xs:element name="upcomingEvents" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:simpleContent>
+                                    <xs:extension base="xs:string">
+                                        <xs:attribute use="required" type="xs:token" name="duration" />
+                                        <xs:attribute use="required" type="eveNEDTType" name="eventDate" />
+                                        <xs:attribute use="required" type="eveIDType" name="eventID" />
+                                        <xs:attribute use="required" type="xs:token" name="eventText" />
+                                        <xs:attribute use="required" type="xs:token" name="eventTitle" />
+                                        <xs:attribute use="required" type="xs:token" name="importance" />
+                                        <xs:attribute use="required" type="eveIDType" name="ownerID" />
+                                        <xs:attribute use="required" type="eveNameType" name="ownerName" />
+                                        <xs:attribute use="required" type="eveIDType" name="ownerTypeID" />
+                                        <xs:attribute use="required" type="xs:token" name="response" />
+                                    </xs:extension>
+                                </xs:simpleContent>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                    <xs:attributeGroup ref="rowsetAttrs" />
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+</xs:schema>

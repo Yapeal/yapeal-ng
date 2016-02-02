@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Xsd/Corp/IndustryJobs.xsd
-version 20160201053358.330 -->
+<!-- Xsd/Char/IndustryJobsHistory.xsd
+version 20160201053358.689 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified"
 elementFormDefault="qualified">
     <xs:include schemaLocation="../common.xsd" />

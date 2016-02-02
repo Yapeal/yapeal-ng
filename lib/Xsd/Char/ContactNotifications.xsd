@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Xsd/Char/ContactNotifications.xsd
-version 201601040204-->
+version 20160201053355.145 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified"
-           elementFormDefault="qualified">
-    <xs:include schemaLocation="../common.xsd"/>
+elementFormDefault="qualified">
+    <xs:include schemaLocation="../common.xsd" />
     <xs:complexType name="resultType">
         <xs:sequence>
             <xs:element name="contactNotifications" minOccurs="0" maxOccurs="1">
@@ -13,17 +13,17 @@ version 201601040204-->
                             <xs:complexType>
                                 <xs:simpleContent>
                                     <xs:extension base="xs:string">
-                                        <xs:attribute use="required" type="xs:token" name="messageData"/>
-                                        <xs:attribute use="required" type="eveIDType" name="notificationID"/>
-                                        <xs:attribute use="required" type="eveIDType" name="senderID"/>
-                                        <xs:attribute use="required" type="eveNameType" name="senderName"/>
-                                        <xs:attribute use="required" type="eveNEDTType" name="sentDate"/>
+                                        <xs:attribute use="required" type="xs:string" name="messageData" />
+                                        <xs:attribute use="required" type="eveIDType" name="notificationID" />
+                                        <xs:attribute use="required" type="eveIDType" name="senderID" />
+                                        <xs:attribute use="required" type="eveNameType" name="senderName" />
+                                        <xs:attribute use="required" type="eveNEDTType" name="sentDate" />
                                     </xs:extension>
                                 </xs:simpleContent>
                             </xs:complexType>
                         </xs:element>
                     </xs:sequence>
-                    <xs:attributeGroup ref="rowsetAttrs"/>
+                    <xs:attributeGroup ref="rowsetAttrs" />
                 </xs:complexType>
             </xs:element>
         </xs:sequence>

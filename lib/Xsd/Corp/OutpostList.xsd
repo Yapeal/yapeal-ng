@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Xsd/Corp/OutpostList.xsd
+version 20160201053947.583 -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified"
+elementFormDefault="qualified">
+    <xs:include schemaLocation="../common.xsd" />
+    <xs:complexType name="resultType">
+        <xs:sequence>
+            <xs:element name="corporationStarbases" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:simpleContent>
+                                    <xs:extension base="xs:string">
+                                        <xs:attribute use="required" type="xs:token" name="dockingCostPerShipVolume" />
+                                        <xs:attribute use="required" type="xs:token" name="officeRentalCost" />
+                                        <xs:attribute use="required" type="eveIDType" name="ownerID" />
+                                        <xs:attribute use="required" type="xs:token" name="reprocessingEfficiency" />
+                                        <xs:attribute use="required" type="xs:token" name="reprocessingStationTake" />
+                                        <xs:attribute use="required" type="eveIDType" name="solarSystemID" />
+                                        <xs:attribute use="required" type="eveIDType" name="standingOwnerID" />
+                                        <xs:attribute use="required" type="eveIDType" name="stationID" />
+                                        <xs:attribute use="required" type="eveNameType" name="stationName" />
+                                        <xs:attribute use="required" type="eveIDType" name="stationTypeID" />
+                                        <xs:attribute use="required" type="xs:token" name="x" />
+                                        <xs:attribute use="required" type="xs:token" name="y" />
+                                        <xs:attribute use="required" type="xs:token" name="z" />
+                                    </xs:extension>
+                                </xs:simpleContent>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                    <xs:attributeGroup ref="rowsetAttrs" />
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+</xs:schema>

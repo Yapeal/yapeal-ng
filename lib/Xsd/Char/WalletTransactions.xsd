@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Xsd/Corp/WalletTransactions.xsd
-version 20160201053953.487 -->
+<!-- Xsd/Char/WalletTransactions.xsd
+version 20160201053953.210 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified"
 elementFormDefault="qualified">
     <xs:include schemaLocation="../common.xsd" />
@@ -13,8 +13,6 @@ elementFormDefault="qualified">
                             <xs:complexType>
                                 <xs:simpleContent>
                                     <xs:extension base="xs:string">
-                                        <xs:attribute use="required" type="eveIDType" name="characterID" />
-                                        <xs:attribute use="required" type="eveNameType" name="characterName" />
                                         <xs:attribute use="required" type="eveIDType" name="clientID" />
                                         <xs:attribute use="required" type="eveNameType" name="clientName" />
                                         <xs:attribute use="required" type="eveIDType" name="clientTypeID" />

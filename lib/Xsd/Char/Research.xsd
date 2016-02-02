@@ -1,21 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Xsd/Char/AccountBalance.xsd
-version 20160201053350.911 -->
+<!-- Xsd/Char/Research.xsd
+version 20160201053948.809 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified"
 elementFormDefault="qualified">
     <xs:include schemaLocation="../common.xsd" />
     <xs:complexType name="resultType">
         <xs:sequence>
-            <xs:element name="accounts" minOccurs="0" maxOccurs="1">
+            <xs:element name="research" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
                             <xs:complexType>
                                 <xs:simpleContent>
                                     <xs:extension base="xs:string">
-                                        <xs:attribute use="required" type="eveIDType" name="accountID" />
-                                        <xs:attribute use="required" type="xs:unsignedShort" name="accountKey" />
-                                        <xs:attribute use="required" type="eveISKType" name="balance" />
+                                        <xs:attribute use="required" type="eveIDType" name="agentID" />
+                                        <xs:attribute use="required" type="xs:token" name="pointsPerDay" />
+                                        <xs:attribute use="required" type="xs:token" name="remainderPoints" />
+                                        <xs:attribute use="required" type="eveNEDTType" name="researchStartDate" />
+                                        <xs:attribute use="required" type="eveIDType" name="skillTypeID" />
                                     </xs:extension>
                                 </xs:simpleContent>
                             </xs:complexType>

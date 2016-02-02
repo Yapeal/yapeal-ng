@@ -1,27 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Xsd/Corp/Blueprints.xsd
-version 20160201053351.929 -->
+<!-- Xsd/Char/Notifications.xsd
+version 20160201053946.932 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified"
 elementFormDefault="qualified">
     <xs:include schemaLocation="../common.xsd" />
     <xs:complexType name="resultType">
         <xs:sequence>
-            <xs:element name="blueprints" minOccurs="0" maxOccurs="1">
+            <xs:element name="notifications" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
                             <xs:complexType>
                                 <xs:simpleContent>
                                     <xs:extension base="xs:string">
-                                        <xs:attribute use="required" type="eveIDType" name="flagID" />
-                                        <xs:attribute use="required" type="eveIDType" name="itemID" />
-                                        <xs:attribute use="required" type="eveIDType" name="locationID" />
-                                        <xs:attribute use="required" type="xs:unsignedByte" name="materialEfficiency" />
-                                        <xs:attribute use="required" type="eveIDNegativeType" name="quantity" />
-                                        <xs:attribute use="required" type="eveIDNegativeType" name="runs" />
-                                        <xs:attribute use="required" type="xs:unsignedByte" name="timeEfficiency" />
+                                        <xs:attribute use="required" type="eveIDType" name="notificationID" />
+                                        <xs:attribute use="required" type="xs:token" name="read" />
+                                        <xs:attribute use="required" type="eveIDType" name="senderID" />
+                                        <xs:attribute use="required" type="eveNameType" name="senderName" />
+                                        <xs:attribute use="required" type="eveNEDTType" name="sentDate" />
                                         <xs:attribute use="required" type="eveIDType" name="typeID" />
-                                        <xs:attribute use="required" type="eveNameType" name="typeName" />
                                     </xs:extension>
                                 </xs:simpleContent>
                             </xs:complexType>

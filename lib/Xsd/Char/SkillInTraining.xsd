@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Xsd/Server/ServerStatus.xsd
-version 20160201053949.236 -->
+<!-- Xsd/Char/SkillInTraining.xsd
+version 20160201053950.930 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified"
 elementFormDefault="qualified">
     <xs:include schemaLocation="../common.xsd" />
     <xs:complexType name="resultType">
         <xs:sequence>
-            <xs:element type="xs:string" name="onlinePlayers" />
-            <xs:element type="xs:string" name="serverOpen" />
+            <xs:element type="xs:string" name="skillInTraining" />
         </xs:sequence>
     </xs:complexType>
 </xs:schema>

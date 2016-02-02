@@ -1,21 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Xsd/Char/AccountBalance.xsd
-version 20160201053350.911 -->
+<!-- Xsd/Eve/RefTypes.xsd
+version 20160201053948.394 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified"
 elementFormDefault="qualified">
     <xs:include schemaLocation="../common.xsd" />
     <xs:complexType name="resultType">
         <xs:sequence>
-            <xs:element name="accounts" minOccurs="0" maxOccurs="1">
+            <xs:element name="refTypes" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
                             <xs:complexType>
                                 <xs:simpleContent>
                                     <xs:extension base="xs:string">
-                                        <xs:attribute use="required" type="eveIDType" name="accountID" />
-                                        <xs:attribute use="required" type="xs:unsignedShort" name="accountKey" />
-                                        <xs:attribute use="required" type="eveISKType" name="balance" />
+                                        <xs:attribute use="required" type="eveIDType" name="refTypeID" />
+                                        <xs:attribute use="required" type="eveNameType" name="refTypeName" />
                                     </xs:extension>
                                 </xs:simpleContent>
                             </xs:complexType>

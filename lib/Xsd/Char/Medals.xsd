@@ -1,21 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Xsd/Api/CallList.xsd
-version 20160201053352.436 -->
+<!-- Xsd/Char/Medals.xsd
+version 20160201053945.391 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified"
 elementFormDefault="qualified">
     <xs:include schemaLocation="../common.xsd" />
     <xs:complexType name="resultType">
         <xs:sequence>
-            <xs:element name="callGroups" minOccurs="0" maxOccurs="1">
+            <xs:element name="currentCorporation" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
                             <xs:complexType>
                                 <xs:simpleContent>
                                     <xs:extension base="xs:string">
-                                        <xs:attribute use="required" type="xs:string" name="description" />
-                                        <xs:attribute use="required" type="eveIDType" name="groupID" />
-                                        <xs:attribute use="required" type="eveNameType" name="name" />
+                                        <xs:attribute use="required" type="xs:token" name="issued" />
+                                        <xs:attribute use="required" type="eveIDType" name="issuerID" />
+                                        <xs:attribute use="required" type="eveIDType" name="medalID" />
+                                        <xs:attribute use="required" type="xs:token" name="reason" />
+                                        <xs:attribute use="required" type="xs:token" name="status" />
                                     </xs:extension>
                                 </xs:simpleContent>
                             </xs:complexType>
@@ -24,18 +26,21 @@ elementFormDefault="qualified">
                     <xs:attributeGroup ref="rowsetAttrs" />
                 </xs:complexType>
             </xs:element>
-            <xs:element name="calls" minOccurs="0" maxOccurs="1">
+            <xs:element name="otherCorporations" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
                             <xs:complexType>
                                 <xs:simpleContent>
                                     <xs:extension base="xs:string">
-                                        <xs:attribute use="required" type="xs:token" name="accessMask" />
+                                        <xs:attribute use="required" type="eveIDType" name="corporationID" />
                                         <xs:attribute use="required" type="xs:string" name="description" />
-                                        <xs:attribute use="required" type="eveIDType" name="groupID" />
-                                        <xs:attribute use="required" type="eveNameType" name="name" />
-                                        <xs:attribute use="required" type="xs:token" name="type" />
+                                        <xs:attribute use="required" type="xs:token" name="issued" />
+                                        <xs:attribute use="required" type="eveIDType" name="issuerID" />
+                                        <xs:attribute use="required" type="eveIDType" name="medalID" />
+                                        <xs:attribute use="required" type="xs:token" name="reason" />
+                                        <xs:attribute use="required" type="xs:token" name="status" />
+                                        <xs:attribute use="required" type="xs:token" name="title" />
                                     </xs:extension>
                                 </xs:simpleContent>
                             </xs:complexType>

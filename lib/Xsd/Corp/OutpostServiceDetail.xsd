@@ -1,21 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Xsd/Char/AccountBalance.xsd
-version 20160201053350.911 -->
+<!-- Xsd/Corp/OutpostServiceDetail.xsd
+version 20160201053947.989 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified"
 elementFormDefault="qualified">
     <xs:include schemaLocation="../common.xsd" />
     <xs:complexType name="resultType">
         <xs:sequence>
-            <xs:element name="accounts" minOccurs="0" maxOccurs="1">
+            <xs:element name="outpostServiceDetails" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
                             <xs:complexType>
                                 <xs:simpleContent>
                                     <xs:extension base="xs:string">
-                                        <xs:attribute use="required" type="eveIDType" name="accountID" />
-                                        <xs:attribute use="required" type="xs:unsignedShort" name="accountKey" />
-                                        <xs:attribute use="required" type="eveISKType" name="balance" />
+                                        <xs:attribute use="required" type="xs:token" name="discountPerGoodStanding" />
+                                        <xs:attribute use="required" type="xs:token" name="minStanding" />
+                                        <xs:attribute use="required" type="eveIDType" name="ownerID" />
+                                        <xs:attribute use="required" type="eveNameType" name="serviceName" />
+                                        <xs:attribute use="required" type="eveIDType" name="stationID" />
+                                        <xs:attribute use="required" type="xs:token" name="surchargePerBadStanding" />
                                     </xs:extension>
                                 </xs:simpleContent>
                             </xs:complexType>

@@ -1,21 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Xsd/Api/CallList.xsd
-version 20160201053352.436 -->
+<!-- Xsd/Corp/Shareholders.xsd
+version 20160201053949.658 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified"
 elementFormDefault="qualified">
     <xs:include schemaLocation="../common.xsd" />
     <xs:complexType name="resultType">
         <xs:sequence>
-            <xs:element name="callGroups" minOccurs="0" maxOccurs="1">
+            <xs:element name="characters" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
                             <xs:complexType>
                                 <xs:simpleContent>
                                     <xs:extension base="xs:string">
-                                        <xs:attribute use="required" type="xs:string" name="description" />
-                                        <xs:attribute use="required" type="eveIDType" name="groupID" />
-                                        <xs:attribute use="required" type="eveNameType" name="name" />
+                                        <xs:attribute use="required" type="eveIDType"
+                                        name="shareholderCorporationID" />
+                                        <xs:attribute use="required" type="eveNameType"
+                                        name="shareholderCorporationName" />
+                                        <xs:attribute use="required" type="eveIDType" name="shareholderID" />
+                                        <xs:attribute use="required" type="eveNameType" name="shareholderName" />
+                                        <xs:attribute use="required" type="xs:token" name="shares" />
                                     </xs:extension>
                                 </xs:simpleContent>
                             </xs:complexType>
@@ -24,18 +28,16 @@ elementFormDefault="qualified">
                     <xs:attributeGroup ref="rowsetAttrs" />
                 </xs:complexType>
             </xs:element>
-            <xs:element name="calls" minOccurs="0" maxOccurs="1">
+            <xs:element name="corporations" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
                             <xs:complexType>
                                 <xs:simpleContent>
                                     <xs:extension base="xs:string">
-                                        <xs:attribute use="required" type="xs:token" name="accessMask" />
-                                        <xs:attribute use="required" type="xs:string" name="description" />
-                                        <xs:attribute use="required" type="eveIDType" name="groupID" />
-                                        <xs:attribute use="required" type="eveNameType" name="name" />
-                                        <xs:attribute use="required" type="xs:token" name="type" />
+                                        <xs:attribute use="required" type="eveIDType" name="shareholderID" />
+                                        <xs:attribute use="required" type="eveNameType" name="shareholderName" />
+                                        <xs:attribute use="required" type="xs:token" name="shares" />
                                     </xs:extension>
                                 </xs:simpleContent>
                             </xs:complexType>

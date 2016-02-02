@@ -57,7 +57,7 @@
     </xs:simpleType>
     <xs:simpleType name="eveIDNegativeType">
         <xs:restriction base="xs:long">
-            <xs:minInclusive value="-1" fixed="true"/>
+            <xs:minInclusive value="-2" fixed="true"/>
         </xs:restriction>
     </xs:simpleType>
     <xs:simpleType name="eveIDType">

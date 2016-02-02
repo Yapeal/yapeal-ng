@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Xsd/Corp/WalletJournal.xsd
-version 20160201053952.559 -->
+<!-- Xsd/Char/WalletJournal.xsd
+version 20160201053952.115 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified"
 elementFormDefault="qualified">
     <xs:include schemaLocation="../common.xsd" />
     <xs:complexType name="resultType">
         <xs:sequence>
-            <xs:element name="entries" minOccurs="0" maxOccurs="1">
+            <xs:element name="transactions" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
@@ -27,6 +27,8 @@ elementFormDefault="qualified">
                                         <xs:attribute use="required" type="xs:token" name="reason" />
                                         <xs:attribute use="required" type="eveIDType" name="refID" />
                                         <xs:attribute use="required" type="eveIDType" name="refTypeID" />
+                                        <xs:attribute use="required" type="eveISKType" name="taxAmount" />
+                                        <xs:attribute use="required" type="eveIDType" name="taxReceiverID" />
                                     </xs:extension>
                                 </xs:simpleContent>
                             </xs:complexType>

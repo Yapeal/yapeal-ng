@@ -1,33 +1,32 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-           attributeFormDefault="unqualified"
-           elementFormDefault="qualified">
-    <xs:include schemaLocation="../common.xsd"/>
-    <xs:complexType name="rowType">
-        <xs:simpleContent>
-            <xs:extension base="xs:string">
-                <xs:attribute type="eveIDType" name="itemID"/>
-                <xs:attribute type="eveIDType" name="typeID"/>
-                <xs:attribute type="eveIDType" name="locationID"/>
-                <xs:attribute type="eveIDType" name="moonID"/>
-                <xs:attribute type="eveIDType" name="state"/>
-                <xs:attribute type="eveNEDTType" name="stateTimestamp"/>
-                <xs:attribute type="eveNEDTType" name="onlineTimestamp"/>
-                <xs:attribute type="eveIDType" name="standingOwnerID"/>
-            </xs:extension>
-        </xs:simpleContent>
-    </xs:complexType>
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Xsd/Corp/StarbaseList.xsd
+version 20160201053951.206 -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified"
+elementFormDefault="qualified">
+    <xs:include schemaLocation="../common.xsd" />
     <xs:complexType name="resultType">
         <xs:sequence>
-            <xs:element name="starbases">
+            <xs:element name="starbases" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element type="rowType"
-                                    name="row"
-                                    minOccurs="0"
-                                    maxOccurs="unbounded"/>
+                        <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:simpleContent>
+                                    <xs:extension base="xs:string">
+                                        <xs:attribute use="required" type="eveIDType" name="itemID" />
+                                        <xs:attribute use="required" type="eveIDType" name="locationID" />
+                                        <xs:attribute use="required" type="eveIDType" name="moonID" />
+                                        <xs:attribute use="required" type="eveNEDTType" name="onlineTimestamp" />
+                                        <xs:attribute use="required" type="eveIDType" name="standingOwnerID" />
+                                        <xs:attribute use="required" type="xs:token" name="state" />
+                                        <xs:attribute use="required" type="eveNEDTType" name="stateTimestamp" />
+                                        <xs:attribute use="required" type="eveIDType" name="typeID" />
+                                    </xs:extension>
+                                </xs:simpleContent>
+                            </xs:complexType>
+                        </xs:element>
                     </xs:sequence>
-                    <xs:attributeGroup ref="rowsetAttrs"/>
+                    <xs:attributeGroup ref="rowsetAttrs" />
                 </xs:complexType>
             </xs:element>
         </xs:sequence>

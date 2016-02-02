@@ -95,10 +95,12 @@ class Creator
         $this->tables = [];
         $this->processValueOnly($sxi, lcfirst($data->getEveApiName()));
         $this->processRowset($sxi);
+        list($mSec, $sec) = explode(' ', microtime());
         $vars = [
             'className'   => lcfirst($data->getEveApiName()),
             'tables'      => $this->tables,
-            'sectionName' => lcfirst($this->sectionName)
+            'sectionName' => lcfirst($this->sectionName),
+            'version' => gmdate('YmdHis', $sec) . sprintf('.%0-3s', floor($mSec * 1000))
         ];
         try {
             $contents = $this->getTwig()
@@ -117,8 +119,9 @@ class Creator
         $tidyConfig = [
             'indent'        => true,
             'indent-spaces' => 4,
-            'output-xml'    => true,
             'input-xml'     => true,
+            'newline'       => 'LF',
+            'output-xml'    => true,
             'wrap'          => '120'
         ];
         $contents = (new tidy())->repairString($contents, $tidyConfig, 'utf8');
@@ -156,7 +159,9 @@ class Creator
                      'timeefficiency' => 'xs:unsignedByte',
                      'date'           => 'eveNEDTType',
                      'time'           => 'eveNEDTType',
-                     'until'          => 'eveNEDTType'
+                     'until'          => 'eveNEDTType',
+                     'errorcode'      => 'xs:unsignedShort',
+                     'level'          => 'xs:unsignedShort'
                  ] as $search => $replace) {
             if (false !== strpos($name, $search)) {
                 return $replace;
@@ -174,9 +179,16 @@ class Creator
         if (0 === count($items)) {
             return;
         }
+        $tables = [];
         foreach ($items as $ele) {
             $tableName = (string)$ele['name'];
+            /**
+             * @type string[] $colNames
+             */
             $colNames = explode(',', (string)$ele['columns']);
+            /**
+             * @type string[] $keyNames
+             */
             $keyNames = explode(',', (string)$ele['key']);
             $columns = [];
             foreach ($keyNames as $keyName) {
@@ -186,8 +198,10 @@ class Creator
                 $columns[$colName] = $this->inferTypeFromName($colName);
             }
             ksort($columns);
-            $this->tables[$tableName] = ['attributes' => $columns];
+            $tables[$tableName] = ['attributes' => $columns];
         }
+        ksort($tables);
+        $this->tables = array_merge($this->tables, $tables);
     }
     /**
      * @param SimpleXMLIterator $sxi
@@ -197,8 +211,11 @@ class Creator
      *
      * @return array
      */
-    protected function processValueOnly(SimpleXMLIterator $sxi, $tableName, $xpath = '//result/child::*[not(*|@*)]')
-    {
+    protected function processValueOnly(
+        SimpleXMLIterator $sxi,
+        $tableName,
+        $xpath = '//result/child::*[not(*|@*|self::dataTime)]'
+    ) {
         $items = $sxi->xpath($xpath);
         if (0 === count($items)) {
             return;

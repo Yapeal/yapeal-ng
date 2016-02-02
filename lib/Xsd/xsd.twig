@@ -1,21 +1,22 @@
-<?xml version="1.0" encoding="UTF-8"?><!-- Xsd/{{ sectionName|ucFirst }}/{{ className|ucFirst }}.xsd
-version {{ "now"|date("YmdHi", "GMT") }} -->
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Xsd/{{ sectionName|ucFirst }}/{{ className|ucFirst }}.xsd
+version {{ version }} -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified" elementFormDefault="qualified">
     <xs:include schemaLocation="../common.xsd"/>
     <xs:complexType name="resultType">
         <xs:sequence>
-            {% for tableName, table in tables %}
-                {% if table.attributes is defined %}
-                    <xs:element name="{{ tableName|lcFirst }}" minOccurs="0" maxOccurs="1">
+{% for tableName, table in tables %}
+{% if table.attributes is defined %}
+            <xs:element name="{{ tableName|lcFirst }}" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
                             <xs:complexType>
                                 <xs:simpleContent>
                                     <xs:extension base="xs:string">
-                                        {% for name, type in table.attributes %}
-                                            <xs:attribute use="required" type="{{ type }}" name="{{ name }}"/>
-                                        {% endfor %}
+{% for name, type in table.attributes %}
+                                        <xs:attribute use="required" type="{{ type }}" name="{{ name }}"/>
+{% endfor %}
                                     </xs:extension>
                                 </xs:simpleContent>
                             </xs:complexType>
@@ -24,12 +25,12 @@ version {{ "now"|date("YmdHi", "GMT") }} -->
                     <xs:attributeGroup ref="rowsetAttrs"/>
                 </xs:complexType>
             </xs:element>
-                {% else %}
-                    {% for name, type in table.values %}
-                        <xs:element type="{{ type }}" name="{{ name }}"/>
-                    {% endfor %}
-                {% endif %}
-            {% endfor %}
+{% else %}
+{% for name, type in table.values %}
+            <xs:element type="{{ type }}" name="{{ name }}"/>
+{% endfor %}
+{% endif %}
+{% endfor %}
         </xs:sequence>
     </xs:complexType>
 </xs:schema>
