@@ -34,7 +34,6 @@
 namespace Yapeal\FileSystem;
 
 use DomainException;
-use Exception;
 use FilePathNormalizer\FilePathNormalizerTrait;
 use InvalidArgumentException;
 use LogicException;
@@ -76,28 +75,16 @@ class CachePreserver
             Logger::DEBUG,
             $this->getReceivedEventMessage($data, $eventName, __CLASS__)
         );
-        // BaseSection,BaseSection/ApiHash.xml,BaseSection/ApiHash.tmp
-        list($cachePath, $cacheFile, $cacheTemp) = explode(
-            ',',
-            sprintf(
-                '%1$s%2$s,%1$s%2$s/%3$s%4$s.xml,%1$s%2$s/%3$s%4$s.tmp',
-                $this->getCachePath(),
-                ucfirst($data->getEveApiSectionName()),
-                ucfirst($data->getEveApiName()),
-                $data->getHash()
-            )
+        // BaseSection/ApiHash.xml
+        $cacheFile = sprintf(
+            '%1$s%2$s/%3$s%4$s.xml',
+            $this->getCachePath(),
+            ucfirst($data->getEveApiSectionName()),
+            ucfirst($data->getEveApiName()),
+            $data->getHash()
         );
-        if ('' === $cachePath || false === $this->isUsableCachePath($cachePath)) {
-            return $event;
-        }
         // Insures retriever never see partly written file by deleting old file and using temp file for writing.
-        if (false === $this->deleteWithRetry($cacheFile, $yem)) {
-            return $event;
-        }
-        $this->writeXmlData($data->getEveApiXml(), $cacheTemp);
-        if (false === rename($cacheTemp, $cacheFile)) {
-            $mess = sprintf('Could NOT rename %1$s to %2$s', $cacheTemp, $cacheFile);
-            $yem->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
+        if (false === $this->safeFileWrite($data->getEveApiXml(), $cacheFile, $yem)) {
             return $event;
         }
         return $event->setHandledSufficiently();
@@ -133,73 +120,6 @@ class CachePreserver
     protected function getCachePath()
     {
         return $this->cachePath;
-    }
-    /**
-     * @param string $cachePath
-     *
-     * @return bool
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
-     */
-    protected function isUsableCachePath($cachePath)
-    {
-        if (!is_readable($cachePath)) {
-            $mess = 'Cache path is NOT readable or does NOT exist, was given ' . $cachePath;
-            $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
-            return false;
-        }
-        if (!is_dir($cachePath)) {
-            $mess = 'Cache path is NOT a directory, was given ' . $cachePath;
-            $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
-            return false;
-        }
-        if (!is_writable($cachePath)) {
-            $mess = 'Cache path is NOT writable, was given ' . $cachePath;
-            $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
-            return false;
-        }
-        return true;
-    }
-    /**
-     * @param string $xml
-     * @param string $fileName
-     *
-     * @return bool
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
-     */
-    protected function writeXmlData($xml, $fileName)
-    {
-        $handle = $this->acquireLockedHandle($fileName, $this->getYem());
-        if (false === $handle) {
-            return false;
-        }
-        $tries = 0;
-        //Give 10 seconds to try writing file.
-        $timeout = time() + 10;
-        while (strlen($xml)) {
-            if (++$tries > 10 || time() > $timeout) {
-                $mess = sprintf('Giving up could NOT finish writing data to %1$s', $fileName);
-                $this->getYem()
-                    ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
-                $this->releaseHandle($handle)
-                    ->deleteWithRetry($fileName, $this->getYem());
-                return false;
-            }
-            $written = fwrite($handle, $xml);
-            // Decrease $tries while making progress but NEVER $tries < 1.
-            if ($written > 0 && $tries > 0) {
-                --$tries;
-            }
-            $xml = substr($xml, $written);
-        }
-        $this->releaseHandle($handle);
-        return true;
     }
     /**
      * @type string $cachePath

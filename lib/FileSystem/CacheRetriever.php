@@ -76,34 +76,24 @@ class CacheRetriever implements EveApiRetrieverInterface
             Logger::DEBUG,
             $this->getReceivedEventMessage($data, $eventName, __CLASS__)
         );
-        // BaseSection,BaseSection/ApiHash.xml
-        list($cachePath, $cacheFile) = explode(
-            ',',
-            sprintf(
-                '%1$s%2$s,%1$s%2$s/%3$s%4$s.xml',
-                $this->getCachePath(),
-                ucfirst($data->getEveApiSectionName()),
-                ucfirst($data->getEveApiName()),
-                $data->getHash()
-            )
+        // BaseSection/ApiHash.xml
+        $cacheFile = sprintf(
+            '%1$s%2$s/%3$s%4$s.xml',
+            $this->getCachePath(),
+            ucfirst($data->getEveApiSectionName()),
+            ucfirst($data->getEveApiName()),
+            $data->getHash()
         );
-        if ('' === $cachePath
-            || false === $this->isUsableCachePath($cachePath)
-            || false === $this->isUsableCacheFile($cacheFile)
-        ) {
-            return $event;
-        }
-        $result = $this->readXmlData($cacheFile);
+        $result = $this->safeFileRead($cacheFile, $yem);
         if (false === $result) {
             return $event;
         }
         if ($this->isExpired($result)) {
-            $this->deleteWithRetry($cacheFile, $this->getYem());
+            $this->deleteWithRetry($cacheFile, $yem);
             return $event;
         }
         $mess = sprintf('Found usable cache file %1$s', $cacheFile);
-        $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $mess);
+        $yem->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->createEventMessage($mess, $data, $eventName));
         return $event->setData($data->setEveApiXml($result))
             ->eventHandled();
     }
@@ -150,12 +140,14 @@ class CacheRetriever implements EveApiRetrieverInterface
     protected function isExpired($xml)
     {
         $simple = new SimpleXMLElement($xml);
+        /** @noinspection PhpUndefinedFieldInspection */
         if (null === $simple->currentTime[0]) {
             $mess = 'Xml file missing required currentTime element';
             $this->getYem()
                 ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
             return true;
         }
+        /** @noinspection PhpUndefinedFieldInspection */
         if (null === $simple->cachedUntil[0]) {
             $mess = 'Xml file missing required cachedUntil element';
             $this->getYem()
@@ -163,7 +155,9 @@ class CacheRetriever implements EveApiRetrieverInterface
             return true;
         }
         $now = time();
+        /** @noinspection PhpUndefinedFieldInspection */
         $current = strtotime($simple->currentTime[0] . '+00:00');
+        /** @noinspection PhpUndefinedFieldInspection */
         $until = strtotime($simple->cachedUntil[0] . '+00:00');
         // At minimum use cached XML for 5 minutes (300 secs).
         if (($now - $current) <= 300) {
@@ -184,85 +178,6 @@ class CacheRetriever implements EveApiRetrieverInterface
             return true;
         }
         return ($until <= $now);
-    }
-    /**
-     * @param $cacheFile
-     *
-     * @return bool
-     * @throws \DomainException
-     * @throws \LogicException
-     * @throws \InvalidArgumentException
-     */
-    protected function isUsableCacheFile($cacheFile)
-    {
-        if (!is_readable($cacheFile) || !is_file($cacheFile)) {
-            $mess = 'Could NOT find accessible cache file, was given ' . $cacheFile;
-            $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess);
-            return false;
-        }
-        return true;
-    }
-    /**
-     * @param $cachePath
-     *
-     * @return bool
-     * @throws \DomainException
-     * @throws \LogicException
-     * @throws \InvalidArgumentException
-     */
-    protected function isUsableCachePath($cachePath)
-    {
-        if (!is_readable($cachePath)) {
-            $mess = 'Cache path is NOT readable or does NOT exist, was given ' . $cachePath;
-            $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
-            return false;
-        }
-        if (!is_dir($cachePath)) {
-            $mess = 'Cache path is NOT a directory, was given ' . $cachePath;
-            $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
-            return false;
-        }
-        return true;
-    }
-    /**
-     * @param string $fileName
-     *
-     * @return string|false
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
-     */
-    protected function readXmlData($fileName)
-    {
-        $handle = $this->acquireLockedHandle($fileName, $this->getYem(), 'rb+');
-        if (false === $handle) {
-            return false;
-        }
-        rewind($handle);
-        $xml = '';
-        $tries = 0;
-        //Give 10 seconds to try reading file.
-        $timeout = time() + 10;
-        while (!feof($handle)) {
-            if (++$tries > 10 || time() > $timeout) {
-                $mess = sprintf('Giving up could NOT finish reading data from %1$s', $fileName);
-                $this->getYem()
-                    ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
-                $this->releaseHandle($handle);
-                return false;
-            }
-            $read = fread($handle, 16384);
-            // Decrease $tries while making progress but NEVER $tries < 1.
-            if ('' !== $read && $tries > 0) {
-                --$tries;
-            }
-            $xml .= $read;
-        }
-        $this->releaseHandle($handle);
-        return $xml;
     }
     /**
      * @type string $cachePath
