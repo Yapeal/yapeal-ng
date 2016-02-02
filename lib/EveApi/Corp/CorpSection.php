@@ -33,8 +33,6 @@ use LogicException;
 use PDO;
 use PDOException;
 use Yapeal\EveApi\CommonEveApiTrait;
-use Yapeal\Event\EveApiEventInterface;
-use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
 
 /**
@@ -43,50 +41,6 @@ use Yapeal\Log\Logger;
 class CorpSection
 {
     use CommonEveApiTrait;
-    /**
-     * @param EveApiEventInterface $event
-     * @param string               $eventName
-     * @param MediatorInterface    $yem
-     *
-     * @return EveApiEventInterface
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
-     */
-    public function preserveEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
-    {
-        $this->setYem($yem);
-        $data = $event->getData();
-        $xml = $data->getEveApiXml();
-        $ownerID = $data->getEveApiArgument('corporationID');
-        $pTo = 'preserveTo' . $data->getEveApiName();
-        $this->getYem()
-             ->triggerLogEvent(
-                 'Yapeal.Log.log',
-                 Logger::DEBUG,
-                 $this->getReceivedEventMessage($data, $eventName, __CLASS__)
-             );
-        try {
-            $this->getPdo()
-                 ->beginTransaction();
-            $this->{$pTo}($xml, $ownerID);
-            $this->getPdo()
-                 ->commit();
-        } catch (PDOException $exc) {
-            $mess = sprintf(
-                'Failed to upsert data from Eve API %1$s/%2$s for %3$s',
-                ucfirst($data->getEveApiSectionName()),
-                $data->getEveApiName(),
-                $ownerID
-            );
-            $this->getYem()
-                 ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $mess, ['exception' => $exc]);
-            $this->getPdo()
-                 ->rollBack();
-            return $event;
-        }
-        return $event->setHandledSufficiently();
-    }
     /**
      * @return array
      * @throws LogicException
@@ -113,7 +67,4 @@ class CorpSection
             return [];
         }
     }
-    /**
-     * @return int
-     */
 }

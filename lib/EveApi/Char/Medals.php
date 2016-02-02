@@ -1,6 +1,6 @@
 <?php
 /**
- * Contains ContainerLog class.
+ * Contains Medals class.
  *
  * PHP version 5.4
  *
@@ -31,7 +31,7 @@
  * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
  * @author    Michael Cummings <mgcummings@yahoo.com>
  */
-namespace Yapeal\EveApi\Corp;
+namespace Yapeal\EveApi\Char;
 
 use PDOException;
 use Yapeal\Event\EveApiEventInterface;
@@ -40,9 +40,9 @@ use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
 
 /**
- * Class ContainerLog
+ * Class Medals
  */
-class ContainerLog extends CorpSection
+class Medals extends CharSection
 {
     use PreserverTrait;
     /** @noinspection MagicMethodsValidityInspection */
@@ -51,7 +51,7 @@ class ContainerLog extends CorpSection
      */
     public function __construct()
     {
-        $this->mask = 32;
+        $this->mask = 8192;
     }
     /**
      * @param EveApiEventInterface   $event
@@ -78,7 +78,8 @@ class ContainerLog extends CorpSection
         $this->getPdo()
             ->beginTransaction();
         try {
-            $this->preserveToContainerLog($xml, $ownerID);
+            $this->preserveToMedals($xml, $ownerID)
+                ->preserveToOtherCorporations($xml, $ownerID);
             $this->getPdo()
                 ->commit();
         } catch (PDOException $exc) {
@@ -103,9 +104,9 @@ class ContainerLog extends CorpSection
      * @return self Fluent interface.
      * @throws \LogicException
      */
-    protected function preserveToContainerLog($xml, $ownerID)
+    protected function preserveToMedals($xml, $ownerID)
     {
-        $tableName = 'corpContainerLog';
+        $tableName = 'charMedals';
         $sql = $this->getCsq()
             ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
         $this->getYem()
@@ -113,22 +114,44 @@ class ContainerLog extends CorpSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'action' => null,
-            'actorID' => null,
-            'actorName' => '',
-            'flag' => null,
-            'itemID' => null,
-            'itemTypeID' => null,
-            'locationID' => null,
-            'logTime' => '1970-01-01 00:00:01',
-            'newConfiguration' => null,
-            'oldConfiguration' => null,
+            'issued' => null,
+            'issuerID' => null,
+            'medalID' => null,
             'ownerID' => $ownerID,
-            'passwordType' => null,
-            'quantity' => null,
-            'typeID' => null
+            'reason' => null,
+            'status' => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//containerLog/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//currentCorporation/row');
+        return $this;
+    }
+    /**
+     * @param string $xml
+         * @param string $ownerID
+     *
+     * @return self Fluent interface.
+     * @throws \LogicException
+     */
+    protected function preserveToOtherCorporations($xml, $ownerID)
+    {
+        $tableName = 'charOtherCorporations';
+        $sql = $this->getCsq()
+            ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
+        $this->getYem()
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
+        $this->getPdo()
+            ->exec($sql);
+        $columnDefaults = [
+            'corporationID' => null,
+            'description' => '',
+            'issued' => null,
+            'issuerID' => null,
+            'medalID' => null,
+            'ownerID' => $ownerID,
+            'reason' => null,
+            'status' => null,
+            'title' => null
+        ];
+        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//otherCorporations/row');
         return $this;
     }
 }

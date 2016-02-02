@@ -1,6 +1,6 @@
 <?php
 /**
- * Contains ContainerLog class.
+ * Contains Research class.
  *
  * PHP version 5.4
  *
@@ -31,7 +31,7 @@
  * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
  * @author    Michael Cummings <mgcummings@yahoo.com>
  */
-namespace Yapeal\EveApi\Corp;
+namespace Yapeal\EveApi\Char;
 
 use PDOException;
 use Yapeal\Event\EveApiEventInterface;
@@ -40,9 +40,9 @@ use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
 
 /**
- * Class ContainerLog
+ * Class Research
  */
-class ContainerLog extends CorpSection
+class Research extends CharSection
 {
     use PreserverTrait;
     /** @noinspection MagicMethodsValidityInspection */
@@ -51,7 +51,7 @@ class ContainerLog extends CorpSection
      */
     public function __construct()
     {
-        $this->mask = 32;
+        $this->mask = 65536;
     }
     /**
      * @param EveApiEventInterface   $event
@@ -78,7 +78,7 @@ class ContainerLog extends CorpSection
         $this->getPdo()
             ->beginTransaction();
         try {
-            $this->preserveToContainerLog($xml, $ownerID);
+            $this->preserveToResearch($xml, $ownerID);
             $this->getPdo()
                 ->commit();
         } catch (PDOException $exc) {
@@ -103,9 +103,9 @@ class ContainerLog extends CorpSection
      * @return self Fluent interface.
      * @throws \LogicException
      */
-    protected function preserveToContainerLog($xml, $ownerID)
+    protected function preserveToResearch($xml, $ownerID)
     {
-        $tableName = 'corpContainerLog';
+        $tableName = 'charResearch';
         $sql = $this->getCsq()
             ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
         $this->getYem()
@@ -113,22 +113,14 @@ class ContainerLog extends CorpSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'action' => null,
-            'actorID' => null,
-            'actorName' => '',
-            'flag' => null,
-            'itemID' => null,
-            'itemTypeID' => null,
-            'locationID' => null,
-            'logTime' => '1970-01-01 00:00:01',
-            'newConfiguration' => null,
-            'oldConfiguration' => null,
+            'agentID' => null,
             'ownerID' => $ownerID,
-            'passwordType' => null,
-            'quantity' => null,
-            'typeID' => null
+            'pointsPerDay' => null,
+            'remainderPoints' => null,
+            'researchStartDate' => '1970-01-01 00:00:01',
+            'skillTypeID' => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//containerLog/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//research/row');
         return $this;
     }
 }

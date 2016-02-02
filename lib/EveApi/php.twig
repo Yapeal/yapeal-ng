@@ -117,7 +117,7 @@ class {{ className }} extends {{ sectionName|ucFirst }}Section
         $columnDefaults = [
             {% for name, value in table.attributes %}'{{ name }}' => {{ value }}{% if not loop.last %}{{ ",\n            " }}{% else %}{{ "\n" }}{% endif %}{% endfor %}
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//{{ tableName|lcFirst }}/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//{{ table.xpath|lcFirst }}/row');
 {% else %}
         $columnDefaults = [
             {% for name, value in table.values %}'{{ name }}' => {{ value }}{% if not loop.last %}{{ ",\n            " }}{% else %}{{ "\n" }}{% endif %}{% endfor %}

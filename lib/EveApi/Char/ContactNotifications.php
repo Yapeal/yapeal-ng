@@ -1,6 +1,6 @@
 <?php
 /**
- * Contains ContainerLog class.
+ * Contains ContactNotifications class.
  *
  * PHP version 5.4
  *
@@ -31,7 +31,7 @@
  * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
  * @author    Michael Cummings <mgcummings@yahoo.com>
  */
-namespace Yapeal\EveApi\Corp;
+namespace Yapeal\EveApi\Char;
 
 use PDOException;
 use Yapeal\Event\EveApiEventInterface;
@@ -40,9 +40,9 @@ use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
 
 /**
- * Class ContainerLog
+ * Class ContactNotifications
  */
-class ContainerLog extends CorpSection
+class ContactNotifications extends CharSection
 {
     use PreserverTrait;
     /** @noinspection MagicMethodsValidityInspection */
@@ -78,7 +78,7 @@ class ContainerLog extends CorpSection
         $this->getPdo()
             ->beginTransaction();
         try {
-            $this->preserveToContainerLog($xml, $ownerID);
+            $this->preserveToContactNotifications($xml, $ownerID);
             $this->getPdo()
                 ->commit();
         } catch (PDOException $exc) {
@@ -103,9 +103,9 @@ class ContainerLog extends CorpSection
      * @return self Fluent interface.
      * @throws \LogicException
      */
-    protected function preserveToContainerLog($xml, $ownerID)
+    protected function preserveToContactNotifications($xml, $ownerID)
     {
-        $tableName = 'corpContainerLog';
+        $tableName = 'charContactNotifications';
         $sql = $this->getCsq()
             ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
         $this->getYem()
@@ -113,22 +113,14 @@ class ContainerLog extends CorpSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'action' => null,
-            'actorID' => null,
-            'actorName' => '',
-            'flag' => null,
-            'itemID' => null,
-            'itemTypeID' => null,
-            'locationID' => null,
-            'logTime' => '1970-01-01 00:00:01',
-            'newConfiguration' => null,
-            'oldConfiguration' => null,
+            'messageData' => null,
+            'notificationID' => null,
             'ownerID' => $ownerID,
-            'passwordType' => null,
-            'quantity' => null,
-            'typeID' => null
+            'senderID' => null,
+            'senderName' => '',
+            'sentDate' => '1970-01-01 00:00:01'
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//containerLog/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//contactNotifications/row');
         return $this;
     }
 }

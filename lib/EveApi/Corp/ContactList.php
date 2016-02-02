@@ -1,6 +1,6 @@
 <?php
 /**
- * Contains ContainerLog class.
+ * Contains ContactList class.
  *
  * PHP version 5.4
  *
@@ -40,9 +40,9 @@ use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
 
 /**
- * Class ContainerLog
+ * Class ContactList
  */
-class ContainerLog extends CorpSection
+class ContactList extends CorpSection
 {
     use PreserverTrait;
     /** @noinspection MagicMethodsValidityInspection */
@@ -51,7 +51,7 @@ class ContainerLog extends CorpSection
      */
     public function __construct()
     {
-        $this->mask = 32;
+        $this->mask = 16;
     }
     /**
      * @param EveApiEventInterface   $event
@@ -78,7 +78,10 @@ class ContainerLog extends CorpSection
         $this->getPdo()
             ->beginTransaction();
         try {
-            $this->preserveToContainerLog($xml, $ownerID);
+            $this->preserveToAllianceContactLabels($xml, $ownerID)
+                ->preserveToAllianceContactList($xml, $ownerID)
+                ->preserveToContactList($xml, $ownerID)
+                ->preserveToCorporateContactLabels($xml, $ownerID);
             $this->getPdo()
                 ->commit();
         } catch (PDOException $exc) {
@@ -103,9 +106,9 @@ class ContainerLog extends CorpSection
      * @return self Fluent interface.
      * @throws \LogicException
      */
-    protected function preserveToContainerLog($xml, $ownerID)
+    protected function preserveToAllianceContactLabels($xml, $ownerID)
     {
-        $tableName = 'corpContainerLog';
+        $tableName = 'corpAllianceContactLabels';
         $sql = $this->getCsq()
             ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
         $this->getYem()
@@ -113,22 +116,89 @@ class ContainerLog extends CorpSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'action' => null,
-            'actorID' => null,
-            'actorName' => '',
-            'flag' => null,
-            'itemID' => null,
-            'itemTypeID' => null,
-            'locationID' => null,
-            'logTime' => '1970-01-01 00:00:01',
-            'newConfiguration' => null,
-            'oldConfiguration' => null,
-            'ownerID' => $ownerID,
-            'passwordType' => null,
-            'quantity' => null,
-            'typeID' => null
+            'labelID' => null,
+            'name' => '',
+            'ownerID' => $ownerID
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//containerLog/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//allianceContactLabels/row');
+        return $this;
+    }
+    /**
+     * @param string $xml
+         * @param string $ownerID
+     *
+     * @return self Fluent interface.
+     * @throws \LogicException
+     */
+    protected function preserveToAllianceContactList($xml, $ownerID)
+    {
+        $tableName = 'corpAllianceContactList';
+        $sql = $this->getCsq()
+            ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
+        $this->getYem()
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
+        $this->getPdo()
+            ->exec($sql);
+        $columnDefaults = [
+            'contactID' => null,
+            'contactName' => '',
+            'contactTypeID' => null,
+            'labelMask' => null,
+            'ownerID' => $ownerID,
+            'standing' => null
+        ];
+        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//allianceContactList/row');
+        return $this;
+    }
+    /**
+     * @param string $xml
+         * @param string $ownerID
+     *
+     * @return self Fluent interface.
+     * @throws \LogicException
+     */
+    protected function preserveToContactList($xml, $ownerID)
+    {
+        $tableName = 'corpContactList';
+        $sql = $this->getCsq()
+            ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
+        $this->getYem()
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
+        $this->getPdo()
+            ->exec($sql);
+        $columnDefaults = [
+            'contactID' => null,
+            'contactName' => '',
+            'contactTypeID' => null,
+            'labelMask' => null,
+            'ownerID' => $ownerID,
+            'standing' => null
+        ];
+        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//corporateContactList/row');
+        return $this;
+    }
+    /**
+     * @param string $xml
+         * @param string $ownerID
+     *
+     * @return self Fluent interface.
+     * @throws \LogicException
+     */
+    protected function preserveToCorporateContactLabels($xml, $ownerID)
+    {
+        $tableName = 'corpCorporateContactLabels';
+        $sql = $this->getCsq()
+            ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
+        $this->getYem()
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
+        $this->getPdo()
+            ->exec($sql);
+        $columnDefaults = [
+            'labelID' => null,
+            'name' => '',
+            'ownerID' => $ownerID
+        ];
+        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//corporateContactLabels/row');
         return $this;
     }
 }

@@ -45,6 +45,7 @@ use Yapeal\Sql\PreserverTrait;
 class AccountBalance extends CharSection
 {
     use PreserverTrait;
+    /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
      */
@@ -53,9 +54,9 @@ class AccountBalance extends CharSection
         $this->mask = 1;
     }
     /**
-     * @param EveApiEventInterface $event
-     * @param string               $eventName
-     * @param MediatorInterface    $yem
+     * @param EveApiEventInterface   $event
+     * @param string                 $eventName
+     * @param MediatorInterface $yem
      *
      * @return EveApiEventInterface
      * @throws \DomainException
@@ -77,7 +78,7 @@ class AccountBalance extends CharSection
         $this->getPdo()
             ->beginTransaction();
         try {
-            $this->preserveToAccounts($xml, $ownerID);
+            $this->preserveToAccountBalance($xml, $ownerID);
             $this->getPdo()
                 ->commit();
         } catch (PDOException $exc) {
@@ -97,27 +98,27 @@ class AccountBalance extends CharSection
     }
     /**
      * @param string $xml
-     * @param string $ownerID
+         * @param string $ownerID
      *
      * @return self Fluent interface.
      * @throws \LogicException
      */
-    protected function preserveToAccounts($xml, $ownerID)
+    protected function preserveToAccountBalance($xml, $ownerID)
     {
-        $tableName = 'charAccounts';
+        $tableName = 'charAccountBalance';
         $sql = $this->getCsq()
             ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
         $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $sql);
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'accountID'  => null,
+            'accountID' => null,
             'accountKey' => null,
-            'balance'    => '0.0',
-            'ownerID'    => $ownerID
+            'balance' => '0.0',
+            'ownerID' => $ownerID
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName);
+        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//accounts/row');
         return $this;
     }
 }

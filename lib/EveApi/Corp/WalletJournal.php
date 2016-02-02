@@ -1,6 +1,6 @@
 <?php
 /**
- * Contains ContainerLog class.
+ * Contains WalletJournal class.
  *
  * PHP version 5.4
  *
@@ -40,9 +40,9 @@ use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
 
 /**
- * Class ContainerLog
+ * Class WalletJournal
  */
-class ContainerLog extends CorpSection
+class WalletJournal extends CorpSection
 {
     use PreserverTrait;
     /** @noinspection MagicMethodsValidityInspection */
@@ -51,7 +51,7 @@ class ContainerLog extends CorpSection
      */
     public function __construct()
     {
-        $this->mask = 32;
+        $this->mask = 1048576;
     }
     /**
      * @param EveApiEventInterface   $event
@@ -78,7 +78,7 @@ class ContainerLog extends CorpSection
         $this->getPdo()
             ->beginTransaction();
         try {
-            $this->preserveToContainerLog($xml, $ownerID);
+            $this->preserveToWalletJournal($xml, $ownerID);
             $this->getPdo()
                 ->commit();
         } catch (PDOException $exc) {
@@ -103,9 +103,9 @@ class ContainerLog extends CorpSection
      * @return self Fluent interface.
      * @throws \LogicException
      */
-    protected function preserveToContainerLog($xml, $ownerID)
+    protected function preserveToWalletJournal($xml, $ownerID)
     {
-        $tableName = 'corpContainerLog';
+        $tableName = 'corpWalletJournal';
         $sql = $this->getCsq()
             ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
         $this->getYem()
@@ -113,22 +113,23 @@ class ContainerLog extends CorpSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'action' => null,
-            'actorID' => null,
-            'actorName' => '',
-            'flag' => null,
-            'itemID' => null,
-            'itemTypeID' => null,
-            'locationID' => null,
-            'logTime' => '1970-01-01 00:00:01',
-            'newConfiguration' => null,
-            'oldConfiguration' => null,
+            'amount' => null,
+            'argID1' => null,
+            'argName1' => '',
+            'balance' => '0.0',
+            'date' => '1970-01-01 00:00:01',
+            'owner1TypeID' => null,
+            'owner2TypeID' => null,
             'ownerID' => $ownerID,
-            'passwordType' => null,
-            'quantity' => null,
-            'typeID' => null
+            'ownerID1' => null,
+            'ownerID2' => null,
+            'ownerName1' => '',
+            'ownerName2' => '',
+            'reason' => null,
+            'refID' => null,
+            'refTypeID' => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//containerLog/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//entries/row');
         return $this;
     }
 }

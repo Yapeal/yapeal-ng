@@ -1,6 +1,6 @@
 <?php
 /**
- * Contains ContainerLog class.
+ * Contains CertificateTree class.
  *
  * PHP version 5.4
  *
@@ -31,7 +31,7 @@
  * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
  * @author    Michael Cummings <mgcummings@yahoo.com>
  */
-namespace Yapeal\EveApi\Corp;
+namespace Yapeal\EveApi\Eve;
 
 use PDOException;
 use Yapeal\Event\EveApiEventInterface;
@@ -40,9 +40,9 @@ use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
 
 /**
- * Class ContainerLog
+ * Class CertificateTree
  */
-class ContainerLog extends CorpSection
+class CertificateTree extends EveSection
 {
     use PreserverTrait;
     /** @noinspection MagicMethodsValidityInspection */
@@ -51,7 +51,7 @@ class ContainerLog extends CorpSection
      */
     public function __construct()
     {
-        $this->mask = 32;
+        $this->mask = 2;
     }
     /**
      * @param EveApiEventInterface   $event
@@ -68,7 +68,6 @@ class ContainerLog extends CorpSection
         $this->setYem($yem);
         $data = $event->getData();
         $xml = $data->getEveApiXml();
-        $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $this->getYem()
             ->triggerLogEvent(
                 'Yapeal.Log.log',
@@ -78,7 +77,7 @@ class ContainerLog extends CorpSection
         $this->getPdo()
             ->beginTransaction();
         try {
-            $this->preserveToContainerLog($xml, $ownerID);
+            $this->preserveToCertificateTree($xml);
             $this->getPdo()
                 ->commit();
         } catch (PDOException $exc) {
@@ -98,37 +97,24 @@ class ContainerLog extends CorpSection
     }
     /**
      * @param string $xml
-         * @param string $ownerID
-     *
+         *
      * @return self Fluent interface.
      * @throws \LogicException
      */
-    protected function preserveToContainerLog($xml, $ownerID)
+    protected function preserveToCertificateTree($xml)
     {
-        $tableName = 'corpContainerLog';
+        $tableName = 'eveCertificateTree';
         $sql = $this->getCsq()
-            ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
+            ->getDeleteFromTable($tableName);
         $this->getYem()
             ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'action' => null,
-            'actorID' => null,
-            'actorName' => '',
-            'flag' => null,
-            'itemID' => null,
-            'itemTypeID' => null,
-            'locationID' => null,
-            'logTime' => '1970-01-01 00:00:01',
-            'newConfiguration' => null,
-            'oldConfiguration' => null,
-            'ownerID' => $ownerID,
-            'passwordType' => null,
-            'quantity' => null,
-            'typeID' => null
+            'categoryID' => null,
+            'categoryName' => ''
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//containerLog/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//categories/row');
         return $this;
     }
 }

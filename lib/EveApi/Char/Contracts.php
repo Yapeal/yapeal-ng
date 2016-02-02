@@ -1,6 +1,6 @@
 <?php
 /**
- * Contains ContainerLog class.
+ * Contains Contracts class.
  *
  * PHP version 5.4
  *
@@ -31,7 +31,7 @@
  * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
  * @author    Michael Cummings <mgcummings@yahoo.com>
  */
-namespace Yapeal\EveApi\Corp;
+namespace Yapeal\EveApi\Char;
 
 use PDOException;
 use Yapeal\Event\EveApiEventInterface;
@@ -40,9 +40,9 @@ use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
 
 /**
- * Class ContainerLog
+ * Class Contracts
  */
-class ContainerLog extends CorpSection
+class Contracts extends CharSection
 {
     use PreserverTrait;
     /** @noinspection MagicMethodsValidityInspection */
@@ -51,7 +51,7 @@ class ContainerLog extends CorpSection
      */
     public function __construct()
     {
-        $this->mask = 32;
+        $this->mask = 67108864;
     }
     /**
      * @param EveApiEventInterface   $event
@@ -78,7 +78,7 @@ class ContainerLog extends CorpSection
         $this->getPdo()
             ->beginTransaction();
         try {
-            $this->preserveToContainerLog($xml, $ownerID);
+            $this->preserveToContracts($xml, $ownerID);
             $this->getPdo()
                 ->commit();
         } catch (PDOException $exc) {
@@ -103,9 +103,9 @@ class ContainerLog extends CorpSection
      * @return self Fluent interface.
      * @throws \LogicException
      */
-    protected function preserveToContainerLog($xml, $ownerID)
+    protected function preserveToContracts($xml, $ownerID)
     {
-        $tableName = 'corpContainerLog';
+        $tableName = 'charContracts';
         $sql = $this->getCsq()
             ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
         $this->getYem()
@@ -113,22 +113,31 @@ class ContainerLog extends CorpSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'action' => null,
-            'actorID' => null,
-            'actorName' => '',
-            'flag' => null,
-            'itemID' => null,
-            'itemTypeID' => null,
-            'locationID' => null,
-            'logTime' => '1970-01-01 00:00:01',
-            'newConfiguration' => null,
-            'oldConfiguration' => null,
+            'acceptorID' => null,
+            'assigneeID' => null,
+            'availability' => null,
+            'buyout' => null,
+            'collateral' => null,
+            'contractID' => null,
+            'dateAccepted' => '1970-01-01 00:00:01',
+            'dateCompleted' => '1970-01-01 00:00:01',
+            'dateExpired' => '1970-01-01 00:00:01',
+            'dateIssued' => '1970-01-01 00:00:01',
+            'endStationID' => null,
+            'forCorp' => null,
+            'issuerCorpID' => null,
+            'issuerID' => null,
+            'numDays' => null,
             'ownerID' => $ownerID,
-            'passwordType' => null,
-            'quantity' => null,
-            'typeID' => null
+            'price' => null,
+            'reward' => null,
+            'startStationID' => null,
+            'status' => null,
+            'title' => null,
+            'type' => null,
+            'volume' => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//containerLog/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//contractList/row');
         return $this;
     }
 }

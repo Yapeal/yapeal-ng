@@ -96,7 +96,7 @@ class Creator
         $sxi = new SimpleXMLIterator($data->getEveApiXml());
         $this->tables = [];
         $this->processValueOnly($sxi, $data->getEveApiName());
-        $this->processRowset($sxi);
+        $this->processRowset($sxi, $data->getEveApiName());
         ksort($this->tables);
         $vars = [
             'className'   => ucfirst($data->getEveApiName()),
@@ -178,18 +178,19 @@ class Creator
     }
     /**
      * @param SimpleXMLIterator $sxi
+     * @param string            $apiName
      * @param string            $xPath
      *
      * @return array
      */
-    protected function processRowset(SimpleXMLIterator $sxi, $xPath = '//result/rowset')
+    protected function processRowset(SimpleXMLIterator $sxi, $apiName, $xPath = '//result/rowset')
     {
         $items = $sxi->xpath($xPath);
         if (0 === count($items)) {
             return;
         }
         foreach ($items as $ele) {
-            $tableName = ucfirst((string)$ele['name']);
+            $rsName = ucfirst((string)$ele['name']);
             $colNames = explode(',', (string)$ele['columns']);
             $keyNames = explode(',', (string)$ele['key']);
             $attributes = [];
@@ -203,7 +204,11 @@ class Creator
                 $attributes['ownerID'] = '$ownerID';
             }
             ksort($attributes);
-            $this->tables[$tableName] = ['attributes' => $attributes];
+            if (0 === count($this->tables)) {
+                $this->tables[$apiName] = ['attributes' => $attributes, 'xpath' => $rsName];
+            } else {
+                $this->tables[$rsName] = ['attributes' => $attributes, 'xpath' => $rsName];
+            }
         }
     }
     /**
@@ -211,8 +216,11 @@ class Creator
      * @param string            $tableName
      * @param string            $xpath
      */
-    protected function processValueOnly(SimpleXMLIterator $sxi, $tableName, $xpath = '//result/child::*[not(*|@*)]')
-    {
+    protected function processValueOnly(
+        SimpleXMLIterator $sxi,
+        $tableName,
+        $xpath = '//result/child::*[not(*|@*|self::dataTime)]'
+    ) {
         $items = $sxi->xpath($xpath);
         if (0 === count($items)) {
             return;

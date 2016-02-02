@@ -8,7 +8,7 @@
  * This file is part of Yet Another Php Eve Api Library also know as Yapeal
  * which can be used to access the Eve Online API data and place it into a
  * database.
- * Copyright (C) 2015-2016 Michael Cummings
+ * Copyright (C) 2016 Michael Cummings
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by the
@@ -27,7 +27,7 @@
  * You should be able to find a copy of this license in the LICENSE.md file. A
  * copy of the GNU GPL should also be available in the GNU-GPL.md file.
  *
- * @copyright 2015-2016 Michael Cummings
+ * @copyright 2016 Michael Cummings
  * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
  * @author    Michael Cummings <mgcummings@yahoo.com>
  */
@@ -45,6 +45,7 @@ use Yapeal\Sql\PreserverTrait;
 class Blueprints extends CharSection
 {
     use PreserverTrait;
+    /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
      */
@@ -53,9 +54,9 @@ class Blueprints extends CharSection
         $this->mask = 2;
     }
     /**
-     * @param EveApiEventInterface $event
-     * @param string               $eventName
-     * @param MediatorInterface    $yem
+     * @param EveApiEventInterface   $event
+     * @param string                 $eventName
+     * @param MediatorInterface $yem
      *
      * @return EveApiEventInterface
      * @throws \DomainException
@@ -97,7 +98,7 @@ class Blueprints extends CharSection
     }
     /**
      * @param string $xml
-     * @param string $ownerID
+         * @param string $ownerID
      *
      * @return self Fluent interface.
      * @throws \LogicException
@@ -108,7 +109,7 @@ class Blueprints extends CharSection
         $sql = $this->getCsq()
             ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
         $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $sql);
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
@@ -121,9 +122,9 @@ class Blueprints extends CharSection
             'runs' => null,
             'timeEfficiency' => null,
             'typeID' => null,
-            'typeName' => null
+            'typeName' => ''
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName);
+        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//blueprints/row');
         return $this;
     }
 }

@@ -1,6 +1,6 @@
 <?php
 /**
- * Contains ContainerLog class.
+ * Contains IndustryJobsHistory class.
  *
  * PHP version 5.4
  *
@@ -31,7 +31,7 @@
  * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
  * @author    Michael Cummings <mgcummings@yahoo.com>
  */
-namespace Yapeal\EveApi\Corp;
+namespace Yapeal\EveApi\Char;
 
 use PDOException;
 use Yapeal\Event\EveApiEventInterface;
@@ -40,9 +40,9 @@ use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
 
 /**
- * Class ContainerLog
+ * Class IndustryJobsHistory
  */
-class ContainerLog extends CorpSection
+class IndustryJobsHistory extends CharSection
 {
     use PreserverTrait;
     /** @noinspection MagicMethodsValidityInspection */
@@ -51,7 +51,7 @@ class ContainerLog extends CorpSection
      */
     public function __construct()
     {
-        $this->mask = 32;
+        $this->mask = 128;
     }
     /**
      * @param EveApiEventInterface   $event
@@ -78,7 +78,7 @@ class ContainerLog extends CorpSection
         $this->getPdo()
             ->beginTransaction();
         try {
-            $this->preserveToContainerLog($xml, $ownerID);
+            $this->preserveToIndustryJobsHistory($xml, $ownerID);
             $this->getPdo()
                 ->commit();
         } catch (PDOException $exc) {
@@ -103,9 +103,9 @@ class ContainerLog extends CorpSection
      * @return self Fluent interface.
      * @throws \LogicException
      */
-    protected function preserveToContainerLog($xml, $ownerID)
+    protected function preserveToIndustryJobsHistory($xml, $ownerID)
     {
-        $tableName = 'corpContainerLog';
+        $tableName = 'charIndustryJobsHistory';
         $sql = $this->getCsq()
             ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
         $this->getYem()
@@ -113,22 +113,37 @@ class ContainerLog extends CorpSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'action' => null,
-            'actorID' => null,
-            'actorName' => '',
-            'flag' => null,
-            'itemID' => null,
-            'itemTypeID' => null,
-            'locationID' => null,
-            'logTime' => '1970-01-01 00:00:01',
-            'newConfiguration' => null,
-            'oldConfiguration' => null,
+            'activityID' => null,
+            'blueprintID' => null,
+            'blueprintLocationID' => null,
+            'blueprintTypeID' => null,
+            'blueprintTypeName' => '',
+            'completedCharacterID' => null,
+            'completedDate' => '1970-01-01 00:00:01',
+            'cost' => null,
+            'endDate' => '1970-01-01 00:00:01',
+            'facilityID' => null,
+            'installerID' => null,
+            'installerName' => '',
+            'jobID' => null,
+            'licensedRuns' => null,
+            'outputLocationID' => null,
             'ownerID' => $ownerID,
-            'passwordType' => null,
-            'quantity' => null,
-            'typeID' => null
+            'pauseDate' => '1970-01-01 00:00:01',
+            'probability' => null,
+            'productTypeID' => null,
+            'productTypeName' => '',
+            'runs' => null,
+            'solarSystemID' => null,
+            'solarSystemName' => '',
+            'startDate' => '1970-01-01 00:00:01',
+            'stationID' => null,
+            'status' => null,
+            'successfulRuns' => null,
+            'teamID' => null,
+            'timeInSeconds' => '1970-01-01 00:00:01'
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//containerLog/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//jobs/row');
         return $this;
     }
 }

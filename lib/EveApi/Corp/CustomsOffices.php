@@ -1,6 +1,6 @@
 <?php
 /**
- * Contains ContainerLog class.
+ * Contains CustomsOffices class.
  *
  * PHP version 5.4
  *
@@ -40,9 +40,9 @@ use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
 
 /**
- * Class ContainerLog
+ * Class CustomsOffices
  */
-class ContainerLog extends CorpSection
+class CustomsOffices extends CorpSection
 {
     use PreserverTrait;
     /** @noinspection MagicMethodsValidityInspection */
@@ -51,7 +51,7 @@ class ContainerLog extends CorpSection
      */
     public function __construct()
     {
-        $this->mask = 32;
+        $this->mask = 2;
     }
     /**
      * @param EveApiEventInterface   $event
@@ -78,7 +78,7 @@ class ContainerLog extends CorpSection
         $this->getPdo()
             ->beginTransaction();
         try {
-            $this->preserveToContainerLog($xml, $ownerID);
+            $this->preserveToCustomsOffices($xml, $ownerID);
             $this->getPdo()
                 ->commit();
         } catch (PDOException $exc) {
@@ -103,9 +103,9 @@ class ContainerLog extends CorpSection
      * @return self Fluent interface.
      * @throws \LogicException
      */
-    protected function preserveToContainerLog($xml, $ownerID)
+    protected function preserveToCustomsOffices($xml, $ownerID)
     {
-        $tableName = 'corpContainerLog';
+        $tableName = 'corpCustomsOffices';
         $sql = $this->getCsq()
             ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
         $this->getYem()
@@ -113,22 +113,23 @@ class ContainerLog extends CorpSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'action' => null,
-            'actorID' => null,
-            'actorName' => '',
-            'flag' => null,
+            'allowAlliance' => null,
+            'allowStandings' => null,
             'itemID' => null,
-            'itemTypeID' => null,
-            'locationID' => null,
-            'logTime' => '1970-01-01 00:00:01',
-            'newConfiguration' => null,
-            'oldConfiguration' => null,
             'ownerID' => $ownerID,
-            'passwordType' => null,
-            'quantity' => null,
-            'typeID' => null
+            'reinforceHour' => null,
+            'solarSystemID' => null,
+            'solarSystemName' => '',
+            'standingLevel' => null,
+            'taxRateAlliance' => '0.0',
+            'taxRateCorp' => '0.0',
+            'taxRateStandingBad' => '0.0',
+            'taxRateStandingGood' => '0.0',
+            'taxRateStandingHigh' => '0.0',
+            'taxRateStandingHorrible' => '0.0',
+            'taxRateStandingNeutral' => '0.0'
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//containerLog/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//pocos/row');
         return $this;
     }
 }
