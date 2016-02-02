@@ -109,6 +109,7 @@ HELP;
             $output->writeln($mess);
             return [];
         }
+        $fileList = [];
         foreach ($sections as $dir) {
             foreach (new DirectoryIterator($path . $dir . '/') as $fileInfo) {
                 if (!$fileInfo->isFile()
@@ -127,7 +128,6 @@ HELP;
             $fileNames .= ',%3$sconfig/CreateCustomTables.sql';
             $vendorPath = $this->getDic()['Yapeal.vendorParentDir'];
         }
-        $fileList = [];
         foreach (explode(',', sprintf($fileNames, $path, $this->getDic()['Yapeal.baseDir'], $vendorPath)) as $fileName)
         {
             if (!is_readable($fileName) || !is_file($fileName)) {
