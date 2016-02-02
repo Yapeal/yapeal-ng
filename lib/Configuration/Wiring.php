@@ -429,7 +429,9 @@ class Wiring
                  * @type \Yapeal\EveApi\Creator $create
                  */
                 $create = new $dic['Yapeal.EveApi.create']($twig, $dic['Yapeal.EveApi.dir']);
-                $create->setOverwrite($dic['Yapeal.Create.overwrite']);
+                if (array_key_exists('Yapeal.Create.overwrite', $dic)) {
+                    $create->setOverwrite($dic['Yapeal.Create.overwrite']);
+                }
                 return $create;
             };
             $mediator->addServiceSubscriberByEventList(
@@ -673,7 +675,9 @@ class Wiring
                      * @type \Yapeal\Sql\Creator $create
                      */
                     $create = new $dic['Yapeal.Sql.create']($twig, $dic['Yapeal.Sql.dir'], $dic['Yapeal.Sql.platform']);
-                    $create->setOverwrite($dic['Yapeal.Create.overwrite']);
+                    if (array_key_exists('Yapeal.Create.overwrite', $dic)) {
+                        $create->setOverwrite($dic['Yapeal.Create.overwrite']);
+                    }
                     return $create;
                 }
             );
@@ -737,7 +741,9 @@ class Wiring
                      * @type \Yapeal\Xsd\Creator $create
                      */
                     $create = new $dic['Yapeal.Xsd.create']($twig, $dic['Yapeal.Xsd.dir']);
-                    $create->setOverwrite($dic['Yapeal.Create.overwrite']);
+                    if (array_key_exists('Yapeal.Create.overwrite', $dic)) {
+                        $create->setOverwrite($dic['Yapeal.Create.overwrite']);
+                    }
                     return $create;
                 }
             );
