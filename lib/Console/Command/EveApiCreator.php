@@ -43,7 +43,6 @@ use Yapeal\Configuration\WiringInterface;
 use Yapeal\Console\CommandToolsTrait;
 use Yapeal\Container\ContainerInterface;
 use Yapeal\Event\EveApiEventEmitterTrait;
-use Yapeal\Event\MediatorInterface;
 use Yapeal\Exception\YapealDatabaseException;
 use Yapeal\Exception\YapealException;
 use Yapeal\Xml\EveApiReadWriteInterface;
@@ -56,27 +55,56 @@ class EveApiCreator extends Command implements WiringInterface
     use CommandToolsTrait, EveApiEventEmitterTrait;
     /**
      * @param string|null        $name
-     * @param string             $cwd
      * @param ContainerInterface $dic
      *
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
      * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
      * @throws \Symfony\Component\Console\Exception\LogicException
      */
-    public function __construct($name, $cwd, ContainerInterface $dic)
+    public function __construct($name, ContainerInterface $dic)
     {
-        $this->setDescription(
-            'Retrieves Eve Api XML from servers and creates database class, XSD, and SQL files based on the XML structure received'
-        );
+        $desc = 'Retrieves Eve Api XML from CCP servers and creates database class, XSD, and SQL files based on the XML'
+            . ' structure received';
+        $this->setDescription($desc);
         $this->setName($name);
-        $this->setCwd($cwd);
         $this->setDic($dic);
         parent::__construct($name);
     }
     /**
+     * @param string $apiName
+     * @param string $sectionName
+     * @param array  $posts
+     *
+     * @return int
+     *
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
+     * @throws \Yapeal\Exception\YapealConsoleException
+     * @throws \Yapeal\Exception\YapealDatabaseException
+     * @throws \Yapeal\Exception\YapealException
+     */
+    public function createEveApi($apiName, $sectionName, $posts)
+    {
+        /**
+         * Get new Data instance from factory.
+         *
+         * @type EveApiReadWriteInterface $data
+         */
+        $data = $this->getDic()['Yapeal.Xml.Data'];
+        $data->setEveApiName($apiName)
+            ->setEveApiSectionName($sectionName)
+            ->setEveApiArguments($posts);
+        foreach (['retrieve', 'create', 'transform', 'validate', 'cache'] as $eventName) {
+            if (false === $this->emitEvents($data, $eventName)) {
+                return 2;
+            }
+        }
+        return 0;
+    }
+    /**
      * @param ContainerInterface $dic
      *
+     * @return self Fluent interface.
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws YapealException
@@ -85,6 +113,7 @@ class EveApiCreator extends Command implements WiringInterface
     public function wire(ContainerInterface $dic)
     {
         (new ConsoleWiring($dic))->wireAll();
+        return $this;
     }
     /**
      * Configures the current command.
@@ -140,33 +169,16 @@ EOF;
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $posts = $this->processPost($input);
+        $posts['mask'] = $input->getArgument('mask');
         $dic = $this->getDic();
         if ($input->hasOption('overwrite')) {
             $dic['Yapeal.Create.overwrite'] = true;
         }
         $this->wire($dic);
+        $this->setYem($dic['Yapeal.Event.Mediator']);
         $apiName = $input->getArgument('api_name');
         $sectionName = $input->getArgument('section_name');
-        /**
-         * @type MediatorInterface $yem
-         */
-        $this->yem = $dic['Yapeal.Event.Mediator'];
-        /**
-         * Get new Data instance from factory.
-         *
-         * @type EveApiReadWriteInterface $data
-         */
-        $data = $dic['Yapeal.Xml.Data'];
-        $data->setEveApiName($apiName)
-            ->setEveApiSectionName($sectionName)
-            ->setEveApiArguments($posts);
-        $data->addEveApiArgument('mask', $input->getArgument('mask'));
-        foreach (['retrieve', 'create', 'transform', 'validate', 'cache'] as $eventName) {
-            if (false === $this->emitEvents($data, $eventName)) {
-                return 2;
-            }
-        }
-        return 0;
+        return $this->createEveApi($apiName, $sectionName, $posts);
     }
     /**
      * @param InputInterface $input
