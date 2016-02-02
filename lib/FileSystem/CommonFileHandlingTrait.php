@@ -74,10 +74,10 @@ trait CommonFileHandlingTrait
     protected function acquiredLock($handle)
     {
         $tries = 0;
-        //Give 10 seconds to try getting lock.
+        //Give max of 10 seconds to try getting lock.
         $timeout = time() + 10;
         while (!flock($handle, LOCK_EX | LOCK_NB)) {
-            if (++$tries > 10 || time() > $timeout) {
+            if (++$tries > 20 || time() > $timeout) {
                 return false;
             }
             // Wait 0.01 to 0.5 seconds before trying again.
@@ -124,6 +124,34 @@ trait CommonFileHandlingTrait
         return true;
     }
     /**
+     * @param string            $path
+     *
+     * @param MediatorInterface $yem
+     *
+     * @return bool
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     */
+    protected function isWritablePath($path, MediatorInterface $yem)
+    {
+        if (!is_readable($path)) {
+            $mess = 'Cache path is NOT readable or does NOT exist, was given ' . $path;
+            $yem->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
+            return false;
+        }
+        if (!is_dir($path)) {
+            $mess = 'Cache path is NOT a directory, was given ' . $path;
+            $yem->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
+            return false;
+        }
+        if (!is_writable($path)) {
+            $mess = 'Cache path is NOT writable, was given ' . $path;
+            $yem->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
+            return false;
+        }
+        return true;
+    }
+    /**
      * @param resource $handle
      *
      * @return self Fluent interface.
@@ -135,5 +163,119 @@ trait CommonFileHandlingTrait
             fclose($handle);
         }
         return $this;
+    }
+    /**
+     * @param string $data
+     * @param string $fileName
+     * @param MediatorInterface $yem
+     *
+     * @return bool
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
+     */
+    protected function safeDataWrite($data, $fileName, MediatorInterface $yem)
+    {
+        $handle = $this->acquireLockedHandle($fileName, $yem);
+        if (false === $handle) {
+            return false;
+        }
+        $tries = 0;
+        //Give 10 seconds to try writing file.
+        $timeout = time() + 10;
+        while (strlen($data)) {
+            if (++$tries > 10 || time() > $timeout) {
+                $mess = sprintf('Giving up could NOT finish writing data to %1$s', $fileName);
+                $yem->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
+                $this->releaseHandle($handle)
+                    ->deleteWithRetry($fileName, $yem);
+                return false;
+            }
+            $written = fwrite($handle, $data);
+            // Decrease $tries while making progress but NEVER $tries < 1.
+            if ($written > 0 && $tries > 0) {
+                --$tries;
+            }
+            $data = substr($data, $written);
+        }
+        $this->releaseHandle($handle);
+        return true;
+    }
+    /**
+     * Safely write file using lock and temp file.
+     *
+     * @param string            $data
+     * @param string            $pathFile
+     * @param MediatorInterface $yem
+     *
+     * @return bool
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
+     */
+    protected function safeFileWrite($data, $pathFile, MediatorInterface $yem)
+    {
+        $path = dirname($pathFile);
+        $suffix = substr(strrchr($pathFile, '.'), 1);
+        $baseFile = basename($pathFile, $suffix);
+        if (false === $this->isWritablePath($path, $yem)) {
+            return false;
+        }
+        if (false === $this->deleteWithRetry($pathFile, $yem)) {
+            return false;
+        }
+        $tmpFile = sprintf('%1$s/%2$s.tmp', $path, $baseFile);
+        if (false === $this->safeDataWrite($data, $tmpFile, $yem)) {
+            return false;
+        }
+        if (false === rename($tmpFile, $pathFile)) {
+            $mess = sprintf('Could NOT rename %1$s to %2$s', $tmpFile, $pathFile);
+            $yem->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
+            return false;
+        }
+        return true;
+    }
+    /**
+     * @param string            $fileName
+     *
+     * @param MediatorInterface $yem
+     *
+     * @return false|string
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
+     */
+    protected function safeFileRead($fileName, MediatorInterface $yem)
+    {
+        if (!is_readable($fileName) || !is_file($fileName)) {
+            $mess = 'Could NOT find accessible file, was given ' . $fileName;
+            $yem->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess);
+            return false;
+        }
+        $handle = $this->acquireLockedHandle($fileName, $yem, 'rb+');
+        if (false === $handle) {
+            return false;
+        }
+        rewind($handle);
+        $data = '';
+        $tries = 0;
+        //Give 10 seconds to try reading file.
+        $timeout = time() + 10;
+        while (!feof($handle)) {
+            if (++$tries > 10 || time() > $timeout) {
+                $mess = sprintf('Giving up could NOT finish reading data from %1$s', $fileName);
+                $yem->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
+                $this->releaseHandle($handle);
+                return false;
+            }
+            $read = fread($handle, 16384);
+            // Decrease $tries while making progress but NEVER $tries < 1.
+            if ('' !== $read && $tries > 0) {
+                --$tries;
+            }
+            $data .= $read;
+        }
+        $this->releaseHandle($handle);
+        return $data;
     }
 }
