@@ -86,18 +86,18 @@ class Transformer implements TransformerInterface
         $this->setYem($yem);
         $data = $event->getData();
         $this->getYem()
-             ->triggerLogEvent(
-                 'Yapeal.Log.log',
-                 Logger::DEBUG,
-                 $this->getReceivedEventMessage($data, $eventName, __CLASS__)
-             );
+            ->triggerLogEvent(
+                'Yapeal.Log.log',
+                Logger::DEBUG,
+                $this->getReceivedEventMessage($data, $eventName, __CLASS__)
+            );
         $fileName = $this->setRelativeBaseDir($this->getXslDir())
-                         ->findEveApiFile($data->getEveApiSectionName(), $data->getEveApiName(), 'xsl');
+            ->findEveApiFile($data->getEveApiSectionName(), $data->getEveApiName(), 'xsl');
         if ('' === $fileName) {
             return $event;
         }
         $xml = $this->addYapealProcessingInstructionToXml($data)
-                    ->performTransform($fileName, $data->getEveApiXml());
+            ->performTransform($fileName, $data);
         if (false === $xml) {
             $mess = 'Failed to transform xml during:';
             $yem->triggerLogEvent(
@@ -109,7 +109,7 @@ class Transformer implements TransformerInterface
         }
         $xml = (new tidy())->repairString($xml, $this->tidyConfig, 'utf8');
         return $event->setData($data->setEveApiXml($xml))
-                     ->eventHandled();
+            ->eventHandled();
     }
     /**
      * Adds Processing Instruction to XML containing json encoding of any post used during retrieve.
@@ -151,18 +151,20 @@ class Transformer implements TransformerInterface
     protected function getXslDir()
     {
         if (null === $this->xslDir) {
-            $this->xslDir = __DIR__ .'/';
+            $this->xslDir = __DIR__ . '/';
         }
         return $this->xslDir;
     }
     /**
-     * @param string $fileName
-     * @param string $xml
+     * @param string                   $fileName
+     * @param EveApiReadWriteInterface $data
      *
-     * @return string|false
+     * @return false|string
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
      * @throws \LogicException
      */
-    protected function performTransform($fileName, $xml)
+    protected function performTransform($fileName, EveApiReadWriteInterface $data)
     {
         $xslt = new XSLTProcessor();
         $oldErrors = libxml_use_internal_errors(true);
@@ -170,16 +172,33 @@ class Transformer implements TransformerInterface
         $dom = new DOMDocument();
         $dom->load($fileName);
         $xslt->importStylesheet($dom);
-        $xml = $xslt->transformToXml(new SimpleXMLElement($xml));
-        if (false === $xml) {
-            foreach (libxml_get_errors() as $error) {
+        try {
+            $simple = new SimpleXMLElement($data->getEveApiXml());
+        } catch (\Exception $exc) {
+            $mess = 'Received XML cause SimpleXMLElement exception in';
+            $this->getYem()
+                ->triggerLogEvent(
+                    'Yapeal.log.log',
+                    Logger::WARNING,
+                    $this->createEveApiMessage($mess, $data),
+                    ['exception' => $exc]
+                );
+            return false;
+        }
+        $result = $xslt->transformToXml($simple);
+        if (false === $result) {
+            /**
+             * @type array $errors
+             */
+            $errors = libxml_get_errors();
+            foreach ($errors as $error) {
                 $this->getYem()
-                     ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $error->message);
+                    ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $error->message);
             }
         }
         libxml_clear_errors();
         libxml_use_internal_errors($oldErrors);
-        return $xml;
+        return $result;
     }
     /**
      * Holds tidy config settings.
@@ -187,11 +206,11 @@ class Transformer implements TransformerInterface
      * @type array $tidyConfig
      */
     protected $tidyConfig = [
-        'indent' => true,
+        'indent'        => true,
         'indent-spaces' => 4,
-        'output-xml' => true,
-        'input-xml' => true,
-        'wrap' => '1000'
+        'output-xml'    => true,
+        'input-xml'     => true,
+        'wrap'          => '1000'
     ];
     /**
      * Holds base directory where Eve API XSL files can be found.
