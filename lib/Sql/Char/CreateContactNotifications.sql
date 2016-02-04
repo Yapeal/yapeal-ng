@@ -1,7 +1,7 @@
 -- Sql/Char/CreateContactNotifications.sql
 -- version 20160201053355.119
 CREATE TABLE "{database}"."{table_prefix}charContactNotifications" (
-    "messageData" TEXT NOT NULL DEFAULT '',
+    "messageData" TEXT NOT NULL,
     "notificationID" BIGINT(20) UNSIGNED NOT NULL,
     "ownerID" BIGINT(20) UNSIGNED NOT NULL,
     "senderID" BIGINT(20) UNSIGNED NOT NULL,
