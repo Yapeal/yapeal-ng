@@ -172,10 +172,11 @@ class Transformer implements TransformerInterface
         $dom = new DOMDocument();
         $dom->load($fileName);
         $xslt->importStylesheet($dom);
+        $result = false;
         try {
-            $simple = new SimpleXMLElement($data->getEveApiXml());
+            $result = $xslt->transformToXml(new SimpleXMLElement($data->getEveApiXml()));
         } catch (\Exception $exc) {
-            $mess = 'Received XML cause SimpleXMLElement exception in';
+            $mess = 'XML cause SimpleXMLElement exception in';
             $this->getYem()
                 ->triggerLogEvent(
                     'Yapeal.log.log',
@@ -183,17 +184,17 @@ class Transformer implements TransformerInterface
                     $this->createEveApiMessage($mess, $data),
                     ['exception' => $exc]
                 );
-            return false;
         }
-        $result = $xslt->transformToXml($simple);
         if (false === $result) {
             /**
              * @type array $errors
              */
             $errors = libxml_get_errors();
-            foreach ($errors as $error) {
-                $this->getYem()
-                    ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $error->message);
+            if (0 !== count($errors)) {
+                foreach ($errors as $error) {
+                    $this->getYem()
+                        ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $error->message);
+                }
             }
         }
         libxml_clear_errors();
@@ -208,8 +209,9 @@ class Transformer implements TransformerInterface
     protected $tidyConfig = [
         'indent'        => true,
         'indent-spaces' => 4,
-        'output-xml'    => true,
         'input-xml'     => true,
+        'newline'       => 'LF',
+        'output-xml'    => true,
         'wrap'          => '1000'
     ];
     /**
