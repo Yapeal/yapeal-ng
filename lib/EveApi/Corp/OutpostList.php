@@ -45,6 +45,7 @@ use Yapeal\Sql\PreserverTrait;
 class OutpostList extends CorpSection
 {
     use PreserverTrait;
+
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -54,9 +55,9 @@ class OutpostList extends CorpSection
         $this->mask = 16384;
     }
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param MediatorInterface $yem
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
      * @throws \DomainException
@@ -68,6 +69,9 @@ class OutpostList extends CorpSection
         $this->setYem($yem);
         $data = $event->getData();
         $xml = $data->getEveApiXml();
+        if (false === $xml) {
+            return $event->setHandledSufficiently();
+        }
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $this->getYem()
             ->triggerLogEvent(
@@ -98,7 +102,7 @@ class OutpostList extends CorpSection
     }
     /**
      * @param string $xml
-         * @param string $ownerID
+     * @param string $ownerID
      *
      * @return self Fluent interface.
      * @throws \LogicException
@@ -114,20 +118,20 @@ class OutpostList extends CorpSection
             ->exec($sql);
         $columnDefaults = [
             'dockingCostPerShipVolume' => null,
-            'officeRentalCost' => null,
-            'ownerID' => $ownerID,
-            'reprocessingEfficiency' => null,
-            'reprocessingStationTake' => null,
-            'solarSystemID' => null,
-            'standingOwnerID' => null,
-            'stationID' => null,
-            'stationName' => '',
-            'stationTypeID' => null,
-            'x' => null,
-            'y' => null,
-            'z' => null
+            'officeRentalCost'         => null,
+            'ownerID'                  => $ownerID,
+            'reprocessingEfficiency'   => null,
+            'reprocessingStationTake'  => null,
+            'solarSystemID'            => null,
+            'standingOwnerID'          => null,
+            'stationID'                => null,
+            'stationName'              => '',
+            'stationTypeID'            => null,
+            'x'                        => null,
+            'y'                        => null,
+            'z'                        => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//corporationStarbases/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//corporationStarbases/row');
         return $this;
     }
 }

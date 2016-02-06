@@ -45,6 +45,7 @@ use Yapeal\Sql\PreserverTrait;
 class UpcomingCalendarEvents extends CharSection
 {
     use PreserverTrait;
+
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -54,9 +55,9 @@ class UpcomingCalendarEvents extends CharSection
         $this->mask = 1048576;
     }
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param MediatorInterface $yem
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
      * @throws \DomainException
@@ -68,6 +69,9 @@ class UpcomingCalendarEvents extends CharSection
         $this->setYem($yem);
         $data = $event->getData();
         $xml = $data->getEveApiXml();
+        if (false === $xml) {
+            return $event->setHandledSufficiently();
+        }
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $this->getYem()
             ->triggerLogEvent(
@@ -98,7 +102,7 @@ class UpcomingCalendarEvents extends CharSection
     }
     /**
      * @param string $xml
-         * @param string $ownerID
+     * @param string $ownerID
      *
      * @return self Fluent interface.
      * @throws \LogicException
@@ -113,18 +117,18 @@ class UpcomingCalendarEvents extends CharSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'duration' => null,
-            'eventDate' => '1970-01-01 00:00:01',
-            'eventID' => null,
-            'eventText' => null,
-            'eventTitle' => null,
-            'importance' => null,
-            'ownerID' => $ownerID,
-            'ownerName' => '',
+            'duration'    => null,
+            'eventDate'   => '1970-01-01 00:00:01',
+            'eventID'     => null,
+            'eventText'   => null,
+            'eventTitle'  => null,
+            'importance'  => null,
+            'ownerID'     => $ownerID,
+            'ownerName'   => '',
             'ownerTypeID' => null,
-            'response' => null
+            'response'    => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//upcomingEvents/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//upcomingEvents/row');
         return $this;
     }
 }

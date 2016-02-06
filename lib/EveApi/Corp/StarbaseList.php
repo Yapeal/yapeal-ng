@@ -45,6 +45,7 @@ use Yapeal\Sql\PreserverTrait;
 class StarbaseList extends CorpSection
 {
     use PreserverTrait;
+
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -54,9 +55,9 @@ class StarbaseList extends CorpSection
         $this->mask = 524288;
     }
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param MediatorInterface $yem
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
      * @throws \DomainException
@@ -68,6 +69,9 @@ class StarbaseList extends CorpSection
         $this->setYem($yem);
         $data = $event->getData();
         $xml = $data->getEveApiXml();
+        if (false === $xml) {
+            return $event->setHandledSufficiently();
+        }
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $this->getYem()
             ->triggerLogEvent(
@@ -98,7 +102,7 @@ class StarbaseList extends CorpSection
     }
     /**
      * @param string $xml
-         * @param string $ownerID
+     * @param string $ownerID
      *
      * @return self Fluent interface.
      * @throws \LogicException
@@ -113,17 +117,17 @@ class StarbaseList extends CorpSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'itemID' => null,
-            'locationID' => null,
-            'moonID' => null,
+            'itemID'          => null,
+            'locationID'      => null,
+            'moonID'          => null,
             'onlineTimestamp' => '1970-01-01 00:00:01',
-            'ownerID' => $ownerID,
+            'ownerID'         => $ownerID,
             'standingOwnerID' => null,
-            'state' => null,
-            'stateTimestamp' => '1970-01-01 00:00:01',
-            'typeID' => null
+            'state'           => null,
+            'stateTimestamp'  => '1970-01-01 00:00:01',
+            'typeID'          => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//starbases/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//starbases/row');
         return $this;
     }
 }

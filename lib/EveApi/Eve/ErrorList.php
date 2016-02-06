@@ -45,6 +45,7 @@ use Yapeal\Sql\PreserverTrait;
 class ErrorList extends EveSection
 {
     use PreserverTrait;
+
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -54,9 +55,9 @@ class ErrorList extends EveSection
         $this->mask = 32;
     }
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param MediatorInterface $yem
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
      * @throws \DomainException
@@ -68,6 +69,9 @@ class ErrorList extends EveSection
         $this->setYem($yem);
         $data = $event->getData();
         $xml = $data->getEveApiXml();
+        if (false === $xml) {
+            return $event->setHandledSufficiently();
+        }
         $this->getYem()
             ->triggerLogEvent(
                 'Yapeal.Log.log',
@@ -97,7 +101,7 @@ class ErrorList extends EveSection
     }
     /**
      * @param string $xml
-         *
+     *
      * @return self Fluent interface.
      * @throws \LogicException
      */
@@ -114,7 +118,7 @@ class ErrorList extends EveSection
             'errorCode' => null,
             'errorText' => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//errors/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//errors/row');
         return $this;
     }
 }

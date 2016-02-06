@@ -45,6 +45,7 @@ use Yapeal\Sql\PreserverTrait;
 class CustomsOffices extends CorpSection
 {
     use PreserverTrait;
+
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -54,9 +55,9 @@ class CustomsOffices extends CorpSection
         $this->mask = 2;
     }
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param MediatorInterface $yem
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
      * @throws \DomainException
@@ -68,6 +69,9 @@ class CustomsOffices extends CorpSection
         $this->setYem($yem);
         $data = $event->getData();
         $xml = $data->getEveApiXml();
+        if (false === $xml) {
+            return $event->setHandledSufficiently();
+        }
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $this->getYem()
             ->triggerLogEvent(
@@ -98,7 +102,7 @@ class CustomsOffices extends CorpSection
     }
     /**
      * @param string $xml
-         * @param string $ownerID
+     * @param string $ownerID
      *
      * @return self Fluent interface.
      * @throws \LogicException
@@ -113,23 +117,23 @@ class CustomsOffices extends CorpSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'allowAlliance' => null,
-            'allowStandings' => null,
-            'itemID' => null,
-            'ownerID' => $ownerID,
-            'reinforceHour' => null,
-            'solarSystemID' => null,
-            'solarSystemName' => '',
-            'standingLevel' => null,
-            'taxRateAlliance' => '0.0',
-            'taxRateCorp' => '0.0',
-            'taxRateStandingBad' => '0.0',
-            'taxRateStandingGood' => '0.0',
-            'taxRateStandingHigh' => '0.0',
+            'allowAlliance'           => null,
+            'allowStandings'          => null,
+            'itemID'                  => null,
+            'ownerID'                 => $ownerID,
+            'reinforceHour'           => null,
+            'solarSystemID'           => null,
+            'solarSystemName'         => '',
+            'standingLevel'           => null,
+            'taxRateAlliance'         => '0.0',
+            'taxRateCorp'             => '0.0',
+            'taxRateStandingBad'      => '0.0',
+            'taxRateStandingGood'     => '0.0',
+            'taxRateStandingHigh'     => '0.0',
             'taxRateStandingHorrible' => '0.0',
-            'taxRateStandingNeutral' => '0.0'
+            'taxRateStandingNeutral'  => '0.0'
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//pocos/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//pocos/row');
         return $this;
     }
 }

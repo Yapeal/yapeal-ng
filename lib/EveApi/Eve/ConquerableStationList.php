@@ -45,6 +45,7 @@ use Yapeal\Sql\PreserverTrait;
 class ConquerableStationList extends EveSection
 {
     use PreserverTrait;
+
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -54,9 +55,9 @@ class ConquerableStationList extends EveSection
         $this->mask = 16;
     }
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param MediatorInterface $yem
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
      * @throws \DomainException
@@ -68,6 +69,9 @@ class ConquerableStationList extends EveSection
         $this->setYem($yem);
         $data = $event->getData();
         $xml = $data->getEveApiXml();
+        if (false === $xml) {
+            return $event->setHandledSufficiently();
+        }
         $this->getYem()
             ->triggerLogEvent(
                 'Yapeal.Log.log',
@@ -97,7 +101,7 @@ class ConquerableStationList extends EveSection
     }
     /**
      * @param string $xml
-         *
+     *
      * @return self Fluent interface.
      * @throws \LogicException
      */
@@ -111,17 +115,17 @@ class ConquerableStationList extends EveSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'corporationID' => null,
+            'corporationID'   => null,
             'corporationName' => '',
-            'solarSystemID' => null,
-            'stationID' => null,
-            'stationName' => '',
-            'stationTypeID' => null,
-            'x' => null,
-            'y' => null,
-            'z' => null
+            'solarSystemID'   => null,
+            'stationID'       => null,
+            'stationName'     => '',
+            'stationTypeID'   => null,
+            'x'               => null,
+            'y'               => null,
+            'z'               => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//outposts/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//outposts/row');
         return $this;
     }
 }

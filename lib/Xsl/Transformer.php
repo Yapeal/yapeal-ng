@@ -120,6 +120,7 @@ class Transformer implements TransformerInterface
      * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
+     * @throws \InvalidArgumentException
      */
     protected function addYapealProcessingInstructionToXml(EveApiReadWriteInterface $data)
     {

@@ -45,6 +45,7 @@ use Yapeal\Sql\PreserverTrait;
 class Blueprints extends CorpSection
 {
     use PreserverTrait;
+
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -54,9 +55,9 @@ class Blueprints extends CorpSection
         $this->mask = 2;
     }
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param MediatorInterface $yem
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
      * @throws \DomainException
@@ -68,6 +69,9 @@ class Blueprints extends CorpSection
         $this->setYem($yem);
         $data = $event->getData();
         $xml = $data->getEveApiXml();
+        if (false === $xml) {
+            return $event->setHandledSufficiently();
+        }
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $this->getYem()
             ->triggerLogEvent(
@@ -98,7 +102,7 @@ class Blueprints extends CorpSection
     }
     /**
      * @param string $xml
-         * @param string $ownerID
+     * @param string $ownerID
      *
      * @return self Fluent interface.
      * @throws \LogicException
@@ -113,18 +117,18 @@ class Blueprints extends CorpSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'flagID' => null,
-            'itemID' => null,
-            'locationID' => null,
+            'flagID'             => null,
+            'itemID'             => null,
+            'locationID'         => null,
             'materialEfficiency' => null,
-            'ownerID' => $ownerID,
-            'quantity' => null,
-            'runs' => null,
-            'timeEfficiency' => null,
-            'typeID' => null,
-            'typeName' => ''
+            'ownerID'            => $ownerID,
+            'quantity'           => null,
+            'runs'               => null,
+            'timeEfficiency'     => null,
+            'typeID'             => null,
+            'typeName'           => ''
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//blueprints/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//blueprints/row');
         return $this;
     }
 }

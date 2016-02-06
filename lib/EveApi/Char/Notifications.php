@@ -45,6 +45,7 @@ use Yapeal\Sql\PreserverTrait;
 class Notifications extends CharSection
 {
     use PreserverTrait;
+
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -54,9 +55,9 @@ class Notifications extends CharSection
         $this->mask = 16384;
     }
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param MediatorInterface $yem
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
      * @throws \DomainException
@@ -68,6 +69,9 @@ class Notifications extends CharSection
         $this->setYem($yem);
         $data = $event->getData();
         $xml = $data->getEveApiXml();
+        if (false === $xml) {
+            return $event->setHandledSufficiently();
+        }
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $this->getYem()
             ->triggerLogEvent(
@@ -98,7 +102,7 @@ class Notifications extends CharSection
     }
     /**
      * @param string $xml
-         * @param string $ownerID
+     * @param string $ownerID
      *
      * @return self Fluent interface.
      * @throws \LogicException
@@ -114,14 +118,14 @@ class Notifications extends CharSection
             ->exec($sql);
         $columnDefaults = [
             'notificationID' => null,
-            'ownerID' => $ownerID,
-            'read' => null,
-            'senderID' => null,
-            'senderName' => '',
-            'sentDate' => '1970-01-01 00:00:01',
-            'typeID' => null
+            'ownerID'        => $ownerID,
+            'read'           => null,
+            'senderID'       => null,
+            'senderName'     => '',
+            'sentDate'       => '1970-01-01 00:00:01',
+            'typeID'         => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//notifications/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//notifications/row');
         return $this;
     }
 }

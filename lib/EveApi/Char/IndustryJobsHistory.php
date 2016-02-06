@@ -45,6 +45,7 @@ use Yapeal\Sql\PreserverTrait;
 class IndustryJobsHistory extends CharSection
 {
     use PreserverTrait;
+
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -54,9 +55,9 @@ class IndustryJobsHistory extends CharSection
         $this->mask = 128;
     }
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param MediatorInterface $yem
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
      * @throws \DomainException
@@ -68,6 +69,9 @@ class IndustryJobsHistory extends CharSection
         $this->setYem($yem);
         $data = $event->getData();
         $xml = $data->getEveApiXml();
+        if (false === $xml) {
+            return $event->setHandledSufficiently();
+        }
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $this->getYem()
             ->triggerLogEvent(
@@ -98,7 +102,7 @@ class IndustryJobsHistory extends CharSection
     }
     /**
      * @param string $xml
-         * @param string $ownerID
+     * @param string $ownerID
      *
      * @return self Fluent interface.
      * @throws \LogicException
@@ -113,37 +117,37 @@ class IndustryJobsHistory extends CharSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'activityID' => null,
-            'blueprintID' => null,
-            'blueprintLocationID' => null,
-            'blueprintTypeID' => null,
-            'blueprintTypeName' => '',
+            'activityID'           => null,
+            'blueprintID'          => null,
+            'blueprintLocationID'  => null,
+            'blueprintTypeID'      => null,
+            'blueprintTypeName'    => '',
             'completedCharacterID' => null,
-            'completedDate' => '1970-01-01 00:00:01',
-            'cost' => null,
-            'endDate' => '1970-01-01 00:00:01',
-            'facilityID' => null,
-            'installerID' => null,
-            'installerName' => '',
-            'jobID' => null,
-            'licensedRuns' => null,
-            'outputLocationID' => null,
-            'ownerID' => $ownerID,
-            'pauseDate' => '1970-01-01 00:00:01',
-            'probability' => null,
-            'productTypeID' => null,
-            'productTypeName' => '',
-            'runs' => null,
-            'solarSystemID' => null,
-            'solarSystemName' => '',
-            'startDate' => '1970-01-01 00:00:01',
-            'stationID' => null,
-            'status' => null,
-            'successfulRuns' => null,
-            'teamID' => null,
-            'timeInSeconds' => '1970-01-01 00:00:01'
+            'completedDate'        => '1970-01-01 00:00:01',
+            'cost'                 => null,
+            'endDate'              => '1970-01-01 00:00:01',
+            'facilityID'           => null,
+            'installerID'          => null,
+            'installerName'        => '',
+            'jobID'                => null,
+            'licensedRuns'         => null,
+            'outputLocationID'     => null,
+            'ownerID'              => $ownerID,
+            'pauseDate'            => '1970-01-01 00:00:01',
+            'probability'          => null,
+            'productTypeID'        => null,
+            'productTypeName'      => '',
+            'runs'                 => null,
+            'solarSystemID'        => null,
+            'solarSystemName'      => '',
+            'startDate'            => '1970-01-01 00:00:01',
+            'stationID'            => null,
+            'status'               => null,
+            'successfulRuns'       => null,
+            'teamID'               => null,
+            'timeInSeconds'        => '1970-01-01 00:00:01'
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//jobs/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//jobs/row');
         return $this;
     }
 }

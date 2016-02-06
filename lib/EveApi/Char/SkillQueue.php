@@ -45,6 +45,7 @@ use Yapeal\Sql\PreserverTrait;
 class SkillQueue extends CharSection
 {
     use PreserverTrait;
+
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -54,9 +55,9 @@ class SkillQueue extends CharSection
         $this->mask = 262144;
     }
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param MediatorInterface $yem
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
      * @throws \DomainException
@@ -68,6 +69,9 @@ class SkillQueue extends CharSection
         $this->setYem($yem);
         $data = $event->getData();
         $xml = $data->getEveApiXml();
+        if (false === $xml) {
+            return $event->setHandledSufficiently();
+        }
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $this->getYem()
             ->triggerLogEvent(
@@ -98,7 +102,7 @@ class SkillQueue extends CharSection
     }
     /**
      * @param string $xml
-         * @param string $ownerID
+     * @param string $ownerID
      *
      * @return self Fluent interface.
      * @throws \LogicException
@@ -113,16 +117,16 @@ class SkillQueue extends CharSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'endSP' => null,
-            'endTime' => '1970-01-01 00:00:01',
-            'level' => null,
-            'ownerID' => $ownerID,
+            'endSP'         => null,
+            'endTime'       => '1970-01-01 00:00:01',
+            'level'         => null,
+            'ownerID'       => $ownerID,
             'queuePosition' => null,
-            'startSP' => null,
-            'startTime' => '1970-01-01 00:00:01',
-            'typeID' => null
+            'startSP'       => null,
+            'startTime'     => '1970-01-01 00:00:01',
+            'typeID'        => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//skillqueue/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//skillqueue/row');
         return $this;
     }
 }

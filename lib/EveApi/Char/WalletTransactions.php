@@ -45,6 +45,7 @@ use Yapeal\Sql\PreserverTrait;
 class WalletTransactions extends CharSection
 {
     use PreserverTrait;
+
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -54,9 +55,9 @@ class WalletTransactions extends CharSection
         $this->mask = 4194304;
     }
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param MediatorInterface $yem
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
      * @throws \DomainException
@@ -68,6 +69,9 @@ class WalletTransactions extends CharSection
         $this->setYem($yem);
         $data = $event->getData();
         $xml = $data->getEveApiXml();
+        if (false === $xml) {
+            return $event->setHandledSufficiently();
+        }
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $this->getYem()
             ->triggerLogEvent(
@@ -98,7 +102,7 @@ class WalletTransactions extends CharSection
     }
     /**
      * @param string $xml
-         * @param string $ownerID
+     * @param string $ownerID
      *
      * @return self Fluent interface.
      * @throws \LogicException
@@ -113,23 +117,23 @@ class WalletTransactions extends CharSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'clientID' => null,
-            'clientName' => '',
-            'clientTypeID' => null,
+            'clientID'             => null,
+            'clientName'           => '',
+            'clientTypeID'         => null,
             'journalTransactionID' => null,
-            'ownerID' => $ownerID,
-            'price' => null,
-            'quantity' => null,
-            'stationID' => null,
-            'stationName' => '',
-            'transactionDateTime' => '1970-01-01 00:00:01',
-            'transactionFor' => null,
-            'transactionID' => null,
-            'transactionType' => null,
-            'typeID' => null,
-            'typeName' => ''
+            'ownerID'              => $ownerID,
+            'price'                => null,
+            'quantity'             => null,
+            'stationID'            => null,
+            'stationName'          => '',
+            'transactionDateTime'  => '1970-01-01 00:00:01',
+            'transactionFor'       => null,
+            'transactionID'        => null,
+            'transactionType'      => null,
+            'typeID'               => null,
+            'typeName'             => ''
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//transactions/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//transactions/row');
         return $this;
     }
 }

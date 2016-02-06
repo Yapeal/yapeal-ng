@@ -45,6 +45,7 @@ use Yapeal\Sql\PreserverTrait;
 class ContainerLog extends CorpSection
 {
     use PreserverTrait;
+
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -54,9 +55,9 @@ class ContainerLog extends CorpSection
         $this->mask = 32;
     }
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param MediatorInterface $yem
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
      * @throws \DomainException
@@ -68,6 +69,9 @@ class ContainerLog extends CorpSection
         $this->setYem($yem);
         $data = $event->getData();
         $xml = $data->getEveApiXml();
+        if (false === $xml) {
+            return $event->setHandledSufficiently();
+        }
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $this->getYem()
             ->triggerLogEvent(
@@ -98,7 +102,7 @@ class ContainerLog extends CorpSection
     }
     /**
      * @param string $xml
-         * @param string $ownerID
+     * @param string $ownerID
      *
      * @return self Fluent interface.
      * @throws \LogicException
@@ -113,22 +117,22 @@ class ContainerLog extends CorpSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'action' => null,
-            'actorID' => null,
-            'actorName' => '',
-            'flag' => null,
-            'itemID' => null,
-            'itemTypeID' => null,
-            'locationID' => null,
-            'logTime' => '1970-01-01 00:00:01',
+            'action'           => null,
+            'actorID'          => null,
+            'actorName'        => '',
+            'flag'             => null,
+            'itemID'           => null,
+            'itemTypeID'       => null,
+            'locationID'       => null,
+            'logTime'          => '1970-01-01 00:00:01',
             'newConfiguration' => null,
             'oldConfiguration' => null,
-            'ownerID' => $ownerID,
-            'passwordType' => null,
-            'quantity' => null,
-            'typeID' => null
+            'ownerID'          => $ownerID,
+            'passwordType'     => null,
+            'quantity'         => null,
+            'typeID'           => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//containerLog/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//containerLog/row');
         return $this;
     }
 }

@@ -45,6 +45,7 @@ use Yapeal\Sql\PreserverTrait;
 class MemberMedals extends CorpSection
 {
     use PreserverTrait;
+
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -54,9 +55,9 @@ class MemberMedals extends CorpSection
         $this->mask = 4;
     }
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param MediatorInterface $yem
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
      * @throws \DomainException
@@ -68,6 +69,9 @@ class MemberMedals extends CorpSection
         $this->setYem($yem);
         $data = $event->getData();
         $xml = $data->getEveApiXml();
+        if (false === $xml) {
+            return $event->setHandledSufficiently();
+        }
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $this->getYem()
             ->triggerLogEvent(
@@ -98,7 +102,7 @@ class MemberMedals extends CorpSection
     }
     /**
      * @param string $xml
-         * @param string $ownerID
+     * @param string $ownerID
      *
      * @return self Fluent interface.
      * @throws \LogicException
@@ -114,14 +118,14 @@ class MemberMedals extends CorpSection
             ->exec($sql);
         $columnDefaults = [
             'characterID' => null,
-            'issued' => null,
-            'issuerID' => null,
-            'medalID' => null,
-            'ownerID' => $ownerID,
-            'reason' => null,
-            'status' => null
+            'issued'      => null,
+            'issuerID'    => null,
+            'medalID'     => null,
+            'ownerID'     => $ownerID,
+            'reason'      => null,
+            'status'      => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//issuedMedals/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//issuedMedals/row');
         return $this;
     }
 }

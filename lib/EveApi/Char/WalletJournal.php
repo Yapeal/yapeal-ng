@@ -45,6 +45,7 @@ use Yapeal\Sql\PreserverTrait;
 class WalletJournal extends CharSection
 {
     use PreserverTrait;
+
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -54,9 +55,9 @@ class WalletJournal extends CharSection
         $this->mask = 2097152;
     }
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param MediatorInterface $yem
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
      * @throws \DomainException
@@ -68,6 +69,9 @@ class WalletJournal extends CharSection
         $this->setYem($yem);
         $data = $event->getData();
         $xml = $data->getEveApiXml();
+        if (false === $xml) {
+            return $event->setHandledSufficiently();
+        }
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $this->getYem()
             ->triggerLogEvent(
@@ -98,7 +102,7 @@ class WalletJournal extends CharSection
     }
     /**
      * @param string $xml
-         * @param string $ownerID
+     * @param string $ownerID
      *
      * @return self Fluent interface.
      * @throws \LogicException
@@ -113,25 +117,25 @@ class WalletJournal extends CharSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'amount' => null,
-            'argID1' => null,
-            'argName1' => '',
-            'balance' => '0.0',
-            'date' => '1970-01-01 00:00:01',
-            'owner1TypeID' => null,
-            'owner2TypeID' => null,
-            'ownerID' => $ownerID,
-            'ownerID1' => null,
-            'ownerID2' => null,
-            'ownerName1' => '',
-            'ownerName2' => '',
-            'reason' => null,
-            'refID' => null,
-            'refTypeID' => null,
-            'taxAmount' => '0.0',
+            'amount'        => null,
+            'argID1'        => null,
+            'argName1'      => '',
+            'balance'       => '0.0',
+            'date'          => '1970-01-01 00:00:01',
+            'owner1TypeID'  => null,
+            'owner2TypeID'  => null,
+            'ownerID'       => $ownerID,
+            'ownerID1'      => null,
+            'ownerID2'      => null,
+            'ownerName1'    => '',
+            'ownerName2'    => '',
+            'reason'        => null,
+            'refID'         => null,
+            'refTypeID'     => null,
+            'taxAmount'     => '0.0',
             'taxReceiverID' => '0.0'
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//transactions/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//transactions/row');
         return $this;
     }
 }

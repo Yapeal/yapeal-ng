@@ -45,6 +45,7 @@ use Yapeal\Sql\PreserverTrait;
 class MarketOrders extends CharSection
 {
     use PreserverTrait;
+
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -54,9 +55,9 @@ class MarketOrders extends CharSection
         $this->mask = 4096;
     }
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param MediatorInterface $yem
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
      * @throws \DomainException
@@ -68,6 +69,9 @@ class MarketOrders extends CharSection
         $this->setYem($yem);
         $data = $event->getData();
         $xml = $data->getEveApiXml();
+        if (false === $xml) {
+            return $event->setHandledSufficiently();
+        }
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $this->getYem()
             ->triggerLogEvent(
@@ -98,7 +102,7 @@ class MarketOrders extends CharSection
     }
     /**
      * @param string $xml
-         * @param string $ownerID
+     * @param string $ownerID
      *
      * @return self Fluent interface.
      * @throws \LogicException
@@ -113,24 +117,24 @@ class MarketOrders extends CharSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'accountKey' => null,
-            'bid' => null,
-            'charID' => null,
-            'duration' => null,
-            'escrow' => null,
-            'issued' => null,
-            'minVolume' => null,
-            'orderID' => null,
-            'orderState' => null,
-            'ownerID' => $ownerID,
-            'price' => null,
-            'range' => null,
-            'stationID' => null,
-            'typeID' => null,
-            'volEntered' => null,
+            'accountKey'   => null,
+            'bid'          => null,
+            'charID'       => null,
+            'duration'     => null,
+            'escrow'       => null,
+            'issued'       => null,
+            'minVolume'    => null,
+            'orderID'      => null,
+            'orderState'   => null,
+            'ownerID'      => $ownerID,
+            'price'        => null,
+            'range'        => null,
+            'stationID'    => null,
+            'typeID'       => null,
+            'volEntered'   => null,
             'volRemaining' => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//orders/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//orders/row');
         return $this;
     }
 }

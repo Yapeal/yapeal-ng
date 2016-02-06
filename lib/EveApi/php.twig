@@ -68,6 +68,9 @@ class {{ className }} extends {{ sectionName|ucFirst }}Section
         $this->setYem($yem);
         $data = $event->getData();
         $xml = $data->getEveApiXml();
+        if (false === $xml) {
+            return $event->setHandledSufficiently();
+        }
 {% if hasOwner %}        $ownerID = $this->extractOwnerID($data->getEveApiArguments());{{ "\n" }}{% endif %}
         $this->getYem()
             ->triggerLogEvent(

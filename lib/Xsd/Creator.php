@@ -91,6 +91,9 @@ class Creator
         }
         $this->sectionName = $data->getEveApiSectionName();
         $xml = $data->getEveApiXml();
+         if (false === $xml) {
+             return $event->setHandledSufficiently();
+          }
         $sxi = new SimpleXMLIterator($xml);
         $this->tables = [];
         $this->processValueOnly($sxi, lcfirst($data->getEveApiName()));

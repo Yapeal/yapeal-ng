@@ -45,6 +45,7 @@ use Yapeal\Sql\PreserverTrait;
 class ServerStatus extends ServerSection
 {
     use PreserverTrait;
+
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -54,9 +55,9 @@ class ServerStatus extends ServerSection
         $this->mask = 1;
     }
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param MediatorInterface $yem
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
      * @throws \DomainException
@@ -68,6 +69,9 @@ class ServerStatus extends ServerSection
         $this->setYem($yem);
         $data = $event->getData();
         $xml = $data->getEveApiXml();
+        if (false === $xml) {
+            return $event->setHandledSufficiently();
+        }
         $this->getYem()
             ->triggerLogEvent(
                 'Yapeal.Log.log',
@@ -97,7 +101,7 @@ class ServerStatus extends ServerSection
     }
     /**
      * @param string $xml
-         *
+     *
      * @return self Fluent interface.
      * @throws \LogicException
      */
@@ -112,7 +116,7 @@ class ServerStatus extends ServerSection
             ->exec($sql);
         $columnDefaults = [
             'onlinePlayers' => null,
-            'serverOpen' => null
+            'serverOpen'    => null
         ];
         $this->valuesPreserveData($xml, $columnDefaults, $tableName);
         return $this;

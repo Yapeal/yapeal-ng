@@ -45,6 +45,7 @@ use Yapeal\Sql\PreserverTrait;
 class RefTypes extends EveSection
 {
     use PreserverTrait;
+
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -54,9 +55,9 @@ class RefTypes extends EveSection
         $this->mask = 256;
     }
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param MediatorInterface $yem
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
      * @throws \DomainException
@@ -68,6 +69,9 @@ class RefTypes extends EveSection
         $this->setYem($yem);
         $data = $event->getData();
         $xml = $data->getEveApiXml();
+        if (false === $xml) {
+            return $event->setHandledSufficiently();
+        }
         $this->getYem()
             ->triggerLogEvent(
                 'Yapeal.Log.log',
@@ -97,7 +101,7 @@ class RefTypes extends EveSection
     }
     /**
      * @param string $xml
-         *
+     *
      * @return self Fluent interface.
      * @throws \LogicException
      */
@@ -111,10 +115,10 @@ class RefTypes extends EveSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'refTypeID' => null,
+            'refTypeID'   => null,
             'refTypeName' => ''
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//refTypes/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//refTypes/row');
         return $this;
     }
 }

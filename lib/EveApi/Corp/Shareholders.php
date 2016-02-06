@@ -45,6 +45,7 @@ use Yapeal\Sql\PreserverTrait;
 class Shareholders extends CorpSection
 {
     use PreserverTrait;
+
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -54,9 +55,9 @@ class Shareholders extends CorpSection
         $this->mask = 65536;
     }
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param MediatorInterface $yem
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
      * @throws \DomainException
@@ -68,6 +69,9 @@ class Shareholders extends CorpSection
         $this->setYem($yem);
         $data = $event->getData();
         $xml = $data->getEveApiXml();
+        if (false === $xml) {
+            return $event->setHandledSufficiently();
+        }
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $this->getYem()
             ->triggerLogEvent(
@@ -99,7 +103,7 @@ class Shareholders extends CorpSection
     }
     /**
      * @param string $xml
-         * @param string $ownerID
+     * @param string $ownerID
      *
      * @return self Fluent interface.
      * @throws \LogicException
@@ -114,17 +118,17 @@ class Shareholders extends CorpSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'ownerID' => $ownerID,
-            'shareholderID' => null,
+            'ownerID'         => $ownerID,
+            'shareholderID'   => null,
             'shareholderName' => '',
-            'shares' => null
+            'shares'          => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//corporations/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//corporations/row');
         return $this;
     }
     /**
      * @param string $xml
-         * @param string $ownerID
+     * @param string $ownerID
      *
      * @return self Fluent interface.
      * @throws \LogicException
@@ -139,14 +143,14 @@ class Shareholders extends CorpSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'ownerID' => $ownerID,
-            'shareholderCorporationID' => null,
+            'ownerID'                    => $ownerID,
+            'shareholderCorporationID'   => null,
             'shareholderCorporationName' => '',
-            'shareholderID' => null,
-            'shareholderName' => '',
-            'shares' => null
+            'shareholderID'              => null,
+            'shareholderName'            => '',
+            'shares'                     => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//characters/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//characters/row');
         return $this;
     }
 }

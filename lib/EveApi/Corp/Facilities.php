@@ -45,6 +45,7 @@ use Yapeal\Sql\PreserverTrait;
 class Facilities extends CorpSection
 {
     use PreserverTrait;
+
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -54,9 +55,9 @@ class Facilities extends CorpSection
         $this->mask = 64;
     }
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param MediatorInterface $yem
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
      * @throws \DomainException
@@ -68,6 +69,9 @@ class Facilities extends CorpSection
         $this->setYem($yem);
         $data = $event->getData();
         $xml = $data->getEveApiXml();
+        if (false === $xml) {
+            return $event->setHandledSufficiently();
+        }
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $this->getYem()
             ->triggerLogEvent(
@@ -98,7 +102,7 @@ class Facilities extends CorpSection
     }
     /**
      * @param string $xml
-         * @param string $ownerID
+     * @param string $ownerID
      *
      * @return self Fluent interface.
      * @throws \LogicException
@@ -113,18 +117,18 @@ class Facilities extends CorpSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'facilityID' => null,
-            'ownerID' => $ownerID,
-            'regionID' => null,
-            'regionName' => '',
-            'solarSystemID' => null,
-            'solarSystemName' => '',
+            'facilityID'       => null,
+            'ownerID'          => $ownerID,
+            'regionID'         => null,
+            'regionName'       => '',
+            'solarSystemID'    => null,
+            'solarSystemName'  => '',
             'starbaseModifier' => null,
-            'tax' => '0.0',
-            'typeID' => null,
-            'typeName' => ''
+            'tax'              => '0.0',
+            'typeID'           => null,
+            'typeName'         => ''
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//facilities/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//facilities/row');
         return $this;
     }
 }

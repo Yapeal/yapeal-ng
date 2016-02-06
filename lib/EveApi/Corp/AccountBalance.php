@@ -45,6 +45,7 @@ use Yapeal\Sql\PreserverTrait;
 class AccountBalance extends CorpSection
 {
     use PreserverTrait;
+
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -54,9 +55,9 @@ class AccountBalance extends CorpSection
         $this->mask = 1;
     }
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param MediatorInterface $yem
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
      * @throws \DomainException
@@ -68,6 +69,9 @@ class AccountBalance extends CorpSection
         $this->setYem($yem);
         $data = $event->getData();
         $xml = $data->getEveApiXml();
+        if (false === $xml) {
+            return $event->setHandledSufficiently();
+        }
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $this->getYem()
             ->triggerLogEvent(
@@ -98,7 +102,7 @@ class AccountBalance extends CorpSection
     }
     /**
      * @param string $xml
-         * @param string $ownerID
+     * @param string $ownerID
      *
      * @return self Fluent interface.
      * @throws \LogicException
@@ -113,12 +117,12 @@ class AccountBalance extends CorpSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'accountID' => null,
+            'accountID'  => null,
             'accountKey' => null,
-            'balance' => '0.0',
-            'ownerID' => $ownerID
+            'balance'    => '0.0',
+            'ownerID'    => $ownerID
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//accounts/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//accounts/row');
         return $this;
     }
 }

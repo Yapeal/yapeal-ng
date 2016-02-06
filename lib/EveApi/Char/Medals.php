@@ -45,6 +45,7 @@ use Yapeal\Sql\PreserverTrait;
 class Medals extends CharSection
 {
     use PreserverTrait;
+
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -54,9 +55,9 @@ class Medals extends CharSection
         $this->mask = 8192;
     }
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param MediatorInterface $yem
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
      * @throws \DomainException
@@ -68,6 +69,9 @@ class Medals extends CharSection
         $this->setYem($yem);
         $data = $event->getData();
         $xml = $data->getEveApiXml();
+        if (false === $xml) {
+            return $event->setHandledSufficiently();
+        }
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $this->getYem()
             ->triggerLogEvent(
@@ -99,7 +103,7 @@ class Medals extends CharSection
     }
     /**
      * @param string $xml
-         * @param string $ownerID
+     * @param string $ownerID
      *
      * @return self Fluent interface.
      * @throws \LogicException
@@ -114,19 +118,19 @@ class Medals extends CharSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'issued' => null,
+            'issued'   => null,
             'issuerID' => null,
-            'medalID' => null,
-            'ownerID' => $ownerID,
-            'reason' => null,
-            'status' => null
+            'medalID'  => null,
+            'ownerID'  => $ownerID,
+            'reason'   => null,
+            'status'   => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//currentCorporation/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//currentCorporation/row');
         return $this;
     }
     /**
      * @param string $xml
-         * @param string $ownerID
+     * @param string $ownerID
      *
      * @return self Fluent interface.
      * @throws \LogicException
@@ -142,16 +146,16 @@ class Medals extends CharSection
             ->exec($sql);
         $columnDefaults = [
             'corporationID' => null,
-            'description' => '',
-            'issued' => null,
-            'issuerID' => null,
-            'medalID' => null,
-            'ownerID' => $ownerID,
-            'reason' => null,
-            'status' => null,
-            'title' => null
+            'description'   => '',
+            'issued'        => null,
+            'issuerID'      => null,
+            'medalID'       => null,
+            'ownerID'       => $ownerID,
+            'reason'        => null,
+            'status'        => null,
+            'title'         => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//otherCorporations/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//otherCorporations/row');
         return $this;
     }
 }

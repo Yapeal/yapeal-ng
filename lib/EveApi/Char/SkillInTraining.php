@@ -45,6 +45,7 @@ use Yapeal\Sql\PreserverTrait;
 class SkillInTraining extends CharSection
 {
     use PreserverTrait;
+
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -54,9 +55,9 @@ class SkillInTraining extends CharSection
         $this->mask = 131072;
     }
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param MediatorInterface $yem
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
      * @throws \DomainException
@@ -68,6 +69,9 @@ class SkillInTraining extends CharSection
         $this->setYem($yem);
         $data = $event->getData();
         $xml = $data->getEveApiXml();
+        if (false === $xml) {
+            return $event->setHandledSufficiently();
+        }
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $this->getYem()
             ->triggerLogEvent(
@@ -98,7 +102,7 @@ class SkillInTraining extends CharSection
     }
     /**
      * @param string $xml
-         * @param string $ownerID
+     * @param string $ownerID
      *
      * @return self Fluent interface.
      * @throws \LogicException
@@ -113,7 +117,7 @@ class SkillInTraining extends CharSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'ownerID' => $ownerID,
+            'ownerID'         => $ownerID,
             'skillInTraining' => null
         ];
         $this->valuesPreserveData($xml, $columnDefaults, $tableName);
