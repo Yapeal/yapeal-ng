@@ -85,7 +85,7 @@ class CachePreserver
         );
         $xml = $data->getEveApiXml();
         if (false === $xml) {
-            $event->setHandledSufficiently();
+            return $event->setHandledSufficiently();
         }
         // Insures retriever never see partly written file by deleting old file and using temp file for writing.
         if (false === $this->safeFileWrite($xml, $cacheFile, $yem)) {
