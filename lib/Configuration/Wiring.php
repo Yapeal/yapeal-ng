@@ -33,11 +33,8 @@
  */
 namespace Yapeal\Configuration;
 
-use ArrayAccess;
-use DomainException;
 use FilePathNormalizer\FilePathNormalizerTrait;
 use FilesystemIterator;
-use InvalidArgumentException;
 use Monolog\ErrorHandler;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Logger;
@@ -93,21 +90,14 @@ class Wiring
         return $this;
     }
     /**
-     * @param array|string $settings
+     * @param array $settings
      *
-     * @return array|string
-     * @throws DomainException
-     * @throws InvalidArgumentException
+     * @return array
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
      */
-    protected function doSubs($settings)
+    protected function doSubs(array $settings)
     {
-        if (is_string($settings)) {
-            $settings = (array)$settings;
-        }
-        if (!is_array($settings)) {
-            $mess = 'Settings MUST be a string or string array, but was given ' . gettype($settings);
-            throw new InvalidArgumentException($mess);
-        }
         if (0 === count($settings)) {
             return [];
         }
@@ -133,14 +123,14 @@ class Wiring
             );
             if (++$depth > $maxDepth) {
                 $mess = 'Exceeded maximum depth, check for possible circular reference(s)';
-                throw new DomainException($mess);
+                throw new \DomainException($mess);
             }
             $lastError = preg_last_error();
             if (PREG_NO_ERROR !== $lastError) {
                 $constants = array_flip(get_defined_constants(true)['pcre']);
                 $lastError = $constants[$lastError];
                 $mess = 'Received preg error ' . $lastError;
-                throw new DomainException($mess);
+                throw new \DomainException($mess);
             }
         } while ($count > 0);
         return $settings;
@@ -184,12 +174,12 @@ class Wiring
         return $files;
     }
     /**
-     * @param $configFile
-     * @param $settings
+     * @param string $configFile
+     * @param array  $settings
      *
      * @return array|string
-     * @throws DomainException
-     * @throws InvalidArgumentException
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
      * @throws YapealException
      */
     protected function parserConfigFile($configFile, $settings)
@@ -220,14 +210,16 @@ class Wiring
         }
         foreach ($rItIt as $leafValue) {
             $keys = [];
-            foreach (range(0, $rItIt->getDepth()) as $depth) {
+            /** @noinspection DisconnectedForeachInstructionInspection */
+            /**
+             * @type array $depths
+             */
+            $depths = range(0, $rItIt->getDepth());
+            foreach ($depths as $depth) {
                 $keys[] = $rItIt->getSubIterator($depth)
                     ->key();
             }
-            $settings[implode(
-                '.',
-                $keys
-            )] = $leafValue;
+            $settings[implode('.', $keys)] = $leafValue;
         }
         return $this->doSubs($settings);
     }
@@ -265,8 +257,8 @@ class Wiring
     }
     /**
      * @return self Fluent interface.
-     * @throws DomainException
-     * @throws InvalidArgumentException
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
      * @throws YapealException
      */
     protected function wireConfig()
@@ -290,11 +282,7 @@ class Wiring
                 'vendor/'
             );
             if (false !== $vendorPos) {
-                $dic['Yapeal.vendorParentDir'] = substr(
-                    $path,
-                    0,
-                    $vendorPos
-                );
+                $dic['Yapeal.vendorParentDir'] = substr($path, 0, $vendorPos);
                 $configFiles[] = $fpn->normalizeFile($dic['Yapeal.vendorParentDir'] . 'config/yapeal.yaml');
             }
         } else {
@@ -443,7 +431,7 @@ class Wiring
     }
     /**
      * @return self Fluent interface.
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     protected function wireEvent()
     {
@@ -609,7 +597,7 @@ class Wiring
     }
     /**
      * @return self Fluent interface.
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      * @throws YapealDatabaseException
      */
     protected function wireSql()
@@ -696,7 +684,7 @@ class Wiring
      * Wire Xml section.
      *
      * @return self Fluent interface.
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     protected function wireXml()
     {
@@ -713,7 +701,7 @@ class Wiring
      * Wire Xsd section.
      *
      * @return self Fluent interface.
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     protected function wireXsd()
     {
@@ -773,7 +761,7 @@ class Wiring
      * Wire Xsl section.
      *
      * @return self Fluent interface.
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     protected function wireXsl()
     {
@@ -796,7 +784,7 @@ class Wiring
         return $this;
     }
     /**
-     * @type ContainerInterface|ArrayAccess $dic
+     * @type ContainerInterface $dic
      */
     protected $dic;
 }

@@ -59,4 +59,15 @@ use Pimple\Container;
  */
 class PimpleContainer extends Container implements ContainerInterface
 {
+    /**
+     * Instantiate the container.
+     *
+     * Objects and parameters can be passed as argument to the constructor.
+     *
+     * @param array $values The parameters or objects.
+     */
+    public function __construct(array $values = [])
+    {
+        parent::__construct($values);
+    }
 }
