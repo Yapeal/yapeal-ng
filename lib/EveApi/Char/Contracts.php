@@ -45,6 +45,7 @@ use Yapeal\Sql\PreserverTrait;
 class Contracts extends CharSection
 {
     use PreserverTrait;
+
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -54,9 +55,9 @@ class Contracts extends CharSection
         $this->mask = 67108864;
     }
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param MediatorInterface $yem
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
      * @throws \DomainException
@@ -68,6 +69,9 @@ class Contracts extends CharSection
         $this->setYem($yem);
         $data = $event->getData();
         $xml = $data->getEveApiXml();
+        if (false === $xml) {
+            return $event->setHandledSufficiently();
+        }
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $this->getYem()
             ->triggerLogEvent(
@@ -98,7 +102,7 @@ class Contracts extends CharSection
     }
     /**
      * @param string $xml
-         * @param string $ownerID
+     * @param string $ownerID
      *
      * @return self Fluent interface.
      * @throws \LogicException
@@ -113,31 +117,31 @@ class Contracts extends CharSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'acceptorID' => null,
-            'assigneeID' => null,
-            'availability' => null,
-            'buyout' => null,
-            'collateral' => null,
-            'contractID' => null,
-            'dateAccepted' => '1970-01-01 00:00:01',
-            'dateCompleted' => '1970-01-01 00:00:01',
-            'dateExpired' => '1970-01-01 00:00:01',
-            'dateIssued' => '1970-01-01 00:00:01',
-            'endStationID' => null,
-            'forCorp' => null,
-            'issuerCorpID' => null,
-            'issuerID' => null,
-            'numDays' => null,
-            'ownerID' => $ownerID,
-            'price' => null,
-            'reward' => null,
+            'acceptorID'     => null,
+            'assigneeID'     => null,
+            'availability'   => null,
+            'buyout'         => null,
+            'collateral'     => null,
+            'contractID'     => null,
+            'dateAccepted'   => '1970-01-01 00:00:01',
+            'dateCompleted'  => '1970-01-01 00:00:01',
+            'dateExpired'    => '1970-01-01 00:00:01',
+            'dateIssued'     => '1970-01-01 00:00:01',
+            'endStationID'   => null,
+            'forCorp'        => null,
+            'issuerCorpID'   => null,
+            'issuerID'       => null,
+            'numDays'        => null,
+            'ownerID'        => $ownerID,
+            'price'          => null,
+            'reward'         => null,
             'startStationID' => null,
-            'status' => null,
-            'title' => null,
-            'type' => null,
-            'volume' => null
+            'status'         => null,
+            'title'          => null,
+            'type'           => null,
+            'volume'         => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//contractList/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//contractList/row');
         return $this;
     }
 }

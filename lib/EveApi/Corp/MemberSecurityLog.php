@@ -45,6 +45,7 @@ use Yapeal\Sql\PreserverTrait;
 class MemberSecurityLog extends CorpSection
 {
     use PreserverTrait;
+
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -54,9 +55,9 @@ class MemberSecurityLog extends CorpSection
         $this->mask = 1024;
     }
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param MediatorInterface $yem
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
      * @throws \DomainException
@@ -68,6 +69,9 @@ class MemberSecurityLog extends CorpSection
         $this->setYem($yem);
         $data = $event->getData();
         $xml = $data->getEveApiXml();
+        if (false === $xml) {
+            return $event->setHandledSufficiently();
+        }
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $this->getYem()
             ->triggerLogEvent(
@@ -98,7 +102,7 @@ class MemberSecurityLog extends CorpSection
     }
     /**
      * @param string $xml
-         * @param string $ownerID
+     * @param string $ownerID
      *
      * @return self Fluent interface.
      * @throws \LogicException
@@ -113,13 +117,13 @@ class MemberSecurityLog extends CorpSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'changeTime' => '1970-01-01 00:00:01',
-            'characterID' => null,
-            'issuerID' => null,
-            'ownerID' => $ownerID,
+            'changeTime'       => '1970-01-01 00:00:01',
+            'characterID'      => null,
+            'issuerID'         => null,
+            'ownerID'          => $ownerID,
             'roleLocationType' => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//roleHistory/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//roleHistory/row');
         return $this;
     }
 }

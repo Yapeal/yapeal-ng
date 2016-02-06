@@ -45,6 +45,7 @@ use Yapeal\Sql\PreserverTrait;
 class OutpostServiceDetail extends CorpSection
 {
     use PreserverTrait;
+
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -54,9 +55,9 @@ class OutpostServiceDetail extends CorpSection
         $this->mask = 32768;
     }
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param MediatorInterface $yem
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
      * @throws \DomainException
@@ -68,6 +69,9 @@ class OutpostServiceDetail extends CorpSection
         $this->setYem($yem);
         $data = $event->getData();
         $xml = $data->getEveApiXml();
+        if (false === $xml) {
+            return $event->setHandledSufficiently();
+        }
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $this->getYem()
             ->triggerLogEvent(
@@ -98,7 +102,7 @@ class OutpostServiceDetail extends CorpSection
     }
     /**
      * @param string $xml
-         * @param string $ownerID
+     * @param string $ownerID
      *
      * @return self Fluent interface.
      * @throws \LogicException
@@ -114,13 +118,13 @@ class OutpostServiceDetail extends CorpSection
             ->exec($sql);
         $columnDefaults = [
             'discountPerGoodStanding' => null,
-            'minStanding' => null,
-            'ownerID' => $ownerID,
-            'serviceName' => '',
-            'stationID' => null,
+            'minStanding'             => null,
+            'ownerID'                 => $ownerID,
+            'serviceName'             => '',
+            'stationID'               => null,
             'surchargePerBadStanding' => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//outpostServiceDetails/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//outpostServiceDetails/row');
         return $this;
     }
 }

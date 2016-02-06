@@ -24,8 +24,8 @@
  * available in the GNU-GPL.md file.
  *
  * @copyright 2015-2016 Michael Cummings
- * @license http://www.gnu.org/copyleft/lesser.html GNU LGPL
- * @author Michael Cummings <mgcummings@yahoo.com>
+ * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
+ * @author    Michael Cummings <mgcummings@yahoo.com>
  */
 namespace Yapeal\EveApi\Corp;
 
@@ -47,23 +47,21 @@ class CorpSection
      */
     protected function getActive()
     {
-        $sql =
-            $this->getCsq()
-                 ->getActiveRegisteredCorporations($this->getMask());
+        $sql = $this->getCsq()
+            ->getActiveRegisteredCorporations($this->getMask());
         $this->getYem()
-             ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
         try {
-            $stmt =
-                $this->getPdo()
-                     ->query($sql);
+            $stmt = $this->getPdo()
+                ->query($sql);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $exc) {
             $mess = 'Could NOT get a list of active corporations';
             $this->getYem()
-                 ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $mess);
+                ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $mess);
             $mess = 'Database error message was ' . $exc->getMessage();
             $this->getYem()
-                 ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $mess);
+                ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $mess);
             return [];
         }
     }

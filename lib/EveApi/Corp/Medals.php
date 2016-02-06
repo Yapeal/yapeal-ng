@@ -45,6 +45,7 @@ use Yapeal\Sql\PreserverTrait;
 class Medals extends CorpSection
 {
     use PreserverTrait;
+
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -54,9 +55,9 @@ class Medals extends CorpSection
         $this->mask = 8192;
     }
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param MediatorInterface $yem
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
      * @throws \DomainException
@@ -68,6 +69,9 @@ class Medals extends CorpSection
         $this->setYem($yem);
         $data = $event->getData();
         $xml = $data->getEveApiXml();
+        if (false === $xml) {
+            return $event->setHandledSufficiently();
+        }
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $this->getYem()
             ->triggerLogEvent(
@@ -98,7 +102,7 @@ class Medals extends CorpSection
     }
     /**
      * @param string $xml
-         * @param string $ownerID
+     * @param string $ownerID
      *
      * @return self Fluent interface.
      * @throws \LogicException
@@ -113,14 +117,14 @@ class Medals extends CorpSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'created' => null,
-            'creatorID' => null,
+            'created'     => null,
+            'creatorID'   => null,
             'description' => '',
-            'medalID' => null,
-            'ownerID' => $ownerID,
-            'title' => null
+            'medalID'     => null,
+            'ownerID'     => $ownerID,
+            'title'       => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//medals/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//medals/row');
         return $this;
     }
 }

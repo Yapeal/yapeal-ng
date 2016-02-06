@@ -45,6 +45,7 @@ use Yapeal\Sql\PreserverTrait;
 class CallList extends ApiSection
 {
     use PreserverTrait;
+
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -54,9 +55,9 @@ class CallList extends ApiSection
         $this->mask = 1;
     }
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param MediatorInterface $yem
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
      * @throws \DomainException
@@ -68,6 +69,9 @@ class CallList extends ApiSection
         $this->setYem($yem);
         $data = $event->getData();
         $xml = $data->getEveApiXml();
+        if (false === $xml) {
+            return $event->setHandledSufficiently();
+        }
         $this->getYem()
             ->triggerLogEvent(
                 'Yapeal.Log.log',
@@ -98,7 +102,7 @@ class CallList extends ApiSection
     }
     /**
      * @param string $xml
-         *
+     *
      * @return self Fluent interface.
      * @throws \LogicException
      */
@@ -113,15 +117,15 @@ class CallList extends ApiSection
             ->exec($sql);
         $columnDefaults = [
             'description' => '',
-            'groupID' => null,
-            'name' => ''
+            'groupID'     => null,
+            'name'        => ''
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//callGroups/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//callGroups/row');
         return $this;
     }
     /**
      * @param string $xml
-         *
+     *
      * @return self Fluent interface.
      * @throws \LogicException
      */
@@ -135,13 +139,13 @@ class CallList extends ApiSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'accessMask' => null,
+            'accessMask'  => null,
             'description' => '',
-            'groupID' => null,
-            'name' => '',
-            'type' => null
+            'groupID'     => null,
+            'name'        => '',
+            'type'        => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//calls/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//calls/row');
         return $this;
     }
 }

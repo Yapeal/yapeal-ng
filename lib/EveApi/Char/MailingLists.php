@@ -45,6 +45,7 @@ use Yapeal\Sql\PreserverTrait;
 class MailingLists extends CharSection
 {
     use PreserverTrait;
+
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -54,9 +55,9 @@ class MailingLists extends CharSection
         $this->mask = 1024;
     }
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param MediatorInterface $yem
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
      * @throws \DomainException
@@ -68,6 +69,9 @@ class MailingLists extends CharSection
         $this->setYem($yem);
         $data = $event->getData();
         $xml = $data->getEveApiXml();
+        if (false === $xml) {
+            return $event->setHandledSufficiently();
+        }
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $this->getYem()
             ->triggerLogEvent(
@@ -98,7 +102,7 @@ class MailingLists extends CharSection
     }
     /**
      * @param string $xml
-         * @param string $ownerID
+     * @param string $ownerID
      *
      * @return self Fluent interface.
      * @throws \LogicException
@@ -114,10 +118,10 @@ class MailingLists extends CharSection
             ->exec($sql);
         $columnDefaults = [
             'displayName' => '',
-            'listID' => null,
-            'ownerID' => $ownerID
+            'listID'      => null,
+            'ownerID'     => $ownerID
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//mailingLists/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//mailingLists/row');
         return $this;
     }
 }

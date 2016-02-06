@@ -45,6 +45,7 @@ use Yapeal\Sql\PreserverTrait;
 class ContactList extends CorpSection
 {
     use PreserverTrait;
+
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -54,9 +55,9 @@ class ContactList extends CorpSection
         $this->mask = 16;
     }
     /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param MediatorInterface $yem
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
      * @throws \DomainException
@@ -68,6 +69,9 @@ class ContactList extends CorpSection
         $this->setYem($yem);
         $data = $event->getData();
         $xml = $data->getEveApiXml();
+        if (false === $xml) {
+            return $event->setHandledSufficiently();
+        }
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $this->getYem()
             ->triggerLogEvent(
@@ -101,7 +105,7 @@ class ContactList extends CorpSection
     }
     /**
      * @param string $xml
-         * @param string $ownerID
+     * @param string $ownerID
      *
      * @return self Fluent interface.
      * @throws \LogicException
@@ -117,15 +121,15 @@ class ContactList extends CorpSection
             ->exec($sql);
         $columnDefaults = [
             'labelID' => null,
-            'name' => '',
+            'name'    => '',
             'ownerID' => $ownerID
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//allianceContactLabels/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//allianceContactLabels/row');
         return $this;
     }
     /**
      * @param string $xml
-         * @param string $ownerID
+     * @param string $ownerID
      *
      * @return self Fluent interface.
      * @throws \LogicException
@@ -140,19 +144,19 @@ class ContactList extends CorpSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'contactID' => null,
-            'contactName' => '',
+            'contactID'     => null,
+            'contactName'   => '',
             'contactTypeID' => null,
-            'labelMask' => null,
-            'ownerID' => $ownerID,
-            'standing' => null
+            'labelMask'     => null,
+            'ownerID'       => $ownerID,
+            'standing'      => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//allianceContactList/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//allianceContactList/row');
         return $this;
     }
     /**
      * @param string $xml
-         * @param string $ownerID
+     * @param string $ownerID
      *
      * @return self Fluent interface.
      * @throws \LogicException
@@ -167,19 +171,19 @@ class ContactList extends CorpSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'contactID' => null,
-            'contactName' => '',
+            'contactID'     => null,
+            'contactName'   => '',
             'contactTypeID' => null,
-            'labelMask' => null,
-            'ownerID' => $ownerID,
-            'standing' => null
+            'labelMask'     => null,
+            'ownerID'       => $ownerID,
+            'standing'      => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//corporateContactList/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//corporateContactList/row');
         return $this;
     }
     /**
      * @param string $xml
-         * @param string $ownerID
+     * @param string $ownerID
      *
      * @return self Fluent interface.
      * @throws \LogicException
@@ -195,10 +199,10 @@ class ContactList extends CorpSection
             ->exec($sql);
         $columnDefaults = [
             'labelID' => null,
-            'name' => '',
+            'name'    => '',
             'ownerID' => $ownerID
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//corporateContactLabels/row');
+        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//corporateContactLabels/row');
         return $this;
     }
 }
