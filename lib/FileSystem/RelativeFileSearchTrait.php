@@ -33,13 +33,13 @@
  */
 namespace Yapeal\FileSystem;
 
-use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
 
+/** @noinspection PhpUnnecessaryFullyQualifiedNameInspection */
 /**
  * Trait RelativeFileSearchTrait
  *
- * @method MediatorInterface getYem()
+ * @method \Yapeal\Event\MediatorInterface getYem()
  */
 trait RelativeFileSearchTrait
 {
@@ -86,7 +86,7 @@ trait RelativeFileSearchTrait
                     strtoupper($suffix)
                 );
                 $this->getYem()
-                     ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $mess);
+                    ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $mess);
                 return $fileName;
             }
         }
@@ -97,7 +97,7 @@ trait RelativeFileSearchTrait
             strtoupper($suffix)
         );
         $this->getYem()
-             ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $mess);
+            ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $mess);
         return '';
     }
     /**
