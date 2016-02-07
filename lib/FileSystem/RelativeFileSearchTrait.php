@@ -33,7 +33,6 @@
  */
 namespace Yapeal\FileSystem;
 
-use LogicException;
 use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
 
@@ -107,13 +106,13 @@ trait RelativeFileSearchTrait
      * Note that if it is NOT set beforehand it will default to the directory of the using class.
      *
      * @return string
-     * @throws LogicException
+     * @throws \LogicException
      */
     protected function getRelativeBaseDir()
     {
         if (null === $this->relativeBaseDir) {
             $mess = 'Tried to use relativeBaseDir before it was set';
-            throw new LogicException($mess);
+            throw new \LogicException($mess);
         }
         return $this->relativeBaseDir;
     }

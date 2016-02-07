@@ -146,22 +146,18 @@ class Wiring
             | FilesystemIterator::UNIX_PATHS;
         $rdi = new RecursiveDirectoryIterator($this->dic['Yapeal.EveApi.dir']);
         $rdi->setFlags($flags);
+        /** @noinspection SpellCheckingInspection */
         $rcfi = new RecursiveCallbackFilterIterator(
-            $rdi, function ($current, $key, $rdi) {
-            /**
-             * @type \RecursiveDirectoryIterator $rdi
-             */
+            $rdi, function (\SplFileInfo $current, $key, \RecursiveDirectoryIterator $rdi) {
             if ($rdi->hasChildren()) {
                 return true;
             }
             $dirs = ['Account', 'Api', 'Char', 'Corp', 'Eve', 'Map', 'Server'];
-            /**
-             * @type \SplFileInfo $current
-             */
             $dirExists = in_array(basename(dirname($key)), $dirs, true);
             return ($dirExists && $current->isFile() && 'php' === $current->getExtension());
         }
         );
+        /** @noinspection SpellCheckingInspection */
         $rii = new RecursiveIteratorIterator(
             $rcfi, RecursiveIteratorIterator::LEAVES_ONLY, RecursiveIteratorIterator::CATCH_GET_CHILD
         );
@@ -378,7 +374,7 @@ class Wiring
                     basename($subscriber, '.php')
                 );
                 if (!array_key_exists($service, $dic)) {
-                    $dic[$service] = function () use ($dic, $service, $mediator) {
+                    $dic[$service] = function () use ($dic, $service) {
                         $class = '\\' . str_replace('.', '\\', $service);
                         /**
                          * @type \Yapeal\EveApi\EveApiToolsTrait $callable

@@ -33,7 +33,6 @@
  */
 namespace Yapeal\Configuration;
 
-use InvalidArgumentException;
 use Yapeal\Exception\YapealDatabaseException;
 use Yapeal\Exception\YapealException;
 

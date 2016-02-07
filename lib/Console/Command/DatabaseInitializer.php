@@ -128,7 +128,11 @@ HELP;
             $fileNames .= ',%3$sconfig/CreateCustomTables.sql';
             $vendorPath = $this->getDic()['Yapeal.vendorParentDir'];
         }
-        foreach (explode(',', sprintf($fileNames, $path, $this->getDic()['Yapeal.baseDir'], $vendorPath)) as $fileName)
+        /**
+         * @type array $customFiles
+         */
+        $customFiles = explode(',', sprintf($fileNames, $path, $this->getDic()['Yapeal.baseDir'], $vendorPath));
+        foreach ($customFiles as $fileName)
         {
             if (!is_readable($fileName) || !is_file($fileName)) {
                 continue;
