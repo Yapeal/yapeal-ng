@@ -132,6 +132,7 @@ class Transformer implements TransformerInterface
         if (!empty($arguments['vCode'])) {
             $arguments['vCode'] = substr($arguments['vCode'], 0, 8) . '...';
         }
+        unset($arguments['mask']);
         $json = json_encode($arguments);
         $xml = str_replace(
             ["encoding='UTF-8'?>\r\n<eveapi", "encoding='UTF-8'?>\n<eveapi"],
