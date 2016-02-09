@@ -1,9 +1,11 @@
-YAPEAL (Yet Another PHP Eve Api Library)
+Yapeal-ng (Yet Another PHP Eve Api Library - Next Generation)
 ========================================
 
 Master: [![Build Status](https://travis-ci.org/Yapeal/yapeal-ng.svg?branch=master)](https://travis-ci.org/Yapeal/yapeal-ng.svg?branch=master)
 
 Master: [![Coverage Status](https://coveralls.io/repos/Yapeal/yapeal-ng/badge.svg?branch=master&service=github)](https://coveralls.io/github/Yapeal/yapeal-ng?branch=master)
+
+Master: [![SensioLabsInsight](https://insight.sensiolabs.com/projects/bd0be573-010a-42d6-8010-cdab48ff23c5/mini.png)](https://insight.sensiolabs.com/projects/bd0be573-010a-42d6-8010-cdab48ff23c5)
 
 ## Installing
 
