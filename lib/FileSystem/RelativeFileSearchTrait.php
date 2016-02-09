@@ -103,8 +103,6 @@ trait RelativeFileSearchTrait
     /**
      * Getter for $relativeBaseDir.
      *
-     * Note that if it is NOT set beforehand it will default to the directory of the using class.
-     *
      * @return string
      * @throws \LogicException
      */
