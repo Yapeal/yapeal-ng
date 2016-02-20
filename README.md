@@ -20,4 +20,4 @@ repository.
 Licensing information can be found in [COPYING.md](COPYING.md) and
 [COPYING-LESSER.md](COPYING-LESSER.md).
 
-Thanks for using Yapeal, Dragonaire
+Thanks for using Yapeal-ng, Dragonaire
