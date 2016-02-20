@@ -67,6 +67,9 @@ trait EveApiEventEmitterTrait
     {
         // Prefix.Section.Api.Suffix, Prefix.Api.Suffix,
         // Prefix.Section.Suffix, Prefix.Suffix
+        /**
+         * @type string[] $eventNames
+         */
         $eventNames = explode(
             ',',
             sprintf(
