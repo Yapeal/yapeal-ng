@@ -33,6 +33,7 @@
  */
 namespace Yapeal\FileSystem;
 
+use FilePathNormalizer\FilePathNormalizerTrait;
 use Yapeal\Log\Logger;
 
 /** @noinspection PhpUnnecessaryFullyQualifiedNameInspection */
@@ -43,6 +44,7 @@ use Yapeal\Log\Logger;
  */
 trait RelativeFileSearchTrait
 {
+    use FilePathNormalizerTrait;
     /**
      * Fluent interface setter for $relativeBaseDir.
      *
@@ -52,7 +54,8 @@ trait RelativeFileSearchTrait
      */
     public function setRelativeBaseDir($value)
     {
-        $this->relativeBaseDir = str_replace('\\', '/', (string)$value);
+        $this->relativeBaseDir = $this->getFpn()
+            ->normalizePath((string)$value);
         return $this;
     }
     /**
@@ -76,10 +79,12 @@ trait RelativeFileSearchTrait
             $this->getRelativeBaseDir(),
             $suffix
         );
-        foreach (explode(',', $fileNames) as $fileName) {
+        foreach ((array)explode(',', $fileNames) as $fileName) {
+            $fileName = $this->getFpn()
+                ->normalizeFile($fileName);
             if (is_readable($fileName) && is_file($fileName)) {
                 $mess = sprintf(
-                    'Using %4$s file %3$s for Eve API %1$s/%2$s',
+                    'Using %4$s file %3$s for %1$s/%2$s',
                     ucfirst($sectionName),
                     $apiName,
                     $fileName,
