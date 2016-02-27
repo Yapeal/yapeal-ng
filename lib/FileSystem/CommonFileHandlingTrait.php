@@ -42,9 +42,9 @@ use Yapeal\Log\Logger;
 trait CommonFileHandlingTrait
 {
     /**
-     * @param                        $fileName
-     * @param MediatorInterface      $yem
-     * @param string                 $mode
+     * @param                   $fileName
+     * @param MediatorInterface $yem
+     * @param string            $mode
      *
      * @return bool|resource
      * @throws \DomainException
@@ -165,8 +165,8 @@ trait CommonFileHandlingTrait
         return $this;
     }
     /**
-     * @param string $data
-     * @param string $fileName
+     * @param string            $data
+     * @param string            $fileName
      * @param MediatorInterface $yem
      *
      * @return bool
@@ -199,40 +199,6 @@ trait CommonFileHandlingTrait
             $data = substr($data, $written);
         }
         $this->releaseHandle($handle);
-        return true;
-    }
-    /**
-     * Safely write file using lock and temp file.
-     *
-     * @param string            $data
-     * @param string            $pathFile
-     * @param MediatorInterface $yem
-     *
-     * @return bool
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
-     */
-    protected function safeFileWrite($data, $pathFile, MediatorInterface $yem)
-    {
-        $path = dirname($pathFile);
-        $suffix = substr(strrchr($pathFile, '.'), 1);
-        $baseFile = basename($pathFile, $suffix);
-        if (false === $this->isWritablePath($path, $yem)) {
-            return false;
-        }
-        if (false === $this->deleteWithRetry($pathFile, $yem)) {
-            return false;
-        }
-        $tmpFile = sprintf('%1$s/%2$s.tmp', $path, $baseFile);
-        if (false === $this->safeDataWrite($data, $tmpFile, $yem)) {
-            return false;
-        }
-        if (false === rename($tmpFile, $pathFile)) {
-            $mess = sprintf('Could NOT rename %1$s to %2$s', $tmpFile, $pathFile);
-            $yem->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
-            return false;
-        }
         return true;
     }
     /**
@@ -277,5 +243,39 @@ trait CommonFileHandlingTrait
         }
         $this->releaseHandle($handle);
         return $data;
+    }
+    /**
+     * Safely write file using lock and temp file.
+     *
+     * @param string            $data
+     * @param string            $pathFile
+     * @param MediatorInterface $yem
+     *
+     * @return bool
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
+     */
+    protected function safeFileWrite($data, $pathFile, MediatorInterface $yem)
+    {
+        $path = dirname($pathFile);
+        $suffix = substr(strrchr($pathFile, '.'), 1);
+        $baseFile = basename($pathFile, $suffix);
+        if (false === $this->isWritablePath($path, $yem)) {
+            return false;
+        }
+        if (false === $this->deleteWithRetry($pathFile, $yem)) {
+            return false;
+        }
+        $tmpFile = sprintf('%1$s/%2$s.tmp', $path, $baseFile);
+        if (false === $this->safeDataWrite($data, $tmpFile, $yem)) {
+            return false;
+        }
+        if (false === rename($tmpFile, $pathFile)) {
+            $mess = sprintf('Could NOT rename %1$s to %2$s', $tmpFile, $pathFile);
+            $yem->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
+            return false;
+        }
+        return true;
     }
 }
