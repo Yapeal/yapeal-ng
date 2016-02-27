@@ -459,9 +459,8 @@ class Wiring
     protected function wireLog()
     {
         $dic = $this->dic;
-        $class = $dic['Yapeal.Log.class'];
         if (empty($dic['Yapeal.Log.Logger'])) {
-            $dic['Yapeal.Log.Logger'] = function () use ($dic, $class) {
+            $dic['Yapeal.Log.Logger'] = function () use ($dic) {
                 $group = [];
                 $lineFormatter = new LineFormatter;
                 $lineFormatter->includeStacktraces();
@@ -480,7 +479,7 @@ class Wiring
                 );
                 $handler->setFormatter($lineFormatter);
                 $group[] = $handler;
-                return new $class(
+                return new $dic['Yapeal.Log.class'](
                     $dic['Yapeal.Log.channel'], [
                         new $dic['Yapeal.Log.Handlers.fingersCrossed'](
                             new $dic['Yapeal.Log.Handlers.group']($group),
