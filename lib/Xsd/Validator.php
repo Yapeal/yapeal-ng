@@ -55,19 +55,7 @@ class Validator
      */
     public function __construct($dir = __DIR__)
     {
-        $this->setDir($dir);
-    }
-    /**
-     * Fluent interface setter for $xsdDir.
-     *
-     * @param string $value
-     *
-     * @return self Fluent interface.
-     */
-    public function setDir($value)
-    {
-        $this->dir = (string)$value;
-        return $this;
+        $this->setRelativeBaseDir($dir);
     }
     /**
      * @param EveApiEventInterface $event
@@ -89,8 +77,7 @@ class Validator
                 Logger::DEBUG,
                 $this->getReceivedEventMessage($data, $eventName, __CLASS__)
             );
-        $fileName = $this->setRelativeBaseDir($this->getDir())
-            ->findEveApiFile($data->getEveApiSectionName(), $data->getEveApiName(), 'xsd');
+        $fileName = $this->findEveApiFile($data->getEveApiSectionName(), $data->getEveApiName(), 'xsd');
         if ('' === $fileName) {
             return $event;
         }
@@ -99,8 +86,15 @@ class Validator
         $dom = new DOMDocument();
         $dom->loadXML($data->getEveApiXml());
         if (!$dom->schemaValidate($fileName)) {
-            foreach (libxml_get_errors() as $error) {
-                $yem->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $error->message);
+            /**
+             * @type array $errors
+             */
+            $errors = libxml_get_errors();
+            if (0 !== count($errors)) {
+                foreach ($errors as $error) {
+                    $this->getYem()
+                        ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $error->message);
+                }
             }
             libxml_clear_errors();
             libxml_use_internal_errors($oldErrors);
@@ -114,15 +108,6 @@ class Validator
             $this->emitEvents($data, 'error', 'Yapeal.Xml');
         }
         return $event->eventHandled();
-    }
-    /**
-     * Getter for $xsdDir.
-     *
-     * @return null|string
-     */
-    protected function getDir()
-    {
-        return $this->dir;
     }
     /**
      * @param EveApiReadWriteInterface $data
@@ -165,10 +150,4 @@ class Validator
         $yem->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $this->createEveApiMessage($mess, $data));
         return $data->setCacheInterval(300);
     }
-    /**
-     * Holds base directory path for XSDs.
-     *
-     * @type string $dir
-     */
-    protected $dir;
 }
