@@ -1,6 +1,6 @@
 {
-    "name": "yapeal/yapeal",
-    "description": "Yet Another Php Eve Api Library also know as Yapeal which can be used to access the Eve Online API data and place it into a database.",
+    "name": "yapeal/yapeal-ng",
+    "description": "Yet Another Php Eve Api Library Next Generation also know as Yapeal-ng which can be used to access the Eve Online API data and place it into a database.",
     "keywords": [
         "curl",
         "database",
@@ -37,11 +37,6 @@
             "name": "Michael Cummings",
             "email": "dragonaire@users.sourceforge.net",
             "role": "Developer"
-        },
-        {
-            "name": "Stephen Gulick",
-            "email": "stephenmg12@gmail.com",
-            "role": "Developer"
         }
     ],
     "config": {
@@ -50,9 +45,9 @@
     "homepage": "https://github.com/Yapeal/yapeal",
     "support": {
         "forum": "https://forums.eveonline.com/default.aspx?g=posts&t=360758",
-        "issues": "https://github.com/Yapeal/yapeal/issues?state=open",
-        "source": "https://github.com/Yapeal/yapeal",
-        "wiki": "https://github.com/Yapeal/yapeal/wiki"
+        "issues": "https://github.com/Yapeal/yapeal-ng/issues?state=open",
+        "source": "https://github.com/Yapeal/yapeal-ng",
+        "wiki": "https://github.com/Yapeal/yapeal-ng/wiki"
     },
     "require": {
         "dragonrun1/file_path_normalizer": "1.1.*",
