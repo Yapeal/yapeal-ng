@@ -53,23 +53,11 @@ class Transformer implements TransformerInterface
     /**
      * Transformer Constructor.
      *
-     * @param string|null $xslDir
+     * @param string $dir Base directory where Eve API XSL files can be found.
      */
-    public function __construct($xslDir = null)
+    public function __construct($dir = __DIR__)
     {
-        $this->setXslDir($xslDir);
-    }
-    /**
-     * Fluent interface setter for $xslDir.
-     *
-     * @param string $xslDir
-     *
-     * @return self Fluent interface.
-     */
-    public function setXslDir($xslDir)
-    {
-        $this->xslDir = $xslDir;
-        return $this;
+        $this->setRelativeBaseDir($dir . '/');
     }
     /**
      * @param EveApiEventInterface $event
@@ -91,15 +79,14 @@ class Transformer implements TransformerInterface
                 Logger::DEBUG,
                 $this->getReceivedEventMessage($data, $eventName, __CLASS__)
             );
-        $fileName = $this->setRelativeBaseDir($this->getXslDir())
-            ->findEveApiFile($data->getEveApiSectionName(), $data->getEveApiName(), 'xsl');
+        $fileName = $this->findEveApiFile($data->getEveApiSectionName(), $data->getEveApiName(), 'xsl');
         if ('' === $fileName) {
             return $event;
         }
         $xml = $this->addYapealProcessingInstructionToXml($data)
             ->performTransform($fileName, $data);
         if (false === $xml) {
-            $mess = 'Failed to transform xml during:';
+            $mess = 'Failed to transform xml during';
             $yem->triggerLogEvent(
                 'Yapeal.Log.log',
                 Logger::WARNING,
@@ -144,18 +131,6 @@ class Transformer implements TransformerInterface
         );
         $data->setEveApiXml($xml);
         return $this;
-    }
-    /**
-     * Getter for $xslDir.
-     *
-     * @return string
-     */
-    protected function getXslDir()
-    {
-        if (null === $this->xslDir) {
-            $this->xslDir = __DIR__ . '/';
-        }
-        return $this->xslDir;
     }
     /**
      * @param string                   $fileName
@@ -216,10 +191,4 @@ class Transformer implements TransformerInterface
         'output-xml'    => true,
         'wrap'          => '1000'
     ];
-    /**
-     * Holds base directory where Eve API XSL files can be found.
-     *
-     * @type string $xslDir
-     */
-    protected $xslDir;
 }
