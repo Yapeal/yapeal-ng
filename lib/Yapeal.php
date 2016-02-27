@@ -33,7 +33,6 @@
  */
 namespace Yapeal;
 
-use FilePathNormalizer\FilePathNormalizerTrait;
 use PDO;
 use PDOException;
 use PDOStatement;
@@ -52,7 +51,7 @@ use Yapeal\Xml\EveApiReadWriteInterface;
  */
 class Yapeal implements WiringInterface
 {
-    use EveApiEventEmitterTrait, FilePathNormalizerTrait;
+    use EveApiEventEmitterTrait;
     /**
      * @param ContainerInterface $dic
      *
