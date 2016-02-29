@@ -6,10 +6,6 @@ Yapeal:
         Handlers:
             preserve: Yapeal\FileSystem\CachePreserver
             retrieve: Yapeal\FileSystem\CacheRetriever
-    EveApi:
-        create: Yapeal\EveApi\Creator
-        dir: '{Yapeal.libDir}EveApi/'
-        start: Yapeal\EveApi\Creator
     Error:
         bufferSize: 25
         channel: php
@@ -22,6 +18,10 @@ Yapeal:
             fingersCrossed: Monolog\Handler\FingersCrossedHandler
             group: Monolog\Handler\GroupHandler
             stream: Monolog\Handler\StreamHandler
+    EveApi:
+        create: Yapeal\EveApi\Creator
+        dir: '{Yapeal.libDir}EveApi/'
+        start: Yapeal\EveApi\Creator
     Event:
         mediator: Yapeal\Event\Mediator
         Factories:
