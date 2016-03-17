@@ -34,6 +34,8 @@
 namespace Yapeal\EveApi\Corp;
 
 use PDOException;
+use Yapeal\EveApi\AccountKeyTrait;
+use Yapeal\EveApi\CommonEveApiTrait;
 use Yapeal\Event\EveApiEventInterface;
 use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
@@ -44,15 +46,17 @@ use Yapeal\Sql\PreserverTrait;
  */
 class WalletTransactions extends CorpSection
 {
-    use PreserverTrait;
-
-    /** @noinspection MagicMethodsValidityInspection */
+    use PreserverTrait, AccountKeyTrait {
+        AccountKeyTrait::oneShot insteadof CommonEveApiTrait;
+        AccountKeyTrait::startEveApi insteadof CommonEveApiTrait;
+    }
     /**
      * Constructor
      */
     public function __construct()
     {
         $this->mask = 2097152;
+        $this->accountKeys = ['10000', '1000', '1001', '1002', '1003', '1004', '1005', '1006'];
     }
     /**
      * @param EveApiEventInterface $event
@@ -82,7 +86,7 @@ class WalletTransactions extends CorpSection
         $this->getPdo()
             ->beginTransaction();
         try {
-            $this->preserveToWalletTransactions($xml, $ownerID);
+            $this->preserveToWalletTransactions($xml, $ownerID, $data->getEveApiArgument('accountKey'));
             $this->getPdo()
                 ->commit();
         } catch (PDOException $exc) {
@@ -103,20 +107,22 @@ class WalletTransactions extends CorpSection
     /**
      * @param string $xml
      * @param string $ownerID
+     * @param string $accountKey
      *
      * @return self Fluent interface.
      * @throws \LogicException
      */
-    protected function preserveToWalletTransactions($xml, $ownerID)
+    protected function preserveToWalletTransactions($xml, $ownerID, $accountKey)
     {
         $tableName = 'corpWalletTransactions';
         $sql = $this->getCsq()
-            ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
+            ->getDeleteFromTableWithOwnerIDAndAccountKey($tableName, $ownerID, $accountKey);
         $this->getYem()
             ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
+            'accountKey'           => $accountKey,
             'characterID'          => null,
             'characterName'        => '',
             'clientID'             => null,

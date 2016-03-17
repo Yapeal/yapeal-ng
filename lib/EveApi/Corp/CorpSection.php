@@ -29,7 +29,6 @@
  */
 namespace Yapeal\EveApi\Corp;
 
-use LogicException;
 use PDO;
 use PDOException;
 use Yapeal\EveApi\CommonEveApiTrait;
@@ -43,9 +42,9 @@ class CorpSection
     use CommonEveApiTrait;
     /**
      * @return array
-     * @throws LogicException
+     * @throws \LogicException
      */
-    protected function getActive()
+    public function getActive()
     {
         $sql = $this->getCsq()
             ->getActiveRegisteredCorporations($this->getMask());

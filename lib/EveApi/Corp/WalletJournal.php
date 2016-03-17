@@ -34,6 +34,8 @@
 namespace Yapeal\EveApi\Corp;
 
 use PDOException;
+use Yapeal\EveApi\AccountKeyTrait;
+use Yapeal\EveApi\CommonEveApiTrait;
 use Yapeal\Event\EveApiEventInterface;
 use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
@@ -44,15 +46,18 @@ use Yapeal\Sql\PreserverTrait;
  */
 class WalletJournal extends CorpSection
 {
-    use PreserverTrait;
+    use PreserverTrait, AccountKeyTrait {
+        AccountKeyTrait::oneShot insteadof CommonEveApiTrait;
+        AccountKeyTrait::startEveApi insteadof CommonEveApiTrait;
+    }
 
-    /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
      */
     public function __construct()
     {
         $this->mask = 1048576;
+        $this->accountKeys = ['10000', '1000', '1001', '1002', '1003', '1004', '1005', '1006'];
     }
     /**
      * @param EveApiEventInterface $event
@@ -82,7 +87,7 @@ class WalletJournal extends CorpSection
         $this->getPdo()
             ->beginTransaction();
         try {
-            $this->preserveToWalletJournal($xml, $ownerID);
+            $this->preserveToWalletJournal($xml, $ownerID, $data->getEveApiArgument('accountKey'));
             $this->getPdo()
                 ->commit();
         } catch (PDOException $exc) {
@@ -103,20 +108,22 @@ class WalletJournal extends CorpSection
     /**
      * @param string $xml
      * @param string $ownerID
+     * @param string $accountKey
      *
      * @return self Fluent interface.
      * @throws \LogicException
      */
-    protected function preserveToWalletJournal($xml, $ownerID)
+    protected function preserveToWalletJournal($xml, $ownerID, $accountKey)
     {
         $tableName = 'corpWalletJournal';
         $sql = $this->getCsq()
-            ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
+            ->getDeleteFromTableWithOwnerIDAndAccountKey($tableName, $ownerID, $accountKey);
         $this->getYem()
             ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
+            'accountKey'   => $accountKey,
             'amount'       => null,
             'argID1'       => null,
             'argName1'     => '',

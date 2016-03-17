@@ -119,12 +119,9 @@ trait CommonEveApiTrait
                 $this->releaseApiLock($data);
                 continue;
             }
-            /** @noinspection DisconnectedForeachInstructionInspection */
             $this->emitEvents($data, 'end');
-            /** @noinspection DisconnectedForeachInstructionInspection */
             $event->setHandledSufficiently();
             $this->updateCachedUntil($data, $ownerID);
-            /** @noinspection DisconnectedForeachInstructionInspection */
             $this->releaseApiLock($data);
         }
         return $event;

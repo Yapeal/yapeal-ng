@@ -34,6 +34,8 @@
 namespace Yapeal\EveApi\Char;
 
 use PDOException;
+use Yapeal\EveApi\AccountKeyTrait;
+use Yapeal\EveApi\CommonEveApiTrait;
 use Yapeal\Event\EveApiEventInterface;
 use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
@@ -44,15 +46,17 @@ use Yapeal\Sql\PreserverTrait;
  */
 class WalletJournal extends CharSection
 {
-    use PreserverTrait;
-
-    /** @noinspection MagicMethodsValidityInspection */
+    use PreserverTrait, AccountKeyTrait {
+        AccountKeyTrait::oneShot insteadof CommonEveApiTrait;
+        AccountKeyTrait::startEveApi insteadof CommonEveApiTrait;
+    }
     /**
      * Constructor
      */
     public function __construct()
     {
         $this->mask = 2097152;
+        $this->accountKeys = ['1000'];
     }
     /**
      * @param EveApiEventInterface $event
@@ -82,7 +86,7 @@ class WalletJournal extends CharSection
         $this->getPdo()
             ->beginTransaction();
         try {
-            $this->preserveToWalletJournal($xml, $ownerID);
+            $this->preserveToWalletJournal($xml, $ownerID, $data->getEveApiArgument('accountKey'));
             $this->getPdo()
                 ->commit();
         } catch (PDOException $exc) {
@@ -103,20 +107,22 @@ class WalletJournal extends CharSection
     /**
      * @param string $xml
      * @param string $ownerID
+     * @param string $accountKey
      *
      * @return self Fluent interface.
      * @throws \LogicException
      */
-    protected function preserveToWalletJournal($xml, $ownerID)
+    protected function preserveToWalletJournal($xml, $ownerID, $accountKey)
     {
         $tableName = 'charWalletJournal';
         $sql = $this->getCsq()
-            ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
+            ->getDeleteFromTableWithOwnerIDAndAccountKey($tableName, $ownerID, $accountKey);
         $this->getYem()
             ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
+            'accountKey'    => $accountKey,
             'amount'        => null,
             'argID1'        => null,
             'argName1'      => '',
