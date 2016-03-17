@@ -15,7 +15,7 @@ CREATE TABLE "{database}"."{table_prefix}corpContainerLog" (
     "passwordType"     CHAR(12)             NOT NULL,
     "quantity"         BIGINT(20) UNSIGNED  NOT NULL,
     "typeID"           BIGINT(20) UNSIGNED  NOT NULL,
-    PRIMARY KEY ("ownerID", "logTime")
+    PRIMARY KEY ("ownerID", "itemID", "logTime")
 );
 START TRANSACTION;
 INSERT INTO "{database}"."{table_prefix}utilDatabaseVersion" ("version")
