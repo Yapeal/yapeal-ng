@@ -54,6 +54,7 @@ class CommonSqlQueries
      */
     public function getAccountCorporationIDsExcludingCorporationKeys()
     {
+        /** @lang MySQL */
         $sql = <<<'SQL'
 SELECT DISTINCT acc."corporationID"
  FROM "%1$s"."%2$saccountCharacters" AS acc
@@ -97,6 +98,7 @@ SQL;
      */
     public function getActiveMailBodiesWithOwnerID($ownerID)
     {
+        /** @lang MySQL */
         $sql = <<<'SQL'
 SELECT "messageID"
  FROM "%1$s"."%2$scharMailMessages" AS cmm
@@ -111,6 +113,7 @@ SQL;
      */
     public function getActiveRegisteredAccountStatus($mask)
     {
+        /** @lang MySQL */
         $sql = <<<'SQL'
 SELECT urk."keyID",urk."vCode"
  FROM "%1$s"."%2$sutilRegisteredKey" AS urk
@@ -130,6 +133,7 @@ SQL;
      */
     public function getActiveRegisteredCharacters($mask)
     {
+        /** @lang MySQL */
         $sql = <<<'SQL'
 SELECT ac."characterID",urk."keyID",urk."vCode"
  FROM "%1$s"."%2$saccountKeyBridge" AS akb
@@ -154,6 +158,7 @@ SQL;
      */
     public function getActiveRegisteredCorporations($mask)
     {
+        /** @lang MySQL */
         $sql = <<<'SQL'
 SELECT ac."corporationID",urk."keyID",urk."vCode"
  FROM "%1$s"."%2$saccountKeyBridge" AS akb
@@ -188,13 +193,14 @@ SQL;
         );
     }
     /**
-     * @param int $mask
+     * @param int    $mask
      * @param string $ownerID
      *
      * @return string
      */
     public function getActiveStarbaseTowers($mask, $ownerID)
     {
+        /** @lang MySQL */
         $sql = <<<'SQL'
 SELECT sl."itemID",ac."corporationID",urk."keyID",urk."vCode"
  FROM "%1$s"."%2$saccountKeyBridge" AS akb
@@ -245,6 +251,7 @@ SQL;
      */
     public function getCreateAddOrModifyColumnProcedure()
     {
+        /** @lang MySQL */
         $sql = <<<'SQL'
 CREATE PROCEDURE "{database}"."AddOrModifyColumn"(
     IN param_database_name  VARCHAR(100) CHARACTER SET utf8 COLLATE utf8_unicode_ci,
@@ -308,7 +315,7 @@ SQL;
     public function getDeleteFromTableWithKeyID($tableName, $keyID)
     {
         return sprintf(
-            'DELETE FROM "%1$s"."%2$s%3$s" WHERE "keyID"= \'%4$s\'',
+            'DELETE FROM "%1$s"."%2$s%3$s" WHERE "keyID"=\'%4$s\'',
             $this->databaseName,
             $this->tablePrefix,
             $tableName,
@@ -324,11 +331,29 @@ SQL;
     public function getDeleteFromTableWithOwnerID($tableName, $ownerID)
     {
         return sprintf(
-            'DELETE FROM "%1$s"."%2$s%3$s" WHERE "ownerID"= \'%4$s\'',
+            'DELETE FROM "%1$s"."%2$s%3$s" WHERE "ownerID"=\'%4$s\'',
             $this->databaseName,
             $this->tablePrefix,
             $tableName,
             $ownerID
+        );
+    }
+    /**
+     * @param string $tableName
+     * @param string $ownerID
+     * @param string $accountKey
+     *
+     * @return string
+     */
+    public function getDeleteFromTableWithOwnerIDAndAccountKey($tableName, $ownerID, $accountKey)
+    {
+        return sprintf(
+            'DELETE FROM "%1$s"."%2$s%3$s" WHERE "ownerID"=\'%4$s\' AND "accountKey"=\'%5$s\'',
+            $this->databaseName,
+            $this->tablePrefix,
+            $tableName,
+            $ownerID,
+            $accountKey
         );
     }
     /**
@@ -345,6 +370,7 @@ SQL;
      */
     public function getMemberCorporationIDsExcludingAccountCorporations()
     {
+        /** @lang MySQL */
         $sql = <<<'SQL'
 SELECT DISTINCT emc."corporationID"
  FROM "%1$s"."%2$seveMemberCorporations" AS emc
@@ -399,6 +425,7 @@ SQL;
      */
     public function getUtilCachedUntilExpires($apiName, $sectionName, $ownerID)
     {
+        /** @lang MySQL */
         $sql = <<<'SQL'
 SELECT "expires"
  FROM "%1$s"."%2$sutilCachedUntil"
