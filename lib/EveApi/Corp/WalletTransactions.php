@@ -33,20 +33,15 @@
  */
 namespace Yapeal\EveApi\Corp;
 
-use PDOException;
 use Yapeal\EveApi\AccountKeyTrait;
 use Yapeal\EveApi\CommonEveApiTrait;
-use Yapeal\Event\EveApiEventInterface;
-use Yapeal\Event\MediatorInterface;
-use Yapeal\Log\Logger;
-use Yapeal\Sql\PreserverTrait;
 
 /**
  * Class WalletTransactions
  */
 class WalletTransactions extends CorpSection
 {
-    use PreserverTrait, AccountKeyTrait {
+    use AccountKeyTrait {
         AccountKeyTrait::oneShot insteadof CommonEveApiTrait;
         AccountKeyTrait::startEveApi insteadof CommonEveApiTrait;
     }
@@ -59,52 +54,6 @@ class WalletTransactions extends CorpSection
         $this->accountKeys = ['10000', '1000', '1001', '1002', '1003', '1004', '1005', '1006'];
     }
     /**
-     * @param EveApiEventInterface $event
-     * @param string               $eventName
-     * @param MediatorInterface    $yem
-     *
-     * @return EveApiEventInterface
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
-     */
-    public function preserveEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
-    {
-        $this->setYem($yem);
-        $data = $event->getData();
-        $xml = $data->getEveApiXml();
-        if (false === $xml) {
-            return $event->setHandledSufficiently();
-        }
-        $ownerID = $this->extractOwnerID($data->getEveApiArguments());
-        $this->getYem()
-            ->triggerLogEvent(
-                'Yapeal.Log.log',
-                Logger::DEBUG,
-                $this->getReceivedEventMessage($data, $eventName, __CLASS__)
-            );
-        $this->getPdo()
-            ->beginTransaction();
-        try {
-            $this->preserveToWalletTransactions($xml, $ownerID, $data->getEveApiArgument('accountKey'));
-            $this->getPdo()
-                ->commit();
-        } catch (PDOException $exc) {
-            $mess = 'Failed to upsert data of';
-            $this->getYem()
-                ->triggerLogEvent(
-                    'Yapeal.Log.log',
-                    Logger::WARNING,
-                    $this->createEveApiMessage($mess, $data),
-                    ['exception' => $exc]
-                );
-            $this->getPdo()
-                ->rollBack();
-            return $event;
-        }
-        return $event->setHandledSufficiently();
-    }
-    /**
      * @param string $xml
      * @param string $ownerID
      * @param string $accountKey
@@ -112,7 +61,7 @@ class WalletTransactions extends CorpSection
      * @return self Fluent interface.
      * @throws \LogicException
      */
-    protected function preserveToWalletTransactions($xml, $ownerID, $accountKey)
+    protected function preserveToWallet($xml, $ownerID, $accountKey)
     {
         $tableName = 'corpWalletTransactions';
         $columnDefaults = [

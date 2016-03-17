@@ -33,9 +33,11 @@
  */
 namespace Yapeal\EveApi;
 
+use PDOException;
 use Yapeal\Event\EveApiEventInterface;
 use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
+use Yapeal\Sql\PreserverTrait;
 use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
@@ -43,6 +45,7 @@ use Yapeal\Xml\EveApiReadWriteInterface;
  */
 trait AccountKeyTrait
 {
+    use PreserverTrait;
     /**
      * @param EveApiReadWriteInterface $data
      *
@@ -83,6 +86,52 @@ trait AccountKeyTrait
             }
         }
         return $result;
+    }
+    /**
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
+     *
+     * @return EveApiEventInterface
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
+     */
+    public function preserveEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
+    {
+        $this->setYem($yem);
+        $data = $event->getData();
+        $xml = $data->getEveApiXml();
+        if (false === $xml) {
+            return $event->setHandledSufficiently();
+        }
+        $ownerID = $this->extractOwnerID($data->getEveApiArguments());
+        $this->getYem()
+            ->triggerLogEvent(
+                'Yapeal.Log.log',
+                Logger::DEBUG,
+                $this->getReceivedEventMessage($data, $eventName, __CLASS__)
+            );
+        $this->getPdo()
+            ->beginTransaction();
+        try {
+            $this->preserveToWallet($xml, $ownerID, $data->getEveApiArgument('accountKey'));
+            $this->getPdo()
+                ->commit();
+        } catch (PDOException $exc) {
+            $mess = 'Failed to upsert data of';
+            $this->getYem()
+                ->triggerLogEvent(
+                    'Yapeal.Log.log',
+                    Logger::WARNING,
+                    $this->createEveApiMessage($mess, $data),
+                    ['exception' => $exc]
+                );
+            $this->getPdo()
+                ->rollBack();
+            return $event;
+        }
+        return $event->setHandledSufficiently();
     }
     /**
      * @param EveApiEventInterface $event
