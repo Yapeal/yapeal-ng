@@ -139,7 +139,7 @@ class WalletJournal extends CharSection
             'refID'         => null,
             'refTypeID'     => null,
             'taxAmount'     => '0.0',
-            'taxReceiverID' => '0.0'
+            'taxReceiverID' => '0'
         ];
         $this->attributePreserveData($xml, $columnDefaults, $tableName, '//transactions/row');
         return $this;
