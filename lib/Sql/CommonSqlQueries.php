@@ -339,24 +339,6 @@ SQL;
         );
     }
     /**
-     * @param string $tableName
-     * @param string $ownerID
-     * @param string $accountKey
-     *
-     * @return string
-     */
-    public function getDeleteFromTableWithOwnerIDAndAccountKey($tableName, $ownerID, $accountKey)
-    {
-        return sprintf(
-            'DELETE FROM "%1$s"."%2$s%3$s" WHERE "ownerID"=\'%4$s\' AND "accountKey"=\'%5$s\'',
-            $this->databaseName,
-            $this->tablePrefix,
-            $tableName,
-            $ownerID,
-            $accountKey
-        );
-    }
-    /**
      * @return string
      */
     public function getDropAddOrModifyColumnProcedure()

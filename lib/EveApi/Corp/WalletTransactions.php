@@ -115,12 +115,6 @@ class WalletTransactions extends CorpSection
     protected function preserveToWalletTransactions($xml, $ownerID, $accountKey)
     {
         $tableName = 'corpWalletTransactions';
-        $sql = $this->getCsq()
-            ->getDeleteFromTableWithOwnerIDAndAccountKey($tableName, $ownerID, $accountKey);
-        $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
-        $this->getPdo()
-            ->exec($sql);
         $columnDefaults = [
             'accountKey'           => $accountKey,
             'characterID'          => null,

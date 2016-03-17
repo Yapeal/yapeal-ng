@@ -115,12 +115,6 @@ class WalletJournal extends CharSection
     protected function preserveToWalletJournal($xml, $ownerID, $accountKey)
     {
         $tableName = 'charWalletJournal';
-        $sql = $this->getCsq()
-            ->getDeleteFromTableWithOwnerIDAndAccountKey($tableName, $ownerID, $accountKey);
-        $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
-        $this->getPdo()
-            ->exec($sql);
         $columnDefaults = [
             'accountKey'    => $accountKey,
             'amount'        => null,
