@@ -19,7 +19,7 @@ CREATE TABLE "{database}"."{table_prefix}charWalletJournal" (
     "refTypeID"     BIGINT(20) UNSIGNED  NOT NULL,
     "taxAmount"     DECIMAL(17, 2)       NOT NULL,
     "taxReceiverID" BIGINT(20) UNSIGNED  NOT NULL,
-    PRIMARY KEY ("ownerID", "refID")
+    PRIMARY KEY ("ownerID", "accountKey", "refID")
 );
 START TRANSACTION;
 INSERT INTO "{database}"."{table_prefix}utilDatabaseVersion" ("version")

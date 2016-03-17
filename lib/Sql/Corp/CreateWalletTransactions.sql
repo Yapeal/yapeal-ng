@@ -19,7 +19,7 @@ CREATE TABLE "{database}"."{table_prefix}corpWalletTransactions" (
     "transactionType"      CHAR(4)              NOT NULL DEFAULT 'sell',
     "typeID"               BIGINT(20) UNSIGNED  NOT NULL,
     "typeName"             CHAR(100)            NOT NULL,
-    PRIMARY KEY ("ownerID", "transactionID")
+    PRIMARY KEY ("ownerID", "accountKey", "transactionID")
 );
 START TRANSACTION;
 INSERT INTO "{database}"."{table_prefix}utilDatabaseVersion" ("version")

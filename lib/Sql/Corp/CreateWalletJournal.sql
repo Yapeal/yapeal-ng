@@ -17,7 +17,7 @@ CREATE TABLE "{database}"."{table_prefix}corpWalletJournal" (
     "reason"       TEXT,
     "refID"        BIGINT(20) UNSIGNED  NOT NULL,
     "refTypeID"    BIGINT(20) UNSIGNED  NOT NULL,
-    PRIMARY KEY ("ownerID", "refID")
+    PRIMARY KEY ("ownerID", "accountKey", "refID")
 );
 START TRANSACTION;
 INSERT INTO "{database}"."{table_prefix}utilDatabaseVersion" ("version")
