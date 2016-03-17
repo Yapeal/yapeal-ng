@@ -7,6 +7,7 @@ CREATE TABLE "{database}"."{table_prefix}charAccountBalance" (
     "ownerID"    BIGINT(20) UNSIGNED  NOT NULL,
     PRIMARY KEY ("ownerID", "accountID")
 );
+ALTER TABLE "{database}"."{table_prefix}charAccountBalance" ADD UNIQUE INDEX "charAccountBalance1"  ("ownerID", "accountKey");
 START TRANSACTION;
 INSERT INTO "{database}"."{table_prefix}utilDatabaseVersion" ("version")
 VALUES ('20160201053350.800')
