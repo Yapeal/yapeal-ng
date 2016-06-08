@@ -6,7 +6,7 @@
         <xsl:element name="row">
             <xsl:attribute name="itemID">0</xsl:attribute>
             <xsl:attribute name="locationID">0</xsl:attribute>
-            <xsl:attribute name="typeID">25</xsl:attribute>
+            <xsl:attribute name="typeID">2</xsl:attribute>
             <xsl:attribute name="quantity">1</xsl:attribute>
             <xsl:attribute name="flag">0</xsl:attribute>
             <xsl:attribute name="singleton">1</xsl:attribute>
