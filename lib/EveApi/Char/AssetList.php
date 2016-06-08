@@ -35,6 +35,7 @@ namespace Yapeal\EveApi\Char;
 
 use PDOException;
 use SimpleXMLElement;
+use Yapeal\EveApi\NestedSetTrait;
 use Yapeal\Event\EveApiEventInterface;
 use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
@@ -45,7 +46,7 @@ use Yapeal\Sql\PreserverTrait;
  */
 class AssetList extends CharSection
 {
-    use PreserverTrait;
+    use PreserverTrait, NestedSetTrait;
     /**
      * Constructor
      */
@@ -98,24 +99,6 @@ class AssetList extends CharSection
             return $event;
         }
         return $event->setHandledSufficiently();
-    }
-    /**
-     * @param SimpleXMLElement $row
-     * @param int              $idx
-     *
-     * @return int
-     */
-    protected function addNesting(SimpleXMLElement $row, $idx = 0)
-    {
-        $row['lft'] = $idx;
-        if ($row->count()) {
-            $children = $row->children();
-            foreach ($children as $descendant) {
-                $idx = $this->addNesting($descendant, ++$idx);
-            }
-        }
-        $row['rgt'] = ++$idx;
-        return $idx;
     }
     /**
      * @param string $xml
