@@ -64,11 +64,6 @@ trait PreserverTrait
         $columnNames = array_keys($columnDefaults);
         foreach ($rowChunks as $chunk) {
             $columns = $this->processXmlRows($columnDefaults, $chunk);
-            $sql = $this->getCsq()
-                ->getUpsert($tableName, $columnNames, count($chunk));
-            $mess = preg_replace('/(,\(\?(?:,\?)*\))+/', ',...', $sql);
-            $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess);
             $this->flush($columns, $columnNames, $tableName);
         }
         return $this;
@@ -168,6 +163,6 @@ trait PreserverTrait
                 $columnDefaults[$columnName] = (string)$column;
             }
         }
-        $this->flush(array_values($columnDefaults), array_keys($columnDefaults), $tableName);
+        return $this->flush(array_values($columnDefaults), array_keys($columnDefaults), $tableName);
     }
 }
