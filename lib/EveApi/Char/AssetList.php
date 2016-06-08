@@ -134,12 +134,12 @@ class AssetList extends CharSection
         $this->getPdo()
              ->exec($sql);
         $columnDefaults = [
-            'ownerID' => $ownerID,
             'flag' => '0',
             'itemID' => null,
             'lft' => null,
             'lvl' => null,
             'locationID' => null,
+            'ownerID' => $ownerID,
             'quantity' => '1',
             'rawQuantity' => '0',
             'rgt' => null,
