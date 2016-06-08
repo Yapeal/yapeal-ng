@@ -86,18 +86,18 @@ trait PreserverTrait
         $rowCount = count($columns) / count($columnNames);
         $mess = sprintf('Have %1$s row(s) to upsert into %2$s table', $rowCount, $tableName);
         $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess);
+             ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess);
         $sql = $this->getCsq()
-            ->getUpsert($tableName, $columnNames, $rowCount);
+                    ->getUpsert($tableName, $columnNames, $rowCount);
         $mess = preg_replace('/(,\(\?(?:,\?)*\))+/', ',...', $sql);
         $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess);
+             ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess);
         $mess = substr(implode(',', $columns), 0, 255);
         $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $mess);
-        $stmt = $this->getPdo()
-            ->prepare($sql);
-        $stmt->execute($columns);
+             ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $mess);
+        $this->getPdo()
+             ->prepare($sql)
+             ->execute($columns);
         return $this;
     }
     /**
