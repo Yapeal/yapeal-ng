@@ -151,14 +151,6 @@ class Yapeal implements WiringInterface
         (new Wiring($dic))->wireAll();
     }
     /**
-     * @return array
-     */
-    protected function getActiveEveApiList()
-    {
-        $list = [];
-        return $list;
-    }
-    /**
      * @return ContainerInterface
      */
     protected function getDic()
