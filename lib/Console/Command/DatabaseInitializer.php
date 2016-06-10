@@ -114,7 +114,7 @@ HELP;
             foreach (new DirectoryIterator($path . $dir . '/') as $fileInfo) {
                 if (!$fileInfo->isFile()
                     || 'sql' !== $fileInfo->getExtension()
-                    || 'Create' !== substr($fileInfo->getBasename(), 0, 6)
+                    || 0 !== strpos($fileInfo->getBasename(), 'Create')
                 ) {
                     continue;
                 }
