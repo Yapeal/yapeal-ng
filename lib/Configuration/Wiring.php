@@ -35,10 +35,6 @@ namespace Yapeal\Configuration;
 
 use FilePathNormalizer\FilePathNormalizerTrait;
 use FilesystemIterator;
-use Monolog\ErrorHandler;
-use Monolog\Formatter\LineFormatter;
-use Monolog\Logger;
-use PDO;
 use RecursiveArrayIterator;
 use RecursiveCallbackFilterIterator;
 use RecursiveDirectoryIterator;
@@ -52,7 +48,6 @@ use Twig_SimpleFilter;
 use Yapeal\Container\ContainerInterface;
 use Yapeal\Exception\YapealDatabaseException;
 use Yapeal\Exception\YapealException;
-use Yapeal\Network\GuzzleNetworkRetriever;
 
 /**
  * Class Wiring
@@ -69,6 +64,7 @@ class Wiring
     }
     /**
      * @return self Fluent interface.
+     * @throws \LogicException
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws YapealException
@@ -76,17 +72,25 @@ class Wiring
      */
     public function wireAll()
     {
-        $this->wireConfig()
-            ->wireError()
-            ->wireEvent()
-            ->wireLog()
-            ->wireSql()
-            ->wireXml()
-            ->wireXsl()
-            ->wireXsd()
-            ->wireCache()
-            ->wireNetwork()
-            ->wireEveApi();
+        $names = ['Config', 'Error', 'Event', 'Log', 'Sql', 'Xml', 'Xsd', 'Xsl', 'Cache', 'Network', 'EveApi'];
+        foreach ($names as $name) {
+            $className = dirname(__CLASS__) . $name . 'Wiring';
+            if (class_exists($className, true)) {
+                /**
+                 * @var WiringInterface $class
+                 */
+                $class = new $className();
+                $class->wire($this->dic);
+                continue;
+            }
+            $methodName = 'wire' . $name;
+            if (method_exists($this, $methodName)) {
+                $this->$methodName();
+            } else {
+                $mess = 'Could NOT find class or method for ' . $name;
+                throw new \LogicException($mess);
+            }
+        }
         return $this;
     }
     /**
@@ -213,43 +217,11 @@ class Wiring
             $depths = range(0, $rItIt->getDepth());
             foreach ($depths as $depth) {
                 $keys[] = $rItIt->getSubIterator($depth)
-                    ->key();
+                                ->key();
             }
             $settings[implode('.', $keys)] = $leafValue;
         }
         return $this->doSubs($settings);
-    }
-    /**
-     * @return self Fluent interface.
-     */
-    protected function wireCache()
-    {
-        $dic = $this->dic;
-        if ('none' !== $dic['Yapeal.Cache.fileSystemMode']) {
-            if (empty($dic['Yapeal.FileSystem.CachePreserver'])) {
-                $dic['Yapeal.FileSystem.CachePreserver'] = function () use ($dic) {
-                    return new $dic['Yapeal.Cache.Handlers.preserve']($dic['Yapeal.Cache.dir']);
-                };
-            }
-            if (empty($dic['Yapeal.FileSystem.CacheRetriever'])) {
-                $dic['Yapeal.FileSystem.CacheRetriever'] = function () use ($dic) {
-                    return new $dic['Yapeal.Cache.Handlers.retrieve']($dic['Yapeal.Cache.dir']);
-                };
-            }
-            /**
-             * @type \Yapeal\Event\MediatorInterface $mediator
-             */
-            $mediator = $dic['Yapeal.Event.Mediator'];
-            $mediator->addServiceSubscriberByEventList(
-                'Yapeal.FileSystem.CachePreserver',
-                ['Yapeal.EveApi.cache' => ['preserveEveApi', 'last']]
-            );
-            $mediator->addServiceSubscriberByEventList(
-                'Yapeal.FileSystem.CacheRetriever',
-                ['Yapeal.EveApi.retrieve' => ['retrieveEveApi', 'last']]
-            );
-        }
-        return $this;
     }
     /**
      * @return self Fluent interface.
@@ -304,56 +276,10 @@ class Wiring
     /**
      * @return self Fluent interface.
      */
-    protected function wireError()
-    {
-        if (!empty($this->dic['Yapeal.Error.Logger'])) {
-            return $this;
-        }
-        $this->dic['Yapeal.Error.Logger'] = function ($dic) {
-            /**
-             * @type Logger $logger
-             */
-            $logger = new $dic['Yapeal.Error.class']($dic['Yapeal.Error.channel']);
-            $group = [];
-            if ('cli' === PHP_SAPI) {
-                $group[] = new $dic['Yapeal.Error.Handlers.stream'](
-                    'php://stderr', 100
-                );
-            }
-            $group[] = new $dic['Yapeal.Error.Handlers.stream'](
-                $dic['Yapeal.Error.dir'] . $dic['Yapeal.Error.fileName'], 100
-            );
-            $logger->pushHandler(
-                new $dic['Yapeal.Error.Handlers.fingersCrossed'](
-                    new $dic['Yapeal.Error.Handlers.group']($group),
-                    (int)$dic['Yapeal.Error.threshold'],
-                    (int)$dic['Yapeal.Error.bufferSize']
-                )
-            );
-            /**
-             * @type ErrorHandler $error
-             */
-            $error = $dic['Yapeal.Error.Handlers.error'];
-            $error::register(
-                $logger,
-                [],
-                (int)$dic['Yapeal.Error.threshold'],
-                (int)$dic['Yapeal.Error.threshold']
-            );
-            return $error;
-        };
-        // Activate error logger now since it is needed to log any future fatal
-        // errors or exceptions.
-        $this->dic['Yapeal.Error.Logger'];
-        return $this;
-    }
-    /**
-     * @return self Fluent interface.
-     */
     protected function wireEveApi()
     {
         /**
-         * @type ContainerInterface|\ArrayObject $dic
+         * @type ContainerInterface $dic
          */
         $dic = $this->dic;
         /**
@@ -373,7 +299,7 @@ class Wiring
                     basename(dirname($subscriber)),
                     basename($subscriber, '.php')
                 );
-                if (!array_key_exists($service, $dic)) {
+                if (!isset($dic[$service])) {
                     $dic[$service] = function () use ($dic, $service) {
                         $class = '\\' . str_replace('.', '\\', $service);
                         /**
@@ -381,7 +307,7 @@ class Wiring
                          */
                         $callable = new $class();
                         return $callable->setCsq($dic['Yapeal.Sql.CommonQueries'])
-                            ->setPdo($dic['Yapeal.Sql.Connection']);
+                                        ->setPdo($dic['Yapeal.Sql.Connection']);
                     };
                 }
                 $events = [$service . '.start' => ['startEveApi', 'last']];
@@ -413,7 +339,7 @@ class Wiring
                  * @type \Yapeal\EveApi\Creator $create
                  */
                 $create = new $dic['Yapeal.EveApi.create']($twig, $dic['Yapeal.EveApi.dir']);
-                if (array_key_exists('Yapeal.Create.overwrite', $dic)) {
+                if (!empty($dic['Yapeal.Create.overwrite'])) {
                     $create->setOverwrite($dic['Yapeal.Create.overwrite']);
                 }
                 return $create;
@@ -423,359 +349,6 @@ class Wiring
                 ['Yapeal.EveApi.create' => ['createEveApi', 'last']]
             );
         }
-        return $this;
-    }
-    /**
-     * @return self Fluent interface.
-     * @throws \InvalidArgumentException
-     */
-    protected function wireEvent()
-    {
-        $dic = $this->dic;
-        if (empty($dic['Yapeal.Event.EveApiEvent'])) {
-            $dic['Yapeal.Event.EveApi'] = $dic->factory(
-                function ($dic) {
-                    return new $dic['Yapeal.Event.Factories.eveApi']();
-                }
-            );
-        }
-        if (empty($this->dic['Yapeal.Event.LogEvent'])) {
-            $this->dic['Yapeal.Event.LogEvent'] = $this->dic->factory(
-                function ($dic) {
-                    return new $dic['Yapeal.Event.Factories.log'];
-                }
-            );
-        }
-        if (empty($dic['Yapeal.Event.Mediator'])) {
-            $dic['Yapeal.Event.Mediator'] = function ($dic) {
-                return new $dic['Yapeal.Event.mediator']($dic);
-            };
-        }
-        return $this;
-    }
-    /**
-     * @return self Fluent interface.
-     */
-    protected function wireLog()
-    {
-        $dic = $this->dic;
-        if (empty($dic['Yapeal.Log.Logger'])) {
-            $dic['Yapeal.Log.Logger'] = function () use ($dic) {
-                $group = [];
-                $lineFormatter = new LineFormatter;
-                $lineFormatter->includeStacktraces();
-                /**
-                 * @type \Monolog\Handler\StreamHandler $handler
-                 */
-                if (PHP_SAPI === 'cli') {
-                    $handler = new $dic['Yapeal.Log.Handlers.stream'](
-                        'php://stderr', 100
-                    );
-                    $handler->setFormatter($lineFormatter);
-                    $group[] = $handler;
-                }
-                $handler = new $dic['Yapeal.Log.Handlers.stream'](
-                    $dic['Yapeal.Log.dir'] . $dic['Yapeal.Log.fileName'], 100
-                );
-                $handler->setFormatter($lineFormatter);
-                $group[] = $handler;
-                return new $dic['Yapeal.Log.class'](
-                    $dic['Yapeal.Log.channel'], [
-                        new $dic['Yapeal.Log.Handlers.fingersCrossed'](
-                            new $dic['Yapeal.Log.Handlers.group']($group),
-                            (int)$dic['Yapeal.Log.threshold'],
-                            (int)$dic['Yapeal.Log.bufferSize']
-                        )
-                    ]
-                );
-            };
-        }
-        /**
-         * @type \Yapeal\Event\MediatorInterface $mediator
-         */
-        $mediator = $dic['Yapeal.Event.Mediator'];
-        $mediator->addServiceSubscriberByEventList(
-            'Yapeal.Log.Logger',
-            ['Yapeal.Log.log' => ['logEvent', 'last']]
-        );
-        return $this;
-    }
-    /**
-     * @return self Fluent interface.
-     */
-    protected function wireNetwork()
-    {
-        $dic = $this->dic;
-        if (empty($dic['Yapeal.Network.Client'])) {
-            $dic['Yapeal.Network.Client'] = function ($dic) {
-                $appComment = $dic['Yapeal.Network.appComment'];
-                $appName = $dic['Yapeal.Network.appName'];
-                $appVersion = $dic['Yapeal.Network.appVersion'];
-                if ('' === $appName) {
-                    $appComment = '';
-                    $appVersion = '';
-                }
-                $userAgent = trim(
-                    str_replace(
-                        [
-                            '{machineType}',
-                            '{osName}',
-                            '{osRelease}',
-                            '{phpVersion}',
-                            '{appComment}',
-                            '{appName}',
-                            '{appVersion}'
-                        ],
-                        [
-                            php_uname('m'),
-                            php_uname('s'),
-                            php_uname('r'),
-                            PHP_VERSION,
-                            $appComment,
-                            $appName,
-                            $appVersion
-                        ],
-                        $dic['Yapeal.Network.userAgent']
-                    )
-                );
-                $userAgent = ltrim(
-                    $userAgent,
-                    '/ '
-                );
-                $headers = [
-                    'Accept'          => $dic['Yapeal.Network.Headers.Accept'],
-                    'Accept-Charset'  => $dic['Yapeal.Network.Headers.Accept-Charset'],
-                    'Accept-Encoding' => $dic['Yapeal.Network.Headers.Accept-Encoding'],
-                    'Accept-Language' => $dic['Yapeal.Network.Headers.Accept-Language'],
-                    'Connection'      => $dic['Yapeal.Network.Headers.Connection'],
-                    'Keep-Alive'      => $dic['Yapeal.Network.Headers.Keep-Alive']
-                ];
-                // Clean up any extra spaces and EOL chars from Yaml.
-                foreach ($headers as &$value) {
-                    /** @noinspection ReferenceMismatchInspection */
-                    $value = trim(
-                        str_replace(
-                            ' ',
-                            '',
-                            $value
-                        )
-                    );
-                }
-                unset($value);
-                if ('' !== $userAgent) {
-                    $headers['User-Agent'] = $userAgent;
-                }
-                $defaults = [
-                    'base_uri'        => $dic['Yapeal.Network.baseUrl'],
-                    'connect_timeout' => (int)$dic['Yapeal.Network.connect_timeout'],
-                    'headers'         => $headers,
-                    'timeout'         => (int)$dic['Yapeal.Network.timeout'],
-                    'verify'          => $dic['Yapeal.Network.verify']
-                ];
-                return new $dic['Yapeal.Network.class']($defaults);
-            };
-        }
-        if (empty($dic['Yapeal.Network.Retriever'])) {
-            $dic['Yapeal.Network.Retriever'] = function ($dic) {
-                return new GuzzleNetworkRetriever($dic['Yapeal.Network.Client']);
-            };
-        }
-        /**
-         * @type \Yapeal\Event\MediatorInterface $mediator
-         */
-        $mediator = $dic['Yapeal.Event.Mediator'];
-        $mediator->addServiceSubscriberByEventList(
-            'Yapeal.Network.Retriever',
-            ['Yapeal.EveApi.retrieve' => ['retrieveEveApi', 'last']]
-        );
-        return $this;
-    }
-    /**
-     * @return self Fluent interface.
-     * @throws \InvalidArgumentException
-     * @throws YapealDatabaseException
-     */
-    protected function wireSql()
-    {
-        $dic = $this->dic;
-        if (empty($dic['Yapeal.Sql.CommonQueries'])) {
-            $dic['Yapeal.Sql.CommonQueries'] = function ($dic) {
-                return new $dic['Yapeal.Sql.sharedSql'](
-                    $dic['Yapeal.Sql.database'], $dic['Yapeal.Sql.tablePrefix']
-                );
-            };
-        }
-        if (!empty($dic['Yapeal.Sql.Connection'])) {
-            return $this;
-        }
-        if ('mysql' !== $dic['Yapeal.Sql.platform']) {
-            $mess = 'Unknown platform, was given ' . $dic['Yapeal.Sql.platform'];
-            throw new YapealDatabaseException($mess);
-        }
-        $dic['Yapeal.Sql.Connection'] = function ($dic) {
-            $dsn = $dic['Yapeal.Sql.platform'] . ':host=' . $dic['Yapeal.Sql.hostName'] . ';charset=utf8';
-            if (!empty($dic['Yapeal.Sql.port'])) {
-                $dsn .= ';port=' . $dic['Yapeal.Sql.port'];
-            }
-            /**
-             * @type PDO $database
-             */
-            $database = new $dic['Yapeal.Sql.class'](
-                $dsn, $dic['Yapeal.Sql.userName'], $dic['Yapeal.Sql.password']
-            );
-            $database->setAttribute(
-                PDO::ATTR_ERRMODE,
-                PDO::ERRMODE_EXCEPTION
-            );
-            $database->exec('SET SESSION SQL_MODE=\'ANSI,TRADITIONAL\'');
-            $database->exec('SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE');
-            $database->exec('SET SESSION TIME_ZONE=\'+00:00\'');
-            $database->exec('SET NAMES utf8mb4 COLLATE utf8mb4_unicode_520_ci');
-            $database->exec('SET COLLATION_CONNECTION=utf8mb4_unicode_520_ci');
-            $database->exec('SET DEFAULT_STORAGE_ENGINE=' . $dic['Yapeal.Sql.engine']);
-            return $database;
-        };
-        if (empty($dic['Yapeal.Sql.Creator'])) {
-            $dic['Yapeal.Sql.Creator'] = $dic->factory(
-                function ($dic) {
-                    $loader = new Twig_Loader_Filesystem($dic['Yapeal.Sql.dir']);
-                    $twig = new Twig_Environment(
-                        $loader, ['debug' => true, 'strict_variables' => true, 'autoescape' => false]
-                    );
-                    $filter = new Twig_SimpleFilter(
-                        'ucFirst', function ($value) {
-                        return ucfirst($value);
-                    }
-                    );
-                    $twig->addFilter($filter);
-                    $filter = new Twig_SimpleFilter(
-                        'lcFirst', function ($value) {
-                        return lcfirst($value);
-                    }
-                    );
-                    $twig->addFilter($filter);
-                    /**
-                     * @type \Yapeal\Sql\Creator $create
-                     */
-                    $create = new $dic['Yapeal.Sql.create']($twig, $dic['Yapeal.Sql.dir'], $dic['Yapeal.Sql.platform']);
-                    if (array_key_exists('Yapeal.Create.overwrite', $dic)) {
-                        $create->setOverwrite($dic['Yapeal.Create.overwrite']);
-                    }
-                    return $create;
-                }
-            );
-        }
-        /**
-         * @type \Yapeal\Event\MediatorInterface $mediator
-         */
-        $mediator = $dic['Yapeal.Event.Mediator'];
-        $mediator->addServiceSubscriberByEventList(
-            'Yapeal.Sql.Creator',
-            ['Yapeal.EveApi.create' => ['createSql', 'last']]
-        );
-        return $this;
-    }
-    /**
-     * Wire Xml section.
-     *
-     * @return self Fluent interface.
-     * @throws \InvalidArgumentException
-     */
-    protected function wireXml()
-    {
-        if (empty($this->dic['Yapeal.Xml.Data'])) {
-            $this->dic['Yapeal.Xml.Data'] = $this->dic->factory(
-                function ($dic) {
-                    return new $dic['Yapeal.Xml.data']();
-                }
-            );
-        }
-        return $this;
-    }
-    /**
-     * Wire Xsd section.
-     *
-     * @return self Fluent interface.
-     * @throws \InvalidArgumentException
-     */
-    protected function wireXsd()
-    {
-        $dic = $this->dic;
-        if (empty($dic['Yapeal.Xsd.Creator'])) {
-            $dic['Yapeal.Xsd.Creator'] = $dic->factory(
-                function ($dic) {
-                    $loader = new Twig_Loader_Filesystem($dic['Yapeal.Xsd.dir']);
-                    $twig = new Twig_Environment(
-                        $loader, ['debug' => true, 'strict_variables' => true, 'autoescape' => false]
-                    );
-                    $filter = new Twig_SimpleFilter(
-                        'ucFirst', function ($value) {
-                        return ucfirst($value);
-                    }
-                    );
-                    $twig->addFilter($filter);
-                    $filter = new Twig_SimpleFilter(
-                        'lcFirst', function ($value) {
-                        return lcfirst($value);
-                    }
-                    );
-                    $twig->addFilter($filter);
-                    /**
-                     * @type \Yapeal\Xsd\Creator $create
-                     */
-                    $create = new $dic['Yapeal.Xsd.create']($twig, $dic['Yapeal.Xsd.dir']);
-                    if (array_key_exists('Yapeal.Create.overwrite', $dic)) {
-                        $create->setOverwrite($dic['Yapeal.Create.overwrite']);
-                    }
-                    return $create;
-                }
-            );
-        }
-        if (empty($dic['Yapeal.Xsd.Validator'])) {
-            $dic['Yapeal.Xsd.Validator'] = $dic->factory(
-                function ($dic) {
-                    return new $dic['Yapeal.Xsd.validate']($dic['Yapeal.Xsd.dir']);
-                }
-            );
-        }
-        /**
-         * @type \Yapeal\Event\MediatorInterface $mediator
-         */
-        $mediator = $dic['Yapeal.Event.Mediator'];
-        $mediator->addServiceSubscriberByEventList(
-            'Yapeal.Xsd.Creator',
-            ['Yapeal.EveApi.create' => ['createXsd', 'last']]
-        );
-        $mediator->addServiceSubscriberByEventList(
-            'Yapeal.Xsd.Validator',
-            ['Yapeal.EveApi.validate' => ['validateEveApi', 'last']]
-        );
-        return $this;
-    }
-    /**
-     * Wire Xsl section.
-     *
-     * @return self Fluent interface.
-     * @throws \InvalidArgumentException
-     */
-    protected function wireXsl()
-    {
-        $dic = $this->dic;
-        if (empty($dic['Yapeal.Xsl.Transformer'])) {
-            $dic['Yapeal.Xsl.Transformer'] = $dic->factory(
-                function ($dic) {
-                    return new $dic['Yapeal.Xsl.transform']($dic['Yapeal.Xsl.dir']);
-                }
-            );
-        }
-        /**
-         * @type \Yapeal\Event\MediatorInterface $mediator
-         */
-        $mediator = $dic['Yapeal.Event.Mediator'];
-        $mediator->addServiceSubscriberByEventList(
-            'Yapeal.Xsl.Transformer',
-            ['Yapeal.EveApi.transform' => ['transformEveApi', 'last']]
-        );
         return $this;
     }
     /**
