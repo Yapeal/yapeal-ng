@@ -54,7 +54,7 @@ class LogWiring implements WiringInterface
                 $lineFormatter = new LineFormatter;
                 $lineFormatter->includeStacktraces();
                 /**
-                 * @type \Monolog\Handler\StreamHandler $handler
+                 * @var \Monolog\Handler\StreamHandler $handler
                  */
                 if (PHP_SAPI === 'cli') {
                     $handler = new $dic['Yapeal.Log.Handlers.stream'](
@@ -80,7 +80,7 @@ class LogWiring implements WiringInterface
             };
         }
         /**
-         * @type \Yapeal\Event\MediatorInterface $mediator
+         * @var \Yapeal\Event\MediatorInterface $mediator
          */
         $mediator = $dic['Yapeal.Event.Mediator'];
         $mediator->addServiceSubscriberByEventList(

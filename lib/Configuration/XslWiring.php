@@ -61,7 +61,7 @@ class XslWiring implements WiringInterface
             throw new \LogicException($mess);
         }
         /**
-         * @type \Yapeal\Event\MediatorInterface $mediator
+         * @var \Yapeal\Event\MediatorInterface $mediator
          */
         $mediator = $dic['Yapeal.Event.Mediator'];
         $mediator->addServiceSubscriberByEventList(

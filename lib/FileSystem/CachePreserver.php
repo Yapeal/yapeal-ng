@@ -126,7 +126,7 @@ class CachePreserver
         return $this->cachePath;
     }
     /**
-     * @type string $cachePath
+     * @var string $cachePath
      */
     protected $cachePath;
 }

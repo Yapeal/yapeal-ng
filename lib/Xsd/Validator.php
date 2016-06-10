@@ -87,7 +87,7 @@ class Validator
         $dom->loadXML($data->getEveApiXml());
         if (!$dom->schemaValidate($fileName)) {
             /**
-             * @type array $errors
+             * @var array $errors
              */
             $errors = libxml_get_errors();
             if (0 !== count($errors)) {

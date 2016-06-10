@@ -118,6 +118,7 @@ abstract class AbstractDatabaseCommon extends Command
      * @param OutputInterface $output An OutputInterface instance
      *
      * @return int|null null or 0 if everything went fine, or an error code
+     * @throws \LogicException
      *
      * @throws \DomainException
      * @throws \InvalidArgumentException
@@ -163,7 +164,7 @@ abstract class AbstractDatabaseCommon extends Command
         // Split up SQL into statements on ';'.
         // Replace {database}, {table_prefix}, {engine}, ';', and '$$' in statements.
         /**
-         * @type string[] $statements
+         * @var string[] $statements
          */
         $statements = str_replace(
             $templates,

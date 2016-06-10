@@ -351,7 +351,7 @@ class UtilRegisterKey
         return ('' === $result);
     }
     /**
-     * @type array
+     * @var array
      */
     protected static $columnsNames = [
         'active',
@@ -360,31 +360,31 @@ class UtilRegisterKey
         'vCode'
     ];
     /**
-     * @type bool $active
+     * @var bool $active
      */
     protected $active;
     /**
-     * @type string $activeAPIMask
+     * @var string $activeAPIMask
      */
     protected $activeAPIMask;
     /**
-     * @type string $databaseName
+     * @var string $databaseName
      */
     protected $databaseName;
     /**
-     * @type string $keyID
+     * @var string $keyID
      */
     protected $keyID;
     /**
-     * @type PDO $pdo
+     * @var PDO $pdo
      */
     protected $pdo;
     /**
-     * @type string $tablePrefix
+     * @var string $tablePrefix
      */
     protected $tablePrefix;
     /**
-     * @type string $vCode
+     * @var string $vCode
      */
     protected $vCode;
 }

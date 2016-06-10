@@ -180,7 +180,7 @@ class CacheRetriever implements EveApiRetrieverInterface
         return ($until <= $now);
     }
     /**
-     * @type string $cachePath
+     * @var string $cachePath
      */
     protected $cachePath;
 }

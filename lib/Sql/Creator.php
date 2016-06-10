@@ -305,7 +305,7 @@ class Creator
         }
         $columns = [];
         /**
-         * @type SimpleXMLElement $ele
+         * @var SimpleXMLElement $ele
          */
         foreach ($items as $ele) {
             $name = (string)$ele->getName();
@@ -322,23 +322,23 @@ class Creator
         }
     }
     /**
-     * @type string $apiName
+     * @var string $apiName
      */
     protected $apiName;
     /**
-     * @type string $platform Sql connection platform being used.
+     * @var string $platform Sql connection platform being used.
      */
     protected $platform;
     /**
-     * @type string $sectionName
+     * @var string $sectionName
      */
     protected $sectionName;
     /**
-     * @type integer $tableCount
+     * @var integer $tableCount
      */
     protected $tableCount = 0;
     /**
-     * @type array $tables
+     * @var array $tables
      */
     protected $tables;
 }

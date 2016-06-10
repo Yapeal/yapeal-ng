@@ -135,17 +135,17 @@ trait EveApiCreatorTrait
         return file_put_contents($fileName, $contents);
     }
     /**
-     * @type string $dir Directory path used when saving new files.
+     * @var string $dir Directory path used when saving new files.
      */
     protected $dir;
     /**
      * Used to decide if existing file should be overwritten.
      *
-     * @type bool $overwrite
+     * @var bool $overwrite
      */
     protected $overwrite = false;
     /**
-     * @type Twig_Environment $twig
+     * @var Twig_Environment $twig
      */
     protected $twig;
 }

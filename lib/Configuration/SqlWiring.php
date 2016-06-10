@@ -74,7 +74,7 @@ class SqlWiring implements WiringInterface
                 $dsn .= ';port=' . $dic['Yapeal.Sql.port'];
             }
             /**
-             * @type PDO $database
+             * @var PDO $database
              */
             $database = new $dic['Yapeal.Sql.class'](
                 $dsn, $dic['Yapeal.Sql.userName'], $dic['Yapeal.Sql.password']
@@ -111,7 +111,7 @@ class SqlWiring implements WiringInterface
                     );
                     $twig->addFilter($filter);
                     /**
-                     * @type \Yapeal\Sql\Creator $create
+                     * @var \Yapeal\Sql\Creator $create
                      */
                     $create = new $dic['Yapeal.Sql.create']($twig, $dic['Yapeal.Sql.dir'], $dic['Yapeal.Sql.platform']);
                     if (array_key_exists('Yapeal.Create.overwrite', $dic)) {
@@ -122,7 +122,7 @@ class SqlWiring implements WiringInterface
             );
         }
         /**
-         * @type \Yapeal\Event\MediatorInterface $mediator
+         * @var \Yapeal\Event\MediatorInterface $mediator
          */
         $mediator = $dic['Yapeal.Event.Mediator'];
         $mediator->addServiceSubscriberByEventList(

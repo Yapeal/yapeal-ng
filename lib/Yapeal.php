@@ -59,6 +59,7 @@ class Yapeal implements WiringInterface
      * @throws \InvalidArgumentException
      * @throws YapealException
      * @throws YapealDatabaseException
+     * @throws \LogicException
      */
     public function __construct(ContainerInterface $dic)
     {
@@ -82,7 +83,7 @@ class Yapeal implements WiringInterface
         $this->getYem()
              ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess);
         /**
-         * @type CommonSqlQueries $csq
+         * @var CommonSqlQueries $csq
          */
         $csq = $dic['Yapeal.Sql.CommonQueries'];
         $sql = $csq->getActiveApis();
@@ -90,11 +91,11 @@ class Yapeal implements WiringInterface
              ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $sql);
         try {
             /**
-             * @type PDO $pdo
+             * @var PDO $pdo
              */
             $pdo = $dic['Yapeal.Sql.Connection'];
             /**
-             * @type PDOStatement $smt
+             * @var PDOStatement $smt
              */
             $stmt = $pdo->query($sql);
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -118,7 +119,7 @@ class Yapeal implements WiringInterface
             /**
              * Get new Data instance from factory.
              *
-             * @type EveApiReadWriteInterface $data
+             * @var EveApiReadWriteInterface $data
              */
             $data = $dic['Yapeal.Xml.Data'];
             $data->setEveApiName($record['apiName'])
@@ -145,6 +146,7 @@ class Yapeal implements WiringInterface
      * @throws \InvalidArgumentException
      * @throws YapealException
      * @throws YapealDatabaseException
+     * @throws \LogicException
      */
     public function wire(ContainerInterface $dic)
     {
@@ -158,7 +160,7 @@ class Yapeal implements WiringInterface
         return $this->dic;
     }
     /**
-     * @type ContainerInterface $dic
+     * @var ContainerInterface $dic
      */
     protected $dic;
 }

@@ -93,18 +93,18 @@ Here a simple test example of how to use one of the new events.
     #!/usr/bin/env php
     <?php
     namespace Yapeal;
-    
+
     require_once __DIR__ . '/bin/bootstrap.php';
     use Psr\Log\LoggerInterface;
     use Yapeal\Container\PimpleContainer;
     use Yapeal\Event\EveApiEventInterface;
     use Yapeal\Event\YapealEventDispatcherInterface;
-    
+
     $dic = new PimpleContainer();
     $yapeal = new Yapeal($dic);
     $yapeal->wire($dic);
     /**
-     * @type YapealEventDispatcherInterface $yem
+     * @var YapealEventDispatcherInterface $yem
      */
     $yem = $dic['Yapeal.Event.Dispatcher'];
     $test = function (

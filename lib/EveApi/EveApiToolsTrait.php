@@ -87,11 +87,11 @@ trait EveApiToolsTrait
         return $this->pdo;
     }
     /**
-     * @type CommonSqlQueries $csq
+     * @var CommonSqlQueries $csq
      */
     protected $csq;
     /**
-     * @type PDO $pdo
+     * @var PDO $pdo
      */
     protected $pdo;
 }

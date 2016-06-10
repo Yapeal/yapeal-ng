@@ -164,7 +164,7 @@ class Transformer implements TransformerInterface
         }
         if (false === $result) {
             /**
-             * @type array $errors
+             * @var array $errors
              */
             $errors = libxml_get_errors();
             if (0 !== count($errors)) {
@@ -181,7 +181,7 @@ class Transformer implements TransformerInterface
     /**
      * Holds tidy config settings.
      *
-     * @type array $tidyConfig
+     * @var array $tidyConfig
      */
     protected $tidyConfig = [
         'indent'        => true,

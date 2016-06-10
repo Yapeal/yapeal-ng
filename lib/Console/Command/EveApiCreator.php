@@ -88,7 +88,7 @@ class EveApiCreator extends Command implements WiringInterface
         /**
          * Get new Data instance from factory.
          *
-         * @type EveApiReadWriteInterface $data
+         * @var EveApiReadWriteInterface $data
          */
         $data = $this->getDic()['Yapeal.Xml.Data'];
         $data->setEveApiName($apiName)
@@ -188,7 +188,7 @@ EOF;
     protected function processPost(InputInterface $input)
     {
         /**
-         * @type array $posts
+         * @var array $posts
          */
         $posts = (array)$input->getArgument('post');
         if (0 === count($posts)) {

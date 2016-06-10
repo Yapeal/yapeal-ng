@@ -72,7 +72,7 @@ class XsdWiring implements WiringInterface
                     );
                     $twig->addFilter($filter);
                     /**
-                     * @type \Yapeal\Xsd\Creator $create
+                     * @var \Yapeal\Xsd\Creator $create
                      */
                     $create = new $dic['Yapeal.Xsd.create']($twig, $dic['Yapeal.Xsd.dir']);
                     if (array_key_exists('Yapeal.Create.overwrite', $dic)) {
@@ -94,7 +94,7 @@ class XsdWiring implements WiringInterface
             throw new \LogicException($mess);
         }
         /**
-         * @type \Yapeal\Event\MediatorInterface $mediator
+         * @var \Yapeal\Event\MediatorInterface $mediator
          */
         $mediator = $dic['Yapeal.Event.Mediator'];
         $mediator->addServiceSubscriberByEventList(

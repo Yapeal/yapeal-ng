@@ -122,7 +122,7 @@ trait PreserverTrait
     {
         $columns = [];
         /**
-         * @type \SimpleXMLElement $row
+         * @var \SimpleXMLElement $row
          */
         foreach ($rows as $row) {
             // Replace empty values with any existing defaults.
@@ -152,7 +152,7 @@ trait PreserverTrait
     {
         $columns = (new SimpleXMLIterator($xml))->xpath($xPath);
         /**
-         * @type SimpleXMLIterator $column
+         * @var SimpleXMLIterator $column
          */
         foreach ($columns as $column) {
             $columnName = $column->getName();

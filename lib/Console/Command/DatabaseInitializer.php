@@ -129,7 +129,7 @@ HELP;
             $vendorPath = $this->getDic()['Yapeal.vendorParentDir'];
         }
         /**
-         * @type array $customFiles
+         * @var array $customFiles
          */
         $customFiles = explode(',', sprintf($fileNames, $path, $this->getDic()['Yapeal.baseDir'], $vendorPath));
         foreach ($customFiles as $fileName)

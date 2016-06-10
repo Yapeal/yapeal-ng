@@ -107,15 +107,15 @@ class LogEvent extends Event implements LogEventInterface
         return $this;
     }
     /**
-     * @type array $context
+     * @var array $context
      */
     protected $context;
     /**
-     * @type mixed $level
+     * @var mixed $level
      */
     protected $level;
     /**
-     * @type string $message
+     * @var string $message
      */
     protected $message;
 }

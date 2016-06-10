@@ -451,11 +451,11 @@ SQL;
         return $this->getUpsert('utilDatabaseVersion', ['version'], 1);
     }
     /**
-     * @type string $databaseName
+     * @var string $databaseName
      */
     protected $databaseName;
     /**
-     * @type string $tablePrefix
+     * @var string $tablePrefix
      */
     protected $tablePrefix;
 }

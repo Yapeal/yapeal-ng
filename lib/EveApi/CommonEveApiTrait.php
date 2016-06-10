@@ -145,7 +145,7 @@ trait CommonEveApiTrait
             ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
         try {
             /**
-             * @type \PDOStatement $stmt
+             * @var \PDOStatement $stmt
              */
             $stmt = $this->getPdo()
                 ->query($sql);
@@ -219,7 +219,7 @@ trait CommonEveApiTrait
         $success = false;
         try {
             /**
-             * @type \PDOStatement $stmt
+             * @var \PDOStatement $stmt
              */
             $stmt = $this->getPdo()
                 ->query($sql);
@@ -248,7 +248,7 @@ trait CommonEveApiTrait
         $success = false;
         try {
             /**
-             * @type \PDOStatement $stmt
+             * @var \PDOStatement $stmt
              */
             $stmt = $this->getPdo()
                 ->query($sql);
@@ -293,7 +293,7 @@ trait CommonEveApiTrait
         $success = false;
         try {
             /**
-             * @type \PDOStatement $stmt
+             * @var \PDOStatement $stmt
              */
             $stmt = $pdo->prepare($sql);
             $stmt->execute($row);
@@ -308,7 +308,7 @@ trait CommonEveApiTrait
             ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $this->createEveApiMessage($mess, $data), $context);
     }
     /**
-     * @type int $mask
+     * @var int $mask
      */
     protected $mask;
 }

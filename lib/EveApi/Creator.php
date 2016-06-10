@@ -227,7 +227,7 @@ class Creator
         }
         $values = [];
         /**
-         * @type SimpleXMLElement $ele
+         * @var SimpleXMLElement $ele
          */
         foreach ($items as $ele) {
             $name = (string)$ele->getName();
@@ -240,11 +240,11 @@ class Creator
         $this->tables[$tableName] = ['values' => $values];
     }
     /**
-     * @type string $sectionName
+     * @var string $sectionName
      */
     protected $sectionName;
     /**
-     * @type array $tables
+     * @var array $tables
      */
     protected $tables;
 }

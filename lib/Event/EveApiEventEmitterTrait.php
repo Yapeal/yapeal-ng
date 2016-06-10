@@ -68,7 +68,7 @@ trait EveApiEventEmitterTrait
         // Prefix.Section.Api.Suffix, Prefix.Api.Suffix,
         // Prefix.Section.Suffix, Prefix.Suffix
         /**
-         * @type string[] $eventNames
+         * @var string[] $eventNames
          */
         $eventNames = explode(
             ',',
@@ -121,7 +121,7 @@ trait EveApiEventEmitterTrait
         return $this->yem;
     }
     /**
-     * @type MediatorInterface $yem
+     * @var MediatorInterface $yem
      */
     protected $yem;
 }

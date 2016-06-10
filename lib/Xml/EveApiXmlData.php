@@ -272,31 +272,31 @@ class EveApiXmlData implements EveApiReadWriteInterface
     /**
      * Holds expected/calculated cache interval for the current API.
      *
-     * @type int $cacheInterval
+     * @var int $cacheInterval
      */
     protected $cacheInterval = 300;
     /**
      * List of API arguments.
      *
-     * @type string[] $eveApiArguments
+     * @var string[] $eveApiArguments
      */
     protected $eveApiArguments = [];
     /**
      * Holds Eve API name.
      *
-     * @type string $eveApiName
+     * @var string $eveApiName
      */
     protected $eveApiName;
     /**
      * Holds Eve API section name.
      *
-     * @type string $eveApiSectionName
+     * @var string $eveApiSectionName
      */
     protected $eveApiSectionName;
     /**
      * Holds the actual Eve API XML data.
      *
-     * @type string $eveApiXml
+     * @var string $eveApiXml
      */
     protected $eveApiXml = '';
 }

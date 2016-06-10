@@ -54,7 +54,7 @@ class ErrorWiring implements WiringInterface
         }
         $dic['Yapeal.Error.Logger'] = function ($dic) {
             /**
-             * @type Logger $logger
+             * @var Logger $logger
              */
             $logger = new $dic['Yapeal.Error.class']($dic['Yapeal.Error.channel']);
             $group = [];
@@ -74,7 +74,7 @@ class ErrorWiring implements WiringInterface
                 )
             );
             /**
-             * @type ErrorHandler $error
+             * @var ErrorHandler $error
              */
             $error = $dic['Yapeal.Error.Handlers.error'];
             $error::register(

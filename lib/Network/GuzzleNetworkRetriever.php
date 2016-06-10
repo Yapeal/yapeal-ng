@@ -125,7 +125,7 @@ class GuzzleNetworkRetriever implements EveApiRetrieverInterface
         return $this->client;
     }
     /**
-     * @type Client $client
+     * @var Client $client
      */
     protected $client;
 }

@@ -189,7 +189,7 @@ class Wiring
         }
         try {
             /**
-             * @type RecursiveIteratorIterator|Traversable $rItIt
+             * @var RecursiveIteratorIterator|Traversable $rItIt
              */
             $rItIt = new RecursiveIteratorIterator(
                 new RecursiveArrayIterator(
@@ -212,7 +212,7 @@ class Wiring
             $keys = [];
             /** @noinspection DisconnectedForeachInstructionInspection */
             /**
-             * @type array $depths
+             * @var array $depths
              */
             $depths = range(0, $rItIt->getDepth());
             foreach ($depths as $depth) {
@@ -279,18 +279,18 @@ class Wiring
     protected function wireEveApi()
     {
         /**
-         * @type ContainerInterface $dic
+         * @var ContainerInterface $dic
          */
         $dic = $this->dic;
         /**
-         * @type \Yapeal\Event\MediatorInterface $mediator
+         * @var \Yapeal\Event\MediatorInterface $mediator
          */
         $mediator = $dic['Yapeal.Event.Mediator'];
         $internal = $this->getFilteredEveApiSubscriberList();
         if (0 !== count($internal)) {
             $base = 'Yapeal.EveApi';
             /**
-             * @type \SplFileInfo $subscriber
+             * @var \SplFileInfo $subscriber
              */
             foreach ($internal as $subscriber) {
                 $service = sprintf(
@@ -303,7 +303,7 @@ class Wiring
                     $dic[$service] = function () use ($dic, $service) {
                         $class = '\\' . str_replace('.', '\\', $service);
                         /**
-                         * @type \Yapeal\EveApi\EveApiToolsTrait $callable
+                         * @var \Yapeal\EveApi\EveApiToolsTrait $callable
                          */
                         $callable = new $class();
                         return $callable->setCsq($dic['Yapeal.Sql.CommonQueries'])
@@ -336,7 +336,7 @@ class Wiring
                 );
                 $twig->addFilter($filter);
                 /**
-                 * @type \Yapeal\EveApi\Creator $create
+                 * @var \Yapeal\EveApi\Creator $create
                  */
                 $create = new $dic['Yapeal.EveApi.create']($twig, $dic['Yapeal.EveApi.dir']);
                 if (!empty($dic['Yapeal.Create.overwrite'])) {
@@ -352,7 +352,7 @@ class Wiring
         return $this;
     }
     /**
-     * @type ContainerInterface $dic
+     * @var ContainerInterface $dic
      */
     protected $dic;
 }

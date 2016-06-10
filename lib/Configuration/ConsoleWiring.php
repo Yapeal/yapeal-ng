@@ -44,6 +44,7 @@ class ConsoleWiring extends Wiring
     /** @noinspection PhpMissingParentCallCommonInspection */
     /**
      * @return self Fluent interface.
+     * @throws \LogicException
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws YapealException

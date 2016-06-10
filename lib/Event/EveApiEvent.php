@@ -94,13 +94,13 @@ class EveApiEvent extends Event implements EveApiEventInterface
     /**
      * Holds the data instance.
      *
-     * @type EveApiReadWriteInterface $data
+     * @var EveApiReadWriteInterface $data
      */
     protected $data;
     /**
      * Holds the handled sufficiently state.
      *
-     * @type bool $handledSufficiently
+     * @var bool $handledSufficiently
      */
     protected $handledSufficiently = false;
 }

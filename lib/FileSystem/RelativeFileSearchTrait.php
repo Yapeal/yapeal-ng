@@ -122,7 +122,7 @@ trait RelativeFileSearchTrait
     /**
      * Holds the path that is prepended for searches.
      *
-     * @type string $relativeBaseDir
+     * @var string $relativeBaseDir
      */
     protected $relativeBaseDir;
 }

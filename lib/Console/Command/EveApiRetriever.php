@@ -159,13 +159,13 @@ EOF;
         $apiName = $input->getArgument('api_name');
         $sectionName = $input->getArgument('section_name');
         /**
-         * @type MediatorInterface $yem
+         * @var MediatorInterface $yem
          */
         $this->yem = $dic['Yapeal.Event.Mediator'];
         /**
          * Get new Data instance from factory.
          *
-         * @type EveApiReadWriteInterface $data
+         * @var EveApiReadWriteInterface $data
          */
         /** @noinspection DisconnectedForeachInstructionInspection */
         $data = $dic['Yapeal.Xml.Data'];
@@ -194,7 +194,7 @@ EOF;
     protected function processPost(InputInterface $input)
     {
         /**
-         * @type array $posts
+         * @var array $posts
          */
         $posts = (array)$input->getArgument('post');
         if (0 !== count($posts)) {

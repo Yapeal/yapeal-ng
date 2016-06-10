@@ -66,7 +66,7 @@ trait AccountKeyTrait
             }
             if (false === $data->getEveApiXml()) {
                 /**
-                 * @type MediatorInterface $yem
+                 * @var MediatorInterface $yem
                  */
                 $yem = $this->getYem();
                 if ('10000' === $data->getEveApiArgument('accountKey')
@@ -183,7 +183,7 @@ trait AccountKeyTrait
         return $event;
     }
     /**
-     * @type array $accountKeys
+     * @var array $accountKeys
      */
     protected $accountKeys;
 }

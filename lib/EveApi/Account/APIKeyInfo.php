@@ -109,7 +109,7 @@ class APIKeyInfo extends AccountSection
             ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
         try {
             /**
-             * @type \PDOStatement $stmt
+             * @var \PDOStatement $stmt
              */
             $stmt = $this->getPdo()
                 ->query($sql);
