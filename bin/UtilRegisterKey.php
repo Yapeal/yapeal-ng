@@ -30,8 +30,6 @@
  */
 namespace Yapeal;
 
-use InvalidArgumentException;
-use LogicException;
 use PDO;
 use Yapeal\Exception\YapealDatabaseException;
 
@@ -52,7 +50,7 @@ class UtilRegisterKey
      * @param string $databaseName
      * @param string $tablePrefix
      *
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public function __construct(PDO $pdo, $databaseName = 'yapeal', $tablePrefix = '')
     {
@@ -62,69 +60,69 @@ class UtilRegisterKey
     }
     /**
      * @return int
-     * @throws LogicException
+     * @throws \LogicException
      */
     public function getActive()
     {
         if (null === $this->active) {
-            $mess = ' Tried to access "active" before it was set';
-            throw new LogicException($mess);
+            $mess = 'Tried to access "active" before it was set';
+            throw new \LogicException($mess);
         }
         return (int)$this->active;
     }
     /**
      * @return string
-     * @throws LogicException
+     * @throws \LogicException
      */
     public function getActiveAPIMask()
     {
         if (null === $this->activeAPIMask) {
-            $mess = ' Tried to access "activeAPIMask" before it was set';
-            throw new LogicException($mess);
+            $mess = 'Tried to access "activeAPIMask" before it was set';
+            throw new \LogicException($mess);
         }
         return $this->activeAPIMask;
     }
     /**
      * @return string
-     * @throws LogicException
+     * @throws \LogicException
      */
     public function getKeyID()
     {
         if (null === $this->keyID) {
-            $mess = ' Tried to access "keyID" before it was set';
-            throw new LogicException($mess);
+            $mess = 'Tried to access "keyID" before it was set';
+            throw new \LogicException($mess);
         }
         return $this->keyID;
     }
     /**
      * @return string
-     * @throws LogicException
+     * @throws \LogicException
      */
     public function getVCode()
     {
         if (null === $this->vCode) {
-            $mess = ' Tried to access "vCode" before it was set';
-            throw new LogicException($mess);
+            $mess = 'Tried to access "vCode" before it was set';
+            throw new \LogicException($mess);
         }
         return $this->vCode;
     }
     /**
      * @return bool
-     * @throws LogicException
+     * @throws \LogicException
      */
     public function isActive()
     {
         if (null === $this->active) {
-            $mess = ' Tried to access "active" before it was set';
-            throw new LogicException($mess);
+            $mess = 'Tried to access "active" before it was set';
+            throw new \LogicException($mess);
         }
         return $this->active;
     }
     /**
      * Used to load an existing RegisteredKey row from database.
      *
-     * @return UtilRegisterKey Fluent interface.
-     * @throws LogicException
+     * @return self Fluent interface.
+     * @throws \LogicException
      * @throws YapealDatabaseException
      */
     public function load()
@@ -138,7 +136,7 @@ class UtilRegisterKey
                 sprintf('Expect to receive a single row for "%1$s" but got %2$s', $this->getKeyID(), count($result));
             throw new YapealDatabaseException($mess);
         }
-        foreach (self::$columnsNames as $column) {
+        foreach ($this->getColumnNames() as $column) {
             $this->$column = $result[0][$column];
         }
         return $this;
@@ -150,8 +148,8 @@ class UtilRegisterKey
      * switched to ANSI mode and use UTF-8.
      *
      * @see UtilRegisteredKey
-     * @return UtilRegisterKey
-     * @throws LogicException
+     * @return self Fluent interface.
+     * @throws \LogicException
      */
     public function save()
     {
@@ -170,7 +168,7 @@ class UtilRegisterKey
     /**
      * @param bool $value
      *
-     * @return self
+     * @return self Fluent interface.
      */
     public function setActive($value = true)
     {
@@ -180,8 +178,8 @@ class UtilRegisterKey
     /**
      * @param string|int $value
      *
-     * @throws InvalidArgumentException
-     * @return self
+     * @return self Fluent interface.
+     * @throws \InvalidArgumentException
      */
     public function setActiveAPIMask($value)
     {
@@ -190,11 +188,11 @@ class UtilRegisterKey
         }
         if (!is_string($value)) {
             $mess = 'ActiveAPIMask MUST be an integer or integer string but was given ' . gettype($value);
-            throw new InvalidArgumentException($mess);
+            throw new \InvalidArgumentException($mess);
         }
         if (!$this->isIntString($value)) {
             $mess = 'ActiveAPIMask MUST be an integer or integer string but was given ' . $value;
-            throw new InvalidArgumentException($mess);
+            throw new \InvalidArgumentException($mess);
         }
         $this->activeAPIMask = $value;
         return $this;
@@ -202,14 +200,14 @@ class UtilRegisterKey
     /**
      * @param string $databaseName
      *
-     * @return UtilRegisterKey
-     * @throws InvalidArgumentException
+     * @return self Fluent interface.
+     * @throws \InvalidArgumentException
      */
     public function setDatabaseName($databaseName)
     {
         if (!is_string($databaseName)) {
             $mess = 'DatabaseName MUST be a string but was given ' . gettype($databaseName);
-            throw new InvalidArgumentException($mess);
+            throw new \InvalidArgumentException($mess);
         }
         $this->databaseName = $databaseName;
         return $this;
@@ -217,8 +215,8 @@ class UtilRegisterKey
     /**
      * @param string|int $value
      *
-     * @throws InvalidArgumentException
-     * @return self
+     * @return self Fluent interface.
+     * @throws \InvalidArgumentException
      */
     public function setKeyID($value)
     {
@@ -227,7 +225,7 @@ class UtilRegisterKey
         }
         if (!(is_string($value) && $this->isIntString($value))) {
             $mess = 'KeyID MUST be an integer or integer string but was given (' . gettype($value) . ') ' . $value;
-            throw new InvalidArgumentException($mess);
+            throw new \InvalidArgumentException($mess);
         }
         $this->keyID = $value;
         return $this;
@@ -235,7 +233,7 @@ class UtilRegisterKey
     /**
      * @param PDO $value
      *
-     * @return self
+     * @return self Fluent interface.
      */
     public function setPdo(PDO $value)
     {
@@ -245,14 +243,14 @@ class UtilRegisterKey
     /**
      * @param string $tablePrefix
      *
-     * @return UtilRegisterKey
-     * @throws InvalidArgumentException
+     * @return self Fluent interface.
+     * @throws \InvalidArgumentException
      */
     public function setTablePrefix($tablePrefix)
     {
         if (!is_string($tablePrefix)) {
             $mess = 'TablePrefix MUST be a string but was given ' . gettype($tablePrefix);
-            throw new InvalidArgumentException($mess);
+            throw new \InvalidArgumentException($mess);
         }
         $this->tablePrefix = $tablePrefix;
         return $this;
@@ -260,25 +258,33 @@ class UtilRegisterKey
     /**
      * @param string $value
      *
-     * @throws InvalidArgumentException
-     * @return self
+     * @return self Fluent interface.
+     * @throws \InvalidArgumentException
      */
     public function setVCode($value)
     {
         if (!is_string($value)) {
             $mess = 'VCode MUST be a string but was given ' . gettype($value);
-            throw new InvalidArgumentException($mess);
+            throw new \InvalidArgumentException($mess);
         }
         $this->vCode = $value;
         return $this;
     }
     /**
+     * @return array
+     */
+    protected function getColumnNames()
+    {
+        return ['active', 'activeAPIMask', 'keyID', 'vCode'];
+    }
+    /**
      * @return string
-     * @throws LogicException
+     * @throws \LogicException
      */
     protected function getExistingRegisteredKeyById()
     {
-        $columns = implode('","', self::$columnsNames);
+        $columns = implode('","', $this->getColumnNames());
+        /** @noinspection SqlResolve */
         return sprintf(
             'SELECT "%4$s" FROM "%1$s"."%2$sutilRegisteredKey" WHERE "keyID"=%3$s',
             $this->databaseName,
@@ -288,14 +294,14 @@ class UtilRegisterKey
         );
     }
     /**
-     * @throws LogicException
      * @return PDO
+     * @throws \LogicException
      */
     protected function getPdo()
     {
         if (!$this->pdo instanceof PDO) {
             $mess = 'Tried to use pdo before it was set';
-            throw new LogicException($mess);
+            throw new \LogicException($mess);
         }
         return $this->pdo;
     }
@@ -304,13 +310,15 @@ class UtilRegisterKey
      */
     protected function getUpsert()
     {
-        $columns = implode('","', self::$columnsNames);
-        $rowPrototype = '(' . implode(',', array_fill(0, count(self::$columnsNames), '?')) . ')';
+        $columnNames = $this->getColumnNames();
+        $columns = implode('","', $columnNames);
+        $rowPrototype = '(' . implode(',', array_fill(0, count($columnNames), '?')) . ')';
         $updates = [];
-        foreach (self::$columnsNames as $column) {
+        foreach ($columnNames as $column) {
             $updates[] = '"' . $column . '"=VALUES("' . $column . '")';
         }
         $updates = implode(',', $updates);
+        /** @noinspection SqlResolve */
         $sql = sprintf(
             'INSERT INTO "%1$s"."%2$s%3$s" ("%4$s") VALUES %5$s ON DUPLICATE KEY UPDATE %6$s',
             $this->databaseName,
@@ -323,8 +331,8 @@ class UtilRegisterKey
         return $sql;
     }
     /**
-     * @throws LogicException
-     * @return self
+     * @return self Fluent interface.
+     * @throws \LogicException
      */
     protected function initPdo()
     {
@@ -333,7 +341,8 @@ class UtilRegisterKey
         $pdo->exec('SET SESSION SQL_MODE=\'ANSI,TRADITIONAL\'');
         $pdo->exec('SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE');
         $pdo->exec('SET SESSION TIME_ZONE=\'+00:00\'');
-        $pdo->exec('SET NAMES UTF8');
+        $pdo->exec('SET NAMES utf8mb4 COLLATE utf8mb4_unicode_520_ci');
+        $pdo->exec('SET COLLATION_CONNECTION=utf8mb4_unicode_520_ci');
         return $this;
     }
     /**
@@ -343,22 +352,9 @@ class UtilRegisterKey
      */
     protected function isIntString($value)
     {
-        $result = str_replace(
-            ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
-            '',
-            $value
-        );
+        $result = str_replace(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'], '', $value);
         return ('' === $result);
     }
-    /**
-     * @var array
-     */
-    protected static $columnsNames = [
-        'active',
-        'activeAPIMask',
-        'keyID',
-        'vCode'
-    ];
     /**
      * @var bool $active
      */
