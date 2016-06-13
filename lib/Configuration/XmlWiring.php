@@ -45,6 +45,7 @@ class XmlWiring implements WiringInterface
      *
      * @return self Fluent interface.
      * @throws \InvalidArgumentException
+     * @throws \LogicException
      */
     public function wire(ContainerInterface $dic)
     {
@@ -55,6 +56,25 @@ class XmlWiring implements WiringInterface
                 }
             );
         }
+        if (empty($dic['Yapeal.Xml.Error.Subscriber'])) {
+            $dic['Yapeal.Xml.Error.Subscriber'] = $dic->factory(
+                function ($dic) {
+                    return new $dic['Yapeal.Xml.Handlers.error']();
+                }
+            );
+        }
+        if (!isset($dic['Yapeal.Event.Mediator'])) {
+            $mess = 'Tried to call Mediator before it has been added';
+            throw new \LogicException($mess);
+        }
+        /**
+         * @var \Yapeal\Event\MediatorInterface $mediator
+         */
+        $mediator = $dic['Yapeal.Event.Mediator'];
+        $mediator->addServiceSubscriberByEventList(
+            'Yapeal.Xml.Error.Subscriber',
+            ['Yapeal.Xml.error' => ['processXmlError', 'last']]
+        );
         return $this;
     }
 }

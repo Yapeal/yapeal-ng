@@ -74,6 +74,8 @@ Yapeal:
     Xml:
         data: Yapeal\Xml\EveApiXmlData
         dir: '{Yapeal.libDir}Xml/'
+        Handlers:
+            error: Yapeal\Xml\ErrorCacheIntervalSubscriber
     Xsd:
         create: Yapeal\Xsd\Creator
         validate: Yapeal\Xsd\Validator

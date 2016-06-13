@@ -34,13 +34,11 @@
 namespace Yapeal\Xsd;
 
 use DOMDocument;
-use SimpleXMLElement;
 use Yapeal\Event\EveApiEventEmitterTrait;
 use Yapeal\Event\EveApiEventInterface;
 use Yapeal\Event\MediatorInterface;
 use Yapeal\FileSystem\RelativeFileSearchTrait;
 use Yapeal\Log\Logger;
-use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
  * Class Validator
@@ -72,11 +70,11 @@ class Validator
         $this->setYem($yem);
         $data = $event->getData();
         $this->getYem()
-            ->triggerLogEvent(
-                'Yapeal.Log.log',
-                Logger::DEBUG,
-                $this->getReceivedEventMessage($data, $eventName, __CLASS__)
-            );
+             ->triggerLogEvent(
+                 'Yapeal.Log.log',
+                 Logger::DEBUG,
+                 $this->getReceivedEventMessage($data, $eventName, __CLASS__)
+             );
         $fileName = $this->findEveApiFile($data->getEveApiSectionName(), $data->getEveApiName(), 'xsd');
         if ('' === $fileName) {
             return $event;
@@ -93,7 +91,7 @@ class Validator
             if (0 !== count($errors)) {
                 foreach ($errors as $error) {
                     $this->getYem()
-                        ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $error->message);
+                         ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $error->message);
                 }
             }
             libxml_clear_errors();
@@ -102,52 +100,11 @@ class Validator
         }
         libxml_clear_errors();
         libxml_use_internal_errors($oldErrors);
+        // Check for XML error element.
         if (false !== strpos($data->getEveApiXml(), '<error ')) {
-            $data = $this->processEveApiXmlError($data, $yem);
-            $event->setData($data);
             $this->emitEvents($data, 'error', 'Yapeal.Xml');
+            return $event;
         }
         return $event->eventHandled();
-    }
-    /**
-     * @param EveApiReadWriteInterface $data
-     * @param MediatorInterface        $yem
-     *
-     * @return EveApiReadWriteInterface
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
-     */
-    protected function processEveApiXmlError(
-        EveApiReadWriteInterface $data,
-        MediatorInterface $yem
-    ) {
-        $simple = new SimpleXMLElement($data->getEveApiXml());
-        /** @noinspection PhpUndefinedFieldInspection */
-        if (empty($simple->error[0]['code'])) {
-            return $data;
-        }
-        /** @noinspection PhpUndefinedFieldInspection */
-        $code = (int)$simple->error[0]['code'];
-        /** @noinspection PhpUndefinedFieldInspection */
-        $mess = sprintf('Received XML error (%1$s) - %2$s from', $code, (string)$simple->error[0]);
-        if ($code < 200) {
-            if (strpos($mess, 'retry after') !== false) {
-                $data->setCacheInterval(strtotime(substr($mess, -19) . '+00:00') - time());
-            }
-            $yem->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $this->createEveApiMessage($mess, $data));
-            return $data;
-        }
-        if ($code < 300) {
-            $yem->triggerLogEvent('Yapeal.Log.log', Logger::ERROR, $this->createEveApiMessage($mess, $data));
-            return $data->setCacheInterval(86400);
-        }
-        if ($code > 903 && $code < 905) {
-            // Major application or Yapeal error.
-            $yem->triggerLogEvent('Yapeal.Log.log', Logger::ALERT, $this->createEveApiMessage($mess, $data));
-            return $data->setCacheInterval(86400);
-        }
-        $yem->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $this->createEveApiMessage($mess, $data));
-        return $data->setCacheInterval(300);
     }
 }
