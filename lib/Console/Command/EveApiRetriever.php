@@ -81,6 +81,7 @@ class EveApiRetriever extends Command implements WiringInterface
      *
      * @throws \DomainException
      * @throws \InvalidArgumentException
+     * @throws \LogicException
      * @throws YapealException
      * @throws YapealDatabaseException
      */
@@ -93,29 +94,7 @@ class EveApiRetriever extends Command implements WiringInterface
      */
     protected function configure()
     {
-        $this->addArgument(
-            'section_name',
-            InputArgument::REQUIRED,
-            'Name of Eve Api section to retrieve.'
-        );
-        $this->addArgument(
-            'api_name',
-            InputArgument::REQUIRED,
-            'Name of Eve Api to retrieve.'
-        );
-        $this->addArgument(
-            'post',
-            InputArgument::OPTIONAL | InputArgument::IS_ARRAY,
-            'Optional list of additional POST parameter(s) to send to server.',
-            []
-        );
-        $this->addOption(
-            'directory',
-            'd',
-            InputOption::VALUE_REQUIRED,
-            'Directory that XML will be sent to.'
-        );
-        $help = <<<EOF
+        $help = <<<'EOF'
 The <info>%command.full_name%</info> command retrieves the XML data from the Eve Api
 server and stores it in a file. By default it will put the file in the current
 working directory.
@@ -127,7 +106,12 @@ Save current server status in current directory.
     <info>%command.name% server ServerStatus</info>
 
 EOF;
-        $this->setHelp($help);
+        $this->addArgument('section_name', InputArgument::REQUIRED, 'Name of Eve Api section to retrieve.')
+             ->addArgument('api_name', InputArgument::REQUIRED, 'Name of Eve Api to retrieve.')
+             ->addArgument('post', InputArgument::OPTIONAL | InputArgument::IS_ARRAY,
+                 'Optional list of additional POST parameter(s) to send to server.', [])
+             ->addOption('directory', 'd', InputOption::VALUE_REQUIRED, 'Directory that XML will be sent to.')
+             ->setHelp($help);
     }
     /** @noinspection PhpMissingParentCallCommonInspection */
     /**
@@ -167,11 +151,10 @@ EOF;
          *
          * @var EveApiReadWriteInterface $data
          */
-        /** @noinspection DisconnectedForeachInstructionInspection */
         $data = $dic['Yapeal.Xml.Data'];
         $data->setEveApiName($apiName)
-            ->setEveApiSectionName($sectionName)
-            ->setEveApiArguments($posts);
+             ->setEveApiSectionName($sectionName)
+             ->setEveApiArguments($posts);
         foreach (['retrieve', 'cache'] as $eventName) {
             $this->emitEvents($data, $eventName);
         }
@@ -193,9 +176,6 @@ EOF;
      */
     protected function processPost(InputInterface $input)
     {
-        /**
-         * @var array $posts
-         */
         $posts = (array)$input->getArgument('post');
         if (0 !== count($posts)) {
             $arguments = [];

@@ -69,7 +69,6 @@ class DatabaseInitializer extends AbstractDatabaseCommon
      */
     protected function configure()
     {
-        $this->addOptions();
         $help = <<<'HELP'
 The <info>%command.full_name%</info> command is used to initialize (create) a new
  database and tables to be used by Yapeal. If you already have a
@@ -88,7 +87,7 @@ You can also use the command before setting up a configuration file like so:
     <info>%command.name% -o "localhost" -d "yapeal" -u "YapealUser" -p "secret"
 
 HELP;
-        $this->setHelp($help);
+        $this->addOptions($help);
     }
     /**
      * @param OutputInterface $output
@@ -119,7 +118,7 @@ HELP;
                     continue;
                 }
                 $fileList[] = $this->getFpn()
-                    ->normalizeFile($fileInfo->getPathname());
+                                   ->normalizeFile($fileInfo->getPathname());
             }
         }
         $fileNames = '%1$sCreateCustomTables.sql,%2$sconfig/CreateCustomTables.sql';
@@ -132,8 +131,7 @@ HELP;
          * @var array $customFiles
          */
         $customFiles = explode(',', sprintf($fileNames, $path, $this->getDic()['Yapeal.baseDir'], $vendorPath));
-        foreach ($customFiles as $fileName)
-        {
+        foreach ($customFiles as $fileName) {
             if (!is_readable($fileName) || !is_file($fileName)) {
                 continue;
             }

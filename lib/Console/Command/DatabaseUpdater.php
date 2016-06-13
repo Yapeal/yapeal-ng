@@ -90,7 +90,6 @@ class DatabaseUpdater extends AbstractDatabaseCommon
      */
     protected function configure()
     {
-        $this->addOptions();
         $help = <<<'HELP'
 The <info>%command.full_name%</info> command is used to initialize (create) a new
  database and tables to be used by Yapeal. If you already have a
@@ -109,7 +108,7 @@ You can also use the command before setting up a configuration file like so:
     <info>%command.name% -o "localhost" -d "yapeal" -u "YapealUser" -p "secret"
 
 HELP;
-        $this->setHelp($help);
+        $this->addOptions($help);
     }
     /**
      * @param OutputInterface $output
@@ -124,7 +123,7 @@ HELP;
         $output->writeln($name);
         $this->executeSqlStatements(
             $this->getCsq()
-                ->getDropAddOrModifyColumnProcedure(),
+                 ->getDropAddOrModifyColumnProcedure(),
             $name,
             $output
         );
@@ -141,10 +140,10 @@ HELP;
     protected function getLatestDatabaseVersion(OutputInterface $output)
     {
         $sql = $this->getCsq()
-            ->getUtilLatestDatabaseVersion();
+                    ->getUtilLatestDatabaseVersion();
         try {
             $result = $this->getPdo()
-                ->query($sql, PDO::FETCH_NUM);
+                           ->query($sql, PDO::FETCH_NUM);
             $version = $result->fetchColumn();
             $result->closeCursor();
         } catch (PDOException $exc) {
@@ -186,7 +185,7 @@ HELP;
                 continue;
             }
             $fileNames[] = $this->getFpn()
-                ->normalizeFile($fileInfo->getPathname());
+                                ->normalizeFile($fileInfo->getPathname());
         }
         asort($fileNames);
         return $fileNames;
@@ -249,12 +248,12 @@ HELP;
     protected function updateDatabaseVersion($updateVersion)
     {
         $sql = $this->getCsq()
-            ->getUtilLatestDatabaseVersionUpdate();
+                    ->getUtilLatestDatabaseVersionUpdate();
         try {
             $pdo = $this->getPdo();
             $pdo->beginTransaction();
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute([$updateVersion]);
+            $pdo->prepare($sql)
+                ->execute([$updateVersion]);
             $pdo->commit();
         } catch (PDOException $exc) {
             $mess = $sql . PHP_EOL;
@@ -264,10 +263,10 @@ HELP;
                 $updateVersion
             );
             if ($this->getPdo()
-                ->inTransaction()
+                     ->inTransaction()
             ) {
                 $this->getPdo()
-                    ->rollBack();
+                     ->rollBack();
             }
             throw new YapealDatabaseException($mess, 2);
         }

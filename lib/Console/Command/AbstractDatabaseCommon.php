@@ -52,58 +52,22 @@ abstract class AbstractDatabaseCommon extends Command
 {
     use CommandToolsTrait, FilePathNormalizerTrait;
     /**
-     *
+     * Sets the help message and all the common options used by the Database:* commands.
+     * @param string $help Command help text.
      */
-    protected function addOptions()
+    protected function addOptions($help)
     {
-        $this->addOption(
-            'configFile',
-            'c',
-            InputOption::VALUE_REQUIRED,
-            'Configuration file to get settings from.'
-        )
-            ->addOption(
-                'database',
-                'd',
-                InputOption::VALUE_REQUIRED,
-                'Name of the database.'
-            )
-            ->addOption(
-                'hostName',
-                'o',
-                InputOption::VALUE_REQUIRED,
-                'Host name for database server.'
-            )
-            ->addOption(
-                'password',
-                'p',
-                InputOption::VALUE_REQUIRED,
-                'Password used to access database.'
-            )
-            ->addOption(
-                'platform',
-                null,
-                InputOption::VALUE_REQUIRED,
-                'Platform of database driver. Currently only "mysql".'
-            )
-            ->addOption(
-                'port',
-                null,
-                InputOption::VALUE_REQUIRED,
-                'Port number for remote server. Only needed if using http connection.'
-            )
-            ->addOption(
-                'tablePrefix',
-                't',
-                InputOption::VALUE_REQUIRED,
-                'Prefix for database table names.'
-            )
-            ->addOption(
-                'userName',
-                'u',
-                InputOption::VALUE_REQUIRED,
-                'User name used to access database.'
-            );
+        $this->addOption('configFile', 'c', InputOption::VALUE_REQUIRED, 'Configuration file to get settings from.')
+             ->addOption('database', 'd', InputOption::VALUE_REQUIRED, 'Name of the database.')
+             ->addOption('hostName', 'o', InputOption::VALUE_REQUIRED, 'Host name for database server.')
+             ->addOption('password', 'p', InputOption::VALUE_REQUIRED, 'Password used to access database.')
+             ->addOption('platform', null, InputOption::VALUE_REQUIRED,
+                 'Platform of database driver. Currently only "mysql".')
+             ->addOption('port', null, InputOption::VALUE_REQUIRED,
+                 'Port number for remote server. Only needed if using http connection.')
+             ->addOption('tablePrefix', 't', InputOption::VALUE_REQUIRED, 'Prefix for database table names.')
+             ->addOption('userName', 'u', InputOption::VALUE_REQUIRED, 'User name used to access database.')
+             ->setHelp($help);
     }
     /** @noinspection PhpMissingParentCallCommonInspection */
     /**

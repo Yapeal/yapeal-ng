@@ -92,8 +92,8 @@ class EveApiCreator extends Command implements WiringInterface
          */
         $data = $this->getDic()['Yapeal.Xml.Data'];
         $data->setEveApiName($apiName)
-            ->setEveApiSectionName($sectionName)
-            ->setEveApiArguments($posts);
+             ->setEveApiSectionName($sectionName)
+             ->setEveApiArguments($posts);
         foreach (['retrieve', 'create', 'transform', 'validate', 'cache'] as $eventName) {
             if (false === $this->emitEvents($data, $eventName)) {
                 return 2;
@@ -107,6 +107,7 @@ class EveApiCreator extends Command implements WiringInterface
      * @return self Fluent interface.
      * @throws \DomainException
      * @throws \InvalidArgumentException
+     * @throws \LogicException
      * @throws YapealException
      * @throws YapealDatabaseException
      */
@@ -120,22 +121,7 @@ class EveApiCreator extends Command implements WiringInterface
      */
     protected function configure()
     {
-        $this->addArgument('section_name', InputArgument::REQUIRED, 'Name of Eve Api section to retrieve.')
-            ->addArgument('api_name', InputArgument::REQUIRED, 'Name of Eve Api to retrieve.')
-            ->addArgument('mask', InputArgument::REQUIRED, 'Bit mask for Eve Api.')
-            ->addArgument(
-                'post',
-                InputArgument::OPTIONAL | InputArgument::IS_ARRAY,
-                'Optional list of additional POST parameter(s) to send to server.',
-                []
-            );
-        $this->addOption(
-            'overwrite',
-            null,
-            InputOption::VALUE_NONE,
-            'Causes command to overwrite any existing per Eve API files.'
-        );
-        $help = <<<EOF
+        $help = <<<'EOF'
 The <info>%command.full_name%</info> command retrieves the XML data from the Eve Api
 server and creates Yapeal Eve API Database class, xsd, and sql files for most API types.
 
@@ -147,7 +133,14 @@ lib/{EveApi, Xsd, Sql}/Char/ directories.
     <info>%command.name% char AccountBalance 1 "keyID=1156" "vCode=abc123"</info>
 
 EOF;
-        $this->setHelp($help);
+        $this->addArgument('section_name', InputArgument::REQUIRED, 'Name of Eve Api section to retrieve.')
+             ->addArgument('api_name', InputArgument::REQUIRED, 'Name of Eve Api to retrieve.')
+             ->addArgument('mask', InputArgument::REQUIRED, 'Bit mask for Eve Api.')
+             ->addArgument('post', InputArgument::OPTIONAL | InputArgument::IS_ARRAY,
+                 'Optional list of additional POST parameter(s) to send to server.', [])
+             ->addOption('overwrite', null, InputOption::VALUE_NONE,
+                 'Causes command to overwrite any existing per Eve API files.')
+             ->setHelp($help);
     }
     /** @noinspection PhpMissingParentCallCommonInspection */
     /**
