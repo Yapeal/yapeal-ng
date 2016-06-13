@@ -35,9 +35,6 @@ namespace Yapeal;
 
 use PDO;
 use PDOException;
-use PDOStatement;
-use Yapeal\Configuration\Wiring;
-use Yapeal\Configuration\WiringInterface;
 use Yapeal\Container\ContainerInterface;
 use Yapeal\Event\EveApiEventEmitterTrait;
 use Yapeal\Exception\YapealDatabaseException;
@@ -49,7 +46,7 @@ use Yapeal\Xml\EveApiReadWriteInterface;
 /**
  * Class Yapeal
  */
-class Yapeal implements WiringInterface
+class Yapeal
 {
     use EveApiEventEmitterTrait;
     /**
@@ -64,7 +61,6 @@ class Yapeal implements WiringInterface
     public function __construct(ContainerInterface $dic)
     {
         $this->setDic($dic);
-        $this->wire($this->getDic());
     }
     /**
      * Starts Eve API processing
@@ -94,11 +90,8 @@ class Yapeal implements WiringInterface
              * @var PDO $pdo
              */
             $pdo = $dic['Yapeal.Sql.Connection'];
-            /**
-             * @var PDOStatement $smt
-             */
-            $stmt = $pdo->query($sql);
-            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $records = $pdo->query($sql)
+                           ->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $exc) {
             $mess = 'Could not access utilEveApi table';
             $this->getYem()
@@ -107,14 +100,14 @@ class Yapeal implements WiringInterface
         }
         // Always check APIKeyInfo.
         array_unshift(
-            $result,
+            $records,
             [
                 'apiName' => 'APIKeyInfo',
                 'interval' => '300',
                 'sectionName' => 'Account'
             ]
         );
-        foreach ($result as $record) {
+        foreach ($records as $record) {
             /** @noinspection DisconnectedForeachInstructionInspection */
             /**
              * Get new Data instance from factory.
@@ -138,19 +131,6 @@ class Yapeal implements WiringInterface
     {
         $this->dic = $value;
         return $this;
-    }
-    /**
-     * @param ContainerInterface $dic
-     *
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws YapealException
-     * @throws YapealDatabaseException
-     * @throws \LogicException
-     */
-    public function wire(ContainerInterface $dic)
-    {
-        (new Wiring($dic))->wireAll();
     }
     /**
      * @return ContainerInterface

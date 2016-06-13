@@ -39,7 +39,6 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Yapeal\Configuration\ConsoleWiring;
 use Yapeal\Console\CommandToolsTrait;
 use Yapeal\Exception\YapealConsoleException;
 use Yapeal\Exception\YapealDatabaseException;
@@ -53,6 +52,7 @@ abstract class AbstractDatabaseCommon extends Command
     use CommandToolsTrait, FilePathNormalizerTrait;
     /**
      * Sets the help message and all the common options used by the Database:* commands.
+     *
      * @param string $help Command help text.
      */
     protected function addOptions($help)
@@ -94,7 +94,6 @@ abstract class AbstractDatabaseCommon extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $this->processCliOptions($input->getOptions());
-        (new ConsoleWiring($this->getDic()))->wireAll();
         return $this->processSql($output);
     }
     /**

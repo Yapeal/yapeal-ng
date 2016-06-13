@@ -36,16 +36,20 @@ namespace Yapeal;
 
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'bootstrap.php';
 use Symfony\Component\Console\Application;
+use Yapeal\Configuration\Wiring;
 use Yapeal\Console\Command\DatabaseInitializer;
 use Yapeal\Console\Command\DatabaseUpdater;
 use Yapeal\Console\Command\EveApiCreator;
-use Yapeal\Console\Command\EveApiRetriever;
+use Yapeal\Console\Command\NetworkRetriever;
 use Yapeal\Container\PimpleContainer;
 
-$container = new PimpleContainer();
+$dic = new PimpleContainer();
+(new Wiring($dic))->wireAll();
 $application = new Application('Yapeal Console', '3.0.0-alpha');
-$application->add(new EveApiRetriever('Network:Cache', $container));
-$application->add(new DatabaseInitializer('Database:Init', $container));
-$application->add(new DatabaseUpdater('Database:Update', $container));
-$application->add(new EveApiCreator('EveApi:Creator', $container));
+$application->addCommands([
+    new DatabaseInitializer('Database:Init', $dic),
+    new DatabaseUpdater('Database:Update', $dic),
+    new EveApiCreator('EveApi:Creator', $dic),
+    new NetworkRetriever('Network:Cache', $dic)
+]);
 return $application->run();

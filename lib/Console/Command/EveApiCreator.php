@@ -38,19 +38,15 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Yapeal\Configuration\ConsoleWiring;
-use Yapeal\Configuration\WiringInterface;
 use Yapeal\Console\CommandToolsTrait;
 use Yapeal\Container\ContainerInterface;
 use Yapeal\Event\EveApiEventEmitterTrait;
-use Yapeal\Exception\YapealDatabaseException;
-use Yapeal\Exception\YapealException;
 use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
  * Class EveApiCreator
  */
-class EveApiCreator extends Command implements WiringInterface
+class EveApiCreator extends Command
 {
     use CommandToolsTrait, EveApiEventEmitterTrait;
     /**
@@ -100,21 +96,6 @@ class EveApiCreator extends Command implements WiringInterface
             }
         }
         return 0;
-    }
-    /**
-     * @param ContainerInterface $dic
-     *
-     * @return self Fluent interface.
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
-     * @throws YapealException
-     * @throws YapealDatabaseException
-     */
-    public function wire(ContainerInterface $dic)
-    {
-        (new ConsoleWiring($dic))->wireAll();
-        return $this;
     }
     /**
      * Configures the current command.
@@ -167,7 +148,6 @@ EOF;
         if ($input->hasOption('overwrite')) {
             $dic['Yapeal.Create.overwrite'] = true;
         }
-        $this->wire($dic);
         $this->setYem($dic['Yapeal.Event.Mediator']);
         $apiName = $input->getArgument('api_name');
         $sectionName = $input->getArgument('section_name');

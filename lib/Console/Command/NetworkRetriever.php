@@ -1,6 +1,6 @@
 <?php
 /**
- * Contains EveApiRetriever class.
+ * Contains NetworkRetriever class.
  *
  * PHP version 5.5
  *
@@ -41,21 +41,19 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Yapeal\Configuration\ConsoleWiring;
-use Yapeal\Configuration\WiringInterface;
 use Yapeal\Console\CommandToolsTrait;
 use Yapeal\Container\ContainerInterface;
 use Yapeal\Event\EveApiEventEmitterTrait;
-use Yapeal\Event\MediatorInterface;
 use Yapeal\Exception\YapealConsoleException;
 use Yapeal\Exception\YapealDatabaseException;
 use Yapeal\Exception\YapealException;
+use Yapeal\Log\Logger;
 use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
- * Class EveApiRetriever
+ * Class NetworkRetriever
  */
-class EveApiRetriever extends Command implements WiringInterface
+class NetworkRetriever extends Command
 {
     use CommandToolsTrait, FilePathNormalizerTrait, EveApiEventEmitterTrait;
     /**
@@ -75,19 +73,6 @@ class EveApiRetriever extends Command implements WiringInterface
         $this->setName($name);
         $this->setDic($dic);
         parent::__construct($name);
-    }
-    /**
-     * @param ContainerInterface $dic
-     *
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
-     * @throws YapealException
-     * @throws YapealDatabaseException
-     */
-    public function wire(ContainerInterface $dic)
-    {
-        (new ConsoleWiring($dic))->wireAll();
     }
     /**
      * Configures the current command.
@@ -139,13 +124,12 @@ EOF;
     {
         $posts = $this->processPost($input);
         $dic = $this->getDic();
-        $this->wire($dic);
         $apiName = $input->getArgument('api_name');
         $sectionName = $input->getArgument('section_name');
-        /**
-         * @var MediatorInterface $yem
-         */
-        $this->yem = $dic['Yapeal.Event.Mediator'];
+        $this->setYem($dic['Yapeal.Event.Mediator']);
+        $mess = 'Starting Network retrieve';
+        $this->getYem()
+             ->triggerLogEvent('Yapeal.Log.log', Logger::ERROR, $mess);
         /**
          * Get new Data instance from factory.
          *

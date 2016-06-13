@@ -74,7 +74,7 @@ class Wiring
     {
         $names = ['Config', 'Error', 'Event', 'Log', 'Sql', 'Xml', 'Xsd', 'Xsl', 'Cache', 'Network', 'EveApi'];
         foreach ($names as $name) {
-            $className = dirname(__CLASS__) . $name . 'Wiring';
+            $className = __NAMESPACE__ . '\\' . $name . 'Wiring';
             if (class_exists($className, true)) {
                 /**
                  * @var WiringInterface $class
