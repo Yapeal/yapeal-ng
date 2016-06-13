@@ -49,6 +49,15 @@ interface EveApiEventInterface extends EventInterface
      */
     public function getData();
     /**
+     * Used to check if event was handled sufficiently by any listener(s).
+     *
+     * This should return true when a listener uses setHandledSufficiently() and/or eventHandled() methods for the
+     * event.
+     *
+     * @return bool
+     */
+    public function isSufficientlyHandled();
+    /**
      * Set data object.
      *
      * @param EveApiReadWriteInterface $value
@@ -63,13 +72,4 @@ interface EveApiEventInterface extends EventInterface
      * @return self Fluent interface.
      */
     public function setHandledSufficiently();
-    /**
-     * Used to check if event was handled sufficiently by any listener(s).
-     *
-     * This should return true when a listener uses setHandledSufficiently() and/or eventHandled() methods for the
-     * event.
-     *
-     * @return bool
-     */
-    public function isSufficientlyHandled();
 }

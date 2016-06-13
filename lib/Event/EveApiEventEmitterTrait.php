@@ -56,6 +56,14 @@ trait EveApiEventEmitterTrait
         return $this;
     }
     /**
+     * Emits a series of Eve API events and logs the handling of them.
+     *
+     * Events are emitted (triggered) from the most specific 'Prefix.Section.Api.Suffix' through to the least specific
+     * 'Prefix.Suffix' until one of the events returns with hasBeenHandled() === true or there are no more events left
+     * to emit.
+     * 
+     * Log events are created for handled, sufficiently handled, and non-handled event.
+     *
      * @param EveApiReadWriteInterface $data
      * @param string                   $eventSuffix
      * @param string                   $eventPrefix
@@ -83,27 +91,35 @@ trait EveApiEventEmitterTrait
         $event = null;
         foreach ($eventNames as $eventName) {
             $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->getEmittingEventMessage($data, $eventName));
+                 ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->getEmittingEventMessage($data, $eventName));
             $event = $this->getYem()
-                ->triggerEveApiEvent($eventName, $data);
+                          ->triggerEveApiEvent($eventName, $data);
             $data = $event->getData();
+            if ($event->hasBeenHandled()) {
+                $this->getYem()
+                     ->triggerLogEvent(
+                         'Yapeal.Log.log',
+                         Logger::INFO,
+                         $this->getWasHandledEventMessage($data, $eventName)
+                     );
+                break;
+            }
             if ($event->isSufficientlyHandled()) {
                 $this->getYem()
-                    ->triggerLogEvent(
-                        'Yapeal.Log.log',
-                        Logger::INFO,
-                        $this->getSufficientlyHandledEventMessage($data, $eventName)
-                    );
-                break;
+                     ->triggerLogEvent(
+                         'Yapeal.Log.log',
+                         Logger::INFO,
+                         $this->getSufficientlyHandledEventMessage($data, $eventName)
+                     );
             }
         }
         if (null === $event || !$event->isSufficientlyHandled()) {
             $this->getYem()
-                ->triggerLogEvent(
-                    'Yapeal.Log.log',
-                    Logger::NOTICE,
-                    $this->getNonHandledEventMessage($data, $eventSuffix)
-                );
+                 ->triggerLogEvent(
+                     'Yapeal.Log.log',
+                     Logger::NOTICE,
+                     $this->getNonHandledEventMessage($data, $eventSuffix)
+                 );
             return false;
         }
         return true;

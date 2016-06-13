@@ -115,13 +115,17 @@ trait CommonEveApiTrait
             $data->setEveApiArguments($arguments)
                 ->setCacheInterval($untilInterval)
                 ->setEveApiXml();
+            /** @noinspection DisconnectedForeachInstructionInspection */
             if (!$this->oneShot($data)) {
                 $this->releaseApiLock($data);
                 continue;
             }
+            /** @noinspection DisconnectedForeachInstructionInspection */
             $this->emitEvents($data, 'end');
+            /** @noinspection DisconnectedForeachInstructionInspection */
             $event->setHandledSufficiently();
             $this->updateCachedUntil($data, $ownerID);
+            /** @noinspection DisconnectedForeachInstructionInspection */
             $this->releaseApiLock($data);
         }
         return $event;
