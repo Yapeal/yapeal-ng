@@ -163,4 +163,16 @@ trait MessageBuilderTrait
         $messagePrefix = 'Sufficiently handled';
         return $this->createEventMessage($messagePrefix, $data, $eventName);
     }
+    /**
+     * @param EveApiReadWriteInterface $data
+     * @param string                   $eventName
+     *
+     * @return string
+     * @throws \LogicException
+     */
+    protected function getWasHandledEventMessage(EveApiReadWriteInterface $data, $eventName)
+    {
+        $messagePrefix = 'Was handled';
+        return $this->createEventMessage($messagePrefix, $data, $eventName);
+    }
 }
