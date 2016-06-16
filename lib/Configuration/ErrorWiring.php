@@ -59,30 +59,19 @@ class ErrorWiring implements WiringInterface
             $logger = new $dic['Yapeal.Error.class']($dic['Yapeal.Error.channel']);
             $group = [];
             if ('cli' === PHP_SAPI) {
-                $group[] = new $dic['Yapeal.Error.Handlers.stream'](
-                    'php://stderr', 100
-                );
+                $group[] = new $dic['Yapeal.Error.Handlers.stream']('php://stderr', 100);
             }
-            $group[] = new $dic['Yapeal.Error.Handlers.stream'](
-                $dic['Yapeal.Error.dir'] . $dic['Yapeal.Error.fileName'], 100
-            );
+            $group[] = new $dic['Yapeal.Error.Handlers.stream']($dic['Yapeal.Error.dir'] . $dic['Yapeal.Error.fileName'],
+                100);
             $logger->pushHandler(
-                new $dic['Yapeal.Error.Handlers.fingersCrossed'](
-                    new $dic['Yapeal.Error.Handlers.group']($group),
-                    (int)$dic['Yapeal.Error.threshold'],
-                    (int)$dic['Yapeal.Error.bufferSize']
-                )
+                new $dic['Yapeal.Error.Handlers.fingersCrossed'](new $dic['Yapeal.Error.Handlers.group']($group),
+                    (int)$dic['Yapeal.Error.threshold'], (int)$dic['Yapeal.Error.bufferSize'], true, false)
             );
             /**
              * @var ErrorHandler $error
              */
             $error = $dic['Yapeal.Error.Handlers.error'];
-            $error::register(
-                $logger,
-                [],
-                (int)$dic['Yapeal.Error.threshold'],
-                (int)$dic['Yapeal.Error.threshold']
-            );
+            $error::register($logger, [], (int)$dic['Yapeal.Error.threshold'], (int)$dic['Yapeal.Error.threshold']);
             return $error;
         };
         // Activate error logger now since it is needed to log any future fatal

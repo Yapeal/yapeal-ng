@@ -71,11 +71,8 @@ class LogWiring implements WiringInterface
                 $group[] = $handler;
                 return new $dic['Yapeal.Log.class'](
                     $dic['Yapeal.Log.channel'], [
-                        new $dic['Yapeal.Log.Handlers.fingersCrossed'](
-                            new $dic['Yapeal.Log.Handlers.group']($group),
-                            (int)$dic['Yapeal.Log.threshold'],
-                            (int)$dic['Yapeal.Log.bufferSize']
-                        )
+                        new $dic['Yapeal.Log.Handlers.fingersCrossed'](new $dic['Yapeal.Log.Handlers.group']($group),
+                            (int)$dic['Yapeal.Log.threshold'], (int)$dic['Yapeal.Log.bufferSize'], true, false)
                     ]
                 );
             };
