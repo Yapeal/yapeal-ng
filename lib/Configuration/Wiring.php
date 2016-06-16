@@ -36,8 +36,6 @@ namespace Yapeal\Configuration;
 use FilePathNormalizer\FilePathNormalizerTrait;
 use FilesystemIterator;
 use RecursiveArrayIterator;
-use RecursiveCallbackFilterIterator;
-use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Parser;
@@ -148,10 +146,10 @@ class Wiring
             | FilesystemIterator::KEY_AS_PATHNAME
             | FilesystemIterator::SKIP_DOTS
             | FilesystemIterator::UNIX_PATHS;
-        $rdi = new RecursiveDirectoryIterator($this->dic['Yapeal.EveApi.dir']);
+        $rdi = new \RecursiveDirectoryIterator($this->dic['Yapeal.EveApi.dir']);
         $rdi->setFlags($flags);
         /** @noinspection SpellCheckingInspection */
-        $rcfi = new RecursiveCallbackFilterIterator(
+        $rcfi = new \RecursiveCallbackFilterIterator(
             $rdi, function (\SplFileInfo $current, $key, \RecursiveDirectoryIterator $rdi) {
             if ($rdi->hasChildren()) {
                 return true;

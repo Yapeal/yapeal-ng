@@ -51,8 +51,9 @@ class LogWiring implements WiringInterface
         if (empty($dic['Yapeal.Log.Logger'])) {
             $dic['Yapeal.Log.Logger'] = function () use ($dic) {
                 $group = [];
-                $lineFormatter = new LineFormatter;
+                $lineFormatter = new LineFormatter();
                 $lineFormatter->includeStacktraces();
+                $lineFormatter->allowInlineLineBreaks();
                 /**
                  * @var \Monolog\Handler\StreamHandler $handler
                  */
