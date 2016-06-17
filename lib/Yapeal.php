@@ -104,7 +104,7 @@ class Yapeal
             [
                 'apiName' => 'APIKeyInfo',
                 'interval' => '300',
-                'sectionName' => 'Account'
+                'sectionName' => 'account'
             ]
         );
         foreach ($records as $record) {
