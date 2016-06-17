@@ -111,7 +111,7 @@ class EveApiXmlData implements EveApiReadWriteInterface
      */
     public function getEveApiName()
     {
-        if ('' === $this->eveApiName) {
+        if ('' === (string)$this->eveApiName) {
             $mess = 'Tried to access Eve Api name before it was set';
             throw new LogicException($mess);
         }
@@ -125,7 +125,7 @@ class EveApiXmlData implements EveApiReadWriteInterface
      */
     public function getEveApiSectionName()
     {
-        if ('' === $this->eveApiSectionName) {
+        if ('' === (string)$this->eveApiSectionName) {
             $mess = 'Tried to access Eve Api section name before it was set';
             throw new LogicException($mess);
         }
@@ -138,7 +138,7 @@ class EveApiXmlData implements EveApiReadWriteInterface
      */
     public function getEveApiXml()
     {
-        if ('' === $this->eveApiXml) {
+        if ('' === (string)$this->eveApiXml) {
             return false;
         }
         return $this->eveApiXml;
