@@ -1,6 +1,6 @@
 <?php
 /**
- * Contains {{ className }} class.
+ * Contains class {{ className }}.
  *
  * PHP version 5.4
  *
@@ -33,11 +33,9 @@
  */
 namespace {{ namespace }};
 
-use PDOException;
-use Yapeal\Event\EveApiEventInterface;
-use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
+use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
  * Class {{ className }}
@@ -52,64 +50,21 @@ class {{ className }} extends {{ sectionName|ucFirst }}Section
     public function __construct()
     {
         $this->mask = {{ mask }};
-    }
-    /**
-     * @param EveApiEventInterface   $event
-     * @param string                 $eventName
-     * @param MediatorInterface $yem
-     *
-     * @return EveApiEventInterface
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
-     */
-    public function preserveEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
-    {
-        $this->setYem($yem);
-        $data = $event->getData();
-        $xml = $data->getEveApiXml();
-        if (false === $xml) {
-            return $event->setHandledSufficiently();
-        }
-{% if hasOwner %}        $ownerID = $this->extractOwnerID($data->getEveApiArguments());{{ "\n" }}{% endif %}
-        $this->getYem()
-            ->triggerLogEvent(
-                'Yapeal.Log.log',
-                Logger::DEBUG,
-                $this->getReceivedEventMessage($data, $eventName, __CLASS__)
-            );
-        $this->getPdo()
-            ->beginTransaction();
-        try {
-            $this{% for tableName in tableNames %}{% if not loop.first %}                {% endif %}->preserveTo{{ tableName|ucFirst }}($xml{% if hasOwner %}, $ownerID{% endif %}){% if loop.last %};{% endif %}{{ "\n" }}{% endfor %}
-            $this->getPdo()
-                ->commit();
-        } catch (PDOException $exc) {
-            $mess = 'Failed to upsert data of';
-            $this->getYem()
-                ->triggerLogEvent(
-                    'Yapeal.Log.log',
-                    Logger::WARNING,
-                    $this->createEveApiMessage($mess, $data),
-                    ['exception' => $exc]
-                );
-            $this->getPdo()
-                ->rollBack();
-            return $event;
-        }
-        return $event->setHandledSufficiently();
+        $this->preserveTos = [
+            {% for tableName in tableNames %}'preserveTo{{ tableName|ucFirst }}'{% if not loop.last %}{{ ",\n            " }}{% else %}{{ "\n" }}{% endif %}{% endfor %}
+        ];
     }
 {% for tableName, table in tables %}
     /**
-     * @param string $xml
-    {% if hasOwner %}     * @param string $ownerID{{ "\n" }}{% endif %}
+     * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
      * @throws \LogicException
      */
-    protected function preserveTo{{ tableName|ucFirst }}($xml{% if hasOwner %}, $ownerID{% endif %})
+    protected function preserveTo{{ tableName|ucFirst }}(EveApiReadWriteInterface $data)
     {
         $tableName = '{{ sectionName|lcFirst }}{{ tableName|ucFirst }}';
+{% if hasOwner %}        $ownerID = $this->extractOwnerID($data->getEveApiArguments());{{ "\n" }}{% endif %}
         $sql = $this->getCsq()
             ->getDeleteFromTable{% if hasOwner %}WithOwnerID{% endif %}($tableName{% if hasOwner %}, $ownerID{% endif %});
         $this->getYem()
@@ -120,12 +75,16 @@ class {{ className }} extends {{ sectionName|ucFirst }}Section
         $columnDefaults = [
             {% for name, value in table.attributes %}'{{ name }}' => {{ value }}{% if not loop.last %}{{ ",\n            " }}{% else %}{{ "\n" }}{% endif %}{% endfor %}
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName,'//{{ table.xpath|lcFirst }}/row');
+        $xPath = '//{{ table.xpath|lcFirst }}/row';
+        $elements = (new \SimpleXMLElement($data->getEveApiXml()))->xpath($xPath);
+        $this->attributePreserveData($elements, $columnDefaults, $tableName);
 {% else %}
         $columnDefaults = [
             {% for name, value in table.values %}'{{ name }}' => {{ value }}{% if not loop.last %}{{ ",\n            " }}{% else %}{{ "\n" }}{% endif %}{% endfor %}
         ];
-        $this->valuesPreserveData($xml, $columnDefaults, $tableName);
+        $xPath = '//result/child::*[not(*|@*|self::dataTime)]';
+        elements = (new \SimpleXMLElement($data->getEveApiXml()))->xpath($xPath);
+        $this->valuesPreserveData($elements, $columnDefaults, $tableName);
 {% endif %}
         return $this;
     }

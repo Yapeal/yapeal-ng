@@ -33,6 +33,7 @@
  */
 namespace Yapeal\EveApi\Account;
 
+use Yapeal\EveApi\ActiveTrait;
 use Yapeal\EveApi\CommonEveApiTrait;
 
 /**
@@ -40,12 +41,12 @@ use Yapeal\EveApi\CommonEveApiTrait;
  */
 class AccountSection
 {
-    use CommonEveApiTrait;
+    use ActiveTrait, CommonEveApiTrait;
     /**
      * AccountSection constructor.
      */
     public function __construct()
     {
-        // Place holder
+        // Place holder.
     }
 }

@@ -172,7 +172,7 @@ trait MessageBuilderTrait
      */
     protected function getWasHandledEventMessage(EveApiReadWriteInterface $data, $eventName)
     {
-        $messagePrefix = 'Was handled';
+        $messagePrefix = 'Handled';
         return $this->createEventMessage($messagePrefix, $data, $eventName);
     }
 }

@@ -33,21 +33,20 @@
  */
 namespace Yapeal\EveApi\Account;
 
-use PDO;
 use PDOException;
+use Yapeal\EveApi\ActiveTrait;
 use Yapeal\EveApi\CommonEveApiTrait;
 use Yapeal\Event\EveApiEventInterface;
 use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
-use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
  * Class AccountStatus
  */
 class AccountStatus
 {
-    use CommonEveApiTrait, PreserverTrait;
+    use ActiveTrait, CommonEveApiTrait, PreserverTrait;
     /**
      * Constructor
      */
@@ -75,65 +74,33 @@ class AccountStatus
         }
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $this->getYem()
-            ->triggerLogEvent(
-                'Yapeal.Log.log',
-                Logger::DEBUG,
-                $this->getReceivedEventMessage($data, $eventName, __CLASS__)
-            );
+             ->triggerLogEvent(
+                 'Yapeal.Log.log',
+                 Logger::DEBUG,
+                 $this->getReceivedEventMessage($data, $eventName, __CLASS__)
+             );
         $this->getPdo()
-            ->beginTransaction();
+             ->beginTransaction();
         try {
             $this->preserveToAccountStatus($xml, $ownerID)
-                ->preserveToMultiCharacterTraining($xml, $ownerID)
-                ->preserveToOffers($xml, $ownerID);
+                 ->preserveToMultiCharacterTraining($xml, $ownerID)
+                 ->preserveToOffers($xml, $ownerID);
             $this->getPdo()
-                ->commit();
+                 ->commit();
         } catch (PDOException $exc) {
             $mess = 'Failed to upsert data of';
             $this->getYem()
-                ->triggerLogEvent(
-                    'Yapeal.Log.log',
-                    Logger::WARNING,
-                    $this->createEveApiMessage($mess, $data),
-                    ['exception' => $exc]
-                );
+                 ->triggerLogEvent(
+                     'Yapeal.Log.log',
+                     Logger::WARNING,
+                     $this->createEveApiMessage($mess, $data),
+                     ['exception' => $exc]
+                 );
             $this->getPdo()
-                ->rollBack();
+                 ->rollBack();
             return $event;
         }
         return $event->setHandledSufficiently();
-    }
-    /** @noinspection PhpMissingParentCallCommonInspection */
-    /**
-     * @param EveApiReadWriteInterface $data
-     *
-     * @return array
-     * @throws \LogicException
-     */
-    protected function getActive(EveApiReadWriteInterface $data)
-    {
-        $sql = $this->getCsq()
-            ->getActiveRegisteredAccountStatus($this->getMask());
-        $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
-        try {
-            /**
-             * @var \PDOStatement $stmt
-             */
-            $stmt = $this->getPdo()
-                ->query($sql);
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (PDOException $exc) {
-            $mess = 'Could NOT get a list of active owners for';
-            $this->getYem()
-                ->triggerLogEvent(
-                    'Yapeal.Log.log',
-                    Logger::WARNING,
-                    $this->createEveApiMessage($mess, $data),
-                    ['exception' => $exc]
-                );
-            return [];
-        }
     }
     /**
      * @param string $xml
@@ -146,17 +113,17 @@ class AccountStatus
     {
         $tableName = 'accountAccountStatus';
         $sql = $this->getCsq()
-            ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
+                    ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
         $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $sql);
+             ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $sql);
         $this->getPdo()
-            ->exec($sql);
+             ->exec($sql);
         $columnDefaults = [
-            'createDate'   => '1970-01-01 00:00:01',
-            'logonCount'   => null,
+            'createDate' => '1970-01-01 00:00:01',
+            'logonCount' => null,
             'logonMinutes' => null,
-            'ownerID'      => $ownerID,
-            'paidUntil'    => null
+            'ownerID' => $ownerID,
+            'paidUntil' => null
         ];
         $this->valuesPreserveData($xml, $columnDefaults, $tableName);
         return $this;
@@ -173,13 +140,13 @@ class AccountStatus
     {
         $tableName = 'accountMultiCharacterTraining';
         $sql = $this->getCsq()
-            ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
+                    ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
         $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $sql);
+             ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $sql);
         $this->getPdo()
-            ->exec($sql);
+             ->exec($sql);
         $columnDefaults = [
-            'ownerID'     => $ownerID,
+            'ownerID' => $ownerID,
             'trainingEnd' => null
         ];
         $this->attributePreserveData($xml, $columnDefaults, $tableName, '//MultiCharacterTraining/row');
@@ -196,18 +163,18 @@ class AccountStatus
     {
         $tableName = 'accountOffers';
         $sql = $this->getCsq()
-            ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
+                    ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
         $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $sql);
+             ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $sql);
         $this->getPdo()
-            ->exec($sql);
+             ->exec($sql);
         $columnDefaults = [
-            'from'        => null,
-            'ISK'         => '0.0',
+            'from' => null,
+            'ISK' => '0.0',
             'offeredDate' => '1970-01-01 00:00:01',
-            'offerID'     => null,
-            'ownerID'     => $ownerID,
-            'to'          => null
+            'offerID' => null,
+            'ownerID' => $ownerID,
+            'to' => null
         ];
         $this->attributePreserveData($xml, $columnDefaults, $tableName, '//Offers/row');
         return $this;

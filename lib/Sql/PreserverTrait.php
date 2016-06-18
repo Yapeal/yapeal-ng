@@ -33,7 +33,8 @@
  */
 namespace Yapeal\Sql;
 
-use SimpleXMLIterator;
+use Yapeal\Event\EveApiEventInterface;
+use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
 
 /**
@@ -41,9 +42,21 @@ use Yapeal\Log\Logger;
  */
 trait PreserverTrait
 {
+    /**
+     * @return \string[]
+     * @throws \LogicException
+     */
+    public function getPreserveTos()
+    {
+        if (0 === count($this->preserveTos)){
+            $mess = 'Tried to access preserveTos before it was set';
+            throw new \LogicException($mess);
+        }
+        return $this->preserveTos;
+    }
     /** @noinspection MoreThanThreeArgumentsInspection */
     /**
-     * @param string $xml
+     * @param \SimpleXMLElement[]|string $rows
      * @param array  $columnDefaults
      * @param string $tableName
      * @param string $xPath
@@ -53,18 +66,16 @@ trait PreserverTrait
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
-    protected function attributePreserveData($xml, array $columnDefaults, $tableName, $xPath = '//row')
+    protected function attributePreserveData($rows, array $columnDefaults, $tableName, $xPath = '//row')
     {
         $maxRowCount = 1000;
-        $rows = (new SimpleXMLIterator($xml))->xpath($xPath);
-        if (0 === count($rows)) {
+        if (is_string($rows) || 0 === count($rows)) {
             return $this;
         }
-        $rowChunks = array_chunk($rows, $maxRowCount, true);
+        $rows = array_chunk($rows, $maxRowCount, true);
         $columnNames = array_keys($columnDefaults);
-        foreach ($rowChunks as $chunk) {
-            $columns = $this->processXmlRows($columnDefaults, $chunk);
-            $this->flush($columns, $columnNames, $tableName);
+        foreach ($rows as $chunk) {
+            $this->flush($this->processXmlRows($columnDefaults, $chunk), $columnNames, $tableName);
         }
         return $this;
     }
@@ -92,7 +103,10 @@ trait PreserverTrait
         $mess = preg_replace('/(,\(\?(?:,\?)*\))+/', ',...', $sql);
         $this->getYem()
              ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess);
-        $mess = substr(implode(',', $columns), 0, 255);
+        $mess = implode(',', $columns);
+        if (512 < strlen($mess)) {
+            $mess = substr($mess, 0, 512) . '...';
+        }
         $this->getYem()
              ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $mess);
         $this->getPdo()
@@ -114,20 +128,17 @@ trait PreserverTrait
     abstract protected function getYem();
     /**
      * @param array               $columnDefaults
-     * @param SimpleXMLIterator[] $rows
+     * @param \SimpleXMLElement[] $rows
      *
      * @return array
      */
     protected function processXmlRows(array $columnDefaults, array $rows)
     {
         $columns = [];
-        /**
-         * @var \SimpleXMLElement $row
-         */
         foreach ($rows as $row) {
             // Replace empty values with any existing defaults.
             foreach ($columnDefaults as $key => $value) {
-                if ('' !== (string)$row[$key]) {
+                if (null === $value || '' !== (string)$row[$key]) {
                     $columns[] = (string)$row[$key];
                     continue;
                 }
@@ -148,21 +159,83 @@ trait PreserverTrait
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
-    protected function valuesPreserveData($xml, array $columnDefaults, $tableName, $xPath = '//result/*')
-    {
-        $columns = (new SimpleXMLIterator($xml))->xpath($xPath);
-        /**
-         * @var SimpleXMLIterator $column
-         */
-        foreach ($columns as $column) {
-            $columnName = $column->getName();
-            if (!array_key_exists($columnName, $columnDefaults)) {
-                break;
-            }
-            if ('' !== (string)$column || null === $columnDefaults[$columnName]) {
-                $columnDefaults[$columnName] = (string)$column;
-            }
+    protected function valuesPreserveData(
+        $xml,
+        array $columnDefaults,
+        $tableName,
+        $xPath = '//result/child::*[not(*|@*|self::dataTime)]'
+    ) {
+        $elements = (new \SimpleXMLElement($xml))->xpath($xPath);
+        if (0 === count($elements)) {
+            return $this;
         }
-        return $this->flush(array_values($columnDefaults), array_keys($columnDefaults), $tableName);
+        $columns = [];
+        foreach ($elements as $element) {
+            $columnName = $element->getName();
+            if (!array_key_exists($columnName, $columnDefaults)) {
+                continue;
+            }
+            if ('' !== (string)$element || null === $columnDefaults[$columnName]) {
+                $columns[$columnName] = (string)$element;
+                continue;
+            }
+            $columns[$columnName] = $columnDefaults[$columnName];
+        }
+        if (count($columnDefaults) !== count($columns)) {
+            return $this;
+        }
+        ksort($columns);
+        return $this->flush(array_values($columns), array_keys($columns), $tableName);
     }
+    /**
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
+     *
+     * @return EveApiEventInterface
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
+     */
+    public function preserveEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
+    {
+        $this->setYem($yem);
+        $data = $event->getData();
+        $xml = $data->getEveApiXml();
+        if (false === $xml) {
+            return $event->setHandledSufficiently();
+        }
+        $this->getYem()
+             ->triggerLogEvent(
+                 'Yapeal.Log.log',
+                 Logger::DEBUG,
+                 $this->getReceivedEventMessage($data, $eventName, __CLASS__)
+             );
+        $this->getPdo()
+             ->beginTransaction();
+        try {
+            foreach ($this->getPreserveTos() as $preserveTo) {
+                $this->$preserveTo($data);
+            }
+            $this->getPdo()
+                 ->commit();
+        } catch (\PDOException $exc) {
+            $mess = 'Failed to upsert data of';
+            $this->getYem()
+                 ->triggerLogEvent(
+                     'Yapeal.Log.log',
+                     Logger::WARNING,
+                     $this->createEveApiMessage($mess, $data),
+                     ['exception' => $exc]
+                 );
+            $this->getPdo()
+                 ->rollBack();
+            return $event;
+        }
+        return $event->setHandledSufficiently();
+    }
+    /**
+     * @var string[] preserveTos
+     */
+    protected $preserveTos = [];
 }

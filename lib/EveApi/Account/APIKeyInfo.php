@@ -33,20 +33,19 @@
  */
 namespace Yapeal\EveApi\Account;
 
-use PDO;
 use PDOException;
+use Yapeal\EveApi\ActiveTrait;
 use Yapeal\Event\EveApiEventInterface;
 use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
-use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
  * Class APIKeyInfo
  */
 class APIKeyInfo extends AccountSection
 {
-    use PreserverTrait;
+    use ActiveTrait, PreserverTrait;
     /**
      * @param EveApiEventInterface $event
      * @param string               $eventName
@@ -67,64 +66,33 @@ class APIKeyInfo extends AccountSection
         }
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $this->getYem()
-            ->triggerLogEvent(
-                'Yapeal.Log.log',
-                Logger::DEBUG,
-                $this->getReceivedEventMessage($data, $eventName, __CLASS__)
-            );
+             ->triggerLogEvent(
+                 'Yapeal.Log.log',
+                 Logger::DEBUG,
+                 $this->getReceivedEventMessage($data, $eventName, __CLASS__)
+             );
         $this->getPdo()
-            ->beginTransaction();
+             ->beginTransaction();
         try {
             $this->preserveToAPIKeyInfo($xml, $ownerID)
-                ->preserveToCharacters($xml)
-                ->preserveToKeyBridge($xml, $ownerID);
+                 ->preserveToCharacters($xml)
+                 ->preserveToKeyBridge($xml, $ownerID);
             $this->getPdo()
-                ->commit();
+                 ->commit();
         } catch (PDOException $exc) {
             $mess = 'Failed to upsert data of';
             $this->getYem()
-                ->triggerLogEvent(
-                    'Yapeal.Log.log',
-                    Logger::WARNING,
-                    $this->createEveApiMessage($mess, $data),
-                    ['exception' => $exc]
-                );
+                 ->triggerLogEvent(
+                     'Yapeal.Log.log',
+                     Logger::WARNING,
+                     $this->createEveApiMessage($mess, $data),
+                     ['exception' => $exc]
+                 );
             $this->getPdo()
-                ->rollBack();
+                 ->rollBack();
             return $event;
         }
         return $event->setHandledSufficiently();
-    }
-    /**
-     * @param EveApiReadWriteInterface $data
-     *
-     * @return array
-     * @throws \LogicException
-     */
-    protected function getActive(EveApiReadWriteInterface $data)
-    {
-        $sql = $this->getCsq()
-            ->getActiveRegisteredKeys();
-        $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
-        try {
-            /**
-             * @var \PDOStatement $stmt
-             */
-            $stmt = $this->getPdo()
-                ->query($sql);
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (PDOException $exc) {
-            $mess = 'Could NOT get a list of active owners for';
-            $this->getYem()
-                ->triggerLogEvent(
-                    'Yapeal.Log.log',
-                    Logger::WARNING,
-                    $this->createEveApiMessage($mess, $data),
-                    ['exception' => $exc]
-                );
-            return [];
-        }
     }
     /**
      * @param string $xml
@@ -140,9 +108,9 @@ class APIKeyInfo extends AccountSection
         $tableName = 'accountAPIKeyInfo';
         $columnDefaults = [
             'accessMask' => null,
-            'expires'    => '2038-01-19 03:14:07',
-            'keyID'      => $ownerID,
-            'type'       => null
+            'expires' => '2038-01-19 03:14:07',
+            'keyID' => $ownerID,
+            'type' => null
         ];
         $this->attributePreserveData($xml, $columnDefaults, $tableName, '//key');
         return $this;
@@ -159,14 +127,14 @@ class APIKeyInfo extends AccountSection
     {
         $tableName = 'accountCharacters';
         $columnDefaults = [
-            'allianceID'      => null,
-            'allianceName'    => null,
-            'characterID'     => null,
-            'characterName'   => null,
-            'corporationID'   => null,
+            'allianceID' => null,
+            'allianceName' => null,
+            'characterID' => null,
+            'characterName' => null,
+            'corporationID' => null,
             'corporationName' => null,
-            'factionID'       => null,
-            'factionName'     => null
+            'factionID' => null,
+            'factionName' => null
         ];
         $this->attributePreserveData($xml, $columnDefaults, $tableName, '//characters/row');
         return $this;

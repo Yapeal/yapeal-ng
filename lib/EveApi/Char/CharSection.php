@@ -29,47 +29,20 @@
  */
 namespace Yapeal\EveApi\Char;
 
-use PDO;
-use PDOException;
+use Yapeal\EveApi\ActiveTrait;
 use Yapeal\EveApi\CommonEveApiTrait;
-use Yapeal\Log\Logger;
-use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
  * Class CharSection
  */
 class CharSection
 {
-    use CommonEveApiTrait;
+    use ActiveTrait, CommonEveApiTrait;
     /**
-     * @param EveApiReadWriteInterface $data
-     *
-     * @return array
-     * @throws \LogicException
+     * CorpSection constructor.
      */
-    protected function getActive(EveApiReadWriteInterface $data)
+    public function __construct()
     {
-        $sql = $this->getCsq()
-            ->getActiveRegisteredCharacters($this->getMask());
-        $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
-        try {
-            /**
-             * @var \PDOStatement $stmt
-             */
-            $stmt = $this->getPdo()
-                ->query($sql);
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (PDOException $exc) {
-            $mess = 'Could NOT get a list of active owners for';
-            $this->getYem()
-                ->triggerLogEvent(
-                    'Yapeal.Log.log',
-                    Logger::WARNING,
-                    $this->createEveApiMessage($mess, $data),
-                    ['exception' => $exc]
-                );
-            return [];
-        }
+        // Place holder.
     }
 }

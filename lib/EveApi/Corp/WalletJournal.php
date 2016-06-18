@@ -41,9 +41,11 @@ use Yapeal\EveApi\CommonEveApiTrait;
  */
 class WalletJournal extends CorpSection
 {
-    use AccountKeyTrait {
+    use CommonEveApiTrait, AccountKeyTrait {
         AccountKeyTrait::oneShot insteadof CommonEveApiTrait;
         AccountKeyTrait::startEveApi insteadof CommonEveApiTrait;
+        CommonEveApiTrait::oneShot as cEATOneShot;
+        CommonEveApiTrait::startEveApi as cEATStartEveApi;
     }
     /**
      * Constructor

@@ -29,39 +29,20 @@
  */
 namespace Yapeal\EveApi\Corp;
 
-use PDO;
-use PDOException;
+use Yapeal\EveApi\ActiveTrait;
 use Yapeal\EveApi\CommonEveApiTrait;
-use Yapeal\Log\Logger;
 
 /**
  * Class CorpSection
  */
 class CorpSection
 {
-    use CommonEveApiTrait;
+    use ActiveTrait, CommonEveApiTrait;
     /**
-     * @return array
-     * @throws \LogicException
+     * CorpSection constructor.
      */
-    public function getActive()
+    public function __construct()
     {
-        $sql = $this->getCsq()
-            ->getActiveRegisteredCorporations($this->getMask());
-        $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
-        try {
-            $stmt = $this->getPdo()
-                ->query($sql);
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (PDOException $exc) {
-            $mess = 'Could NOT get a list of active corporations';
-            $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $mess);
-            $mess = 'Database error message was ' . $exc->getMessage();
-            $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $mess);
-            return [];
-        }
+        // Place holder.
     }
 }
