@@ -34,6 +34,7 @@
 namespace Yapeal\Configuration;
 
 use Monolog\ErrorHandler;
+use Monolog\Formatter\LineFormatter;
 use Yapeal\Container\ContainerInterface;
 use Yapeal\Log\Logger;
 
@@ -58,11 +59,19 @@ class ErrorWiring implements WiringInterface
              */
             $logger = new $dic['Yapeal.Error.class']($dic['Yapeal.Error.channel']);
             $group = [];
+            $lineFormatter = new LineFormatter();
+            $lineFormatter->includeStacktraces();
+            $lineFormatter->allowInlineLineBreaks();
+            /**
+             * @var \Monolog\Handler\StreamHandler $handler
+             */
             if ('cli' === PHP_SAPI) {
-                $group[] = new $dic['Yapeal.Error.Handlers.stream']('php://stderr', 100);
+                $handler = new $dic['Yapeal.Error.Handlers.stream']('php://stderr', 100);
+                $group[] = $handler->setFormatter($lineFormatter);
             }
-            $group[] = new $dic['Yapeal.Error.Handlers.stream']($dic['Yapeal.Error.dir'] . $dic['Yapeal.Error.fileName'],
+            $handler = new $dic['Yapeal.Error.Handlers.stream']($dic['Yapeal.Error.dir'] . $dic['Yapeal.Error.fileName'],
                 100);
+            $group[] = $handler->setFormatter($lineFormatter);
             $logger->pushHandler(
                 new $dic['Yapeal.Error.Handlers.fingersCrossed'](new $dic['Yapeal.Error.Handlers.group']($group),
                     (int)$dic['Yapeal.Error.threshold'], (int)$dic['Yapeal.Error.bufferSize'], true, false)
