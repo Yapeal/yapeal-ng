@@ -59,7 +59,7 @@ class ErrorWiring implements WiringInterface
              */
             $logger = new $dic['Yapeal.Error.class']($dic['Yapeal.Error.channel']);
             $group = [];
-            $lineFormatter = new LineFormatter();
+            $lineFormatter = new LineFormatter(null, 'Y-m-d H:i:s.u');
             $lineFormatter->includeStacktraces();
             $lineFormatter->allowInlineLineBreaks();
             /**
