@@ -57,7 +57,7 @@ class EveApiXmlData implements EveApiReadWriteInterface
             return $this;
         }
         if (!is_string($name)) {
-            $mess = 'Name MUST be string but given ' . gettype($name);
+            $mess = 'Name MUST be string but was given ' . gettype($name);
             throw new InvalidArgumentException($mess);
         }
         $this->eveApiArguments[$name] = (string)$value;
@@ -152,7 +152,9 @@ class EveApiXmlData implements EveApiReadWriteInterface
     public function getHash()
     {
         $hash = $this->getEveApiName() . $this->getEveApiSectionName();
-        foreach ($this->getEveApiArguments() as $key => $value) {
+        $arguments = $this->getEveApiArguments();
+        ksort($arguments);
+        foreach ($arguments as $key => $value) {
             if ('mask' === $key) {
                 continue;
             }
