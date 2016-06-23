@@ -33,14 +33,8 @@
  */
 namespace Yapeal\Console\Command;
 
-use DirectoryIterator;
-use InvalidArgumentException;
-use LogicException;
-use PDO;
-use PDOException;
 use Symfony\Component\Console\Output\OutputInterface;
 use Yapeal\Container\ContainerInterface;
-use Yapeal\Exception\YapealConsoleException;
 use Yapeal\Exception\YapealDatabaseException;
 
 /**
@@ -52,16 +46,12 @@ class DatabaseUpdater extends AbstractDatabaseCommon
      * @param string|null        $name
      * @param ContainerInterface $dic
      *
-     * @throws LogicException
-     * @throws InvalidArgumentException
-     * @throws \Symfony\Component\Console\Exception\LogicException
      * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
+     * @throws \Symfony\Component\Console\Exception\LogicException
      */
     public function __construct($name, ContainerInterface $dic)
     {
-        $this->setDescription(
-            'Retrieves SQL from files and updates database'
-        );
+        $this->setDescription('Retrieves SQL from files and updates database');
         $this->setName($name);
         $this->setDic($dic);
         parent::__construct($name);
@@ -70,13 +60,13 @@ class DatabaseUpdater extends AbstractDatabaseCommon
      * @param OutputInterface $output
      *
      * @throws \InvalidArgumentException
-     * @throws YapealDatabaseException
-     * @throws YapealConsoleException
+     * @throws \LogicException
+     * @throws \Symfony\Component\Console\Exception\LogicException
+     * @throws \Yapeal\Exception\YapealDatabaseException
      */
     protected function addDatabaseProcedure(OutputInterface $output)
     {
         $name = 'DatabaseUpdater::addDatabaseProcedure';
-        $output->writeln($name);
         $csq = $this->getCsq();
         $this->executeSqlStatements(
             $csq->getDropAddOrModifyColumnProcedure() . PHP_EOL . $csq->getCreateAddOrModifyColumnProcedure(),
@@ -114,28 +104,22 @@ HELP;
      * @param OutputInterface $output
      *
      * @throws \InvalidArgumentException
-     * @throws YapealConsoleException
-     * @throws YapealDatabaseException
+     * @throws \LogicException
+     * @throws \Symfony\Component\Console\Exception\LogicException
+     * @throws \Yapeal\Exception\YapealDatabaseException
      */
     protected function dropDatabaseProcedure(OutputInterface $output)
     {
         $name = 'DatabaseUpdater::dropDatabaseProcedure';
-        $output->writeln($name);
-        $this->executeSqlStatements(
-            $this->getCsq()
-                 ->getDropAddOrModifyColumnProcedure(),
-            $name,
-            $output
-        );
-        $output->writeln('');
+        $this->executeSqlStatements($this->getCsq()
+                                         ->getDropAddOrModifyColumnProcedure(), $name, $output);
     }
     /**
      * @param OutputInterface $output
      *
      * @return string
-     * @throws \InvalidArgumentException
-     * @throws YapealConsoleException
-     * @throws YapealDatabaseException
+     * @throws \LogicException
+     * @throws \Yapeal\Exception\YapealDatabaseException
      */
     protected function getLatestDatabaseVersion(OutputInterface $output)
     {
@@ -143,27 +127,26 @@ HELP;
                     ->getUtilLatestDatabaseVersion();
         try {
             $result = $this->getPdo()
-                           ->query($sql, PDO::FETCH_NUM);
-            $version = $result->fetchColumn();
+                           ->query($sql, \PDO::FETCH_NUM);
+            $version = sprintf('%018.3F', $result->fetchColumn());
             $result->closeCursor();
-        } catch (PDOException $exc) {
-            $mess = '<warning>Could NOT get latest database version using default 197001010001</warning>';
+        } catch (\PDOException $exc) {
+            $version = '19700101000001.000';
+            $mess = sprintf('<error>Could NOT get latest database version using default %1$s</error>', $version);
             $output->writeln([$sql, $mess]);
             $mess = sprintf(
                 '<info>Error message from database connection was %s</info>',
                 $exc->getMessage()
             );
             $output->writeln($mess);
-            $version = '197001010001';
         }
-        return sprintf('%1$012s', $version);
+        return $version;
     }
     /**
      * @param OutputInterface $output
      *
      * @return string[]
-     * @throws InvalidArgumentException
-     * @throws YapealConsoleException
+     * @throws \LogicException
      */
     protected function getUpdateFileList(OutputInterface $output)
     {
@@ -177,7 +160,7 @@ HELP;
             $output->writeln($mess);
             return $fileNames;
         }
-        foreach (new DirectoryIterator($path) as $fileInfo) {
+        foreach (new \DirectoryIterator($path) as $fileInfo) {
             if ($fileInfo->isDot() || $fileInfo->isDir()) {
                 continue;
             }
@@ -193,48 +176,48 @@ HELP;
     /**
      * @param OutputInterface $output
      *
-     * @throws InvalidArgumentException
-     * @throws YapealConsoleException
-     * @throws YapealDatabaseException
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
+     * @throws \Symfony\Component\Console\Exception\LogicException
+     * @throws \Yapeal\Exception\YapealDatabaseException
      */
     protected function processSql(OutputInterface $output)
     {
         $this->addDatabaseProcedure($output);
         foreach ($this->getUpdateFileList($output) as $fileName) {
-            /** @noinspection DisconnectedForeachInstructionInspection */
             $latestVersion = $this->getLatestDatabaseVersion($output);
             if (!is_file($fileName)) {
-                $mess = sprintf(
-                    '<info>Could NOT find SQL file %1$s</info>',
-                    $fileName
-                );
-                $output->writeln($mess);
+                if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
+                    $mess = sprintf('<info>Could NOT find SQL file %1$s</info>', $fileName);
+                    $output->writeln($mess);
+                }
                 continue;
             }
             $updateVersion = basename($fileName, '.sql');
             if ($updateVersion <= $latestVersion) {
-                $mess = sprintf(
-                    '<info>Skipping SQL file %1$s since its <= the latest database version %2$s</info>',
-                    basename($fileName),
-                    $latestVersion
-                );
-                $output->writeln($mess);
+                if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
+                    $mess = sprintf(
+                        '<info>Skipping SQL file %1$s since its <= the latest database version %2$s</info>',
+                        basename($fileName),
+                        $latestVersion
+                    );
+                    $output->writeln($mess);
+                }
                 continue;
             }
             $sqlStatements = file_get_contents($fileName);
             if (false === $sqlStatements) {
-                $mess = sprintf(
-                    '<warning>Could NOT get contents of SQL file %1$s</warning>',
-                    $fileName
-                );
-                $output->writeln($mess);
+                if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
+                    $mess = sprintf(
+                        '<error>Could NOT get contents of SQL file %1$s</error>',
+                        $fileName
+                    );
+                    $output->writeln($mess);
+                }
                 continue;
             }
-            $output->writeln($fileName);
             $this->executeSqlStatements($sqlStatements, $fileName, $output);
             $this->updateDatabaseVersion($updateVersion);
-            /** @noinspection DisconnectedForeachInstructionInspection */
-            $output->writeln('');
         }
         $this->dropDatabaseProcedure($output);
     }
@@ -242,20 +225,20 @@ HELP;
      * @param string $updateVersion
      *
      * @return DatabaseUpdater
-     * @throws YapealConsoleException
-     * @throws YapealDatabaseException
+     * @throws \LogicException
+     * @throws \Yapeal\Exception\YapealDatabaseException
      */
     protected function updateDatabaseVersion($updateVersion)
     {
+        $pdo = $this->getPdo();
         $sql = $this->getCsq()
                     ->getUtilLatestDatabaseVersionUpdate();
         try {
-            $pdo = $this->getPdo();
             $pdo->beginTransaction();
             $pdo->prepare($sql)
                 ->execute([$updateVersion]);
             $pdo->commit();
-        } catch (PDOException $exc) {
+        } catch (\PDOException $exc) {
             $mess = $sql . PHP_EOL;
             $mess .= sprintf('Database error message was %s', $exc->getMessage()) . PHP_EOL;
             $mess .= sprintf(

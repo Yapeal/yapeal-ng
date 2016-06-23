@@ -34,22 +34,20 @@
 namespace Yapeal\Console\Command;
 
 use FilePathNormalizer\FilePathNormalizerTrait;
-use PDOException;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Yapeal\Console\CommandToolsTrait;
-use Yapeal\Exception\YapealConsoleException;
+use Yapeal\CommonToolsTrait;
 use Yapeal\Exception\YapealDatabaseException;
-use Yapeal\Exception\YapealException;
 
 /**
  * Class AbstractDatabaseCommon
  */
 abstract class AbstractDatabaseCommon extends Command
 {
-    use CommandToolsTrait, FilePathNormalizerTrait;
+    use CommonToolsTrait, FilePathNormalizerTrait;
     /**
      * Sets the help message and all the common options used by the Database:* commands.
      *
@@ -62,7 +60,7 @@ abstract class AbstractDatabaseCommon extends Command
              ->addOption('hostName', 'o', InputOption::VALUE_REQUIRED, 'Host name for database server.')
              ->addOption('password', 'p', InputOption::VALUE_REQUIRED, 'Password used to access database.')
              ->addOption('platform', null, InputOption::VALUE_REQUIRED,
-                 'Platform of database driver. Currently only "mysql".')
+                 'Platform of database driver. Currently only "mysql" can be used.')
              ->addOption('port', null, InputOption::VALUE_REQUIRED,
                  'Port number for remote server. Only needed if using http connection.')
              ->addOption('tablePrefix', 't', InputOption::VALUE_REQUIRED, 'Prefix for database table names.')
@@ -84,11 +82,6 @@ abstract class AbstractDatabaseCommon extends Command
      * @return int|null null or 0 if everything went fine, or an error code
      * @throws \LogicException
      *
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws YapealException
-     * @throws YapealConsoleException
-     * @throws YapealDatabaseException
      * @see    setCode()
      */
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -102,26 +95,19 @@ abstract class AbstractDatabaseCommon extends Command
      * @param OutputInterface $output
      *
      * @throws \InvalidArgumentException
-     * @throws YapealConsoleException
-     * @throws YapealDatabaseException
+     * @throws \LogicException
+     * @throws \Symfony\Component\Console\Exception\LogicException
+     * @throws \Yapeal\Exception\YapealDatabaseException
      */
     protected function executeSqlStatements($sqlStatements, $fileName, OutputInterface $output)
     {
-        $templates = [
-            ';',
-            '{database}',
-            '{engine}',
-            '{ engine}',
-            '{table_prefix}',
-            '$$'
-        ];
         $replacements = [
-            '',
-            $this->getDic()['Yapeal.Sql.database'],
-            $this->getDic()['Yapeal.Sql.engine'],
-            $this->getDic()['Yapeal.Sql.engine'],
-            $this->getDic()['Yapeal.Sql.tablePrefix'],
-            ';'
+            ';' => '',
+            '{database}' => $this->getDic()['Yapeal.Sql.database'],
+            '{engine}' => $this->getDic()['Yapeal.Sql.engine'],
+            '{ engine}' => $this->getDic()['Yapeal.Sql.engine'],
+            '{table_prefix}' => $this->getDic()['Yapeal.Sql.tablePrefix'],
+            '$$' => ';'
         ];
         $pdo = $this->getPdo();
         // Split up SQL into statements on ';'.
@@ -129,21 +115,36 @@ abstract class AbstractDatabaseCommon extends Command
         /**
          * @var string[] $statements
          */
-        $statements = str_replace(
-            $templates,
-            $replacements,
-            explode(';', $sqlStatements)
-        );
+        $statements = str_replace(array_keys($replacements), array_values($replacements), explode(';', $sqlStatements));
+        // 5 is a 'magic' number that I think is shorter than any legal SQL statement.
+        $statements = array_filter($statements, function ($value) {
+            return 5 <= strlen(trim($value));
+        });
+        $progress = null;
+        if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
+            if (false === strpos($fileName, '::')) {
+                $mess = sprintf('<info>Execute %1$s/%2$s</info>', basename(dirname($fileName)),
+                    basename($fileName, '.sql'));
+            } else {
+                $mess = sprintf('<info>Execute %s</info>', $fileName);
+            }
+            $output->writeln($mess);
+            $progress = $this->createProgressBar($output, count($statements));
+        }
         foreach ($statements as $statement => $sql) {
             $sql = trim($sql);
-            // 5 is a 'magic' number that I think is shorter than any legal SQL
-            // statement.
-            if (5 > strlen($sql)) {
-                continue;
-            }
             try {
                 $pdo->exec($sql);
-            } catch (PDOException $exc) {
+                if (null !== $progress) {
+                    $progress->setMessage('<comment>executing</comment>');
+                    $progress->advance();
+                }
+            } catch (\PDOException $exc) {
+                if (null !== $progress) {
+                    $progress->setMessage('<error>Failed</error>');
+                    $progress->finish();
+                    $output->writeln('');
+                }
                 $mess = $sql . PHP_EOL;
                 $mess .= sprintf(
                     'Sql failed in %1$s on statement %2$s with (%3$s) %4$s',
@@ -154,16 +155,18 @@ abstract class AbstractDatabaseCommon extends Command
                 );
                 throw new YapealDatabaseException($mess, 2);
             }
-            /** @noinspection DisconnectedForeachInstructionInspection */
-            $output->write('.');
+        }
+        if (null !== $progress) {
+            $progress->setMessage('');
+            $progress->finish();
+            $output->writeln('');
         }
     }
     /**
      * @param array $options
      *
      * @return AbstractDatabaseCommon
-     * @throws YapealConsoleException
-     *
+     * @throws \LogicException
      */
     protected function processCliOptions(array $options)
     {
@@ -183,4 +186,20 @@ abstract class AbstractDatabaseCommon extends Command
      * @param OutputInterface $output
      */
     abstract protected function processSql(OutputInterface $output);
+    /**
+     * @param OutputInterface $output
+     * @param int             $statementCount
+     *
+     * @return ProgressBar
+     */
+    private function createProgressBar(OutputInterface $output, $statementCount)
+    {
+        $progress = new ProgressBar($output);
+        $progress->setRedrawFrequency(1);
+        $progress->setFormat(' %current%/%max% [%bar%] %percent:3s%% %elapsed:6s% %message%');
+        $progress->setMessage('<info>starting</info>');
+        $progress->start($statementCount);
+        $progress->setBarWidth(min(4 * $statementCount + 2, 50));
+        return $progress;
+    }
 }

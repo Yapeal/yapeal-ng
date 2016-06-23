@@ -33,13 +33,9 @@
  */
 namespace Yapeal\Console\Command;
 
-use DirectoryIterator;
-use InvalidArgumentException;
-use LogicException;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Yapeal\Container\ContainerInterface;
-use Yapeal\Exception\YapealConsoleException;
-use Yapeal\Exception\YapealDatabaseException;
 
 /**
  * Class DatabaseInitializer
@@ -50,16 +46,12 @@ class DatabaseInitializer extends AbstractDatabaseCommon
      * @param string|null        $name
      * @param ContainerInterface $dic
      *
-     * @throws InvalidArgumentException
-     * @throws LogicException
-     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
      * @throws \Symfony\Component\Console\Exception\LogicException
+     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
      */
     public function __construct($name, ContainerInterface $dic)
     {
-        $this->setDescription(
-            'Retrieves SQL from files and initializes database'
-        );
+        $this->setDescription('Retrieves SQL from files and initializes database');
         $this->setName($name);
         $this->setDic($dic);
         parent::__construct($name);
@@ -88,49 +80,55 @@ You can also use the command before setting up a configuration file like so:
 
 HELP;
         $this->addOptions($help);
+        $desc = 'Drop existing database before re-creating. <comment>Warning all the tables will be dropped as well!</comment>';
+        $this->addOption('dropDatabase', null, InputOption::VALUE_NONE, $desc);
     }
     /**
      * @param OutputInterface $output
      *
      * @return string[]
-     * @throws InvalidArgumentException
-     * @throws YapealConsoleException
+     * @throws \LogicException
      */
     protected function getCreateFileList(OutputInterface $output)
     {
+        $dic = $this->getDic();
         $sections = ['Database', 'Util', 'Account', 'Api', 'Char', 'Corp', 'Eve', 'Map', 'Server'];
-        $path = $this->getDic()['Yapeal.Sql.dir'];
+        $path = $dic['Yapeal.Sql.dir'];
         if (!is_readable($path)) {
-            $mess = sprintf(
-                '<info>Could NOT access Sql directory %1$s</info>',
-                $path
-            );
-            $output->writeln($mess);
+            if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
+                $mess = sprintf('<comment>Could NOT access Sql directory %1$s</comment>', $path);
+                $output->writeln($mess);
+            }
             return [];
         }
         $fileList = [];
         foreach ($sections as $dir) {
-            foreach (new DirectoryIterator($path . $dir . '/') as $fileInfo) {
-                if (!$fileInfo->isFile()
-                    || 'sql' !== $fileInfo->getExtension()
-                    || 0 !== strpos($fileInfo->getBasename(), 'Create')
-                ) {
-                    continue;
-                }
+            if ('Database' === $dir && $this->dropDatabase) {
+                // Add drop database file if requested.
                 $fileList[] = $this->getFpn()
-                                   ->normalizeFile($fileInfo->getPathname());
+                                   ->normalizeFile($path . $dir . '/DropDatabase.sql');
+            }
+            foreach (new \DirectoryIterator($path . $dir . '/') as $fileInfo) {
+                // Add file path if it's a sql create file.
+                if ($fileInfo->isFile()
+                    && 'sql' === $fileInfo->getExtension()
+                    && 0 === strpos($fileInfo->getBasename(), 'Create')
+                ) {
+                    $fileList[] = $this->getFpn()
+                                       ->normalizeFile($fileInfo->getPathname());
+                }
             }
         }
         $fileNames = '%1$sCreateCustomTables.sql,%2$sconfig/CreateCustomTables.sql';
         $vendorPath = '';
-        if (!empty($this->getDic()['Yapeal.vendorParentDir'])) {
+        if (!empty($dic['Yapeal.vendorParentDir'])) {
             $fileNames .= ',%3$sconfig/CreateCustomTables.sql';
-            $vendorPath = $this->getDic()['Yapeal.vendorParentDir'];
+            $vendorPath = $dic['Yapeal.vendorParentDir'];
         }
         /**
          * @var array $customFiles
          */
-        $customFiles = explode(',', sprintf($fileNames, $path, $this->getDic()['Yapeal.baseDir'], $vendorPath));
+        $customFiles = explode(',', sprintf($fileNames, $path, $dic['Yapeal.baseDir'], $vendorPath));
         foreach ($customFiles as $fileName) {
             if (!is_readable($fileName) || !is_file($fileName)) {
                 continue;
@@ -140,28 +138,42 @@ HELP;
         return $fileList;
     }
     /**
+     * @param array $options
+     *
+     * @return self Fluent interface.
+     * @throws \LogicException
+     */
+    protected function processCliOptions(array $options)
+    {
+        if (array_key_exists('dropDatabase', $options)) {
+            $this->dropDatabase = $options['dropDatabase'];
+        }
+        return parent::processCliOptions($options);
+    }
+    /**
      * @param OutputInterface $output
      *
-     * @throws InvalidArgumentException
-     * @throws YapealConsoleException
-     * @throws YapealDatabaseException
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
+     * @throws \Symfony\Component\Console\Exception\LogicException
+     * @throws \Yapeal\Exception\YapealDatabaseException
      */
     protected function processSql(OutputInterface $output)
     {
         foreach ($this->getCreateFileList($output) as $fileName) {
             $sqlStatements = file_get_contents($fileName);
             if (false === $sqlStatements) {
-                $mess = sprintf(
-                    '<warning>Could NOT get contents of SQL file %1$s</warning>',
-                    $fileName
-                );
-                $output->writeln($mess);
+                if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
+                    $mess = sprintf('<error>Could NOT get contents of SQL file %1$s</error>', $fileName);
+                    $output->writeln($mess);
+                }
                 continue;
             }
-            $output->writeln($fileName);
             $this->executeSqlStatements($sqlStatements, $fileName, $output);
-            /** @noinspection DisconnectedForeachInstructionInspection */
-            $output->writeln('');
         }
     }
+    /**
+     * @var bool $dropDatabase
+     */
+    private $dropDatabase = false;
 }
