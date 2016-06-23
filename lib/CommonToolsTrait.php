@@ -31,20 +31,18 @@
  * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
  * @author    Michael Cummings <mgcummings@yahoo.com>
  */
-namespace Yapeal\Console;
+namespace Yapeal;
 
-use InvalidArgumentException;
 use PDO;
 use PDOException;
 use Yapeal\Container\ContainerInterface;
-use Yapeal\Exception\YapealConsoleException;
 use Yapeal\Exception\YapealDatabaseException;
 use Yapeal\Sql\CommonSqlQueries;
 
 /**
  * Trait CommandToolsTrait
  */
-trait CommandToolsTrait
+trait CommonToolsTrait
 {
     /**
      * @param CommonSqlQueries $value
@@ -54,21 +52,6 @@ trait CommandToolsTrait
     public function setCsq(CommonSqlQueries $value)
     {
         $this->csq = $value;
-        return $this;
-    }
-    /**
-     * @param string $value
-     *
-     * @throws InvalidArgumentException
-     * @return self Fluent interface.
-     */
-    public function setCwd($value)
-    {
-        if (!is_string($value)) {
-            $mess = 'Cwd MUST be string but given ' . gettype($value);
-            throw new InvalidArgumentException($mess);
-        }
-        $this->cwd = $value;
         return $this;
     }
     /**
@@ -93,7 +76,7 @@ trait CommandToolsTrait
     }
     /**
      * @return CommonSqlQueries
-     * @throws YapealConsoleException
+     * @throws \LogicException
      */
     protected function getCsq()
     {
@@ -102,33 +85,26 @@ trait CommandToolsTrait
         }
         if (!$this->csq instanceof CommonSqlQueries) {
             $mess = 'Tried to use csq before it was set';
-            throw new YapealConsoleException($mess, 1);
+            throw new \LogicException($mess, 1);
         }
         return $this->csq;
     }
     /**
-     * @return string
-     */
-    protected function getCwd()
-    {
-        return $this->cwd;
-    }
-    /**
      * @return ContainerInterface
-     * @throws YapealConsoleException
+     * @throws \LogicException
      */
     protected function getDic()
     {
         if (!$this->dic instanceof ContainerInterface) {
             $mess = 'Tried to use dic before it was set';
-            throw new YapealConsoleException($mess, 1);
+            throw new \LogicException($mess, 1);
         }
         return $this->dic;
     }
     /**
      * @return PDO
-     * @throws YapealConsoleException
-     * @throws YapealDatabaseException
+     * @throws \LogicException
+     * @throws \Yapeal\Exception\YapealDatabaseException
      */
     protected function getPdo()
     {
@@ -150,10 +126,6 @@ trait CommandToolsTrait
      * @var CommonSqlQueries $csq
      */
     protected $csq;
-    /**
-     * @var string $cwd
-     */
-    protected $cwd;
     /**
      * @var ContainerInterface $dic
      */
