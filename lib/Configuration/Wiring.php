@@ -34,17 +34,10 @@
 namespace Yapeal\Configuration;
 
 use FilePathNormalizer\FilePathNormalizerTrait;
-use FilesystemIterator;
-use RecursiveArrayIterator;
 use RecursiveIteratorIterator;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Parser;
-use Traversable;
-use Twig_Environment;
-use Twig_Loader_Filesystem;
-use Twig_SimpleFilter;
 use Yapeal\Container\ContainerInterface;
-use Yapeal\Exception\YapealDatabaseException;
 use Yapeal\Exception\YapealException;
 
 /**
@@ -61,12 +54,53 @@ class Wiring
         $this->dic = $dic;
     }
     /**
+     * @param string $configFile
+     * @param array  $settings
+     *
+     * @return array
+     * @throws \DomainException
+     * @throws \Yapeal\Exception\YapealException
+     */
+    public function parserConfigFile($configFile, array $settings = [])
+    {
+        if (!is_readable($configFile) || !is_file($configFile)) {
+            return $settings;
+        }
+        try {
+            /**
+             * @var \RecursiveIteratorIterator|\Traversable $rItIt
+             */
+            $rItIt = new \RecursiveIteratorIterator(
+                new \RecursiveArrayIterator(
+                    (new Parser())->parse(file_get_contents($configFile), true, false)
+                )
+            );
+        } catch (ParseException $exc) {
+            $mess = sprintf(
+                'Unable to parse the YAML configuration file %2$s.' . ' The error message was %1$s',
+                $exc->getMessage(),
+                $configFile
+            );
+            throw new YapealException($mess, 0, $exc);
+        }
+        foreach ($rItIt as $leafValue) {
+            $keys = [];
+            /** @noinspection DisconnectedForeachInstructionInspection */
+            /**
+             * @var array $depths
+             */
+            $depths = range(0, $rItIt->getDepth());
+            foreach ($depths as $depth) {
+                $keys[] = $rItIt->getSubIterator($depth)
+                                ->key();
+            }
+            $settings[implode('.', $keys)] = $leafValue;
+        }
+        return $this->doSubs($settings);
+    }
+    /**
      * @return self Fluent interface.
      * @throws \LogicException
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws YapealException
-     * @throws YapealDatabaseException
      */
     public function wireAll()
     {
@@ -96,7 +130,6 @@ class Wiring
      *
      * @return array
      * @throws \DomainException
-     * @throws \InvalidArgumentException
      */
     protected function doSubs(array $settings)
     {
@@ -142,10 +175,10 @@ class Wiring
      */
     protected function getFilteredEveApiSubscriberList()
     {
-        $flags = FilesystemIterator::CURRENT_AS_FILEINFO
-            | FilesystemIterator::KEY_AS_PATHNAME
-            | FilesystemIterator::SKIP_DOTS
-            | FilesystemIterator::UNIX_PATHS;
+        $flags = \FilesystemIterator::CURRENT_AS_FILEINFO
+            | \FilesystemIterator::KEY_AS_PATHNAME
+            | \FilesystemIterator::SKIP_DOTS
+            | \FilesystemIterator::UNIX_PATHS;
         $rdi = new \RecursiveDirectoryIterator($this->dic['Yapeal.EveApi.dir']);
         $rdi->setFlags($flags);
         /** @noinspection SpellCheckingInspection */
@@ -172,60 +205,9 @@ class Wiring
         return $files;
     }
     /**
-     * @param string $configFile
-     * @param array  $settings
-     *
-     * @return array|string
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws YapealException
-     */
-    protected function parserConfigFile($configFile, $settings)
-    {
-        if (!is_readable($configFile) || !is_file($configFile)) {
-            return $settings;
-        }
-        try {
-            /**
-             * @var RecursiveIteratorIterator|Traversable $rItIt
-             */
-            $rItIt = new RecursiveIteratorIterator(
-                new RecursiveArrayIterator(
-                    (new Parser())->parse(
-                        file_get_contents($configFile),
-                        true,
-                        false
-                    )
-                )
-            );
-        } catch (ParseException $exc) {
-            $mess = sprintf(
-                'Unable to parse the YAML configuration file %2$s.' . ' The error message was %1$s',
-                $exc->getMessage(),
-                $configFile
-            );
-            throw new YapealException($mess, 0, $exc);
-        }
-        foreach ($rItIt as $leafValue) {
-            $keys = [];
-            /** @noinspection DisconnectedForeachInstructionInspection */
-            /**
-             * @var array $depths
-             */
-            $depths = range(0, $rItIt->getDepth());
-            foreach ($depths as $depth) {
-                $keys[] = $rItIt->getSubIterator($depth)
-                                ->key();
-            }
-            $settings[implode('.', $keys)] = $leafValue;
-        }
-        return $this->doSubs($settings);
-    }
-    /**
      * @return self Fluent interface.
      * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws YapealException
+     * @throws \Yapeal\Exception\YapealException
      */
     protected function wireConfig()
     {
@@ -242,29 +224,19 @@ class Wiring
             $fpn->normalizeFile(__DIR__ . '/yapeal_defaults.yaml'),
             $fpn->normalizeFile($dic['Yapeal.baseDir'] . 'config/yapeal.yaml')
         ];
-        if (empty($dic['Yapeal.vendorParentDir'])) {
-            $vendorPos = strpos(
-                $path,
-                'vendor/'
-            );
-            if (false !== $vendorPos) {
-                $dic['Yapeal.vendorParentDir'] = substr($path, 0, $vendorPos);
-                $configFiles[] = $fpn->normalizeFile($dic['Yapeal.vendorParentDir'] . 'config/yapeal.yaml');
-            }
-        } else {
+        $vendorPos = strpos($path, 'vendor/');
+        if (false !== $vendorPos) {
+            $dic['Yapeal.vendorParentDir'] = substr($path, 0, $vendorPos);
             $configFiles[] = $fpn->normalizeFile($dic['Yapeal.vendorParentDir'] . 'config/yapeal.yaml');
         }
         $settings = [];
         // Process each file in turn so any substitutions are done in a more
         // consistent way.
         foreach ($configFiles as $configFile) {
-            $settings = $this->parserConfigFile(
-                $configFile,
-                $settings
-            );
+            $settings = $this->parserConfigFile($configFile, $settings);
         }
         if (0 !== count($settings)) {
-            // Assure NOT overwriting already existing settings.
+            // Assure NOT overwriting already existing settings from previously processed CLI or application settings.
             foreach ($settings as $key => $value) {
                 $dic[$key] = empty($dic[$key]) ? $value : $dic[$key];
             }
@@ -301,7 +273,7 @@ class Wiring
                     $dic[$service] = function () use ($dic, $service) {
                         $class = '\\' . str_replace('.', '\\', $service);
                         /**
-                         * @var \Yapeal\EveApi\EveApiToolsTrait $callable
+                         * @var \Yapeal\CommonToolsTrait $callable
                          */
                         $callable = new $class();
                         return $callable->setCsq($dic['Yapeal.Sql.CommonQueries'])
@@ -317,17 +289,17 @@ class Wiring
         }
         if (empty($dic['Yapeal.EveApi.Creator'])) {
             $dic['Yapeal.EveApi.Creator'] = function () use ($dic) {
-                $loader = new Twig_Loader_Filesystem($dic['Yapeal.EveApi.dir']);
-                $twig = new Twig_Environment(
+                $loader = new \Twig_Loader_Filesystem($dic['Yapeal.EveApi.dir']);
+                $twig = new \Twig_Environment(
                     $loader, ['debug' => true, 'strict_variables' => true, 'autoescape' => false]
                 );
-                $filter = new Twig_SimpleFilter(
+                $filter = new \Twig_SimpleFilter(
                     'ucFirst', function ($value) {
                     return ucfirst($value);
                 }
                 );
                 $twig->addFilter($filter);
-                $filter = new Twig_SimpleFilter(
+                $filter = new \Twig_SimpleFilter(
                     'lcFirst', function ($value) {
                     return lcfirst($value);
                 }

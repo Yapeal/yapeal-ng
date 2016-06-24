@@ -40,6 +40,8 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Yapeal\CommonToolsTrait;
+use Yapeal\Configuration\Wiring;
+use Yapeal\Container\ContainerInterface;
 use Yapeal\Exception\YapealDatabaseException;
 
 /**
@@ -55,7 +57,9 @@ abstract class AbstractDatabaseCommon extends Command
      */
     protected function addOptions($help)
     {
-        $this->addOption('configFile', 'c', InputOption::VALUE_REQUIRED, 'Configuration file to get settings from.')
+        $mess = 'Configuration file to get settings from.'
+            . ' <comment>NOTE: A (missing, unreadable, empty, etc) file will be silently ignored.</comment>';
+        $this->addOption('configFile', 'c', InputOption::VALUE_REQUIRED, $mess)
              ->addOption('database', 'd', InputOption::VALUE_REQUIRED, 'Name of the database.')
              ->addOption('hostName', 'o', InputOption::VALUE_REQUIRED, 'Host name for database server.')
              ->addOption('password', 'p', InputOption::VALUE_REQUIRED, 'Password used to access database.')
@@ -80,7 +84,9 @@ abstract class AbstractDatabaseCommon extends Command
      * @param OutputInterface $output An OutputInterface instance
      *
      * @return int|null null or 0 if everything went fine, or an error code
+     * @throws \DomainException
      * @throws \LogicException
+     * @throws \Yapeal\Exception\YapealException
      *
      * @see    setCode()
      */
@@ -166,21 +172,46 @@ abstract class AbstractDatabaseCommon extends Command
      * @param array $options
      *
      * @return AbstractDatabaseCommon
+     * @throws \DomainException
      * @throws \LogicException
+     * @throws \Yapeal\Exception\YapealException
      */
     protected function processCliOptions(array $options)
     {
         $base = 'Yapeal.Sql.';
+        $dic = $this->getDic();
         foreach (['class', 'database', 'hostName', 'password', 'platform', 'tablePrefix', 'userName'] as $option) {
             if (!empty($options[$option])) {
-                $this->getDic()[$base . $option] = $options[$option];
+                $dic[$base . $option] = $options[$option];
             }
         }
         if (!empty($options['configFile'])) {
-            $this->getDic()['Yapeal.Config.configDir'] = dirname($options['configFile']);
-            $this->getDic()['Yapeal.Config.fileName'] = basename($options['configFile']);
+            $this->processConfigFile($options, $dic);
         }
         return $this;
+    }
+    /**
+     * @param array              $options
+     * @param ContainerInterface $dic
+     *
+     * @throws \DomainException
+     * @throws \Yapeal\Exception\YapealException
+     */
+    protected function processConfigFile(array $options, ContainerInterface $dic)
+    {
+        $fpn = $this->getFpn();
+        $configFile = $fpn->normalizeFile($options['configFile'],
+            $fpn::ABSOLUTE_ALLOWED | $fpn::VFS_ALLOWED | $fpn::WRAPPER_ALLOWED);
+        if (!is_file($configFile) || !is_readable($configFile)) {
+            return;
+        }
+        $wiring = new Wiring($dic);
+        $settings = $wiring->parserConfigFile($configFile);
+        if (0 !== count($settings)) {
+            foreach ($settings as $key => $setting) {
+                $dic[$key] = $setting;
+            }
+        }
     }
     /**
      * @param OutputInterface $output
