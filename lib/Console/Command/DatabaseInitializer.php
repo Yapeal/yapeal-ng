@@ -33,8 +33,11 @@
  */
 namespace Yapeal\Console\Command;
 
+use Symfony\Component\Console\Helper\QuestionHelper;
+use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Yapeal\Container\ContainerInterface;
 
 /**
@@ -55,6 +58,46 @@ class DatabaseInitializer extends AbstractDatabaseCommon
         $this->setName($name);
         $this->setDic($dic);
         parent::__construct($name);
+    }
+    /** @noinspection PhpMissingParentCallCommonInspection */
+    /**
+     * Executes the current command.
+     *
+     * This method is not abstract because you can use this class
+     * as a concrete class. In this case, instead of defining the
+     * execute() method, you set the code to execute by passing
+     * a Closure to the setCode() method.
+     *
+     * @param InputInterface  $input  An InputInterface instance
+     * @param OutputInterface $output An OutputInterface instance
+     *
+     * @return int|null null or 0 if everything went fine, or an error code
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
+     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
+     * @throws \Symfony\Component\Console\Exception\LogicException
+     * @throws \Symfony\Component\Console\Exception\RuntimeException
+     * @throws \Yapeal\Exception\YapealDatabaseException
+     *
+     * @see    setCode()
+     */
+    protected function execute(InputInterface $input, OutputInterface $output)
+    {
+        $options = $input->getOptions();
+        $this->processCliOptions($options);
+        if ($options['dropDatabase']) {
+            /**
+             * @var QuestionHelper $question
+             */
+            $question = $this->getHelper('question');
+            $mess = '<comment>Are you sure you want to drop the database and it\'s tables with their data?(no)</comment>';
+            $confirm = new ConfirmationQuestion($mess, false);
+            $this->dropDatabase = $question->ask($input, $output, $confirm);
+            if (!$this->dropDatabase) {
+                $output->writeln('<info>Ignoring drop database</info>');
+            }
+        }
+        return $this->processSql($output);
     }
     /**
      * Configures the current command.
@@ -136,19 +179,6 @@ HELP;
             $fileList[] = $fileName;
         }
         return $fileList;
-    }
-    /**
-     * @param array $options
-     *
-     * @return self Fluent interface.
-     * @throws \LogicException
-     */
-    protected function processCliOptions(array $options)
-    {
-        if (array_key_exists('dropDatabase', $options)) {
-            $this->dropDatabase = $options['dropDatabase'];
-        }
-        return parent::processCliOptions($options);
     }
     /**
      * @param OutputInterface $output
