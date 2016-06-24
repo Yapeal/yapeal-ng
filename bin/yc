@@ -43,9 +43,21 @@ use Yapeal\Console\Command\EveApiCreator;
 use Yapeal\Console\Command\NetworkRetriever;
 use Yapeal\Container\PimpleContainer;
 
+/**
+ * @var PimpleContainer $dic
+ */
 $dic = new PimpleContainer();
 (new Wiring($dic))->wireAll();
-$application = new Application('Yapeal Console', '3.0.0-alpha');
+try {
+    $version = $dic['Yapeal.version'];
+} catch (\InvalidArgumentException $exc) {
+    $version = '0.0.0-0-dev+noGit-unknown';
+}
+$gitVersion = trim(exec('git describe --always --long 2>&1', $junk, $status));
+if (0 === $status && '' !== $gitVersion && $gitVersion !== $version) {
+    $version = $gitVersion . '-dev';
+}
+$application = new Application('Yapeal Console', $version);
 $application->addCommands([
     new DatabaseInitializer('Database:Init', $dic),
     new DatabaseUpdater('Database:Update', $dic),
