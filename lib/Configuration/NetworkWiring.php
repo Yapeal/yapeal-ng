@@ -87,8 +87,7 @@ class NetworkWiring implements WiringInterface
                 ];
                 // Clean up any extra spaces and EOL chars from Yaml.
                 array_walk($headers, function (&$value) {
-                    /** @noinspection ReferenceMismatchInspection */
-                    return trim(str_replace(' ', '', $value));
+                    $value = trim(str_replace(' ', '', (string)$value));
                 });
                 if ('' !== $userAgent) {
                     $headers['User-Agent'] = $userAgent;
