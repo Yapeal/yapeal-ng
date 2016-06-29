@@ -399,7 +399,7 @@ SQL;
         return $sql;
     }
     /**
-     * @param array <string, string> $columns
+     * @param array<string, string> $columns
      *
      * @return array<string, string>
      */
