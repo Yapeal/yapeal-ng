@@ -34,8 +34,8 @@
 namespace Yapeal\Configuration;
 
 use Monolog\ErrorHandler;
-use Monolog\Formatter\LineFormatter;
 use Yapeal\Container\ContainerInterface;
+use Yapeal\Log\LineFormatter;
 use Yapeal\Log\Logger;
 
 /**
@@ -59,9 +59,8 @@ class ErrorWiring implements WiringInterface
              */
             $logger = new $dic['Yapeal.Error.class']($dic['Yapeal.Error.channel']);
             $group = [];
-            $lineFormatter = new LineFormatter(null, 'Y-m-d H:i:s.u');
+            $lineFormatter = new LineFormatter(null, 'Ymd His.u', true, true);
             $lineFormatter->includeStacktraces();
-            $lineFormatter->allowInlineLineBreaks();
             /**
              * @var \Monolog\Handler\StreamHandler $handler
              */
