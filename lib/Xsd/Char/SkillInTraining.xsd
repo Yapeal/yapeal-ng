@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Xsd/Char/SkillInTraining.xsd
+version 20160629053444.335 -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified"
+elementFormDefault="qualified">
+    <xs:include schemaLocation="../common.xsd" />
+    <xs:complexType name="resultType">
+        <xs:sequence>
+            <xs:element type="xs:string" name="skillInTraining" />
+            <xs:element type="xs:string" name="trainingDestinationSP" />
+            <xs:element type="eveNEDTType" name="trainingEndTime" />
+            <xs:element type="xs:string" name="trainingStartSP" />
+            <xs:element type="eveNEDTType" name="trainingStartTime" />
+            <xs:element type="xs:unsignedShort" name="trainingToLevel" />
+            <xs:element type="eveIDType" name="trainingTypeID" />
+        </xs:sequence>
+    </xs:complexType>
+</xs:schema>

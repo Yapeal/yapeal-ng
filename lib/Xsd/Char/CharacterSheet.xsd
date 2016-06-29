@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Xsd/Char/CharacterSheet.xsd
+version 20160629013856.416 -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified"
+elementFormDefault="qualified">
+    <xs:include schemaLocation="../common.xsd" />
+    <xs:complexType name="resultType">
+        <xs:sequence>
+            <xs:element type="eveIDType" name="allianceID" />
+            <xs:element type="eveNameType" name="allianceName" />
+            <xs:element type="eveNameType" name="ancestry" />
+            <xs:element type="eveIDType" name="ancestryID" />
+            <xs:element type="eveISKType" name="balance" />
+            <xs:element type="eveNameType" name="bloodLine" />
+            <xs:element type="eveIDType" name="bloodLineID" />
+            <xs:element type="eveIDType" name="characterID" />
+            <xs:element type="eveNEDTType" name="cloneJumpDate" />
+            <xs:element type="eveNameType" name="cloneName" minOccurs="0" />
+            <xs:element type="eveIDType" name="cloneSkillPoints" minOccurs="0" />
+            <xs:element type="eveIDType" name="cloneTypeID" minOccurs="0" />
+            <xs:element type="eveIDType" name="corporationID" />
+            <xs:element type="eveNameType" name="corporationName" />
+            <xs:element type="eveNEDTType" name="DoB" />
+            <xs:element type="eveIDType" name="factionID" />
+            <xs:element type="eveNameType" name="factionName" />
+            <xs:element type="eveIDType" name="freeRespecs" />
+            <xs:element type="eveIDType" name="freeSkillPoints" />
+            <xs:element type="eveNameType" name="gender" />
+            <xs:element type="eveIDType" name="homeStationID" />
+            <xs:element type="eveNEDTType" name="jumpActivation" />
+            <xs:element type="eveNEDTType" name="jumpFatigue" />
+            <xs:element type="eveNEDTType" name="jumpLastUpdate" />
+            <xs:element type="eveNEDTType" name="lastRespecDate" />
+            <xs:element type="eveNEDTType" name="lastTimedRespec" />
+            <xs:element type="eveNameType" name="name" />
+            <xs:element type="eveNameType" name="race" />
+            <xs:element type="eveNEDTType" name="remoteStationDate" />
+            <xs:element name="certificates" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:simpleContent>
+                                    <xs:extension base="xs:string">
+                                        <xs:attribute use="required" type="eveIDType" name="certificateID" />
+                                    </xs:extension>
+                                </xs:simpleContent>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                    <xs:attributeGroup ref="rowsetAttrs" />
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="corporationRoles" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:simpleContent>
+                                    <xs:extension base="xs:string">
+                                        <xs:attribute use="required" type="eveIDType" name="roleID" />
+                                        <xs:attribute use="required" type="eveNameType" name="roleName" />
+                                    </xs:extension>
+                                </xs:simpleContent>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                    <xs:attributeGroup ref="rowsetAttrs" />
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="corporationRolesAtBase" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:simpleContent>
+                                    <xs:extension base="xs:string">
+                                        <xs:attribute use="required" type="eveIDType" name="roleID" />
+                                        <xs:attribute use="required" type="eveNameType" name="roleName" />
+                                    </xs:extension>
+                                </xs:simpleContent>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                    <xs:attributeGroup ref="rowsetAttrs" />
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="corporationRolesAtHQ" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:simpleContent>
+                                    <xs:extension base="xs:string">
+                                        <xs:attribute use="required" type="eveIDType" name="roleID" />
+                                        <xs:attribute use="required" type="eveNameType" name="roleName" />
+                                    </xs:extension>
+                                </xs:simpleContent>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                    <xs:attributeGroup ref="rowsetAttrs" />
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="corporationRolesAtOther" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:simpleContent>
+                                    <xs:extension base="xs:string">
+                                        <xs:attribute use="required" type="eveIDType" name="roleID" />
+                                        <xs:attribute use="required" type="eveNameType" name="roleName" />
+                                    </xs:extension>
+                                </xs:simpleContent>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                    <xs:attributeGroup ref="rowsetAttrs" />
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="corporationTitles" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:simpleContent>
+                                    <xs:extension base="xs:string">
+                                        <xs:attribute use="required" type="eveIDType" name="titleID" />
+                                        <xs:attribute use="required" type="eveNameType" name="titleName" />
+                                    </xs:extension>
+                                </xs:simpleContent>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                    <xs:attributeGroup ref="rowsetAttrs" />
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="implants" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:simpleContent>
+                                    <xs:extension base="xs:string">
+                                        <xs:attribute use="required" type="eveIDType" name="typeID" />
+                                        <xs:attribute use="required" type="eveNameType" name="typeName" />
+                                    </xs:extension>
+                                </xs:simpleContent>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                    <xs:attributeGroup ref="rowsetAttrs" />
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="jumpCloneImplants" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:simpleContent>
+                                    <xs:extension base="xs:string">
+                                        <xs:attribute use="required" type="eveIDType" name="jumpCloneID" />
+                                        <xs:attribute use="required" type="eveIDType" name="typeID" />
+                                        <xs:attribute use="required" type="eveNameType" name="typeName" />
+                                    </xs:extension>
+                                </xs:simpleContent>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                    <xs:attributeGroup ref="rowsetAttrs" />
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="jumpClones" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:simpleContent>
+                                    <xs:extension base="xs:string">
+                                        <xs:attribute use="required" type="eveNameType" name="cloneName" />
+                                        <xs:attribute use="required" type="eveIDType" name="jumpCloneID" />
+                                        <xs:attribute use="required" type="eveIDType" name="locationID" />
+                                        <xs:attribute use="required" type="eveIDType" name="typeID" />
+                                    </xs:extension>
+                                </xs:simpleContent>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                    <xs:attributeGroup ref="rowsetAttrs" />
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="skills" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:simpleContent>
+                                    <xs:extension base="xs:string">
+                                        <xs:attribute use="required" type="xs:unsignedShort" name="level" />
+                                        <xs:attribute use="required" type="xs:unsignedByte" name="published" />
+                                        <xs:attribute use="required" type="eveIDType" name="skillpoints" />
+                                        <xs:attribute use="required" type="eveIDType" name="typeID" />
+                                    </xs:extension>
+                                </xs:simpleContent>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                    <xs:attributeGroup ref="rowsetAttrs" />
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+</xs:schema>

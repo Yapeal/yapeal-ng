@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Xsd/Map/FacWarSystems.xsd
+version 20160629053420.781 -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified"
+elementFormDefault="qualified">
+    <xs:include schemaLocation="../common.xsd" />
+    <xs:complexType name="resultType">
+        <xs:sequence>
+            <xs:element name="solarSystems" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:simpleContent>
+                                    <xs:extension base="xs:string">
+                                        <xs:attribute use="required" type="xs:token" name="contested" />
+                                        <xs:attribute use="required" type="eveIDType" name="occupyingFactionID" />
+                                        <xs:attribute use="required" type="eveNameType" name="occupyingFactionName" />
+                                        <xs:attribute use="required" type="eveIDType" name="owningFactionID" />
+                                        <xs:attribute use="required" type="eveNameType" name="owningFactionName" />
+                                        <xs:attribute use="required" type="eveIDType" name="solarSystemID" />
+                                        <xs:attribute use="required" type="eveNameType" name="solarSystemName" />
+                                        <xs:attribute use="required" type="xs:token" name="victoryPoints" />
+                                        <xs:attribute use="required" type="xs:token" name="victoryPointThreshold" />
+                                    </xs:extension>
+                                </xs:simpleContent>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                    <xs:attributeGroup ref="rowsetAttrs" />
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+</xs:schema>
