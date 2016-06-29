@@ -49,6 +49,7 @@ class WalletTransactions extends CorpSection
      */
     public function __construct()
     {
+        $this->accountKeys = [1000, 1001, 1002, 1003, 1004, 1005, 1006, 10000];
         $this->mask = 2097152;
         $this->preserveTos = [
             'preserveToWalletTransactions'

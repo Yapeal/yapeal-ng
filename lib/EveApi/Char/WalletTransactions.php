@@ -49,6 +49,7 @@ class WalletTransactions extends CharSection
      */
     public function __construct()
     {
+        $this->accountKeys = [1000];
         $this->mask = 4194304;
         $this->preserveTos = [
             'preserveToWalletTransactions'

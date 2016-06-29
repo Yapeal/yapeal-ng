@@ -49,6 +49,7 @@ class AccountBalance extends CharSection
      */
     public function __construct()
     {
+        $this->accountKeys = [1000];
         $this->mask = 1;
         $this->preserveTos = [
             'preserveToAccountBalance'
