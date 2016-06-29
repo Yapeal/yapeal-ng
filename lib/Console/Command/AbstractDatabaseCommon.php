@@ -40,8 +40,6 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Yapeal\CommonToolsTrait;
-use Yapeal\Configuration\Wiring;
-use Yapeal\Container\ContainerInterface;
 use Yapeal\Exception\YapealDatabaseException;
 
 /**
@@ -49,7 +47,7 @@ use Yapeal\Exception\YapealDatabaseException;
  */
 abstract class AbstractDatabaseCommon extends Command
 {
-    use CommonToolsTrait, FilePathNormalizerTrait;
+    use CommonToolsTrait, ConfigFileTrait, FilePathNormalizerTrait;
     /**
      * Sets the help message and all the common options used by the Database:* commands.
      *
@@ -57,19 +55,17 @@ abstract class AbstractDatabaseCommon extends Command
      */
     protected function addOptions($help)
     {
-        $mess = 'Configuration file to get settings from.'
-            . ' <comment>NOTE: A (missing, unreadable, empty, etc) file will be silently ignored.</comment>';
-        $this->addOption('configFile', 'c', InputOption::VALUE_REQUIRED, $mess)
-             ->addOption('database', 'd', InputOption::VALUE_REQUIRED, 'Name of the database.')
-             ->addOption('hostName', 'o', InputOption::VALUE_REQUIRED, 'Host name for database server.')
-             ->addOption('password', 'p', InputOption::VALUE_REQUIRED, 'Password used to access database.')
-             ->addOption('platform', null, InputOption::VALUE_REQUIRED,
-                 'Platform of database driver. Currently only "mysql" can be used.')
-             ->addOption('port', null, InputOption::VALUE_REQUIRED,
-                 'Port number for remote server. Only needed if using http connection.')
-             ->addOption('tablePrefix', 't', InputOption::VALUE_REQUIRED, 'Prefix for database table names.')
-             ->addOption('userName', 'u', InputOption::VALUE_REQUIRED, 'User name used to access database.')
-             ->setHelp($help);
+        $this->addConfigFileOption();
+        $this->addOption('database', 'd', InputOption::VALUE_REQUIRED, 'Name of the database.')
+            ->addOption('hostName', 'o', InputOption::VALUE_REQUIRED, 'Host name for database server.')
+            ->addOption('password', 'p', InputOption::VALUE_REQUIRED, 'Password used to access database.')
+            ->addOption('platform', null, InputOption::VALUE_REQUIRED,
+                'Platform of database driver. Currently only "mysql" can be used.')
+            ->addOption('port', null, InputOption::VALUE_REQUIRED,
+                'Port number for remote server. Only needed if using http connection.')
+            ->addOption('tablePrefix', 't', InputOption::VALUE_REQUIRED, 'Prefix for database table names.')
+            ->addOption('userName', 'u', InputOption::VALUE_REQUIRED, 'User name used to access database.')
+            ->setHelp($help);
     }
     /** @noinspection PhpMissingParentCallCommonInspection */
     /**
@@ -92,7 +88,7 @@ abstract class AbstractDatabaseCommon extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->processCliOptions($input->getOptions());
+        $this->processCliOptions($input);
         return $this->processSql($output);
     }
     /**
@@ -169,49 +165,26 @@ abstract class AbstractDatabaseCommon extends Command
         }
     }
     /**
-     * @param array $options
+     * @param InputInterface $input
      *
      * @return AbstractDatabaseCommon
      * @throws \DomainException
      * @throws \LogicException
      * @throws \Yapeal\Exception\YapealException
      */
-    protected function processCliOptions(array $options)
+    protected function processCliOptions(InputInterface $input)
     {
         $base = 'Yapeal.Sql.';
         $dic = $this->getDic();
         foreach (['class', 'database', 'hostName', 'password', 'platform', 'tablePrefix', 'userName'] as $option) {
-            if (!empty($options[$option])) {
-                $dic[$base . $option] = $options[$option];
+            if ($input->hasOption($option)) {
+                $dic[$base . $option] = $input->getOption($option);
             }
         }
-        if (!empty($options['configFile'])) {
-            $this->processConfigFile($options, $dic);
+        if ($input->hasOption('configFile')) {
+            $this->processConfigFile($input->getOption('configFile'), $dic);
         }
         return $this;
-    }
-    /**
-     * @param array              $options
-     * @param ContainerInterface $dic
-     *
-     * @throws \DomainException
-     * @throws \Yapeal\Exception\YapealException
-     */
-    protected function processConfigFile(array $options, ContainerInterface $dic)
-    {
-        $fpn = $this->getFpn();
-        $configFile = $fpn->normalizeFile($options['configFile'],
-            $fpn::ABSOLUTE_ALLOWED | $fpn::VFS_ALLOWED | $fpn::WRAPPER_ALLOWED);
-        if (!is_file($configFile) || !is_readable($configFile)) {
-            return;
-        }
-        $wiring = new Wiring($dic);
-        $settings = $wiring->parserConfigFile($configFile);
-        if (0 !== count($settings)) {
-            foreach ($settings as $key => $setting) {
-                $dic[$key] = $setting;
-            }
-        }
     }
     /**
      * @param OutputInterface $output

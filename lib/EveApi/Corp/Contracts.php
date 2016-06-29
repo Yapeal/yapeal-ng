@@ -1,6 +1,6 @@
 <?php
 /**
- * Contains Contracts class.
+ * Contains class Contracts.
  *
  * PHP version 5.4
  *
@@ -33,11 +33,9 @@
  */
 namespace Yapeal\EveApi\Corp;
 
-use PDOException;
-use Yapeal\Event\EveApiEventInterface;
-use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
+use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
  * Class Contracts
@@ -45,7 +43,6 @@ use Yapeal\Sql\PreserverTrait;
 class Contracts extends CorpSection
 {
     use PreserverTrait;
-
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -53,63 +50,20 @@ class Contracts extends CorpSection
     public function __construct()
     {
         $this->mask = 8388608;
+        $this->preserveTos = [
+            'preserveToContracts'
+        ];
     }
     /**
-     * @param EveApiEventInterface $event
-     * @param string               $eventName
-     * @param MediatorInterface    $yem
-     *
-     * @return EveApiEventInterface
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
-     */
-    public function preserveEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
-    {
-        $this->setYem($yem);
-        $data = $event->getData();
-        $xml = $data->getEveApiXml();
-        if (false === $xml) {
-            return $event->setHandledSufficiently();
-        }
-        $ownerID = $this->extractOwnerID($data->getEveApiArguments());
-        $this->getYem()
-            ->triggerLogEvent(
-                'Yapeal.Log.log',
-                Logger::DEBUG,
-                $this->getReceivedEventMessage($data, $eventName, __CLASS__)
-            );
-        $this->getPdo()
-            ->beginTransaction();
-        try {
-            $this->preserveToContracts($xml, $ownerID);
-            $this->getPdo()
-                ->commit();
-        } catch (PDOException $exc) {
-            $mess = 'Failed to upsert data of';
-            $this->getYem()
-                ->triggerLogEvent(
-                    'Yapeal.Log.log',
-                    Logger::WARNING,
-                    $this->createEveApiMessage($mess, $data),
-                    ['exception' => $exc]
-                );
-            $this->getPdo()
-                ->rollBack();
-            return $event;
-        }
-        return $event->setHandledSufficiently();
-    }
-    /**
-     * @param string $xml
-     * @param string $ownerID
+     * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
      * @throws \LogicException
      */
-    protected function preserveToContracts($xml, $ownerID)
+    protected function preserveToContracts(EveApiReadWriteInterface $data)
     {
         $tableName = 'corpContracts';
+        $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $sql = $this->getCsq()
             ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
         $this->getYem()
@@ -117,31 +71,33 @@ class Contracts extends CorpSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'acceptorID'     => null,
-            'assigneeID'     => null,
-            'availability'   => null,
-            'buyout'         => null,
-            'collateral'     => null,
-            'contractID'     => null,
-            'dateAccepted'   => '1970-01-01 00:00:01',
-            'dateCompleted'  => '1970-01-01 00:00:01',
-            'dateExpired'    => '1970-01-01 00:00:01',
-            'dateIssued'     => '1970-01-01 00:00:01',
-            'endStationID'   => null,
-            'forCorp'        => null,
-            'issuerCorpID'   => null,
-            'issuerID'       => null,
-            'numDays'        => null,
-            'ownerID'        => $ownerID,
-            'price'          => null,
-            'reward'         => null,
+            'acceptorID' => null,
+            'assigneeID' => null,
+            'availability' => null,
+            'buyout' => null,
+            'collateral' => null,
+            'contractID' => null,
+            'dateAccepted' => '1970-01-01 00:00:01',
+            'dateCompleted' => '1970-01-01 00:00:01',
+            'dateExpired' => '1970-01-01 00:00:01',
+            'dateIssued' => '1970-01-01 00:00:01',
+            'endStationID' => null,
+            'forCorp' => null,
+            'issuerCorpID' => null,
+            'issuerID' => null,
+            'numDays' => null,
+            'ownerID' => $ownerID,
+            'price' => null,
+            'reward' => null,
             'startStationID' => null,
-            'status'         => null,
-            'title'          => null,
-            'type'           => null,
-            'volume'         => null
+            'status' => null,
+            'title' => null,
+            'type' => null,
+            'volume' => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//contractList/row');
+        $xPath = '//contractList/row';
+        $elements = (new \SimpleXMLElement($data->getEveApiXml()))->xpath($xPath);
+        $this->attributePreserveData($elements, $columnDefaults, $tableName);
         return $this;
     }
 }

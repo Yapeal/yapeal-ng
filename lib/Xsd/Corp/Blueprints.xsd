@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Xsd/Corp/Blueprints.xsd
-version 20160201053351.929 -->
+version 20160629053412.890 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified"
 elementFormDefault="qualified">
     <xs:include schemaLocation="../common.xsd" />
@@ -16,9 +16,9 @@ elementFormDefault="qualified">
                                         <xs:attribute use="required" type="eveIDType" name="flagID" />
                                         <xs:attribute use="required" type="eveIDType" name="itemID" />
                                         <xs:attribute use="required" type="eveIDType" name="locationID" />
-                                        <xs:attribute use="required" type="xs:unsignedByte" name="materialEfficiency" />
-                                        <xs:attribute use="required" type="eveIDNegativeType" name="quantity" />
-                                        <xs:attribute use="required" type="eveIDNegativeType" name="runs" />
+                                        <xs:attribute use="required" type="xs:token" name="materialEfficiency" />
+                                        <xs:attribute use="required" type="xs:token" name="quantity" />
+                                        <xs:attribute use="required" type="xs:token" name="runs" />
                                         <xs:attribute use="required" type="xs:unsignedByte" name="timeEfficiency" />
                                         <xs:attribute use="required" type="eveIDType" name="typeID" />
                                         <xs:attribute use="required" type="eveNameType" name="typeName" />

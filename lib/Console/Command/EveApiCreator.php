@@ -38,7 +38,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Yapeal\Console\CommandToolsTrait;
+use Yapeal\CommonToolsTrait;
 use Yapeal\Container\ContainerInterface;
 use Yapeal\Event\EveApiEventEmitterTrait;
 use Yapeal\Xml\EveApiReadWriteInterface;
@@ -48,7 +48,7 @@ use Yapeal\Xml\EveApiReadWriteInterface;
  */
 class EveApiCreator extends Command
 {
-    use CommandToolsTrait, EveApiEventEmitterTrait;
+    use CommonToolsTrait, ConfigFileTrait, EveApiEventEmitterTrait;
     /**
      * @param string|null        $name
      * @param ContainerInterface $dic
@@ -63,6 +63,7 @@ class EveApiCreator extends Command
         $this->setDescription($desc);
         $this->setName($name);
         $this->setDic($dic);
+        $this->setYem($dic['Yapeal.Event.Mediator']);
         parent::__construct($name);
     }
     /**
@@ -71,13 +72,8 @@ class EveApiCreator extends Command
      * @param array  $posts
      *
      * @return int
-     *
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
      * @throws \LogicException
-     * @throws \Yapeal\Exception\YapealConsoleException
-     * @throws \Yapeal\Exception\YapealDatabaseException
-     * @throws \Yapeal\Exception\YapealException
+     *
      */
     public function createEveApi($apiName, $sectionName, $posts)
     {
@@ -88,8 +84,8 @@ class EveApiCreator extends Command
          */
         $data = $this->getDic()['Yapeal.Xml.Data'];
         $data->setEveApiName($apiName)
-             ->setEveApiSectionName($sectionName)
-             ->setEveApiArguments($posts);
+            ->setEveApiSectionName($sectionName)
+            ->setEveApiArguments($posts);
         foreach (['retrieve', 'create', 'transform', 'validate', 'cache'] as $eventName) {
             if (false === $this->emitEvents($data, $eventName)) {
                 return 2;
@@ -114,14 +110,15 @@ lib/{EveApi, Xsd, Sql}/Char/ directories.
     <info>%command.name% char AccountBalance 1 "keyID=1156" "vCode=abc123"</info>
 
 EOF;
+        $this->addConfigFileOption();
         $this->addArgument('section_name', InputArgument::REQUIRED, 'Name of Eve Api section to retrieve.')
-             ->addArgument('api_name', InputArgument::REQUIRED, 'Name of Eve Api to retrieve.')
-             ->addArgument('mask', InputArgument::REQUIRED, 'Bit mask for Eve Api.')
-             ->addArgument('post', InputArgument::OPTIONAL | InputArgument::IS_ARRAY,
-                 'Optional list of additional POST parameter(s) to send to server.', [])
-             ->addOption('overwrite', null, InputOption::VALUE_NONE,
-                 'Causes command to overwrite any existing per Eve API files.')
-             ->setHelp($help);
+            ->addArgument('api_name', InputArgument::REQUIRED, 'Name of Eve Api to retrieve.')
+            ->addArgument('mask', InputArgument::REQUIRED, 'Bit mask for Eve Api.')
+            ->addArgument('post', InputArgument::OPTIONAL | InputArgument::IS_ARRAY,
+                'Optional list of additional POST parameter(s) to send to server.', [])
+            ->addOption('overwrite', null, InputOption::VALUE_NONE,
+                'Causes command to overwrite any existing per Eve API files.')
+            ->setHelp($help);
     }
     /** @noinspection PhpMissingParentCallCommonInspection */
     /**
@@ -131,13 +128,10 @@ EOF;
      * @param OutputInterface $output An OutputInterface instance
      *
      * @return null|int null or 0 if everything went fine, or an error code
-     *
      * @throws \DomainException
-     * @throws \InvalidArgumentException
      * @throws \LogicException
-     * @throws \Yapeal\Exception\YapealConsoleException
-     * @throws \Yapeal\Exception\YapealDatabaseException
      * @throws \Yapeal\Exception\YapealException
+     *
      * @see    setCode()
      */
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -145,13 +139,11 @@ EOF;
         $posts = $this->processPost($input);
         $posts['mask'] = $input->getArgument('mask');
         $dic = $this->getDic();
-        if ($input->hasOption('overwrite')) {
-            $dic['Yapeal.Create.overwrite'] = true;
+        $dic['Yapeal.Create.overwrite'] = $input->getOption('overwrite');
+        if ($input->hasOption('configFile')) {
+            $this->processConfigFile($input->getOption('configFile'), $dic);
         }
-        $this->setYem($dic['Yapeal.Event.Mediator']);
-        $apiName = $input->getArgument('api_name');
-        $sectionName = $input->getArgument('section_name');
-        return $this->createEveApi($apiName, $sectionName, $posts);
+        return $this->createEveApi($input->getArgument('api_name'), $input->getArgument('section_name'), $posts);
     }
     /**
      * @param InputInterface $input

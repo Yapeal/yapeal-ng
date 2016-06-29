@@ -1,6 +1,6 @@
 <?php
 /**
- * Contains SkillQueue class.
+ * Contains class SkillQueue.
  *
  * PHP version 5.4
  *
@@ -33,11 +33,9 @@
  */
 namespace Yapeal\EveApi\Char;
 
-use PDOException;
-use Yapeal\Event\EveApiEventInterface;
-use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
+use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
  * Class SkillQueue
@@ -45,7 +43,6 @@ use Yapeal\Sql\PreserverTrait;
 class SkillQueue extends CharSection
 {
     use PreserverTrait;
-
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -53,63 +50,20 @@ class SkillQueue extends CharSection
     public function __construct()
     {
         $this->mask = 262144;
+        $this->preserveTos = [
+            'preserveToSkillQueue'
+        ];
     }
     /**
-     * @param EveApiEventInterface $event
-     * @param string               $eventName
-     * @param MediatorInterface    $yem
-     *
-     * @return EveApiEventInterface
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
-     */
-    public function preserveEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
-    {
-        $this->setYem($yem);
-        $data = $event->getData();
-        $xml = $data->getEveApiXml();
-        if (false === $xml) {
-            return $event->setHandledSufficiently();
-        }
-        $ownerID = $this->extractOwnerID($data->getEveApiArguments());
-        $this->getYem()
-            ->triggerLogEvent(
-                'Yapeal.Log.log',
-                Logger::DEBUG,
-                $this->getReceivedEventMessage($data, $eventName, __CLASS__)
-            );
-        $this->getPdo()
-            ->beginTransaction();
-        try {
-            $this->preserveToSkillQueue($xml, $ownerID);
-            $this->getPdo()
-                ->commit();
-        } catch (PDOException $exc) {
-            $mess = 'Failed to upsert data of';
-            $this->getYem()
-                ->triggerLogEvent(
-                    'Yapeal.Log.log',
-                    Logger::WARNING,
-                    $this->createEveApiMessage($mess, $data),
-                    ['exception' => $exc]
-                );
-            $this->getPdo()
-                ->rollBack();
-            return $event;
-        }
-        return $event->setHandledSufficiently();
-    }
-    /**
-     * @param string $xml
-     * @param string $ownerID
+     * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
      * @throws \LogicException
      */
-    protected function preserveToSkillQueue($xml, $ownerID)
+    protected function preserveToSkillQueue(EveApiReadWriteInterface $data)
     {
         $tableName = 'charSkillQueue';
+        $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $sql = $this->getCsq()
             ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
         $this->getYem()
@@ -117,16 +71,18 @@ class SkillQueue extends CharSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'endSP'         => null,
-            'endTime'       => '1970-01-01 00:00:01',
-            'level'         => null,
-            'ownerID'       => $ownerID,
+            'endSP' => null,
+            'endTime' => '1970-01-01 00:00:01',
+            'level' => null,
+            'ownerID' => $ownerID,
             'queuePosition' => null,
-            'startSP'       => null,
-            'startTime'     => '1970-01-01 00:00:01',
-            'typeID'        => null
+            'startSP' => null,
+            'startTime' => '1970-01-01 00:00:01',
+            'typeID' => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//skillqueue/row');
+        $xPath = '//skillqueue/row';
+        $elements = (new \SimpleXMLElement($data->getEveApiXml()))->xpath($xPath);
+        $this->attributePreserveData($elements, $columnDefaults, $tableName);
         return $this;
     }
 }

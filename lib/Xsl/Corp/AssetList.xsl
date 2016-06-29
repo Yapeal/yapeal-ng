@@ -28,7 +28,7 @@
             <xsl:if test="not(@locationID)">
                 <xsl:attribute name="locationID">
                     <xsl:value-of
-                            select="ancestor::*[@locationID][1]/@locationID"/>
+                        select="ancestor::*[@locationID][1]/@locationID"/>
                 </xsl:attribute>
             </xsl:if>
             <xsl:attribute name="lvl">

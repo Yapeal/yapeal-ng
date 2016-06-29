@@ -1,33 +1,34 @@
 -- Sql/Char/CreateContracts.sql
--- version 20160201053355.814
+-- version 20160629053418.228
 CREATE TABLE "{database}"."{table_prefix}charContracts" (
-    "acceptorID"     BIGINT(20) UNSIGNED     NOT NULL,
-    "assigneeID"     BIGINT(20) UNSIGNED     NOT NULL,
-    "availability"   CHAR(8)                 NOT NULL,
-    "buyout"         DECIMAL(17, 2)          NOT NULL,
-    "collateral"     DECIMAL(17, 2)          NOT NULL,
-    "contractID"     BIGINT(20) UNSIGNED     NOT NULL,
-    "dateAccepted"   DATETIME  DEFAULT NULL,
-    "dateCompleted"  DATETIME  DEFAULT NULL,
-    "dateExpired"    DATETIME                NOT NULL,
-    "dateIssued"     DATETIME                NOT NULL,
-    "endStationID"   BIGINT(20) UNSIGNED     NOT NULL,
-    "forCorp"        TINYINT(1)              NOT NULL,
-    "issuerCorpID"   BIGINT(20) UNSIGNED     NOT NULL,
-    "issuerID"       BIGINT(20) UNSIGNED     NOT NULL,
-    "numDays"        BIGINT(20) UNSIGNED     NOT NULL,
-    "ownerID"        BIGINT(20) UNSIGNED     NOT NULL,
-    "price"          DECIMAL(17, 2)          NOT NULL,
-    "reward"         DECIMAL(17, 2)          NOT NULL,
-    "startStationID" BIGINT(20) UNSIGNED     NOT NULL,
-    "status"         CHAR(24)                NOT NULL,
-    "title"          CHAR(255) DEFAULT NULL,
-    "type"           CHAR(25)                NOT NULL,
-    "volume"         DECIMAL(20, 4) UNSIGNED NOT NULL,
-    PRIMARY KEY ("ownerID", "contractID")
+    "acceptorID" BIGINT(20) UNSIGNED NOT NULL,
+    "assigneeID" BIGINT(20) UNSIGNED NOT NULL,
+    "availability" VARCHAR(255) DEFAULT '',
+    "buyout" VARCHAR(255) DEFAULT '',
+    "collateral" VARCHAR(255) DEFAULT '',
+    "contractID" BIGINT(20) UNSIGNED NOT NULL,
+    "dateAccepted" DATETIME NOT NULL DEFAULT '1970-01-01 00:00:01',
+    "dateCompleted" DATETIME NOT NULL DEFAULT '1970-01-01 00:00:01',
+    "dateExpired" DATETIME NOT NULL DEFAULT '1970-01-01 00:00:01',
+    "dateIssued" DATETIME NOT NULL DEFAULT '1970-01-01 00:00:01',
+    "endStationID" BIGINT(20) UNSIGNED NOT NULL,
+    "forCorp" VARCHAR(255) DEFAULT '',
+    "issuerCorpID" BIGINT(20) UNSIGNED NOT NULL,
+    "issuerID" BIGINT(20) UNSIGNED NOT NULL,
+    "numDays" VARCHAR(255) DEFAULT '',
+    "ownerID" BIGINT(20) UNSIGNED NOT NULL,
+    "price" VARCHAR(255) DEFAULT '',
+    "reward" VARCHAR(255) DEFAULT '',
+    "startStationID" BIGINT(20) UNSIGNED NOT NULL,
+    "status" VARCHAR(255) DEFAULT '',
+    "title" VARCHAR(255) DEFAULT '',
+    "type" VARCHAR(255) DEFAULT '',
+    "volume" VARCHAR(255) DEFAULT '',
+    PRIMARY KEY ("ownerID","contractID")
 );
 START TRANSACTION;
 INSERT INTO "{database}"."{table_prefix}utilDatabaseVersion" ("version")
-VALUES ('20160201053355.814')
+VALUES
+('20160629053418.228')
 ON DUPLICATE KEY UPDATE "version" = VALUES("version");
 COMMIT;

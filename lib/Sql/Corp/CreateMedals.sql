@@ -1,16 +1,17 @@
 -- Sql/Corp/CreateMedals.sql
--- version 20160201053945.713
+-- version 20160629053439.047
 CREATE TABLE "{database}"."{table_prefix}corpMedals" (
-    "created"     DATETIME            NOT NULL,
-    "creatorID"   BIGINT(20) UNSIGNED NOT NULL,
-    "description" TEXT                NOT NULL,
-    "medalID"     BIGINT(20) UNSIGNED NOT NULL,
-    "ownerID"     BIGINT(20) UNSIGNED NOT NULL,
-    "title"       VARCHAR(255)        NOT NULL,
-    PRIMARY KEY ("ownerID", "medalID")
+    "created" VARCHAR(255) DEFAULT '',
+    "creatorID" BIGINT(20) UNSIGNED NOT NULL,
+    "description" TEXT NOT NULL,
+    "medalID" BIGINT(20) UNSIGNED NOT NULL,
+    "ownerID" BIGINT(20) UNSIGNED NOT NULL,
+    "title" VARCHAR(255) DEFAULT '',
+    PRIMARY KEY ("ownerID","medalID")
 );
 START TRANSACTION;
 INSERT INTO "{database}"."{table_prefix}utilDatabaseVersion" ("version")
-VALUES ('20160201053945.713')
+VALUES
+('20160629053439.047')
 ON DUPLICATE KEY UPDATE "version" = VALUES("version");
 COMMIT;

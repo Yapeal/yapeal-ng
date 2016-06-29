@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Xsd/Char/SkillQueue.xsd
-version 20160201053950.548 -->
+version 20160629053444.671 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified"
 elementFormDefault="qualified">
     <xs:include schemaLocation="../common.xsd" />

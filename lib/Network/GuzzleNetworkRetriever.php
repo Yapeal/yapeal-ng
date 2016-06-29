@@ -100,7 +100,7 @@ class GuzzleNetworkRetriever implements EveApiRetrieverInterface
         $data->setEveApiXml($body);
         $yem->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->getFinishedEventMessage($data, $eventName));
         return $event->setData($data)
-            ->eventHandled();
+            ->setHandledSufficiently();
     }
     /**
      * @param Client|null $value

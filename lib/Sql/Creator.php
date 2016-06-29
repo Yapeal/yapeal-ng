@@ -32,7 +32,6 @@ namespace Yapeal\Sql;
 use SimpleXMLElement;
 use SimpleXMLIterator;
 use Twig_Environment;
-use Twig_Error;
 use Yapeal\Console\Command\EveApiCreatorTrait;
 use Yapeal\Event\EveApiEventInterface;
 use Yapeal\Event\MediatorInterface;
@@ -98,7 +97,7 @@ class Creator
         }
         $sxi = new SimpleXMLIterator($data->getEveApiXml());
         $this->tables = [];
-        $this->processValueOnly($sxi, lcfirst($this->apiName));
+        $this->processValueOnly($sxi, $this->apiName);
         $this->processRowset($sxi, $this->apiName);
         $tCount = count($this->tables);
         if (0 === $tCount) {
@@ -106,28 +105,19 @@ class Creator
             $this->getYem()
                 ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $this->createEveApiMessage($mess, $data));
         }
-        $tableNames = array_keys($this->tables);
-        if (1 === $tCount) {
-            $this->tables[lcfirst($this->apiName)] = $this->tables[$tableNames[0]];
-            unset($this->tables[$tableNames[0]]);
-            $tableNames[0] = lcfirst($this->apiName);
-        }
         ksort($this->tables);
+//        $tableNames = array_keys($this->tables);
         list($mSec, $sec) = explode(' ', microtime());
         $vars = [
-            'className'   => lcfirst($this->apiName),
-            'tables'      => $this->tables,
+            'className' => lcfirst($this->apiName),
+            'tables' => $this->tables,
             'sectionName' => lcfirst($this->sectionName),
-            'version' => gmdate('YmdHis', $sec) . sprintf('.%0-3s', floor($mSec * 1000))
+            'version' => gmdate('YmdHis', $sec) . substr($mSec, 1, 4)
         ];
-        // Add create or replace view.
-        if (!in_array(strtolower($this->apiName), array_map('strtolower', $tableNames), true)) {
-            $vars['addView'] = ['tableName' => $tableNames[0], 'columns' => $this->tables[$tableNames[0]]['columns']];
-        }
         try {
             $contents = $this->getTwig()
                 ->render($this->getSqlTemplateName($data, $this->getPlatform()), $vars);
-        } catch (Twig_Error $exp) {
+        } catch (\Twig_Error $exp) {
             $this->getYem()
                 ->triggerLogEvent(
                     'Yapeal.Log.log',
@@ -238,17 +228,23 @@ class Creator
         }
         $name = strtolower($name);
         foreach ([
-                     'descr'          => 'TEXT NOT NULL',
-                     'name'           => 'CHAR(100) NOT NULL',
-                     'balance'        => 'DECIMAL(17, 2) NOT NULL',
-                     'isk'            => 'DECIMAL(17, 2) NOT NULL',
-                     'tax'            => 'DECIMAL(17, 2) NOT NULL',
+                     'descr' => 'TEXT NOT NULL',
+                     'name' => 'CHAR(100) NOT NULL',
+                     'balance' => 'DECIMAL(17, 2) NOT NULL',
+                     'isk' => 'DECIMAL(17, 2) NOT NULL',
+                     'tax' => 'DECIMAL(17, 2) NOT NULL',
                      'timeefficiency' => 'TINYINT(3) UNSIGNED NOT NULL',
-                     'date'           => 'DATETIME NOT NULL DEFAULT \'1970-01-01 00:00:01\'',
-                     'time'           => 'DATETIME NOT NULL DEFAULT \'1970-01-01 00:00:01\'',
-                     'until'          => 'DATETIME NOT NULL DEFAULT \'1970-01-01 00:00:01\'',
-                     'errorcode'      => 'SMALLINT(4) UNSIGNED NOT NULL',
-                     'level'          => 'SMALLINT(4) UNSIGNED NOT NULL'
+                     'date' => 'DATETIME NOT NULL DEFAULT \'1970-01-01 00:00:01\'',
+                     'time' => 'DATETIME NOT NULL DEFAULT \'1970-01-01 00:00:01\'',
+                     'until' => 'DATETIME NOT NULL DEFAULT \'1970-01-01 00:00:01\'',
+                     'errorcode' => 'SMALLINT(4) UNSIGNED NOT NULL',
+                     'level' => 'SMALLINT(4) UNSIGNED NOT NULL',
+                     'logoncount' => 'BIGINT(20) UNSIGNED NOT NULL',
+                     'logonminutes' => 'BIGINT(20) UNSIGNED NOT NULL',
+                     'trainingend' => 'DATETIME NOT NULL DEFAULT \'1970-01-01 00:00:01\'',
+                     'skillintraining' => 'BIGINT(20) UNSIGNED NOT NULL',
+                     'trainingdestinationsp' => 'BIGINT(20) UNSIGNED NOT NULL',
+                     'trainingstartsp' => 'BIGINT(20) UNSIGNED NOT NULL'
                  ] as $search => $replace) {
             if (false !== strpos($name, $search)) {
                 return $replace;
@@ -281,7 +277,16 @@ class Creator
             if ($this->hasOwner()) {
                 $columns['ownerID'] = 'BIGINT(20) UNSIGNED NOT NULL';
             }
-            ksort($columns);
+            uksort($columns, function ($a, $b) {
+                $a = strtolower($a);
+                $b = strtolower($b);
+                if ($a < $b) {
+                    return -1;
+                } elseif ($a > $b) {
+                    return 1;
+                }
+                return 0;
+            });
             if (0 === count($this->tables)) {
                 $this->tables[$apiName] = ['columns' => $columns, 'keys' => $this->getSqlKeys($keyNames)];
             } else {
@@ -314,11 +319,21 @@ class Creator
         if ($this->hasOwner()) {
             $columns['ownerID'] = 'BIGINT(20) UNSIGNED NOT NULL';
         }
-        ksort($columns);
-        $this->tables[$tableName] = ['columns' => $columns];
+        uksort($columns, function ($a, $b) {
+            $a = strtolower($a);
+            $b = strtolower($b);
+            if ($a < $b) {
+                return -1;
+            } elseif ($a > $b) {
+                return 1;
+            }
+            return 0;
+        });
         $keys = $this->getSqlKeys();
         if (0 !== count($keys)) {
-            $this->tables[$tableName]['keys'] = $keys;
+            $this->tables[$tableName] = ['columns' => $columns, 'keys' => $keys];
+        } else {
+            $this->tables[$tableName] = ['columns' => $columns];
         }
     }
     /**

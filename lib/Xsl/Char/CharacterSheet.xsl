@@ -20,7 +20,7 @@
             attributes (ie NOT rowsets)
             -->
             <xsl:apply-templates
-                    select="child::*[* and @* and not(@name|@key)]">
+                select="child::*[* and @* and not(@name|@key)]">
                 <xsl:sort select="translate(@name,$upper,$lower)"
                           data-type="text" order="ascending"/>
             </xsl:apply-templates>

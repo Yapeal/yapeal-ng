@@ -1,6 +1,6 @@
 <?php
 /**
- * Contains ConquerableStationList class.
+ * Contains class ConquerableStationList.
  *
  * PHP version 5.4
  *
@@ -33,11 +33,9 @@
  */
 namespace Yapeal\EveApi\Eve;
 
-use PDOException;
-use Yapeal\Event\EveApiEventInterface;
-use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
+use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
  * Class ConquerableStationList
@@ -45,7 +43,6 @@ use Yapeal\Sql\PreserverTrait;
 class ConquerableStationList extends EveSection
 {
     use PreserverTrait;
-
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -53,59 +50,17 @@ class ConquerableStationList extends EveSection
     public function __construct()
     {
         $this->mask = 16;
+        $this->preserveTos = [
+            'preserveToConquerableStationList'
+        ];
     }
     /**
-     * @param EveApiEventInterface $event
-     * @param string               $eventName
-     * @param MediatorInterface    $yem
-     *
-     * @return EveApiEventInterface
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
-     */
-    public function preserveEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
-    {
-        $this->setYem($yem);
-        $data = $event->getData();
-        $xml = $data->getEveApiXml();
-        if (false === $xml) {
-            return $event->setHandledSufficiently();
-        }
-        $this->getYem()
-            ->triggerLogEvent(
-                'Yapeal.Log.log',
-                Logger::DEBUG,
-                $this->getReceivedEventMessage($data, $eventName, __CLASS__)
-            );
-        $this->getPdo()
-            ->beginTransaction();
-        try {
-            $this->preserveToConquerableStationList($xml);
-            $this->getPdo()
-                ->commit();
-        } catch (PDOException $exc) {
-            $mess = 'Failed to upsert data of';
-            $this->getYem()
-                ->triggerLogEvent(
-                    'Yapeal.Log.log',
-                    Logger::WARNING,
-                    $this->createEveApiMessage($mess, $data),
-                    ['exception' => $exc]
-                );
-            $this->getPdo()
-                ->rollBack();
-            return $event;
-        }
-        return $event->setHandledSufficiently();
-    }
-    /**
-     * @param string $xml
+     * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
      * @throws \LogicException
      */
-    protected function preserveToConquerableStationList($xml)
+    protected function preserveToConquerableStationList(EveApiReadWriteInterface $data)
     {
         $tableName = 'eveConquerableStationList';
         $sql = $this->getCsq()
@@ -115,17 +70,19 @@ class ConquerableStationList extends EveSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'corporationID'   => null,
+            'corporationID' => null,
             'corporationName' => '',
-            'solarSystemID'   => null,
-            'stationID'       => null,
-            'stationName'     => '',
-            'stationTypeID'   => null,
-            'x'               => null,
-            'y'               => null,
-            'z'               => null
+            'solarSystemID' => null,
+            'stationID' => null,
+            'stationName' => '',
+            'stationTypeID' => null,
+            'x' => null,
+            'y' => null,
+            'z' => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//outposts/row');
+        $xPath = '//outposts/row';
+        $elements = (new \SimpleXMLElement($data->getEveApiXml()))->xpath($xPath);
+        $this->attributePreserveData($elements, $columnDefaults, $tableName);
         return $this;
     }
 }

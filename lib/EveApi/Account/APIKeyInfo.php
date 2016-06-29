@@ -33,12 +33,9 @@
  */
 namespace Yapeal\EveApi\Account;
 
-use PDOException;
 use Yapeal\EveApi\ActiveTrait;
-use Yapeal\Event\EveApiEventInterface;
-use Yapeal\Event\MediatorInterface;
-use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
+use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
  * Class APIKeyInfo
@@ -46,84 +43,51 @@ use Yapeal\Sql\PreserverTrait;
 class APIKeyInfo extends AccountSection
 {
     use ActiveTrait, PreserverTrait;
+
+    /** @noinspection MagicMethodsValidityInspection */
     /**
-     * @param EveApiEventInterface $event
-     * @param string               $eventName
-     * @param MediatorInterface    $yem
-     *
-     * @return EveApiEventInterface
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
+     * Constructor
      */
-    public function preserveEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
+    public function __construct()
     {
-        $this->setYem($yem);
-        $data = $event->getData();
-        $xml = $data->getEveApiXml();
-        if (false === $xml) {
-            return $event->setHandledSufficiently();
-        }
-        $ownerID = $this->extractOwnerID($data->getEveApiArguments());
-        $this->getYem()
-             ->triggerLogEvent(
-                 'Yapeal.Log.log',
-                 Logger::DEBUG,
-                 $this->getReceivedEventMessage($data, $eventName, __CLASS__)
-             );
-        $this->getPdo()
-             ->beginTransaction();
-        try {
-            $this->preserveToAPIKeyInfo($xml, $ownerID)
-                 ->preserveToCharacters($xml)
-                 ->preserveToKeyBridge($xml, $ownerID);
-            $this->getPdo()
-                 ->commit();
-        } catch (PDOException $exc) {
-            $mess = 'Failed to upsert data of';
-            $this->getYem()
-                 ->triggerLogEvent(
-                     'Yapeal.Log.log',
-                     Logger::WARNING,
-                     $this->createEveApiMessage($mess, $data),
-                     ['exception' => $exc]
-                 );
-            $this->getPdo()
-                 ->rollBack();
-            return $event;
-        }
-        return $event->setHandledSufficiently();
+        $this->preserveTos = [
+            'preserveToAPIKeyInfo',
+            'preserveToCharacters',
+            'preserveToKeyBridge'
+        ];
     }
     /**
-     * @param string $xml
-     * @param string $ownerID
+     * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
-    protected function preserveToAPIKeyInfo($xml, $ownerID)
+    protected function preserveToAPIKeyInfo(EveApiReadWriteInterface $data)
     {
         $tableName = 'accountAPIKeyInfo';
+        $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $columnDefaults = [
             'accessMask' => null,
             'expires' => '2038-01-19 03:14:07',
             'keyID' => $ownerID,
             'type' => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//key');
+        $xPath = '//key';
+        $elements = (new \SimpleXMLElement($data->getEveApiXml()))->xpath($xPath);
+        $this->attributePreserveData($elements, $columnDefaults, $tableName);
         return $this;
     }
     /**
-     * @param string $xml
+     * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
-    protected function preserveToCharacters($xml)
+    protected function preserveToCharacters(EveApiReadWriteInterface $data)
     {
         $tableName = 'accountCharacters';
         $columnDefaults = [
@@ -136,24 +100,27 @@ class APIKeyInfo extends AccountSection
             'factionID' => null,
             'factionName' => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//characters/row');
+        $xPath = '//characters/row';
+        $elements = (new \SimpleXMLElement($data->getEveApiXml()))->xpath($xPath);
+        $this->attributePreserveData($elements, $columnDefaults, $tableName);
         return $this;
     }
-    /** @noinspection PhpMissingParentCallCommonInspection */
     /**
-     * @param string $xml
-     * @param string $ownerID
+     * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
-    protected function preserveToKeyBridge($xml, $ownerID)
+    protected function preserveToKeyBridge(EveApiReadWriteInterface $data)
     {
         $tableName = 'accountKeyBridge';
+        $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $columnDefaults = ['keyID' => $ownerID, 'characterID' => null];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//characters/row');
+        $xPath = '//characters/row';
+        $elements = (new \SimpleXMLElement($data->getEveApiXml()))->xpath($xPath);
+        $this->attributePreserveData($elements, $columnDefaults, $tableName);
         return $this;
     }
 }

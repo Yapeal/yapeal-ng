@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Xsd/Account/AccountStatus.xsd
+version 20160629012109.147 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified"
-           elementFormDefault="qualified">
-    <xs:include schemaLocation="../common.xsd"/>
+elementFormDefault="qualified">
+    <xs:include schemaLocation="../common.xsd" />
     <xs:complexType name="resultType">
         <xs:sequence>
-            <xs:element type="eveNEDTType" name="createDate"/>
-            <xs:element type="xs:string" name="logonCount"/>
-            <xs:element type="xs:string" name="logonMinutes"/>
-            <xs:element type="xs:string" name="paidUntil"/>
+            <xs:element type="eveNEDTType" name="createDate" />
+            <xs:element type="xs:string" name="logonCount" />
+            <xs:element type="xs:string" name="logonMinutes" />
+            <xs:element type="eveNEDTType" name="paidUntil" />
             <xs:element name="multiCharacterTraining" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
                     <xs:sequence>
@@ -15,33 +17,13 @@
                             <xs:complexType>
                                 <xs:simpleContent>
                                     <xs:extension base="xs:string">
-                                        <xs:attribute type="xs:string" name="trainingEnd" use="required"/>
+                                        <xs:attribute use="required" type="xs:token" name="trainingEnd" />
                                     </xs:extension>
                                 </xs:simpleContent>
                             </xs:complexType>
                         </xs:element>
                     </xs:sequence>
-                    <xs:attributeGroup ref="rowsetAttrs"/>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="offers" minOccurs="0" maxOccurs="1">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
-                            <xs:complexType>
-                                <xs:simpleContent>
-                                    <xs:extension base="xs:string">
-                                        <xs:attribute type="xs:string" name="from" use="required"/>
-                                        <xs:attribute type="eveISKType" name="ISK" use="required"/>
-                                        <xs:attribute type="eveNEDTType" name="offeredDate" use="required"/>
-                                        <xs:attribute type="eveIDType" name="offerID" use="required"/>
-                                        <xs:attribute type="xs:string" name="to" use="required"/>
-                                    </xs:extension>
-                                </xs:simpleContent>
-                            </xs:complexType>
-                        </xs:element>
-                    </xs:sequence>
-                    <xs:attributeGroup ref="rowsetAttrs"/>
+                    <xs:attributeGroup ref="rowsetAttrs" />
                 </xs:complexType>
             </xs:element>
         </xs:sequence>

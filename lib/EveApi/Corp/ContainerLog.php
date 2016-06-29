@@ -1,6 +1,6 @@
 <?php
 /**
- * Contains ContainerLog class.
+ * Contains class ContainerLog.
  *
  * PHP version 5.4
  *
@@ -33,11 +33,9 @@
  */
 namespace Yapeal\EveApi\Corp;
 
-use PDOException;
-use Yapeal\Event\EveApiEventInterface;
-use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
+use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
  * Class ContainerLog
@@ -45,7 +43,6 @@ use Yapeal\Sql\PreserverTrait;
 class ContainerLog extends CorpSection
 {
     use PreserverTrait;
-
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -53,63 +50,20 @@ class ContainerLog extends CorpSection
     public function __construct()
     {
         $this->mask = 32;
+        $this->preserveTos = [
+            'preserveToContainerLog'
+        ];
     }
     /**
-     * @param EveApiEventInterface $event
-     * @param string               $eventName
-     * @param MediatorInterface    $yem
-     *
-     * @return EveApiEventInterface
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
-     */
-    public function preserveEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
-    {
-        $this->setYem($yem);
-        $data = $event->getData();
-        $xml = $data->getEveApiXml();
-        if (false === $xml) {
-            return $event->setHandledSufficiently();
-        }
-        $ownerID = $this->extractOwnerID($data->getEveApiArguments());
-        $this->getYem()
-            ->triggerLogEvent(
-                'Yapeal.Log.log',
-                Logger::DEBUG,
-                $this->getReceivedEventMessage($data, $eventName, __CLASS__)
-            );
-        $this->getPdo()
-            ->beginTransaction();
-        try {
-            $this->preserveToContainerLog($xml, $ownerID);
-            $this->getPdo()
-                ->commit();
-        } catch (PDOException $exc) {
-            $mess = 'Failed to upsert data of';
-            $this->getYem()
-                ->triggerLogEvent(
-                    'Yapeal.Log.log',
-                    Logger::WARNING,
-                    $this->createEveApiMessage($mess, $data),
-                    ['exception' => $exc]
-                );
-            $this->getPdo()
-                ->rollBack();
-            return $event;
-        }
-        return $event->setHandledSufficiently();
-    }
-    /**
-     * @param string $xml
-     * @param string $ownerID
+     * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
      * @throws \LogicException
      */
-    protected function preserveToContainerLog($xml, $ownerID)
+    protected function preserveToContainerLog(EveApiReadWriteInterface $data)
     {
         $tableName = 'corpContainerLog';
+        $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $sql = $this->getCsq()
             ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
         $this->getYem()
@@ -117,22 +71,24 @@ class ContainerLog extends CorpSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'action'           => null,
-            'actorID'          => null,
-            'actorName'        => '',
-            'flag'             => null,
-            'itemID'           => null,
-            'itemTypeID'       => null,
-            'locationID'       => null,
-            'logTime'          => '1970-01-01 00:00:01',
+            'action' => null,
+            'actorID' => null,
+            'actorName' => '',
+            'flag' => null,
+            'itemID' => null,
+            'itemTypeID' => null,
+            'locationID' => null,
+            'logTime' => '1970-01-01 00:00:01',
             'newConfiguration' => null,
             'oldConfiguration' => null,
-            'ownerID'          => $ownerID,
-            'passwordType'     => null,
-            'quantity'         => null,
-            'typeID'           => null
+            'ownerID' => $ownerID,
+            'passwordType' => null,
+            'quantity' => null,
+            'typeID' => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//containerLog/row');
+        $xPath = '//containerLog/row';
+        $elements = (new \SimpleXMLElement($data->getEveApiXml()))->xpath($xPath);
+        $this->attributePreserveData($elements, $columnDefaults, $tableName);
         return $this;
     }
 }

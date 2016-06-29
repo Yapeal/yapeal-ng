@@ -1,6 +1,6 @@
 <?php
 /**
- * Contains WalletTransactions class.
+ * Contains class WalletTransactions.
  *
  * PHP version 5.4
  *
@@ -33,60 +33,65 @@
  */
 namespace Yapeal\EveApi\Corp;
 
-use Yapeal\EveApi\AccountKeyTrait;
-use Yapeal\EveApi\CommonEveApiTrait;
+use Yapeal\Log\Logger;
+use Yapeal\Sql\PreserverTrait;
+use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
  * Class WalletTransactions
  */
 class WalletTransactions extends CorpSection
 {
-    use CommonEveApiTrait, AccountKeyTrait {
-        AccountKeyTrait::oneShot insteadof CommonEveApiTrait;
-        AccountKeyTrait::startEveApi insteadof CommonEveApiTrait;
-        CommonEveApiTrait::oneShot as cEATOneShot;
-        CommonEveApiTrait::startEveApi as cEATStartEveApi;
-    }
+    use PreserverTrait;
+    /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
      */
     public function __construct()
     {
         $this->mask = 2097152;
-        $this->accountKeys = ['10000', '1000', '1001', '1002', '1003', '1004', '1005', '1006'];
+        $this->preserveTos = [
+            'preserveToWalletTransactions'
+        ];
     }
     /**
-     * @param string $xml
-     * @param string $ownerID
-     * @param string $accountKey
+     * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
      * @throws \LogicException
      */
-    protected function preserveToWallet($xml, $ownerID, $accountKey)
+    protected function preserveToWalletTransactions(EveApiReadWriteInterface $data)
     {
         $tableName = 'corpWalletTransactions';
+        $ownerID = $this->extractOwnerID($data->getEveApiArguments());
+        $sql = $this->getCsq()
+            ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
+        $this->getYem()
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
+        $this->getPdo()
+            ->exec($sql);
         $columnDefaults = [
-            'accountKey'           => $accountKey,
-            'characterID'          => null,
-            'characterName'        => '',
-            'clientID'             => null,
-            'clientName'           => '',
-            'clientTypeID'         => null,
+            'characterID' => null,
+            'characterName' => '',
+            'clientID' => null,
+            'clientName' => '',
+            'clientTypeID' => null,
             'journalTransactionID' => null,
-            'ownerID'              => $ownerID,
-            'price'                => null,
-            'quantity'             => null,
-            'stationID'            => null,
-            'stationName'          => '',
-            'transactionDateTime'  => '1970-01-01 00:00:01',
-            'transactionFor'       => null,
-            'transactionID'        => null,
-            'transactionType'      => null,
-            'typeID'               => null,
-            'typeName'             => ''
+            'ownerID' => $ownerID,
+            'price' => null,
+            'quantity' => null,
+            'stationID' => null,
+            'stationName' => '',
+            'transactionDateTime' => '1970-01-01 00:00:01',
+            'transactionFor' => null,
+            'transactionID' => null,
+            'transactionType' => null,
+            'typeID' => null,
+            'typeName' => ''
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//transactions/row');
+        $xPath = '//transactions/row';
+        $elements = (new \SimpleXMLElement($data->getEveApiXml()))->xpath($xPath);
+        $this->attributePreserveData($elements, $columnDefaults, $tableName);
         return $this;
     }
 }

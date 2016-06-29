@@ -1,6 +1,6 @@
 <?php
 /**
- * Contains Blueprints class.
+ * Contains class Blueprints.
  *
  * PHP version 5.4
  *
@@ -33,11 +33,9 @@
  */
 namespace Yapeal\EveApi\Char;
 
-use PDOException;
-use Yapeal\Event\EveApiEventInterface;
-use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
+use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
  * Class Blueprints
@@ -45,7 +43,6 @@ use Yapeal\Sql\PreserverTrait;
 class Blueprints extends CharSection
 {
     use PreserverTrait;
-
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -53,63 +50,20 @@ class Blueprints extends CharSection
     public function __construct()
     {
         $this->mask = 2;
+        $this->preserveTos = [
+            'preserveToBlueprints'
+        ];
     }
     /**
-     * @param EveApiEventInterface $event
-     * @param string               $eventName
-     * @param MediatorInterface    $yem
-     *
-     * @return EveApiEventInterface
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
-     */
-    public function preserveEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
-    {
-        $this->setYem($yem);
-        $data = $event->getData();
-        $xml = $data->getEveApiXml();
-        if (false === $xml) {
-            return $event->setHandledSufficiently();
-        }
-        $ownerID = $this->extractOwnerID($data->getEveApiArguments());
-        $this->getYem()
-            ->triggerLogEvent(
-                'Yapeal.Log.log',
-                Logger::DEBUG,
-                $this->getReceivedEventMessage($data, $eventName, __CLASS__)
-            );
-        $this->getPdo()
-            ->beginTransaction();
-        try {
-            $this->preserveToBlueprints($xml, $ownerID);
-            $this->getPdo()
-                ->commit();
-        } catch (PDOException $exc) {
-            $mess = 'Failed to upsert data of';
-            $this->getYem()
-                ->triggerLogEvent(
-                    'Yapeal.Log.log',
-                    Logger::WARNING,
-                    $this->createEveApiMessage($mess, $data),
-                    ['exception' => $exc]
-                );
-            $this->getPdo()
-                ->rollBack();
-            return $event;
-        }
-        return $event->setHandledSufficiently();
-    }
-    /**
-     * @param string $xml
-     * @param string $ownerID
+     * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
      * @throws \LogicException
      */
-    protected function preserveToBlueprints($xml, $ownerID)
+    protected function preserveToBlueprints(EveApiReadWriteInterface $data)
     {
         $tableName = 'charBlueprints';
+        $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $sql = $this->getCsq()
             ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
         $this->getYem()
@@ -117,18 +71,20 @@ class Blueprints extends CharSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'flagID'             => null,
-            'itemID'             => null,
-            'locationID'         => null,
+            'flagID' => null,
+            'itemID' => null,
+            'locationID' => null,
             'materialEfficiency' => null,
-            'ownerID'            => $ownerID,
-            'quantity'           => null,
-            'runs'               => null,
-            'timeEfficiency'     => null,
-            'typeID'             => null,
-            'typeName'           => ''
+            'ownerID' => $ownerID,
+            'quantity' => null,
+            'runs' => null,
+            'timeEfficiency' => null,
+            'typeID' => null,
+            'typeName' => ''
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//blueprints/row');
+        $xPath = '//blueprints/row';
+        $elements = (new \SimpleXMLElement($data->getEveApiXml()))->xpath($xPath);
+        $this->attributePreserveData($elements, $columnDefaults, $tableName);
         return $this;
     }
 }

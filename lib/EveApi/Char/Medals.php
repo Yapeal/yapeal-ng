@@ -1,6 +1,6 @@
 <?php
 /**
- * Contains Medals class.
+ * Contains class Medals.
  *
  * PHP version 5.4
  *
@@ -33,11 +33,9 @@
  */
 namespace Yapeal\EveApi\Char;
 
-use PDOException;
-use Yapeal\Event\EveApiEventInterface;
-use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
+use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
  * Class Medals
@@ -45,7 +43,6 @@ use Yapeal\Sql\PreserverTrait;
 class Medals extends CharSection
 {
     use PreserverTrait;
-
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -53,64 +50,21 @@ class Medals extends CharSection
     public function __construct()
     {
         $this->mask = 8192;
+        $this->preserveTos = [
+            'preserveToMedals',
+            'preserveToOtherCorporations'
+        ];
     }
     /**
-     * @param EveApiEventInterface $event
-     * @param string               $eventName
-     * @param MediatorInterface    $yem
-     *
-     * @return EveApiEventInterface
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
-     */
-    public function preserveEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
-    {
-        $this->setYem($yem);
-        $data = $event->getData();
-        $xml = $data->getEveApiXml();
-        if (false === $xml) {
-            return $event->setHandledSufficiently();
-        }
-        $ownerID = $this->extractOwnerID($data->getEveApiArguments());
-        $this->getYem()
-            ->triggerLogEvent(
-                'Yapeal.Log.log',
-                Logger::DEBUG,
-                $this->getReceivedEventMessage($data, $eventName, __CLASS__)
-            );
-        $this->getPdo()
-            ->beginTransaction();
-        try {
-            $this->preserveToMedals($xml, $ownerID)
-                ->preserveToOtherCorporations($xml, $ownerID);
-            $this->getPdo()
-                ->commit();
-        } catch (PDOException $exc) {
-            $mess = 'Failed to upsert data of';
-            $this->getYem()
-                ->triggerLogEvent(
-                    'Yapeal.Log.log',
-                    Logger::WARNING,
-                    $this->createEveApiMessage($mess, $data),
-                    ['exception' => $exc]
-                );
-            $this->getPdo()
-                ->rollBack();
-            return $event;
-        }
-        return $event->setHandledSufficiently();
-    }
-    /**
-     * @param string $xml
-     * @param string $ownerID
+     * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
      * @throws \LogicException
      */
-    protected function preserveToMedals($xml, $ownerID)
+    protected function preserveToMedals(EveApiReadWriteInterface $data)
     {
         $tableName = 'charMedals';
+        $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $sql = $this->getCsq()
             ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
         $this->getYem()
@@ -118,26 +72,28 @@ class Medals extends CharSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'issued'   => null,
+            'issued' => null,
             'issuerID' => null,
-            'medalID'  => null,
-            'ownerID'  => $ownerID,
-            'reason'   => null,
-            'status'   => null
+            'medalID' => null,
+            'ownerID' => $ownerID,
+            'reason' => null,
+            'status' => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//currentCorporation/row');
+        $xPath = '//currentCorporation/row';
+        $elements = (new \SimpleXMLElement($data->getEveApiXml()))->xpath($xPath);
+        $this->attributePreserveData($elements, $columnDefaults, $tableName);
         return $this;
     }
     /**
-     * @param string $xml
-     * @param string $ownerID
+     * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
      * @throws \LogicException
      */
-    protected function preserveToOtherCorporations($xml, $ownerID)
+    protected function preserveToOtherCorporations(EveApiReadWriteInterface $data)
     {
         $tableName = 'charOtherCorporations';
+        $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $sql = $this->getCsq()
             ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
         $this->getYem()
@@ -146,16 +102,18 @@ class Medals extends CharSection
             ->exec($sql);
         $columnDefaults = [
             'corporationID' => null,
-            'description'   => '',
-            'issued'        => null,
-            'issuerID'      => null,
-            'medalID'       => null,
-            'ownerID'       => $ownerID,
-            'reason'        => null,
-            'status'        => null,
-            'title'         => null
+            'description' => '',
+            'issued' => null,
+            'issuerID' => null,
+            'medalID' => null,
+            'ownerID' => $ownerID,
+            'reason' => null,
+            'status' => null,
+            'title' => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//otherCorporations/row');
+        $xPath = '//otherCorporations/row';
+        $elements = (new \SimpleXMLElement($data->getEveApiXml()))->xpath($xPath);
+        $this->attributePreserveData($elements, $columnDefaults, $tableName);
         return $this;
     }
 }

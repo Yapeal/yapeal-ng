@@ -91,17 +91,17 @@ class Creator
         }
         $this->sectionName = $data->getEveApiSectionName();
         $xml = $data->getEveApiXml();
-         if (false === $xml) {
-             return $event->setHandledSufficiently();
-          }
+        if (false === $xml) {
+            return $event->setHandledSufficiently();
+        }
         $sxi = new SimpleXMLIterator($xml);
         $this->tables = [];
         $this->processValueOnly($sxi, lcfirst($data->getEveApiName()));
         $this->processRowset($sxi);
         list($mSec, $sec) = explode(' ', microtime());
         $vars = [
-            'className'   => lcfirst($data->getEveApiName()),
-            'tables'      => $this->tables,
+            'className' => lcfirst($data->getEveApiName()),
+            'tables' => $this->tables,
             'sectionName' => lcfirst($this->sectionName),
             'version' => gmdate('YmdHis', $sec) . sprintf('.%0-3s', floor($mSec * 1000))
         ];
@@ -120,12 +120,12 @@ class Creator
             return $event;
         }
         $tidyConfig = [
-            'indent'        => true,
+            'indent' => true,
             'indent-spaces' => 4,
-            'input-xml'     => true,
-            'newline'       => 'LF',
-            'output-xml'    => true,
-            'wrap'          => '120'
+            'input-xml' => true,
+            'newline' => 'LF',
+            'output-xml' => true,
+            'wrap' => '120'
         ];
         $contents = (new tidy())->repairString($contents, $tidyConfig, 'utf8');
         if (false === $this->saveToFile($outputFile, $contents)) {
@@ -154,17 +154,17 @@ class Creator
         }
         $name = strtolower($name);
         foreach ([
-                     'descr'          => 'xs:string',
-                     'name'           => 'eveNameType',
-                     'balance'        => 'eveISKType',
-                     'isk'            => 'eveISKType',
-                     'tax'            => 'eveISKType',
+                     'descr' => 'xs:string',
+                     'name' => 'eveNameType',
+                     'balance' => 'eveISKType',
+                     'isk' => 'eveISKType',
+                     'tax' => 'eveISKType',
                      'timeefficiency' => 'xs:unsignedByte',
-                     'date'           => 'eveNEDTType',
-                     'time'           => 'eveNEDTType',
-                     'until'          => 'eveNEDTType',
-                     'errorcode'      => 'xs:unsignedShort',
-                     'level'          => 'xs:unsignedShort'
+                     'date' => 'eveNEDTType',
+                     'time' => 'eveNEDTType',
+                     'until' => 'eveNEDTType',
+                     'errorcode' => 'xs:unsignedShort',
+                     'level' => 'xs:unsignedShort'
                  ] as $search => $replace) {
             if (false !== strpos($name, $search)) {
                 return $replace;
@@ -200,10 +200,28 @@ class Creator
             foreach ($colNames as $colName) {
                 $columns[$colName] = $this->inferTypeFromName($colName);
             }
-            ksort($columns);
+            uksort($columns, function ($a, $b) {
+                $a = strtolower($a);
+                $b = strtolower($b);
+                if ($a < $b) {
+                    return -1;
+                } elseif ($a > $b) {
+                    return 1;
+                }
+                return 0;
+            });
             $tables[$tableName] = ['attributes' => $columns];
         }
-        ksort($tables);
+        uksort($tables, function ($a, $b) {
+            $a = strtolower($a);
+            $b = strtolower($b);
+            if ($a < $b) {
+                return -1;
+            } elseif ($a > $b) {
+                return 1;
+            }
+            return 0;
+        });
         $this->tables = array_merge($this->tables, $tables);
     }
     /**
@@ -231,7 +249,16 @@ class Creator
             $name = (string)$ele->getName();
             $columns[$name] = $this->inferTypeFromName($name, true);
         }
-        ksort($columns);
+        uksort($columns, function ($a, $b) {
+            $a = strtolower($a);
+            $b = strtolower($b);
+            if ($a < $b) {
+                return -1;
+            } elseif ($a > $b) {
+                return 1;
+            }
+            return 0;
+        });
         $this->tables[$tableName] = ['values' => $columns];
     }
     /**

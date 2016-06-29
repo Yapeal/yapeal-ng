@@ -33,20 +33,14 @@
  */
 namespace Yapeal\Console\Command;
 
-use FilePathNormalizer\FilePathNormalizerTrait;
-use InvalidArgumentException;
-use LogicException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Yapeal\Console\CommandToolsTrait;
+use Yapeal\CommonToolsTrait;
 use Yapeal\Container\ContainerInterface;
 use Yapeal\Event\EveApiEventEmitterTrait;
-use Yapeal\Exception\YapealConsoleException;
-use Yapeal\Exception\YapealDatabaseException;
-use Yapeal\Exception\YapealException;
 use Yapeal\Log\Logger;
 use Yapeal\Xml\EveApiReadWriteInterface;
 
@@ -55,21 +49,17 @@ use Yapeal\Xml\EveApiReadWriteInterface;
  */
 class NetworkRetriever extends Command
 {
-    use CommandToolsTrait, FilePathNormalizerTrait, EveApiEventEmitterTrait;
+    use CommonToolsTrait, ConfigFileTrait, EveApiEventEmitterTrait;
     /**
      * @param string|null        $name
      * @param ContainerInterface $dic
      *
-     * @throws InvalidArgumentException
-     * @throws LogicException
      * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
      * @throws \Symfony\Component\Console\Exception\LogicException
      */
     public function __construct($name, ContainerInterface $dic)
     {
-        $this->setDescription(
-            'Retrieves Eve Api XML from servers and puts it in file'
-        );
+        $this->setDescription('Retrieves Eve Api XML from servers and puts it in file');
         $this->setName($name);
         $this->setDic($dic);
         parent::__construct($name);
@@ -92,11 +82,11 @@ Save current server status in current directory.
 
 EOF;
         $this->addArgument('section_name', InputArgument::REQUIRED, 'Name of Eve Api section to retrieve.')
-             ->addArgument('api_name', InputArgument::REQUIRED, 'Name of Eve Api to retrieve.')
-             ->addArgument('post', InputArgument::OPTIONAL | InputArgument::IS_ARRAY,
-                 'Optional list of additional POST parameter(s) to send to server.', [])
-             ->addOption('directory', 'd', InputOption::VALUE_REQUIRED, 'Directory that XML will be sent to.')
-             ->setHelp($help);
+            ->addArgument('api_name', InputArgument::REQUIRED, 'Name of Eve Api to retrieve.')
+            ->addArgument('post', InputArgument::OPTIONAL | InputArgument::IS_ARRAY,
+                'Optional list of additional POST parameter(s) to send to server.', [])
+            ->addOption('directory', 'd', InputOption::VALUE_REQUIRED, 'Directory that XML will be sent to.')
+            ->setHelp($help);
     }
     /** @noinspection PhpMissingParentCallCommonInspection */
     /**
@@ -111,25 +101,20 @@ EOF;
      * @param OutputInterface $output An OutputInterface instance
      *
      * @return int|null null or 0 if everything went fine, or an error code
-     *
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
      * @throws \LogicException
-     * @throws YapealException
-     * @throws YapealConsoleException
-     * @throws YapealDatabaseException
+     *
      * @see    setCode()
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        /**
+         * @var \Symfony\Component\Console\Output\Output $output
+         */
         $posts = $this->processPost($input);
         $dic = $this->getDic();
         $apiName = $input->getArgument('api_name');
         $sectionName = $input->getArgument('section_name');
         $this->setYem($dic['Yapeal.Event.Mediator']);
-        $mess = 'Starting Network retrieve';
-        $this->getYem()
-             ->triggerLogEvent('Yapeal.Log.log', Logger::ERROR, $mess);
         /**
          * Get new Data instance from factory.
          *
@@ -137,18 +122,26 @@ EOF;
          */
         $data = $dic['Yapeal.Xml.Data'];
         $data->setEveApiName($apiName)
-             ->setEveApiSectionName($sectionName)
-             ->setEveApiArguments($posts);
+            ->setEveApiSectionName($sectionName)
+            ->setEveApiArguments($posts);
+        $mess = sprintf('<info>Starting %1$s of%2$s</info>', $this->getName(), $this->createEveApiMessage('', $data));
+        if ($output->isVeryVerbose()) {
+            $output->writeln($mess);
+            $this->getYem()
+                ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, strip_tags($mess));
+        }
         foreach (['retrieve', 'cache'] as $eventName) {
             $this->emitEvents($data, $eventName);
         }
         if (false === $data->getEveApiXml()) {
-            $mess = sprintf(
-                '<error>Could NOT retrieve Eve Api data for %1$s/%2$s</error>',
-                strtolower($sectionName),
-                $apiName
-            );
-            $output->writeln($mess);
+            if (!$output->isQuiet()) {
+                $mess = sprintf(
+                    '<error>Could NOT retrieve Eve Api data for %1$s/%2$s</error>',
+                    strtolower($sectionName),
+                    $apiName
+                );
+                $output->writeln($mess);
+            }
             return 2;
         }
         return 0;

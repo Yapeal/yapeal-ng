@@ -35,22 +35,22 @@ namespace Yapeal\EveApi;
 
 use PDO;
 use PDOException;
+use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
+use Yapeal\Sql\CommonSqlQueries;
 use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
  * Trait ActiveTrait.
+ *
+ * @method string createEveApiMessage($messagePrefix, EveApiReadWriteInterface $data)
+ * @method CommonSqlQueries getCsq()
+ * @method int getMask()
+ * @method \PDO getPdo()
+ * @method MediatorInterface getYem()
  */
 trait ActiveTrait
 {
-    /**
-     * @param string                   $messagePrefix
-     * @param EveApiReadWriteInterface $data
-     *
-     * @return string
-     * @throws \LogicException
-     */
-    abstract protected function createEveApiMessage($messagePrefix, EveApiReadWriteInterface $data);
     /**
      * @param EveApiReadWriteInterface $data
      *
@@ -63,55 +63,39 @@ trait ActiveTrait
             case 'account':
                 if ('APIKeyInfo' === $data->getEveApiName()) {
                     $sql = $this->getCsq()
-                                ->getActiveRegisteredKeys();
+                        ->getActiveRegisteredKeys();
                     break;
                 }
                 $sql = $this->getCsq()
-                            ->getActiveRegisteredAccountStatus($this->getMask());
+                    ->getActiveRegisteredAccountStatus($this->getMask());
                 break;
             case 'char':
                 $sql = $this->getCsq()
-                            ->getActiveRegisteredCharacters($this->getMask());
+                    ->getActiveRegisteredCharacters($this->getMask());
                 break;
             case 'corp':
                 $sql = $this->getCsq()
-                            ->getActiveRegisteredCorporations($this->getMask());
+                    ->getActiveRegisteredCorporations($this->getMask());
                 break;
             default:
                 return [];
         }
         $this->getYem()
-             ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
         try {
             return $this->getPdo()
-                        ->query($sql)
-                        ->fetchAll(PDO::FETCH_ASSOC);
+                ->query($sql)
+                ->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $exc) {
             $mess = 'Could NOT get a list of active owners for';
             $this->getYem()
-                 ->triggerLogEvent(
-                     'Yapeal.Log.log',
-                     Logger::WARNING,
-                     $this->createEveApiMessage($mess, $data),
-                     ['exception' => $exc]
-                 );
+                ->triggerLogEvent(
+                    'Yapeal.Log.log',
+                    Logger::WARNING,
+                    $this->createEveApiMessage($mess, $data),
+                    ['exception' => $exc]
+                );
             return [];
         }
     }
-    /**
-     * @return \Yapeal\Sql\CommonSqlQueries
-     */
-    abstract protected function getCsq();
-    /**
-     * @return int
-     */
-    abstract protected function getMask();
-    /**
-     * @return \PDO
-     */
-    abstract protected function getPdo();
-    /**
-     * @return \Yapeal\Event\MediatorInterface
-     */
-    abstract protected function getYem();
 }

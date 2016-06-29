@@ -52,8 +52,8 @@ class LogEvent extends Event implements LogEventInterface
         array $context = []
     ) {
         $this->setLevel($level)
-             ->setMessage($message)
-             ->setContext($context);
+            ->setMessage($message)
+            ->setContext($context);
     }
     /**
      * @return array

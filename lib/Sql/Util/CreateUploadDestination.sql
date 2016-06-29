@@ -1,3 +1,5 @@
+-- Sql/Util/CreateUploadDestination.sql
+-- version 20160131212500.006
 CREATE TABLE "{database}"."{table_prefix}utilUploadDestination" (
     "active"              TINYINT(1)   DEFAULT NULL,
     "name"                VARCHAR(25)  DEFAULT NULL,

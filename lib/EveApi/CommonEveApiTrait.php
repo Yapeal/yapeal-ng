@@ -34,9 +34,7 @@
 namespace Yapeal\EveApi;
 
 use Monolog\Logger;
-use PDO;
-use PDOException;
-use SimpleXMLElement;
+use Yapeal\CommonToolsTrait;
 use Yapeal\Event\EveApiEventEmitterTrait;
 use Yapeal\Event\EveApiEventInterface;
 use Yapeal\Event\MediatorInterface;
@@ -47,12 +45,15 @@ use Yapeal\Xml\EveApiReadWriteInterface;
  */
 trait CommonEveApiTrait
 {
-    use EveApiToolsTrait, EveApiEventEmitterTrait;
+    use CommonToolsTrait, EveApiEventEmitterTrait;
     /**
      * @param EveApiReadWriteInterface $data
      *
      * @return bool
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
      * @throws \LogicException
+     * @throws \Yapeal\Exception\YapealDatabaseException
      */
     public function oneShot(EveApiReadWriteInterface $data)
     {
@@ -67,12 +68,17 @@ trait CommonEveApiTrait
                 break;
             }
             if (false === $data->getEveApiXml()) {
+                if ($data->hasEveApiArgument('accountKey') && '10000' === $data->getEveApiArgument('accountKey')
+                    && 'corp' === strtolower($data->getEveApiSectionName())
+                ) {
+                    $mess = 'No faction warfare account data in';
+                    $this->getYem()
+                        ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $this->createEveApiMessage($mess, $data));
+                    break;
+                }
                 $this->getYem()
-                     ->triggerLogEvent(
-                         'Yapeal.Log.log',
-                         Logger::NOTICE,
-                         $this->getEmptyXmlDataMessage($data, $eventSuffix)
-                     );
+                    ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE,
+                        $this->getEmptyXmlDataMessage($data, $eventSuffix));
                 $result = false;
                 break;
             }
@@ -90,24 +96,22 @@ trait CommonEveApiTrait
      * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
      * @throws \LogicException
+     * @throws \Yapeal\Exception\YapealDatabaseException
      */
     public function startEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
     {
         $this->setYem($yem);
         $data = $event->getData();
-        $this->getYem()
-             ->triggerLogEvent(
-                 'Yapeal.Log.log',
-                 Logger::DEBUG,
-                 $this->getReceivedEventMessage($data, $eventName, __CLASS__)
-             );
+        $yem->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG,
+            $this->getReceivedEventMessage($data, $eventName, __CLASS__));
         // If method doesn't exist still needs array with member for count but return '0' from extractOwnerID().
         $active = method_exists($this, 'getActive') ? $this->getActive($data) : [[null]];
         if (0 === count($active)) {
             $mess = 'No active owners found for';
-            $this->getYem()
-                 ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $this->createEveApiMessage($mess, $data));
+            $yem->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $this->createEveApiMessage($mess, $data));
             $this->emitEvents($data, 'end');
             return $event->setHandledSufficiently();
         }
@@ -115,14 +119,20 @@ trait CommonEveApiTrait
         foreach ($active as $arguments) {
             // Set arguments, reset interval, and clear xml data.
             $data->setEveApiArguments($arguments)
-                 ->setCacheInterval($untilInterval)
-                 ->setEveApiXml();
-            if ($this->cacheNotExpired($data)) {
-                $event->setHandledSufficiently();
-                continue;
-            }
-            if ($this->oneShot($data)) {
-                $event->setHandledSufficiently();
+                ->setCacheInterval($untilInterval)
+                ->setEveApiXml();
+            foreach ($this->accountKeys as $accountKey) {
+                $data->addEveApiArgument('accountKey', $accountKey);
+                if (0 === strpos(strtolower($data->getEveApiName()), 'wallet')) {
+                    $data->addEveApiArgument('rowCount', '2560');
+                }
+                if ($this->cachedUntilIsNotExpired($data)) {
+                    $event->setHandledSufficiently();
+                    continue;
+                }
+                if ($this->oneShot($data)) {
+                    $event->setHandledSufficiently();
+                }
             }
         }
         return $event;
@@ -131,46 +141,50 @@ trait CommonEveApiTrait
      * @param EveApiReadWriteInterface $data
      *
      * @return bool
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
      * @throws \LogicException
+     * @throws \Yapeal\Exception\YapealDatabaseException
      */
-    protected function cacheNotExpired(EveApiReadWriteInterface $data)
+    protected function cachedUntilIsNotExpired(EveApiReadWriteInterface $data)
     {
+        $columns = [
+            'accountKey' => $data->hasEveApiArgument('accountKey') ? $data->getEveApiArgument('accountKey') : '0',
+            'apiName' => $data->getEveApiName(),
+            'ownerID' => $this->extractOwnerID($data->getEveApiArguments()),
+            'sectionName' => $data->getEveApiSectionName()
+        ];
         $sql = $this->getCsq()
-                    ->getUtilCachedUntilExpires($data->getEveApiName(), $data->getEveApiSectionName(),
-                        $this->extractOwnerID($data->getEveApiArguments()));
+            ->getUtilCachedUntilExpires($columns);
         $this->getYem()
-             ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
         try {
             $expires = $this->getPdo()
-                            ->query($sql)
-                            ->fetchAll(PDO::FETCH_ASSOC);
-        } catch (PDOException $exc) {
+                ->query($sql)
+                ->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $exc) {
             $mess = 'Could NOT get cache expired for';
             $this->getYem()
-                 ->triggerLogEvent(
-                     'Yapeal.Log.log',
-                     Logger::WARNING,
-                     $this->createEveApiMessage($mess, $data),
-                     ['exception' => $exc]
-                 );
+                ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $this->createEveApiMessage($mess, $data),
+                    ['exception' => $exc]);
             return false;
         }
         if (0 === count($expires)) {
             $mess = 'No UtilCachedUntil record found for';
             $this->getYem()
-                 ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->createEveApiMessage($mess, $data));
+                ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->createEveApiMessage($mess, $data));
             return false;
         }
         if (1 < count($expires)) {
             $mess = 'Multiple UtilCachedUntil records found for';
             $this->getYem()
-                 ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $this->createEveApiMessage($mess, $data));
+                ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $this->createEveApiMessage($mess, $data));
             return false;
         }
         if (strtotime($expires[0]['expires'] . '+00:00') < time()) {
             $mess = 'Expired UtilCachedUntil record found for';
             $this->getYem()
-                 ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->createEveApiMessage($mess, $data));
+                ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->createEveApiMessage($mess, $data));
             return false;
         }
         return true;
@@ -179,7 +193,6 @@ trait CommonEveApiTrait
      * @param string[] $candidates
      *
      * @return string
-     * @throws \DomainException
      */
     protected function extractOwnerID(array $candidates)
     {
@@ -200,60 +213,69 @@ trait CommonEveApiTrait
     /**
      * @param EveApiReadWriteInterface $data
      *
-     * @throws \LogicException
      * @return bool
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
+     * @throws \Yapeal\Exception\YapealDatabaseException
      */
     protected function gotApiLock(EveApiReadWriteInterface $data)
     {
         $sql = $this->getCsq()
-                    ->getApiLock($data->getHash());
+            ->getApiLock($data->getHash());
         $this->getYem()
-             ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
         $context = [];
         $success = false;
         try {
             $success = (bool)$this->getPdo()
-                                  ->query($sql)
-                                  ->fetchColumn();
-        } catch (PDOException $exc) {
+                ->query($sql)
+                ->fetchColumn();
+        } catch (\PDOException $exc) {
             $context = ['exception' => $exc];
         }
         $mess = $success ? 'Got lock for' : 'Could NOT get lock for';
         $this->getYem()
-             ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $this->createEveApiMessage($mess, $data), $context);
+            ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $this->createEveApiMessage($mess, $data), $context);
         return $success;
     }
     /**
      * @param EveApiReadWriteInterface $data
      *
-     * @throws \LogicException
      * @return bool
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
+     * @throws \Yapeal\Exception\YapealDatabaseException
      */
     protected function releaseApiLock(EveApiReadWriteInterface $data)
     {
         $sql = $this->getCsq()
-                    ->getApiLockRelease($data->getHash());
+            ->getApiLockRelease($data->getHash());
         $this->getYem()
-             ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
         $context = [];
         $success = false;
         try {
             $success = (bool)$this->getPdo()
-                                  ->query($sql)
-                                  ->fetchColumn();
-        } catch (PDOException $exc) {
+                ->query($sql)
+                ->fetchColumn();
+        } catch (\PDOException $exc) {
             $context = ['exception' => $exc];
         }
         $mess = $success ? 'Released lock for' : 'Could NOT release lock for';
         $this->getYem()
-             ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $this->createEveApiMessage($mess, $data), $context);
+            ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $this->createEveApiMessage($mess, $data), $context);
         return $success;
     }
     /**
      * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
      * @throws \LogicException
+     * @throws \Yapeal\Exception\YapealDatabaseException
      */
     protected function updateCachedUntil(EveApiReadWriteInterface $data)
     {
@@ -261,42 +283,45 @@ trait CommonEveApiTrait
             return $this;
         }
         /** @noinspection PhpUndefinedFieldInspection */
-        $currentTime = (string)(new SimpleXMLElement($data->getEveApiXml()))->currentTime[0];
+        /** @noinspection UnnecessaryParenthesesInspection */
+        $currentTime = (string)(new \SimpleXMLElement($data->getEveApiXml()))->currentTime[0];
         if ('' === $currentTime) {
             return $this;
         }
-        $dateTime = gmdate(
-            'Y-m-d H:i:s',
-            strtotime($currentTime . '+00:00') + $data->getCacheInterval()
-        );
+        $dateTime = gmdate('Y-m-d H:i:s', strtotime($currentTime . '+00:00') + $data->getCacheInterval());
         $row = [
-            $data->getEveApiName(),
-            $dateTime,
-            $this->extractOwnerID($data->getEveApiArguments()),
-            $data->getEveApiSectionName()
+            'accountKey' => $data->hasEveApiArgument('accountKey') ? $data->getEveApiArgument('accountKey') : '0',
+            'apiName' => $data->getEveApiName(),
+            'expires' => $dateTime,
+            'ownerID' => $this->extractOwnerID($data->getEveApiArguments()),
+            'sectionName' => $data->getEveApiSectionName()
         ];
         $sql = $this->getCsq()
-                    ->getUtilCachedUntilUpsert();
+            ->getUpsert('utilCachedUntil', array_keys($row), 1);
         $this->getYem()
-             ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
         $pdo = $this->getPdo();
         $pdo->beginTransaction();
         $context = [];
         $success = false;
         try {
             $pdo->prepare($sql)
-                ->execute($row);
+                ->execute(array_values($row));
             $pdo->commit();
             $success = true;
-        } catch (PDOException $exc) {
+        } catch (\PDOException $exc) {
             $pdo->rollBack();
             $context = ['exception' => $exc];
         }
         $mess = $success ? 'Updated cached until date/time of' : 'Could NOT update cached until date/time of';
         $this->getYem()
-             ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $this->createEveApiMessage($mess, $data), $context);
+            ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $this->createEveApiMessage($mess, $data), $context);
         return $this;
     }
+    /**
+     * @var int[] $accountKey
+     */
+    protected $accountKeys = [0];
     /**
      * @var int $mask
      */

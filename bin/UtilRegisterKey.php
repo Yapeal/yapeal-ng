@@ -55,8 +55,8 @@ class UtilRegisterKey
     public function __construct(PDO $pdo, $databaseName = 'yapeal', $tablePrefix = '')
     {
         $this->setPdo($pdo)
-             ->setDatabaseName($databaseName)
-             ->setTablePrefix($tablePrefix);
+            ->setDatabaseName($databaseName)
+            ->setTablePrefix($tablePrefix);
     }
     /**
      * @return int
@@ -128,8 +128,8 @@ class UtilRegisterKey
     public function load()
     {
         $stmt = $this->initPdo()
-                     ->getPdo()
-                     ->query($this->getExistingRegisteredKeyById());
+            ->getPdo()
+            ->query($this->getExistingRegisteredKeyById());
         $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
         if (1 !== count($result)) {
             $mess =
@@ -154,8 +154,8 @@ class UtilRegisterKey
     public function save()
     {
         $stmt = $this->initPdo()
-                     ->getPdo()
-                     ->prepare($this->getUpsert());
+            ->getPdo()
+            ->prepare($this->getUpsert());
         $columns = [
             $this->getActive(),
             $this->getActiveAPIMask(),

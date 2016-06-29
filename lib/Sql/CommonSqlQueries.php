@@ -399,38 +399,30 @@ SQL;
         return $sql;
     }
     /**
-     * @param string $apiName
-     * @param string $sectionName
-     * @param string $ownerID
+     * @param array <string, string> $columns
      *
-     * @return string
+     * @return array<string, string>
      */
-    public function getUtilCachedUntilExpires($apiName, $sectionName, $ownerID)
+    public function getUtilCachedUntilExpires(array $columns)
     {
+        $where = [];
+        // I.E. "apiName" = 'accountBalance'
+        foreach ($columns as $key => $value) {
+            $where[] = sprintf('"%1$s" = \'%2$s\'', $key, $value);
+        }
+        $where = implode(' AND ', $where);
         /** @lang MySQL */
         $sql = <<<'SQL'
 SELECT "expires"
  FROM "%1$s"."%2$sutilCachedUntil"
- WHERE
- "apiName" = '%3$s'
- AND "sectionName" = '%4$s'
- AND "ownerID" = %5$s
+ WHERE %3$s
 SQL;
         return sprintf(
             str_replace(["\n", "\r\n"], '', $sql),
             $this->databaseName,
             $this->tablePrefix,
-            $apiName,
-            $sectionName,
-            $ownerID
+            $where
         );
-    }
-    /**
-     * @return string
-     */
-    public function getUtilCachedUntilUpsert()
-    {
-        return $this->getUpsert('utilCachedUntil', ['apiName', 'expires', 'ownerID', 'sectionName'], 1);
     }
     /**
      * @return string

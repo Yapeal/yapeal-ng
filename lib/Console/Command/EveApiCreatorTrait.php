@@ -131,7 +131,7 @@ trait EveApiCreatorTrait
     protected function saveToFile($fileName, $contents)
     {
         $fileName = $this->getFpn()
-                         ->normalizeFile($fileName);
+            ->normalizeFile($fileName);
         return file_put_contents($fileName, $contents);
     }
     /**

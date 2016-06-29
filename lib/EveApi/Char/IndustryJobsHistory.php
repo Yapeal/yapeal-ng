@@ -1,6 +1,6 @@
 <?php
 /**
- * Contains IndustryJobsHistory class.
+ * Contains class IndustryJobsHistory.
  *
  * PHP version 5.4
  *
@@ -33,11 +33,9 @@
  */
 namespace Yapeal\EveApi\Char;
 
-use PDOException;
-use Yapeal\Event\EveApiEventInterface;
-use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
+use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
  * Class IndustryJobsHistory
@@ -45,7 +43,6 @@ use Yapeal\Sql\PreserverTrait;
 class IndustryJobsHistory extends CharSection
 {
     use PreserverTrait;
-
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -53,63 +50,20 @@ class IndustryJobsHistory extends CharSection
     public function __construct()
     {
         $this->mask = 128;
+        $this->preserveTos = [
+            'preserveToIndustryJobsHistory'
+        ];
     }
     /**
-     * @param EveApiEventInterface $event
-     * @param string               $eventName
-     * @param MediatorInterface    $yem
-     *
-     * @return EveApiEventInterface
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
-     */
-    public function preserveEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
-    {
-        $this->setYem($yem);
-        $data = $event->getData();
-        $xml = $data->getEveApiXml();
-        if (false === $xml) {
-            return $event->setHandledSufficiently();
-        }
-        $ownerID = $this->extractOwnerID($data->getEveApiArguments());
-        $this->getYem()
-            ->triggerLogEvent(
-                'Yapeal.Log.log',
-                Logger::DEBUG,
-                $this->getReceivedEventMessage($data, $eventName, __CLASS__)
-            );
-        $this->getPdo()
-            ->beginTransaction();
-        try {
-            $this->preserveToIndustryJobsHistory($xml, $ownerID);
-            $this->getPdo()
-                ->commit();
-        } catch (PDOException $exc) {
-            $mess = 'Failed to upsert data of';
-            $this->getYem()
-                ->triggerLogEvent(
-                    'Yapeal.Log.log',
-                    Logger::WARNING,
-                    $this->createEveApiMessage($mess, $data),
-                    ['exception' => $exc]
-                );
-            $this->getPdo()
-                ->rollBack();
-            return $event;
-        }
-        return $event->setHandledSufficiently();
-    }
-    /**
-     * @param string $xml
-     * @param string $ownerID
+     * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
      * @throws \LogicException
      */
-    protected function preserveToIndustryJobsHistory($xml, $ownerID)
+    protected function preserveToIndustryJobsHistory(EveApiReadWriteInterface $data)
     {
         $tableName = 'charIndustryJobsHistory';
+        $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $sql = $this->getCsq()
             ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
         $this->getYem()
@@ -117,37 +71,39 @@ class IndustryJobsHistory extends CharSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'activityID'           => null,
-            'blueprintID'          => null,
-            'blueprintLocationID'  => null,
-            'blueprintTypeID'      => null,
-            'blueprintTypeName'    => '',
+            'activityID' => null,
+            'blueprintID' => null,
+            'blueprintLocationID' => null,
+            'blueprintTypeID' => null,
+            'blueprintTypeName' => '',
             'completedCharacterID' => null,
-            'completedDate'        => '1970-01-01 00:00:01',
-            'cost'                 => null,
-            'endDate'              => '1970-01-01 00:00:01',
-            'facilityID'           => null,
-            'installerID'          => null,
-            'installerName'        => '',
-            'jobID'                => null,
-            'licensedRuns'         => null,
-            'outputLocationID'     => null,
-            'ownerID'              => $ownerID,
-            'pauseDate'            => '1970-01-01 00:00:01',
-            'probability'          => null,
-            'productTypeID'        => null,
-            'productTypeName'      => '',
-            'runs'                 => null,
-            'solarSystemID'        => null,
-            'solarSystemName'      => '',
-            'startDate'            => '1970-01-01 00:00:01',
-            'stationID'            => null,
-            'status'               => null,
-            'successfulRuns'       => null,
-            'teamID'               => null,
-            'timeInSeconds'        => '1970-01-01 00:00:01'
+            'completedDate' => '1970-01-01 00:00:01',
+            'cost' => null,
+            'endDate' => '1970-01-01 00:00:01',
+            'facilityID' => null,
+            'installerID' => null,
+            'installerName' => '',
+            'jobID' => null,
+            'licensedRuns' => null,
+            'outputLocationID' => null,
+            'ownerID' => $ownerID,
+            'pauseDate' => '1970-01-01 00:00:01',
+            'probability' => null,
+            'productTypeID' => null,
+            'productTypeName' => '',
+            'runs' => null,
+            'solarSystemID' => null,
+            'solarSystemName' => '',
+            'startDate' => '1970-01-01 00:00:01',
+            'stationID' => null,
+            'status' => null,
+            'successfulRuns' => null,
+            'teamID' => null,
+            'timeInSeconds' => '1970-01-01 00:00:01'
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//jobs/row');
+        $xPath = '//jobs/row';
+        $elements = (new \SimpleXMLElement($data->getEveApiXml()))->xpath($xPath);
+        $this->attributePreserveData($elements, $columnDefaults, $tableName);
         return $this;
     }
 }

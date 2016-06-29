@@ -1,6 +1,6 @@
 <?php
 /**
- * Contains CallList class.
+ * Contains class CallList.
  *
  * PHP version 5.4
  *
@@ -33,11 +33,9 @@
  */
 namespace Yapeal\EveApi\Api;
 
-use PDOException;
-use Yapeal\Event\EveApiEventInterface;
-use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
+use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
  * Class CallList
@@ -45,7 +43,6 @@ use Yapeal\Sql\PreserverTrait;
 class CallList extends ApiSection
 {
     use PreserverTrait;
-
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -53,60 +50,18 @@ class CallList extends ApiSection
     public function __construct()
     {
         $this->mask = 1;
+        $this->preserveTos = [
+            'preserveToCallList',
+            'preserveToCalls'
+        ];
     }
     /**
-     * @param EveApiEventInterface $event
-     * @param string               $eventName
-     * @param MediatorInterface    $yem
-     *
-     * @return EveApiEventInterface
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
-     */
-    public function preserveEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
-    {
-        $this->setYem($yem);
-        $data = $event->getData();
-        $xml = $data->getEveApiXml();
-        if (false === $xml) {
-            return $event->setHandledSufficiently();
-        }
-        $this->getYem()
-            ->triggerLogEvent(
-                'Yapeal.Log.log',
-                Logger::DEBUG,
-                $this->getReceivedEventMessage($data, $eventName, __CLASS__)
-            );
-        $this->getPdo()
-            ->beginTransaction();
-        try {
-            $this->preserveToCallList($xml)
-                ->preserveToCalls($xml);
-            $this->getPdo()
-                ->commit();
-        } catch (PDOException $exc) {
-            $mess = 'Failed to upsert data of';
-            $this->getYem()
-                ->triggerLogEvent(
-                    'Yapeal.Log.log',
-                    Logger::WARNING,
-                    $this->createEveApiMessage($mess, $data),
-                    ['exception' => $exc]
-                );
-            $this->getPdo()
-                ->rollBack();
-            return $event;
-        }
-        return $event->setHandledSufficiently();
-    }
-    /**
-     * @param string $xml
+     * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
      * @throws \LogicException
      */
-    protected function preserveToCallList($xml)
+    protected function preserveToCallList(EveApiReadWriteInterface $data)
     {
         $tableName = 'apiCallList';
         $sql = $this->getCsq()
@@ -117,19 +72,21 @@ class CallList extends ApiSection
             ->exec($sql);
         $columnDefaults = [
             'description' => '',
-            'groupID'     => null,
-            'name'        => ''
+            'groupID' => null,
+            'name' => ''
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//callGroups/row');
+        $xPath = '//callGroups/row';
+        $elements = (new \SimpleXMLElement($data->getEveApiXml()))->xpath($xPath);
+        $this->attributePreserveData($elements, $columnDefaults, $tableName);
         return $this;
     }
     /**
-     * @param string $xml
+     * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
      * @throws \LogicException
      */
-    protected function preserveToCalls($xml)
+    protected function preserveToCalls(EveApiReadWriteInterface $data)
     {
         $tableName = 'apiCalls';
         $sql = $this->getCsq()
@@ -139,13 +96,15 @@ class CallList extends ApiSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'accessMask'  => null,
+            'accessMask' => null,
             'description' => '',
-            'groupID'     => null,
-            'name'        => '',
-            'type'        => null
+            'groupID' => null,
+            'name' => '',
+            'type' => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//calls/row');
+        $xPath = '//calls/row';
+        $elements = (new \SimpleXMLElement($data->getEveApiXml()))->xpath($xPath);
+        $this->attributePreserveData($elements, $columnDefaults, $tableName);
         return $this;
     }
 }

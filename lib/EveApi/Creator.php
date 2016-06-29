@@ -97,15 +97,21 @@ class Creator
         $this->tables = [];
         $this->processValueOnly($sxi, $data->getEveApiName());
         $this->processRowset($sxi, $data->getEveApiName());
+        $tCount = count($this->tables);
+        if (0 === $tCount) {
+            $mess = 'No SQL tables to create for';
+            $this->getYem()
+                ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $this->createEveApiMessage($mess, $data));
+        }
         ksort($this->tables);
         $vars = [
-            'className'   => ucfirst($data->getEveApiName()),
-            'tables'      => $this->tables,
-            'hasOwner'    => $this->hasOwner(),
-            'mask'        => $data->getEveApiArgument('mask'),
-            'namespace'   => $this->getNamespace(),
+            'className' => ucfirst($data->getEveApiName()),
+            'tables' => $this->tables,
+            'hasOwner' => $this->hasOwner(),
+            'mask' => $data->getEveApiArgument('mask'),
+            'namespace' => $this->getNamespace(),
             'sectionName' => $this->sectionName,
-            'tableNames'  => array_keys($this->tables)
+            'tableNames' => array_keys($this->tables)
         ];
         try {
             $contents = $this->getTwig()
@@ -160,15 +166,15 @@ class Creator
         $name = strtolower($name);
         $column = 'null';
         foreach ([
-                     'descr'          => '\'\'',
-                     'name'           => '\'\'',
-                     'balance'        => '\'0.0\'',
-                     'isk'            => '\'0.0\'',
-                     'tax'            => '\'0.0\'',
+                     'descr' => '\'\'',
+                     'name' => '\'\'',
+                     'balance' => '\'0.0\'',
+                     'isk' => '\'0.0\'',
+                     'tax' => '\'0.0\'',
                      'timeefficiency' => 'null',
-                     'date'           => '\'1970-01-01 00:00:01\'',
-                     'time'           => '\'1970-01-01 00:00:01\'',
-                     'until'          => '\'1970-01-01 00:00:01\''
+                     'date' => '\'1970-01-01 00:00:01\'',
+                     'time' => '\'1970-01-01 00:00:01\'',
+                     'until' => '\'1970-01-01 00:00:01\''
                  ] as $search => $replace) {
             if (false !== strpos($name, $search)) {
                 return $replace;
@@ -203,7 +209,16 @@ class Creator
             if ($this->hasOwner()) {
                 $attributes['ownerID'] = '$ownerID';
             }
-            ksort($attributes);
+            uksort($attributes, function ($a, $b) {
+                $a = strtolower($a);
+                $b = strtolower($b);
+                if ($a < $b) {
+                    return -1;
+                } elseif ($a > $b) {
+                    return 1;
+                }
+                return 0;
+            });
             if (0 === count($this->tables)) {
                 $this->tables[$apiName] = ['attributes' => $attributes, 'xpath' => $rsName];
             } else {
@@ -236,7 +251,16 @@ class Creator
         if ($this->hasOwner()) {
             $values['ownerID'] = '$ownerID';
         }
-        ksort($values);
+        uksort($values, function ($a, $b) {
+            $a = strtolower($a);
+            $b = strtolower($b);
+            if ($a < $b) {
+                return -1;
+            } elseif ($a > $b) {
+                return 1;
+            }
+            return 0;
+        });
         $this->tables[$tableName] = ['values' => $values];
     }
     /**

@@ -43,7 +43,6 @@ use Yapeal\Xml\EveApiReadWriteInterface;
 class ErrorList extends EveSection
 {
     use PreserverTrait;
-
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -65,11 +64,11 @@ class ErrorList extends EveSection
     {
         $tableName = 'eveErrorList';
         $sql = $this->getCsq()
-                    ->getDeleteFromTable($tableName);
+            ->getDeleteFromTable($tableName);
         $this->getYem()
-             ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
         $this->getPdo()
-             ->exec($sql);
+            ->exec($sql);
         $columnDefaults = [
             'errorCode' => null,
             'errorText' => null

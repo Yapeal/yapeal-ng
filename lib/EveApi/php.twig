@@ -83,7 +83,7 @@ class {{ className }} extends {{ sectionName|ucFirst }}Section
             {% for name, value in table.values %}'{{ name }}' => {{ value }}{% if not loop.last %}{{ ",\n            " }}{% else %}{{ "\n" }}{% endif %}{% endfor %}
         ];
         $xPath = '//result/child::*[not(*|@*|self::dataTime)]';
-        elements = (new \SimpleXMLElement($data->getEveApiXml()))->xpath($xPath);
+        $elements = (new \SimpleXMLElement($data->getEveApiXml()))->xpath($xPath);
         $this->valuesPreserveData($elements, $columnDefaults, $tableName);
 {% endif %}
         return $this;

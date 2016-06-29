@@ -70,11 +70,11 @@ class Validator
         $this->setYem($yem);
         $data = $event->getData();
         $this->getYem()
-             ->triggerLogEvent(
-                 'Yapeal.Log.log',
-                 Logger::DEBUG,
-                 $this->getReceivedEventMessage($data, $eventName, __CLASS__)
-             );
+            ->triggerLogEvent(
+                'Yapeal.Log.log',
+                Logger::DEBUG,
+                $this->getReceivedEventMessage($data, $eventName, __CLASS__)
+            );
         $fileName = $this->findEveApiFile($data->getEveApiSectionName(), $data->getEveApiName(), 'xsd');
         if ('' === $fileName) {
             return $event;
@@ -91,7 +91,7 @@ class Validator
             if (0 !== count($errors)) {
                 foreach ($errors as $error) {
                     $this->getYem()
-                         ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $error->message);
+                        ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $error->message);
                 }
             }
             libxml_clear_errors();

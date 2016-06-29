@@ -1,6 +1,6 @@
 <?php
 /**
- * Contains CertificateTree class.
+ * Contains class CertificateTree.
  *
  * PHP version 5.4
  *
@@ -33,11 +33,9 @@
  */
 namespace Yapeal\EveApi\Eve;
 
-use PDOException;
-use Yapeal\Event\EveApiEventInterface;
-use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
+use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
  * Class CertificateTree
@@ -45,7 +43,6 @@ use Yapeal\Sql\PreserverTrait;
 class CertificateTree extends EveSection
 {
     use PreserverTrait;
-
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -53,59 +50,17 @@ class CertificateTree extends EveSection
     public function __construct()
     {
         $this->mask = 2;
+        $this->preserveTos = [
+            'preserveToCertificateTree'
+        ];
     }
     /**
-     * @param EveApiEventInterface $event
-     * @param string               $eventName
-     * @param MediatorInterface    $yem
-     *
-     * @return EveApiEventInterface
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
-     */
-    public function preserveEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
-    {
-        $this->setYem($yem);
-        $data = $event->getData();
-        $xml = $data->getEveApiXml();
-        if (false === $xml) {
-            return $event->setHandledSufficiently();
-        }
-        $this->getYem()
-            ->triggerLogEvent(
-                'Yapeal.Log.log',
-                Logger::DEBUG,
-                $this->getReceivedEventMessage($data, $eventName, __CLASS__)
-            );
-        $this->getPdo()
-            ->beginTransaction();
-        try {
-            $this->preserveToCertificateTree($xml);
-            $this->getPdo()
-                ->commit();
-        } catch (PDOException $exc) {
-            $mess = 'Failed to upsert data of';
-            $this->getYem()
-                ->triggerLogEvent(
-                    'Yapeal.Log.log',
-                    Logger::WARNING,
-                    $this->createEveApiMessage($mess, $data),
-                    ['exception' => $exc]
-                );
-            $this->getPdo()
-                ->rollBack();
-            return $event;
-        }
-        return $event->setHandledSufficiently();
-    }
-    /**
-     * @param string $xml
+     * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
      * @throws \LogicException
      */
-    protected function preserveToCertificateTree($xml)
+    protected function preserveToCertificateTree(EveApiReadWriteInterface $data)
     {
         $tableName = 'eveCertificateTree';
         $sql = $this->getCsq()
@@ -115,10 +70,12 @@ class CertificateTree extends EveSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'categoryID'   => null,
+            'categoryID' => null,
             'categoryName' => ''
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//categories/row');
+        $xPath = '//categories/row';
+        $elements = (new \SimpleXMLElement($data->getEveApiXml()))->xpath($xPath);
+        $this->attributePreserveData($elements, $columnDefaults, $tableName);
         return $this;
     }
 }

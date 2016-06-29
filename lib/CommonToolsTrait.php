@@ -33,8 +33,6 @@
  */
 namespace Yapeal;
 
-use PDO;
-use PDOException;
 use Yapeal\Container\ContainerInterface;
 use Yapeal\Exception\YapealDatabaseException;
 use Yapeal\Sql\CommonSqlQueries;
@@ -65,11 +63,11 @@ trait CommonToolsTrait
         return $this;
     }
     /**
-     * @param PDO $value
+     * @param \PDO $value
      *
      * @return self Fluent interface.
      */
-    public function setPdo(PDO $value)
+    public function setPdo(\PDO $value)
     {
         $this->pdo = $value;
         return $this;
@@ -102,7 +100,7 @@ trait CommonToolsTrait
         return $this->dic;
     }
     /**
-     * @return PDO
+     * @return \PDO
      * @throws \LogicException
      * @throws \Yapeal\Exception\YapealDatabaseException
      */
@@ -111,7 +109,7 @@ trait CommonToolsTrait
         if (null === $this->pdo) {
             try {
                 $this->pdo = $this->getDic()['Yapeal.Sql.Connection'];
-            } catch (PDOException $exc) {
+            } catch (\PDOException $exc) {
                 $mess = sprintf(
                     'Could NOT connect to database. Database error was (%1$s) %2$s',
                     $exc->getCode(),
@@ -131,7 +129,7 @@ trait CommonToolsTrait
      */
     protected $dic;
     /**
-     * @var PDO $pdo
+     * @var \PDO $pdo
      */
     protected $pdo;
 }

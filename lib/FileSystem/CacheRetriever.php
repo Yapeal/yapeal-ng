@@ -33,7 +33,6 @@
  */
 namespace Yapeal\FileSystem;
 
-use DomainException;
 use FilePathNormalizer\FilePathNormalizerTrait;
 use InvalidArgumentException;
 use LogicException;

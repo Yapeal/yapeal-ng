@@ -1,6 +1,6 @@
 <?php
 /**
- * Contains Shareholders class.
+ * Contains class Shareholders.
  *
  * PHP version 5.4
  *
@@ -33,11 +33,9 @@
  */
 namespace Yapeal\EveApi\Corp;
 
-use PDOException;
-use Yapeal\Event\EveApiEventInterface;
-use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
+use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
  * Class Shareholders
@@ -45,7 +43,6 @@ use Yapeal\Sql\PreserverTrait;
 class Shareholders extends CorpSection
 {
     use PreserverTrait;
-
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -53,64 +50,21 @@ class Shareholders extends CorpSection
     public function __construct()
     {
         $this->mask = 65536;
+        $this->preserveTos = [
+            'preserveToCorporations',
+            'preserveToShareholders'
+        ];
     }
     /**
-     * @param EveApiEventInterface $event
-     * @param string               $eventName
-     * @param MediatorInterface    $yem
-     *
-     * @return EveApiEventInterface
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
-     */
-    public function preserveEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
-    {
-        $this->setYem($yem);
-        $data = $event->getData();
-        $xml = $data->getEveApiXml();
-        if (false === $xml) {
-            return $event->setHandledSufficiently();
-        }
-        $ownerID = $this->extractOwnerID($data->getEveApiArguments());
-        $this->getYem()
-            ->triggerLogEvent(
-                'Yapeal.Log.log',
-                Logger::DEBUG,
-                $this->getReceivedEventMessage($data, $eventName, __CLASS__)
-            );
-        $this->getPdo()
-            ->beginTransaction();
-        try {
-            $this->preserveToCorporations($xml, $ownerID)
-                ->preserveToShareholders($xml, $ownerID);
-            $this->getPdo()
-                ->commit();
-        } catch (PDOException $exc) {
-            $mess = 'Failed to upsert data of';
-            $this->getYem()
-                ->triggerLogEvent(
-                    'Yapeal.Log.log',
-                    Logger::WARNING,
-                    $this->createEveApiMessage($mess, $data),
-                    ['exception' => $exc]
-                );
-            $this->getPdo()
-                ->rollBack();
-            return $event;
-        }
-        return $event->setHandledSufficiently();
-    }
-    /**
-     * @param string $xml
-     * @param string $ownerID
+     * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
      * @throws \LogicException
      */
-    protected function preserveToCorporations($xml, $ownerID)
+    protected function preserveToCorporations(EveApiReadWriteInterface $data)
     {
         $tableName = 'corpCorporations';
+        $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $sql = $this->getCsq()
             ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
         $this->getYem()
@@ -118,24 +72,26 @@ class Shareholders extends CorpSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'ownerID'         => $ownerID,
-            'shareholderID'   => null,
+            'ownerID' => $ownerID,
+            'shareholderID' => null,
             'shareholderName' => '',
-            'shares'          => null
+            'shares' => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//corporations/row');
+        $xPath = '//corporations/row';
+        $elements = (new \SimpleXMLElement($data->getEveApiXml()))->xpath($xPath);
+        $this->attributePreserveData($elements, $columnDefaults, $tableName);
         return $this;
     }
     /**
-     * @param string $xml
-     * @param string $ownerID
+     * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
      * @throws \LogicException
      */
-    protected function preserveToShareholders($xml, $ownerID)
+    protected function preserveToShareholders(EveApiReadWriteInterface $data)
     {
         $tableName = 'corpShareholders';
+        $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $sql = $this->getCsq()
             ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
         $this->getYem()
@@ -143,14 +99,16 @@ class Shareholders extends CorpSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'ownerID'                    => $ownerID,
-            'shareholderCorporationID'   => null,
+            'ownerID' => $ownerID,
+            'shareholderCorporationID' => null,
             'shareholderCorporationName' => '',
-            'shareholderID'              => null,
-            'shareholderName'            => '',
-            'shares'                     => null
+            'shareholderID' => null,
+            'shareholderName' => '',
+            'shares' => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//characters/row');
+        $xPath = '//characters/row';
+        $elements = (new \SimpleXMLElement($data->getEveApiXml()))->xpath($xPath);
+        $this->attributePreserveData($elements, $columnDefaults, $tableName);
         return $this;
     }
 }

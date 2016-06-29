@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Xsd/Eve/ConquerableStationList.xsd
-version 20160201053354.500 -->
+version 20160629053415.543 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified"
 elementFormDefault="qualified">
     <xs:include schemaLocation="../common.xsd" />

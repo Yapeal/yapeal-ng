@@ -1,6 +1,6 @@
 <?php
 /**
- * Contains AccountStatus class.
+ * Contains class AccountStatus.
  *
  * PHP version 5.4
  *
@@ -33,150 +33,79 @@
  */
 namespace Yapeal\EveApi\Account;
 
-use PDOException;
-use Yapeal\EveApi\ActiveTrait;
-use Yapeal\EveApi\CommonEveApiTrait;
-use Yapeal\Event\EveApiEventInterface;
-use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
+use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
  * Class AccountStatus
  */
-class AccountStatus
+class AccountStatus extends AccountSection
 {
-    use ActiveTrait, CommonEveApiTrait, PreserverTrait;
+    use PreserverTrait;
+    /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
      */
     public function __construct()
     {
         $this->mask = 33554432;
+        $this->preserveTos = [
+            'preserveToAccountStatus',
+            'preserveToMultiCharacterTraining'
+        ];
     }
     /**
-     * @param EveApiEventInterface $event
-     * @param string               $eventName
-     * @param MediatorInterface    $yem
-     *
-     * @return EveApiEventInterface
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
-     */
-    public function preserveEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
-    {
-        $this->setYem($yem);
-        $data = $event->getData();
-        $xml = $data->getEveApiXml();
-        if (false === $xml) {
-            return $event->setHandledSufficiently();
-        }
-        $ownerID = $this->extractOwnerID($data->getEveApiArguments());
-        $this->getYem()
-             ->triggerLogEvent(
-                 'Yapeal.Log.log',
-                 Logger::DEBUG,
-                 $this->getReceivedEventMessage($data, $eventName, __CLASS__)
-             );
-        $this->getPdo()
-             ->beginTransaction();
-        try {
-            $this->preserveToAccountStatus($xml, $ownerID)
-                 ->preserveToMultiCharacterTraining($xml, $ownerID)
-                 ->preserveToOffers($xml, $ownerID);
-            $this->getPdo()
-                 ->commit();
-        } catch (PDOException $exc) {
-            $mess = 'Failed to upsert data of';
-            $this->getYem()
-                 ->triggerLogEvent(
-                     'Yapeal.Log.log',
-                     Logger::WARNING,
-                     $this->createEveApiMessage($mess, $data),
-                     ['exception' => $exc]
-                 );
-            $this->getPdo()
-                 ->rollBack();
-            return $event;
-        }
-        return $event->setHandledSufficiently();
-    }
-    /**
-     * @param string $xml
-     * @param string $ownerID
+     * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
      * @throws \LogicException
      */
-    protected function preserveToAccountStatus($xml, $ownerID)
+    protected function preserveToAccountStatus(EveApiReadWriteInterface $data)
     {
         $tableName = 'accountAccountStatus';
+        $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $sql = $this->getCsq()
-                    ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
+            ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
         $this->getYem()
-             ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $sql);
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
         $this->getPdo()
-             ->exec($sql);
+            ->exec($sql);
         $columnDefaults = [
             'createDate' => '1970-01-01 00:00:01',
             'logonCount' => null,
             'logonMinutes' => null,
             'ownerID' => $ownerID,
-            'paidUntil' => null
+            'paidUntil' => '1970-01-01 00:00:01'
         ];
-        $this->valuesPreserveData($xml, $columnDefaults, $tableName);
+        $xPath = '//result/child::*[not(*|@*|self::dataTime)]';
+        $elements = (new \SimpleXMLElement($data->getEveApiXml()))->xpath($xPath);
+        $this->valuesPreserveData($elements, $columnDefaults, $tableName);
         return $this;
     }
-    /** @noinspection PhpMissingParentCallCommonInspection */
     /**
-     * @param string $xml
-     * @param string $ownerID
+     * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
      * @throws \LogicException
      */
-    protected function preserveToMultiCharacterTraining($xml, $ownerID)
+    protected function preserveToMultiCharacterTraining(EveApiReadWriteInterface $data)
     {
         $tableName = 'accountMultiCharacterTraining';
+        $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $sql = $this->getCsq()
-                    ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
+            ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
         $this->getYem()
-             ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $sql);
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
         $this->getPdo()
-             ->exec($sql);
+            ->exec($sql);
         $columnDefaults = [
             'ownerID' => $ownerID,
             'trainingEnd' => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//MultiCharacterTraining/row');
-        return $this;
-    }
-    /**
-     * @param string $xml
-     * @param string $ownerID
-     *
-     * @return self Fluent interface.
-     * @throws \LogicException
-     */
-    protected function preserveToOffers($xml, $ownerID)
-    {
-        $tableName = 'accountOffers';
-        $sql = $this->getCsq()
-                    ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
-        $this->getYem()
-             ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $sql);
-        $this->getPdo()
-             ->exec($sql);
-        $columnDefaults = [
-            'from' => null,
-            'ISK' => '0.0',
-            'offeredDate' => '1970-01-01 00:00:01',
-            'offerID' => null,
-            'ownerID' => $ownerID,
-            'to' => null
-        ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//Offers/row');
+        $xPath = '//multiCharacterTraining/row';
+        $elements = (new \SimpleXMLElement($data->getEveApiXml()))->xpath($xPath);
+        $this->attributePreserveData($elements, $columnDefaults, $tableName);
         return $this;
     }
 }

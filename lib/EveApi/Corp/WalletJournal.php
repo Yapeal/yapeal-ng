@@ -1,6 +1,6 @@
 <?php
 /**
- * Contains WalletJournal class.
+ * Contains class WalletJournal.
  *
  * PHP version 5.4
  *
@@ -33,58 +33,63 @@
  */
 namespace Yapeal\EveApi\Corp;
 
-use Yapeal\EveApi\AccountKeyTrait;
-use Yapeal\EveApi\CommonEveApiTrait;
+use Yapeal\Log\Logger;
+use Yapeal\Sql\PreserverTrait;
+use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
  * Class WalletJournal
  */
 class WalletJournal extends CorpSection
 {
-    use CommonEveApiTrait, AccountKeyTrait {
-        AccountKeyTrait::oneShot insteadof CommonEveApiTrait;
-        AccountKeyTrait::startEveApi insteadof CommonEveApiTrait;
-        CommonEveApiTrait::oneShot as cEATOneShot;
-        CommonEveApiTrait::startEveApi as cEATStartEveApi;
-    }
+    use PreserverTrait;
+    /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
      */
     public function __construct()
     {
         $this->mask = 1048576;
-        $this->accountKeys = ['10000', '1000', '1001', '1002', '1003', '1004', '1005', '1006'];
+        $this->preserveTos = [
+            'preserveToWalletJournal'
+        ];
     }
     /**
-     * @param string $xml
-     * @param string $ownerID
-     * @param string $accountKey
+     * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
      * @throws \LogicException
      */
-    protected function preserveToWallet($xml, $ownerID, $accountKey)
+    protected function preserveToWalletJournal(EveApiReadWriteInterface $data)
     {
         $tableName = 'corpWalletJournal';
+        $ownerID = $this->extractOwnerID($data->getEveApiArguments());
+        $sql = $this->getCsq()
+            ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
+        $this->getYem()
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
+        $this->getPdo()
+            ->exec($sql);
         $columnDefaults = [
-            'accountKey'   => $accountKey,
-            'amount'       => null,
-            'argID1'       => null,
-            'argName1'     => '',
-            'balance'      => '0.0',
-            'date'         => '1970-01-01 00:00:01',
+            'amount' => null,
+            'argID1' => null,
+            'argName1' => '',
+            'balance' => '0.0',
+            'date' => '1970-01-01 00:00:01',
             'owner1TypeID' => null,
             'owner2TypeID' => null,
-            'ownerID'      => $ownerID,
-            'ownerID1'     => null,
-            'ownerID2'     => null,
-            'ownerName1'   => '',
-            'ownerName2'   => '',
-            'reason'       => null,
-            'refID'        => null,
-            'refTypeID'    => null
+            'ownerID' => $ownerID,
+            'ownerID1' => null,
+            'ownerID2' => null,
+            'ownerName1' => '',
+            'ownerName2' => '',
+            'reason' => null,
+            'refID' => null,
+            'refTypeID' => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//entries/row');
+        $xPath = '//entries/row';
+        $elements = (new \SimpleXMLElement($data->getEveApiXml()))->xpath($xPath);
+        $this->attributePreserveData($elements, $columnDefaults, $tableName);
         return $this;
     }
 }

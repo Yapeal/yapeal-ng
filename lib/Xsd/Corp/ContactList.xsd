@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Xsd/Corp/ContactList.xsd
-version 20160201053354.811 -->
+version 20160629053416.750 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified"
 elementFormDefault="qualified">
     <xs:include schemaLocation="../common.xsd" />
@@ -33,8 +33,8 @@ elementFormDefault="qualified">
                                         <xs:attribute use="required" type="eveIDType" name="contactID" />
                                         <xs:attribute use="required" type="eveNameType" name="contactName" />
                                         <xs:attribute use="required" type="eveIDType" name="contactTypeID" />
-                                        <xs:attribute use="required" type="eveIDType" name="labelMask" />
-                                        <xs:attribute use="required" type="xs:decimal" name="standing" />
+                                        <xs:attribute use="required" type="xs:token" name="labelMask" />
+                                        <xs:attribute use="required" type="xs:token" name="standing" />
                                     </xs:extension>
                                 </xs:simpleContent>
                             </xs:complexType>
@@ -70,8 +70,8 @@ elementFormDefault="qualified">
                                         <xs:attribute use="required" type="eveIDType" name="contactID" />
                                         <xs:attribute use="required" type="eveNameType" name="contactName" />
                                         <xs:attribute use="required" type="eveIDType" name="contactTypeID" />
-                                        <xs:attribute use="required" type="eveIDType" name="labelMask" />
-                                        <xs:attribute use="required" type="xs:decimal" name="standing" />
+                                        <xs:attribute use="required" type="xs:token" name="labelMask" />
+                                        <xs:attribute use="required" type="xs:token" name="standing" />
                                     </xs:extension>
                                 </xs:simpleContent>
                             </xs:complexType>

@@ -61,45 +61,6 @@ class DatabaseInitializer extends AbstractDatabaseCommon
     }
     /** @noinspection PhpMissingParentCallCommonInspection */
     /**
-     * Executes the current command.
-     *
-     * This method is not abstract because you can use this class
-     * as a concrete class. In this case, instead of defining the
-     * execute() method, you set the code to execute by passing
-     * a Closure to the setCode() method.
-     *
-     * @param InputInterface  $input  An InputInterface instance
-     * @param OutputInterface $output An OutputInterface instance
-     *
-     * @return int|null null or 0 if everything went fine, or an error code
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
-     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
-     * @throws \Symfony\Component\Console\Exception\LogicException
-     * @throws \Symfony\Component\Console\Exception\RuntimeException
-     * @throws \Yapeal\Exception\YapealDatabaseException
-     *
-     * @see    setCode()
-     */
-    protected function execute(InputInterface $input, OutputInterface $output)
-    {
-        $options = $input->getOptions();
-        $this->processCliOptions($options);
-        if ($options['dropDatabase']) {
-            /**
-             * @var QuestionHelper $question
-             */
-            $question = $this->getHelper('question');
-            $mess = '<comment>Are you sure you want to drop the database and it\'s tables with their data?(no)</comment>';
-            $confirm = new ConfirmationQuestion($mess, false);
-            $this->dropDatabase = $question->ask($input, $output, $confirm);
-            if (!$this->dropDatabase) {
-                $output->writeln('<info>Ignoring drop database</info>');
-            }
-        }
-        return $this->processSql($output);
-    }
-    /**
      * Configures the current command.
      */
     protected function configure()
@@ -126,6 +87,47 @@ HELP;
         $desc = 'Drop existing database before re-creating. <comment>Warning all the tables will be dropped as well!</comment>';
         $this->addOption('dropDatabase', null, InputOption::VALUE_NONE, $desc);
     }
+    /** @noinspection PhpMissingParentCallCommonInspection */
+    /**
+     * Executes the current command.
+     *
+     * This method is not abstract because you can use this class
+     * as a concrete class. In this case, instead of defining the
+     * execute() method, you set the code to execute by passing
+     * a Closure to the setCode() method.
+     *
+     * @param InputInterface  $input  An InputInterface instance
+     * @param OutputInterface $output An OutputInterface instance
+     *
+     * @return int|null null or 0 if everything went fine, or an error code
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
+     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
+     * @throws \Symfony\Component\Console\Exception\LogicException
+     * @throws \Symfony\Component\Console\Exception\RuntimeException
+     * @throws \Yapeal\Exception\YapealDatabaseException
+     * @throws \Yapeal\Exception\YapealException
+     *
+     * @see    setCode()
+     */
+    protected function execute(InputInterface $input, OutputInterface $output)
+    {
+        $this->processCliOptions($input);
+        if ($input->getOption('dropDatabase')) {
+            /**
+             * @var QuestionHelper $question
+             */
+            $question = $this->getHelper('question');
+            $mess = '<comment>Are you sure you want to drop the database and it\'s tables with their data?(no)</comment>';
+            $confirm = new ConfirmationQuestion($mess, false);
+            $this->dropDatabase = $question->ask($input, $output, $confirm);
+            if (!$this->dropDatabase) {
+                $output->writeln('<info>Ignoring drop database</info>');
+            }
+        }
+        return $this->processSql($output);
+    }
     /**
      * @param OutputInterface $output
      *
@@ -149,7 +151,7 @@ HELP;
             if ('Database' === $dir && $this->dropDatabase) {
                 // Add drop database file if requested.
                 $fileList[] = $this->getFpn()
-                                   ->normalizeFile($path . $dir . '/DropDatabase.sql');
+                    ->normalizeFile($path . $dir . '/DropDatabase.sql');
             }
             foreach (new \DirectoryIterator($path . $dir . '/') as $fileInfo) {
                 // Add file path if it's a sql create file.
@@ -158,7 +160,7 @@ HELP;
                     && 0 === strpos($fileInfo->getBasename(), 'Create')
                 ) {
                     $fileList[] = $this->getFpn()
-                                       ->normalizeFile($fileInfo->getPathname());
+                        ->normalizeFile($fileInfo->getPathname());
                 }
             }
         }

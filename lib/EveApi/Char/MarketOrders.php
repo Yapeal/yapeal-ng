@@ -1,6 +1,6 @@
 <?php
 /**
- * Contains MarketOrders class.
+ * Contains class MarketOrders.
  *
  * PHP version 5.4
  *
@@ -33,11 +33,9 @@
  */
 namespace Yapeal\EveApi\Char;
 
-use PDOException;
-use Yapeal\Event\EveApiEventInterface;
-use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
+use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
  * Class MarketOrders
@@ -45,7 +43,6 @@ use Yapeal\Sql\PreserverTrait;
 class MarketOrders extends CharSection
 {
     use PreserverTrait;
-
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -53,63 +50,20 @@ class MarketOrders extends CharSection
     public function __construct()
     {
         $this->mask = 4096;
+        $this->preserveTos = [
+            'preserveToMarketOrders'
+        ];
     }
     /**
-     * @param EveApiEventInterface $event
-     * @param string               $eventName
-     * @param MediatorInterface    $yem
-     *
-     * @return EveApiEventInterface
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
-     */
-    public function preserveEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
-    {
-        $this->setYem($yem);
-        $data = $event->getData();
-        $xml = $data->getEveApiXml();
-        if (false === $xml) {
-            return $event->setHandledSufficiently();
-        }
-        $ownerID = $this->extractOwnerID($data->getEveApiArguments());
-        $this->getYem()
-            ->triggerLogEvent(
-                'Yapeal.Log.log',
-                Logger::DEBUG,
-                $this->getReceivedEventMessage($data, $eventName, __CLASS__)
-            );
-        $this->getPdo()
-            ->beginTransaction();
-        try {
-            $this->preserveToMarketOrders($xml, $ownerID);
-            $this->getPdo()
-                ->commit();
-        } catch (PDOException $exc) {
-            $mess = 'Failed to upsert data of';
-            $this->getYem()
-                ->triggerLogEvent(
-                    'Yapeal.Log.log',
-                    Logger::WARNING,
-                    $this->createEveApiMessage($mess, $data),
-                    ['exception' => $exc]
-                );
-            $this->getPdo()
-                ->rollBack();
-            return $event;
-        }
-        return $event->setHandledSufficiently();
-    }
-    /**
-     * @param string $xml
-     * @param string $ownerID
+     * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
      * @throws \LogicException
      */
-    protected function preserveToMarketOrders($xml, $ownerID)
+    protected function preserveToMarketOrders(EveApiReadWriteInterface $data)
     {
         $tableName = 'charMarketOrders';
+        $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $sql = $this->getCsq()
             ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
         $this->getYem()
@@ -117,24 +71,26 @@ class MarketOrders extends CharSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
-            'accountKey'   => null,
-            'bid'          => null,
-            'charID'       => null,
-            'duration'     => null,
-            'escrow'       => null,
-            'issued'       => null,
-            'minVolume'    => null,
-            'orderID'      => null,
-            'orderState'   => null,
-            'ownerID'      => $ownerID,
-            'price'        => null,
-            'range'        => null,
-            'stationID'    => null,
-            'typeID'       => null,
-            'volEntered'   => null,
+            'accountKey' => null,
+            'bid' => null,
+            'charID' => null,
+            'duration' => null,
+            'escrow' => null,
+            'issued' => null,
+            'minVolume' => null,
+            'orderID' => null,
+            'orderState' => null,
+            'ownerID' => $ownerID,
+            'price' => null,
+            'range' => null,
+            'stationID' => null,
+            'typeID' => null,
+            'volEntered' => null,
             'volRemaining' => null
         ];
-        $this->attributePreserveData($xml, $columnDefaults, $tableName, '//orders/row');
+        $xPath = '//orders/row';
+        $elements = (new \SimpleXMLElement($data->getEveApiXml()))->xpath($xPath);
+        $this->attributePreserveData($elements, $columnDefaults, $tableName);
         return $this;
     }
 }

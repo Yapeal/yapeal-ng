@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Xsd/Char/Research.xsd
-version 20160201053948.809 -->
+version 20160629053442.775 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified"
 elementFormDefault="qualified">
     <xs:include schemaLocation="../common.xsd" />

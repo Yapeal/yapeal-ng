@@ -86,8 +86,8 @@ class Mediator extends PimpleContainerMediator implements MediatorInterface
             $event = new LogEvent();
         }
         $event->setLevel($level)
-              ->setMessage($message)
-              ->setContext($context);
+            ->setMessage($message)
+            ->setContext($context);
         return $this->trigger($eventName, $event);
     }
 }

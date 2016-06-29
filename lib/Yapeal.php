@@ -48,7 +48,7 @@ use Yapeal\Xml\EveApiReadWriteInterface;
  */
 class Yapeal
 {
-    use EveApiEventEmitterTrait;
+    use CommonToolsTrait, EveApiEventEmitterTrait;
     /**
      * @param ContainerInterface $dic
      *
@@ -77,38 +77,30 @@ class Yapeal
         $this->setYem($dic['Yapeal.Event.Mediator']);
         $mess = 'Let the magic begin!';
         $this->getYem()
-             ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess);
+            ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess);
         /**
          * @var CommonSqlQueries $csq
          */
         $csq = $dic['Yapeal.Sql.CommonQueries'];
         $sql = $csq->getActiveApis();
         $this->getYem()
-             ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $sql);
+            ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $sql);
         try {
             /**
              * @var PDO $pdo
              */
             $pdo = $dic['Yapeal.Sql.Connection'];
             $records = $pdo->query($sql)
-                           ->fetchAll(PDO::FETCH_ASSOC);
+                ->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $exc) {
             $mess = 'Could not access utilEveApi table';
             $this->getYem()
-                 ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess, ['exception' => $exc]);
+                ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess, ['exception' => $exc]);
             return 1;
         }
         // Always check APIKeyInfo.
-        array_unshift(
-            $records,
-            [
-                'apiName' => 'APIKeyInfo',
-                'interval' => '300',
-                'sectionName' => 'account'
-            ]
-        );
+        array_unshift($records, ['apiName' => 'APIKeyInfo', 'interval' => '300', 'sectionName' => 'account']);
         foreach ($records as $record) {
-            /** @noinspection DisconnectedForeachInstructionInspection */
             /**
              * Get new Data instance from factory.
              *
@@ -116,31 +108,10 @@ class Yapeal
              */
             $data = $dic['Yapeal.Xml.Data'];
             $data->setEveApiName($record['apiName'])
-                 ->setEveApiSectionName($record['sectionName'])
-                 ->setCacheInterval($record['interval']);
+                ->setEveApiSectionName($record['sectionName'])
+                ->setCacheInterval($record['interval']);
             $this->emitEvents($data, 'start');
         }
         return 0;
     }
-    /**
-     * @param ContainerInterface $value
-     *
-     * @return self Fluent interface.
-     */
-    public function setDic(ContainerInterface $value)
-    {
-        $this->dic = $value;
-        return $this;
-    }
-    /**
-     * @return ContainerInterface
-     */
-    protected function getDic()
-    {
-        return $this->dic;
-    }
-    /**
-     * @var ContainerInterface $dic
-     */
-    protected $dic;
 }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Xsd/Char/ContactNotifications.xsd
-version 20160201053355.145 -->
+version 20160629053417.263 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified"
 elementFormDefault="qualified">
     <xs:include schemaLocation="../common.xsd" />
@@ -13,7 +13,7 @@ elementFormDefault="qualified">
                             <xs:complexType>
                                 <xs:simpleContent>
                                     <xs:extension base="xs:string">
-                                        <xs:attribute use="required" type="xs:string" name="messageData" />
+                                        <xs:attribute use="required" type="xs:token" name="messageData" />
                                         <xs:attribute use="required" type="eveIDType" name="notificationID" />
                                         <xs:attribute use="required" type="eveIDType" name="senderID" />
                                         <xs:attribute use="required" type="eveNameType" name="senderName" />

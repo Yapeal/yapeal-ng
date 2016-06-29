@@ -107,6 +107,7 @@ class Transformer implements TransformerInterface
      * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
+     * @throws \LogicException
      * @throws \InvalidArgumentException
      */
     protected function addYapealProcessingInstructionToXml(EveApiReadWriteInterface $data)
@@ -119,7 +120,10 @@ class Transformer implements TransformerInterface
         if (!empty($arguments['vCode'])) {
             $arguments['vCode'] = substr($arguments['vCode'], 0, 8) . '...';
         }
-        unset($arguments['mask']);
+        if (!in_array($data->getEveApiName(), ['accountBalance', 'walletJournal', 'walletTransactions'], true)) {
+            unset($arguments['accountKey']);
+        }
+        unset($arguments['mask'], $arguments['rowCount']);
         ksort($arguments);
         $json = json_encode($arguments);
         $xml = str_replace(
@@ -185,11 +189,11 @@ class Transformer implements TransformerInterface
      * @var array $tidyConfig
      */
     protected $tidyConfig = [
-        'indent'        => true,
+        'indent' => true,
         'indent-spaces' => 4,
-        'input-xml'     => true,
-        'newline'       => 'LF',
-        'output-xml'    => true,
-        'wrap'          => '1000'
+        'input-xml' => true,
+        'newline' => 'LF',
+        'output-xml' => true,
+        'wrap' => '1000'
     ];
 }

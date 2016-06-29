@@ -59,11 +59,11 @@ class ErrorCacheIntervalSubscriber
         $this->setYem($yem);
         $data = $event->getData();
         $this->getYem()
-             ->triggerLogEvent(
-                 'Yapeal.Log.log',
-                 Logger::DEBUG,
-                 $this->getReceivedEventMessage($data, $eventName, __CLASS__)
-             );
+            ->triggerLogEvent(
+                'Yapeal.Log.log',
+                Logger::DEBUG,
+                $this->getReceivedEventMessage($data, $eventName, __CLASS__)
+            );
         $simple = new \SimpleXMLElement($data->getEveApiXml());
         /** @noinspection PhpUndefinedFieldInspection */
         $errorText = (string)$simple->error[0];
@@ -102,6 +102,6 @@ class ErrorCacheIntervalSubscriber
         $this->emitEvents($data, 'cache');
         $data->setEveApiName($apiName);
         return $event->setData($data)
-                     ->setHandledSufficiently();
+            ->setHandledSufficiently();
     }
 }

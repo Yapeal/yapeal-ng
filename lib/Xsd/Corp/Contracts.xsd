@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Xsd/Corp/Contracts.xsd
-version 20160201053356.181 -->
+version 20160629053418.726 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified"
 elementFormDefault="qualified">
     <xs:include schemaLocation="../common.xsd" />
@@ -16,25 +16,25 @@ elementFormDefault="qualified">
                                         <xs:attribute use="required" type="eveIDType" name="acceptorID" />
                                         <xs:attribute use="required" type="eveIDType" name="assigneeID" />
                                         <xs:attribute use="required" type="xs:token" name="availability" />
-                                        <xs:attribute use="required" type="eveISKType" name="buyout" />
-                                        <xs:attribute use="required" type="eveISKType" name="collateral" />
+                                        <xs:attribute use="required" type="xs:token" name="buyout" />
+                                        <xs:attribute use="required" type="xs:token" name="collateral" />
                                         <xs:attribute use="required" type="eveIDType" name="contractID" />
-                                        <xs:attribute use="required" type="eveDTType" name="dateAccepted" />
-                                        <xs:attribute use="required" type="eveDTType" name="dateCompleted" />
+                                        <xs:attribute use="required" type="eveNEDTType" name="dateAccepted" />
+                                        <xs:attribute use="required" type="eveNEDTType" name="dateCompleted" />
                                         <xs:attribute use="required" type="eveNEDTType" name="dateExpired" />
                                         <xs:attribute use="required" type="eveNEDTType" name="dateIssued" />
                                         <xs:attribute use="required" type="eveIDType" name="endStationID" />
-                                        <xs:attribute use="required" type="eveBooleanType" name="forCorp" />
+                                        <xs:attribute use="required" type="xs:token" name="forCorp" />
                                         <xs:attribute use="required" type="eveIDType" name="issuerCorpID" />
                                         <xs:attribute use="required" type="eveIDType" name="issuerID" />
-                                        <xs:attribute use="required" type="xs:unsignedLong" name="numDays" />
-                                        <xs:attribute use="required" type="eveISKType" name="price" />
-                                        <xs:attribute use="required" type="eveISKType" name="reward" />
+                                        <xs:attribute use="required" type="xs:token" name="numDays" />
+                                        <xs:attribute use="required" type="xs:token" name="price" />
+                                        <xs:attribute use="required" type="xs:token" name="reward" />
                                         <xs:attribute use="required" type="eveIDType" name="startStationID" />
                                         <xs:attribute use="required" type="xs:token" name="status" />
-                                        <xs:attribute use="required" type="xs:string" name="title" />
+                                        <xs:attribute use="required" type="xs:token" name="title" />
                                         <xs:attribute use="required" type="xs:token" name="type" />
-                                        <xs:attribute use="required" type="xs:double" name="volume" />
+                                        <xs:attribute use="required" type="xs:token" name="volume" />
                                     </xs:extension>
                                 </xs:simpleContent>
                             </xs:complexType>

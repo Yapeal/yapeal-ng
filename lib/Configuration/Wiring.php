@@ -77,7 +77,7 @@ class Wiring
             );
         } catch (ParseException $exc) {
             $mess = sprintf(
-                'Unable to parse the YAML configuration file %2$s.' . ' The error message was %1$s',
+                'Unable to parse the YAML configuration file %2$s. The error message was %1$s',
                 $exc->getMessage(),
                 $configFile
             );
@@ -92,7 +92,7 @@ class Wiring
             $depths = range(0, $rItIt->getDepth());
             foreach ($depths as $depth) {
                 $keys[] = $rItIt->getSubIterator($depth)
-                                ->key();
+                    ->key();
             }
             $settings[implode('.', $keys)] = $leafValue;
         }
@@ -277,7 +277,7 @@ class Wiring
                          */
                         $callable = new $class();
                         return $callable->setCsq($dic['Yapeal.Sql.CommonQueries'])
-                                        ->setPdo($dic['Yapeal.Sql.Connection']);
+                            ->setPdo($dic['Yapeal.Sql.Connection']);
                     };
                 }
                 $events = [$service . '.start' => ['startEveApi', 'last']];
