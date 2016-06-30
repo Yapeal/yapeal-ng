@@ -121,15 +121,19 @@ trait CommonEveApiTrait
             $data->setEveApiArguments($arguments)
                 ->setCacheInterval($untilInterval)
                 ->setEveApiXml();
+            /** @noinspection DisconnectedForeachInstructionInspection */
             foreach ($this->accountKeys as $accountKey) {
                 $data->addEveApiArgument('accountKey', $accountKey);
+                /** @noinspection DisconnectedForeachInstructionInspection */
                 if (0 === strpos(strtolower($data->getEveApiName()), 'wallet')) {
                     $data->addEveApiArgument('rowCount', '2560');
                 }
+                /** @noinspection DisconnectedForeachInstructionInspection */
                 if ($this->cachedUntilIsNotExpired($data)) {
                     $event->setHandledSufficiently();
                     continue;
                 }
+                /** @noinspection DisconnectedForeachInstructionInspection */
                 if ($this->oneShot($data)) {
                     $event->setHandledSufficiently();
                 }

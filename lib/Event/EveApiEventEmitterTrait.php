@@ -96,13 +96,8 @@ trait EveApiEventEmitterTrait
         foreach ($eventNames as $eventName) {
             $this->getYem()
                 ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->getEmittingEventMessage($data, $eventName));
-            $sufficientlyHandled = false;
             $event = $this->getYem()
                 ->triggerEveApiEvent($eventName, $data);
-//            $mess = '$sufficientlyHandled = ' . (string)$sufficientlyHandled . PHP_EOL;
-//            $mess .= 'hasBeenHandled = ' . (string)$event->hasBeenHandled() . PHP_EOL;
-//            $mess .= 'isSufficientlyHandled = ' . (string)$event->isSufficientlyHandled() . PHP_EOL;
-//            $this->getYem()->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $mess);
             $data = $event->getData();
             if ($event->hasBeenHandled()) {
                 $this->getYem()
@@ -112,7 +107,7 @@ trait EveApiEventEmitterTrait
                         $this->getWasHandledEventMessage($data, $eventName)
                     );
                 $sufficientlyHandled = true;
-                continue;
+                break;
             }
             if ($event->isSufficientlyHandled()) {
                 $this->getYem()

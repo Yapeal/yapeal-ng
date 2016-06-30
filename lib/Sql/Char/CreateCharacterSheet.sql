@@ -1,5 +1,14 @@
 -- Sql/Char/CreateCharacterSheet.sql
 -- version 20160629013856.361
+CREATE TABLE "{database}"."{table_prefix}charAttributes" (
+    "charisma"     TINYINT(2) UNSIGNED NOT NULL,
+    "intelligence" TINYINT(2) UNSIGNED NOT NULL,
+    "memory"       TINYINT(2) UNSIGNED NOT NULL,
+    "ownerID"      BIGINT(20) UNSIGNED NOT NULL,
+    "perception"   TINYINT(2) UNSIGNED NOT NULL,
+    "willpower"    TINYINT(2) UNSIGNED NOT NULL,
+    PRIMARY KEY ("ownerID")
+);
 CREATE TABLE "{database}"."{table_prefix}charCertificates" (
     "certificateID" BIGINT(20) UNSIGNED NOT NULL,
     "ownerID" BIGINT(20) UNSIGNED NOT NULL,
@@ -16,7 +25,7 @@ CREATE TABLE "{database}"."{table_prefix}charCharacterSheet" (
     "characterID" BIGINT(20) UNSIGNED NOT NULL,
     "cloneJumpDate" DATETIME NOT NULL DEFAULT '1970-01-01 00:00:01',
     "cloneName" CHAR(100) NOT NULL,
-    "cloneSkillPoints" TEXT NOT NULL,
+    "cloneSkillPoints" BIGINT(20) UNSIGNED NOT NULL,
     "cloneTypeID" BIGINT(20) UNSIGNED NOT NULL,
     "corporationID" BIGINT(20) UNSIGNED NOT NULL,
     "corporationName" CHAR(100) NOT NULL,

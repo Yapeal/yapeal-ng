@@ -51,6 +51,7 @@ class CharacterSheet extends CharSection
     {
         $this->mask = 8;
         $this->preserveTos = [
+            'preserveToAttributes',
             'preserveToCertificates',
             'preserveToCharacterSheet',
             'preserveToCorporationRoles',
@@ -63,6 +64,35 @@ class CharacterSheet extends CharSection
             'preserveToJumpClones',
             'preserveToSkills'
         ];
+    }
+    /**
+     * @param EveApiReadWriteInterface $data
+     *
+     * @return self Fluent interface.
+     * @throws \LogicException
+     */
+    protected function preserveToAttributes(EveApiReadWriteInterface $data)
+    {
+        $tableName = 'charAttributes';
+        $ownerID = $this->extractOwnerID($data->getEveApiArguments());
+        $sql = $this->getCsq()
+            ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
+        $this->getYem()
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
+        $this->getPdo()
+            ->exec($sql);
+        $columnDefaults = [
+            'charisma' => null,
+            'intelligence' => null,
+            'memory' => null,
+            'ownerID' => $ownerID,
+            'perception' => null,
+            'willpower' => null
+        ];
+        $xPath = '//attributes/*';
+        $elements = (new \SimpleXMLElement($data->getEveApiXml()))->xpath($xPath);
+        $this->valuesPreserveData($elements, $columnDefaults, $tableName);
+        return $this;
     }
     /**
      * @param EveApiReadWriteInterface $data
@@ -116,19 +146,19 @@ class CharacterSheet extends CharSection
             'characterID' => null,
             'cloneJumpDate' => '1970-01-01 00:00:01',
             'cloneName' => '',
-            'cloneSkillPoints' => null,
-            'cloneTypeID' => null,
+            'cloneSkillPoints' => 0,
+            'cloneTypeID' => 0,
             'corporationID' => null,
             'corporationName' => '',
             'DoB' => null,
-            'factionID' => null,
+            'factionID' => 0,
             'factionName' => '',
             'freeRespecs' => null,
-            'freeSkillPoints' => null,
+            'freeSkillPoints' => 0,
             'gender' => null,
-            'homeStationID' => null,
-            'jumpActivation' => null,
-            'jumpFatigue' => null,
+            'homeStationID' => 0,
+            'jumpActivation' => '1970-01-01 00:00:01',
+            'jumpFatigue' => '1970-01-01 00:00:01',
             'jumpLastUpdate' => '1970-01-01 00:00:01',
             'lastRespecDate' => '1970-01-01 00:00:01',
             'lastTimedRespec' => '1970-01-01 00:00:01',

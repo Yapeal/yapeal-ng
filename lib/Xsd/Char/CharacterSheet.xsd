@@ -25,7 +25,14 @@ elementFormDefault="qualified">
             <xs:element type="eveNameType" name="factionName" />
             <xs:element type="eveIDType" name="freeRespecs" />
             <xs:element type="eveIDType" name="freeSkillPoints" />
-            <xs:element type="eveNameType" name="gender" />
+            <xs:element name="gender">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="Male"/>
+                        <xs:enumeration value="Female"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
             <xs:element type="eveIDType" name="homeStationID" />
             <xs:element type="eveNEDTType" name="jumpActivation" />
             <xs:element type="eveNEDTType" name="jumpFatigue" />
@@ -35,6 +42,17 @@ elementFormDefault="qualified">
             <xs:element type="eveNameType" name="name" />
             <xs:element type="eveNameType" name="race" />
             <xs:element type="eveNEDTType" name="remoteStationDate" />
+            <xs:element name="attributes">
+                <xs:complexType>
+                    <xs:all>
+                        <xs:element type="xs:unsignedByte" name="charisma"/>
+                        <xs:element type="xs:unsignedByte" name="intelligence"/>
+                        <xs:element type="xs:unsignedByte" name="memory"/>
+                        <xs:element type="xs:unsignedByte" name="perception"/>
+                        <xs:element type="xs:unsignedByte" name="willpower"/>
+                    </xs:all>
+                </xs:complexType>
+            </xs:element>
             <xs:element name="certificates" minOccurs="0" maxOccurs="1">
                 <xs:complexType>
                     <xs:sequence>
