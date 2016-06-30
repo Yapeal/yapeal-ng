@@ -7,11 +7,11 @@ CREATE TABLE "{database}"."{table_prefix}apiCallList" (
     PRIMARY KEY ("groupID")
 );
 CREATE TABLE "{database}"."{table_prefix}apiCalls" (
-    "accessMask" VARCHAR(255) DEFAULT '',
+    "accessMask" BIGINT(20) UNSIGNED NOT NULL,
     "description" TEXT NOT NULL,
     "groupID" BIGINT(20) UNSIGNED NOT NULL,
     "name" CHAR(100) NOT NULL,
-    "type" VARCHAR(255) DEFAULT '',
+    "type" CHAR(10) NOT NULL,
     PRIMARY KEY ("accessMask","type")
 );
 START TRANSACTION;

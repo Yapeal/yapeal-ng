@@ -187,9 +187,9 @@ trait PreserverTrait
         return $columns;
     }
     /**
-     * @param array  $elements
-     * @param array  $columnDefaults
-     * @param string $tableName
+     * @param \SimpleXMLElement[] $elements
+     * @param array               $columnDefaults
+     * @param string              $tableName
      *
      * @return self Fluent interface.
      * @throws \DomainException
@@ -198,26 +198,37 @@ trait PreserverTrait
      */
     protected function valuesPreserveData(array $elements, array $columnDefaults, $tableName)
     {
-        if (0 === count($elements)) {
+        if (false === $elements || 0 === count($elements)) {
             return $this;
         }
-        $columns = [];
+        $eleCount = 0;
         foreach ($elements as $element) {
             $columnName = $element->getName();
             if (!array_key_exists($columnName, $columnDefaults)) {
                 continue;
             }
+            ++$eleCount;
             if ('' !== (string)$element || null === $columnDefaults[$columnName]) {
-                $columns[$columnName] = (string)$element;
-                continue;
+                $columnDefaults[$columnName] = (string)$element;
             }
-            $columns[$columnName] = $columnDefaults[$columnName];
         }
-        if (count($columnDefaults) !== count($columns)) {
+        $required = array_reduce($columnDefaults, function ($carry, $item) {
+            return $carry + (int)(null === $item);
+        }, 0);
+        if ($required > $eleCount) {
             return $this;
         }
-        ksort($columns);
-        return $this->flush(array_values($columns), array_keys($columns), $tableName);
+        uksort($columnDefaults, function ($alpha, $beta) {
+            $alpha = strtolower($alpha);
+            $beta = strtolower($beta);
+            if ($alpha < $beta) {
+                return -1;
+            } elseif ($alpha > $beta) {
+                return 1;
+            }
+            return 0;
+        });
+        return $this->flush(array_values($columnDefaults), array_keys($columnDefaults), $tableName);
     }
     /**
      * @var string[] preserveTos

@@ -71,6 +71,8 @@ class SkillInTraining extends CharSection
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
+            'currentTQTime' => '1970-01-01 00:00:01',
+            'offset' => '0',
             'ownerID' => $ownerID,
             'skillInTraining' => null,
             'trainingDestinationSP' => null,

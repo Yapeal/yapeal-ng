@@ -13,12 +13,12 @@ elementFormDefault="qualified">
                             <xs:complexType>
                                 <xs:simpleContent>
                                     <xs:extension base="xs:string">
-                                        <xs:attribute use="required" type="xs:token" name="endSP" />
-                                        <xs:attribute use="required" type="eveNEDTType" name="endTime" />
-                                        <xs:attribute use="required" type="xs:unsignedShort" name="level" />
-                                        <xs:attribute use="required" type="xs:token" name="queuePosition" />
-                                        <xs:attribute use="required" type="xs:token" name="startSP" />
-                                        <xs:attribute use="required" type="eveNEDTType" name="startTime" />
+                                        <xs:attribute use="required" type="eveIDType" name="endSP" />
+                                        <xs:attribute use="required" type="eveDTType" name="endTime" />
+                                        <xs:attribute use="required" type="xs:unsignedByte" name="level" />
+                                        <xs:attribute use="required" type="xs:unsignedShort" name="queuePosition" />
+                                        <xs:attribute use="required" type="eveIDType" name="startSP" />
+                                        <xs:attribute use="required" type="eveDTType" name="startTime" />
                                         <xs:attribute use="required" type="eveIDType" name="typeID" />
                                     </xs:extension>
                                 </xs:simpleContent>
