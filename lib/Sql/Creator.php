@@ -277,12 +277,12 @@ class Creator
             if ($this->hasOwner()) {
                 $columns['ownerID'] = 'BIGINT(20) UNSIGNED NOT NULL';
             }
-            uksort($columns, function ($a, $b) {
-                $a = strtolower($a);
-                $b = strtolower($b);
-                if ($a < $b) {
+            uksort($columns, function ($alpha, $beta) {
+                $alpha = strtolower($alpha);
+                $beta = strtolower($beta);
+                if ($alpha < $beta) {
                     return -1;
-                } elseif ($a > $b) {
+                } elseif ($alpha > $beta) {
                     return 1;
                 }
                 return 0;
@@ -319,12 +319,12 @@ class Creator
         if ($this->hasOwner()) {
             $columns['ownerID'] = 'BIGINT(20) UNSIGNED NOT NULL';
         }
-        uksort($columns, function ($a, $b) {
-            $a = strtolower($a);
-            $b = strtolower($b);
-            if ($a < $b) {
+        uksort($columns, function ($alpha, $beta) {
+            $alpha = strtolower($alpha);
+            $beta = strtolower($beta);
+            if ($alpha < $beta) {
                 return -1;
-            } elseif ($a > $b) {
+            } elseif ($alpha > $beta) {
                 return 1;
             }
             return 0;

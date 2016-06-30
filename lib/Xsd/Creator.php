@@ -200,24 +200,24 @@ class Creator
             foreach ($colNames as $colName) {
                 $columns[$colName] = $this->inferTypeFromName($colName);
             }
-            uksort($columns, function ($a, $b) {
-                $a = strtolower($a);
-                $b = strtolower($b);
-                if ($a < $b) {
+            uksort($columns, function ($alpha, $beta) {
+                $alpha = strtolower($alpha);
+                $beta = strtolower($beta);
+                if ($alpha < $beta) {
                     return -1;
-                } elseif ($a > $b) {
+                } elseif ($alpha > $beta) {
                     return 1;
                 }
                 return 0;
             });
             $tables[$tableName] = ['attributes' => $columns];
         }
-        uksort($tables, function ($a, $b) {
-            $a = strtolower($a);
-            $b = strtolower($b);
-            if ($a < $b) {
+        uksort($tables, function ($alpha, $beta) {
+            $alpha = strtolower($alpha);
+            $beta = strtolower($beta);
+            if ($alpha < $beta) {
                 return -1;
-            } elseif ($a > $b) {
+            } elseif ($alpha > $beta) {
                 return 1;
             }
             return 0;
@@ -249,12 +249,12 @@ class Creator
             $name = (string)$ele->getName();
             $columns[$name] = $this->inferTypeFromName($name, true);
         }
-        uksort($columns, function ($a, $b) {
-            $a = strtolower($a);
-            $b = strtolower($b);
-            if ($a < $b) {
+        uksort($columns, function ($alpha, $beta) {
+            $alpha = strtolower($alpha);
+            $beta = strtolower($beta);
+            if ($alpha < $beta) {
                 return -1;
-            } elseif ($a > $b) {
+            } elseif ($alpha > $beta) {
                 return 1;
             }
             return 0;

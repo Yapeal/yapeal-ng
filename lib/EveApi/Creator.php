@@ -209,12 +209,12 @@ class Creator
             if ($this->hasOwner()) {
                 $attributes['ownerID'] = '$ownerID';
             }
-            uksort($attributes, function ($a, $b) {
-                $a = strtolower($a);
-                $b = strtolower($b);
-                if ($a < $b) {
+            uksort($attributes, function ($alpha, $beta) {
+                $alpha = strtolower($alpha);
+                $beta = strtolower($beta);
+                if ($alpha < $beta) {
                     return -1;
-                } elseif ($a > $b) {
+                } elseif ($alpha > $beta) {
                     return 1;
                 }
                 return 0;
@@ -251,12 +251,12 @@ class Creator
         if ($this->hasOwner()) {
             $values['ownerID'] = '$ownerID';
         }
-        uksort($values, function ($a, $b) {
-            $a = strtolower($a);
-            $b = strtolower($b);
-            if ($a < $b) {
+        uksort($values, function ($alpha, $beta) {
+            $alpha = strtolower($alpha);
+            $beta = strtolower($beta);
+            if ($alpha < $beta) {
                 return -1;
-            } elseif ($a > $b) {
+            } elseif ($alpha > $beta) {
                 return 1;
             }
             return 0;
