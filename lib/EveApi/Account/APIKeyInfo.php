@@ -33,7 +33,6 @@
  */
 namespace Yapeal\EveApi\Account;
 
-use Yapeal\EveApi\ActiveTrait;
 use Yapeal\Sql\PreserverTrait;
 use Yapeal\Xml\EveApiReadWriteInterface;
 
@@ -42,7 +41,7 @@ use Yapeal\Xml\EveApiReadWriteInterface;
  */
 class APIKeyInfo extends AccountSection
 {
-    use ActiveTrait, PreserverTrait;
+    use PreserverTrait;
 
     /** @noinspection MagicMethodsValidityInspection */
     /**
