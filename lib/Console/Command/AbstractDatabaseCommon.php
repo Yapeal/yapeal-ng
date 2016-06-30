@@ -176,13 +176,14 @@ abstract class AbstractDatabaseCommon extends Command
     {
         $base = 'Yapeal.Sql.';
         $dic = $this->getDic();
+        $options = $input->getOptions();
         foreach (['class', 'database', 'hostName', 'password', 'platform', 'tablePrefix', 'userName'] as $option) {
-            if ($input->hasOption($option)) {
-                $dic[$base . $option] = $input->getOption($option);
+            if (!empty($options[$option])) {
+                $dic[$base . $option] = $options[$option];
             }
         }
-        if ($input->hasOption('configFile')) {
-            $this->processConfigFile($input->getOption('configFile'), $dic);
+        if (!empty($options['configFile'])) {
+            $this->processConfigFile($options['configFile'], $dic);
         }
         return $this;
     }

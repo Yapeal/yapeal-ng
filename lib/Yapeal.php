@@ -101,6 +101,7 @@ class Yapeal
         // Always check APIKeyInfo.
         array_unshift($records, ['apiName' => 'APIKeyInfo', 'interval' => '300', 'sectionName' => 'account']);
         foreach ($records as $record) {
+            /** @noinspection DisconnectedForeachInstructionInspection */
             /**
              * Get new Data instance from factory.
              *

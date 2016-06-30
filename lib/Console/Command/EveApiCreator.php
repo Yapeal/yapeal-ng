@@ -139,9 +139,10 @@ EOF;
         $posts = $this->processPost($input);
         $posts['mask'] = $input->getArgument('mask');
         $dic = $this->getDic();
-        $dic['Yapeal.Create.overwrite'] = $input->getOption('overwrite');
-        if ($input->hasOption('configFile')) {
-            $this->processConfigFile($input->getOption('configFile'), $dic);
+        $options = $input->getOptions();
+        $dic['Yapeal.Create.overwrite'] = $options['overwrite'];
+        if (array_key_exists('configFile', $options)) {
+            $this->processConfigFile($options['configFile'], $dic);
         }
         return $this->createEveApi($input->getArgument('api_name'), $input->getArgument('section_name'), $posts);
     }
@@ -152,15 +153,15 @@ EOF;
      */
     protected function processPost(InputInterface $input)
     {
-        /**
-         * @var array $posts
-         */
         $posts = (array)$input->getArgument('post');
         if (0 === count($posts)) {
             return [];
         }
         $arguments = [];
         foreach ($posts as $post) {
+            if (false === strpos($post, '=')) {
+                continue;
+            }
             list($key, $value) = explode('=', $post);
             $arguments[$key] = $value;
         }

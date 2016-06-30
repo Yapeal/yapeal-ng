@@ -41,7 +41,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Yapeal\CommonToolsTrait;
 use Yapeal\Container\ContainerInterface;
 use Yapeal\Event\EveApiEventEmitterTrait;
-use Yapeal\Log\Logger;
 use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
@@ -124,17 +123,16 @@ EOF;
         $data->setEveApiName($apiName)
             ->setEveApiSectionName($sectionName)
             ->setEveApiArguments($posts);
-        $mess = sprintf('<info>Starting %1$s of%2$s</info>', $this->getName(), $this->createEveApiMessage('', $data));
-        if ($output->isVeryVerbose()) {
+        if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
+            $mess = sprintf('<info>Starting %1$s of%2$s</info>', $this->getName(),
+                $this->createEveApiMessage('', $data));
             $output->writeln($mess);
-            $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, strip_tags($mess));
         }
         foreach (['retrieve', 'cache'] as $eventName) {
             $this->emitEvents($data, $eventName);
         }
         if (false === $data->getEveApiXml()) {
-            if (!$output->isQuiet()) {
+            if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
                 $mess = sprintf(
                     '<error>Could NOT retrieve Eve Api data for %1$s/%2$s</error>',
                     strtolower($sectionName),
@@ -154,15 +152,17 @@ EOF;
     protected function processPost(InputInterface $input)
     {
         $posts = (array)$input->getArgument('post');
-        if (0 !== count($posts)) {
-            $arguments = [];
-            foreach ($posts as $post) {
-                list($key, $value) = explode('=', $post);
-                $arguments[$key] = $value;
-            }
-            $posts = $arguments;
-            return $posts;
+        if (0 === count($posts)) {
+            return [];
         }
-        return $posts;
+        $arguments = [];
+        foreach ($posts as $post) {
+            if (false === strpos($post, '=')) {
+                continue;
+            }
+            list($key, $value) = explode('=', $post);
+            $arguments[$key] = $value;
+        }
+        return $arguments;
     }
 }

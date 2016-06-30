@@ -56,6 +56,10 @@ trait ConfigFileTrait
         $this->addOption('configFile', 'c', InputOption::VALUE_REQUIRED, $mess);
     }
     /**
+     * Process the configuration file get on the CLI.
+     *
+     * NOTE: All settings from this configuration file overwrite any existing values.
+     *
      * @param string             $fileName
      * @param ContainerInterface $dic
      *
@@ -64,13 +68,17 @@ trait ConfigFileTrait
      */
     protected function processConfigFile($fileName, ContainerInterface $dic)
     {
+        $fileName = trim($fileName);
+        if ('' === $fileName) {
+            return;
+        }
         $fpn = $this->getFpn();
         $fileName = $fpn->normalizeFile($fileName, $fpn::ABSOLUTE_ALLOWED | $fpn::VFS_ALLOWED | $fpn::WRAPPER_ALLOWED);
+        // Silently ignore the file if can't find it.
         if (!is_file($fileName) || !is_readable($fileName)) {
             return;
         }
-        $wiring = new Wiring($dic);
-        $settings = $wiring->parserConfigFile($fileName);
+        $settings = (new Wiring($dic))->parserConfigFile($fileName);
         if (0 !== count($settings)) {
             foreach ($settings as $key => $setting) {
                 $dic[$key] = $setting;
