@@ -1,9 +1,9 @@
 -- Sql/Util/CreateUploadDestination.sql
 -- version 20160131212500.006
 CREATE TABLE "{database}"."{table_prefix}utilUploadDestination" (
-    "active"              TINYINT(1)   DEFAULT NULL,
-    "name"                VARCHAR(25)  DEFAULT NULL,
+    "active"              TINYINT(1) UNSIGNED NOT NULL,
+    "name"                CHAR(50)            NOT NULL,
     "uploadDestinationID" BIGINT(20) UNSIGNED NOT NULL,
-    "url"                 VARCHAR(255) DEFAULT NULL,
+    "url"                 CHAR(255)           NOT NULL,
     PRIMARY KEY ("uploadDestinationID")
 );

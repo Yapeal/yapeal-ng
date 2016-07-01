@@ -1,7 +1,7 @@
 -- Sql/Util/CreateEveApi.sql
 -- version 20160131212500.003
 CREATE TABLE "{database}"."{table_prefix}utilEveApi" (
-    "active"      TINYINT(1)          NOT NULL,
+    "active"      TINYINT(1) UNSIGNED NOT NULL,
     "apiName"     CHAR(32)            NOT NULL,
     "interval"    INT(10) UNSIGNED    NOT NULL,
     "mask"        BIGINT(20) UNSIGNED NOT NULL,

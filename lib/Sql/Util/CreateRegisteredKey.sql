@@ -1,10 +1,10 @@
 -- Sql/Util/CreateRegisteredKey.sql
 -- version 20160131212500.004
 CREATE TABLE "{database}"."{table_prefix}utilRegisteredKey" (
-    "active"        TINYINT(1)          DEFAULT NULL,
-    "activeAPIMask" BIGINT(20) UNSIGNED DEFAULT NULL,
+    "active"        TINYINT(1) UNSIGNED NOT NULL,
+    "activeAPIMask" BIGINT(20) UNSIGNED NOT NULL,
     "keyID"         BIGINT(20) UNSIGNED NOT NULL,
-    "vCode"         VARCHAR(64)         NOT NULL,
+    "vCode"         CHAR(64)            NOT NULL,
     PRIMARY KEY ("keyID")
 );
 START TRANSACTION;
