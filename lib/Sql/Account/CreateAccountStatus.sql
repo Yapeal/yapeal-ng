@@ -14,12 +14,12 @@ CREATE TABLE "{database}"."{table_prefix}accountMultiCharacterTraining" (
     PRIMARY KEY ("ownerID", "trainingEnd")
 );
 CREATE TABLE "{database}"."{table_prefix}accountOffers" (
-    "from"        CHAR(50)            NOT NULL,
+    "from"        CHAR(100)           NOT NULL,
     "ISK"         DECIMAL(17, 2)      NOT NULL,
     "ownerID"     BIGINT(20) UNSIGNED NOT NULL,
     "offeredDate" DATETIME            NOT NULL,
     "offerID"     BIGINT(20) UNSIGNED NOT NULL,
-    "to"          CHAR(50)            NOT NULL,
+    "to"          CHAR(100)           NOT NULL,
     PRIMARY KEY ("ownerID", "offerID")
 );
 START TRANSACTION;

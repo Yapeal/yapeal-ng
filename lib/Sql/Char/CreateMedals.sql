@@ -18,7 +18,7 @@ CREATE TABLE "{database}"."{table_prefix}charOtherCorporations" (
     "ownerID"       BIGINT(20) UNSIGNED NOT NULL,
     "reason"        TEXT,
     "status"        CHAR(8)             NOT NULL,
-    "title"         VARCHAR(255) DEFAULT '',
+    "title"         CHAR(255) DEFAULT '',
     PRIMARY KEY ("ownerID", "medalID")
 );
 START TRANSACTION;
