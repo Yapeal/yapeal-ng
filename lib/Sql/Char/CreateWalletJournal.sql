@@ -13,7 +13,7 @@ CREATE TABLE "{database}"."{table_prefix}charWalletJournal" (
     "ownerID2"      BIGINT(20) UNSIGNED  NOT NULL,
     "ownerName1"    CHAR(100)            NOT NULL,
     "ownerName2"    CHAR(100)            NOT NULL,
-    "reason"        TEXT,
+    "reason"        SMALLINT(3) UNSIGNED NOT NULL,
     "refID"         BIGINT(20) UNSIGNED  NOT NULL,
     "refTypeID"     SMALLINT(5) UNSIGNED NOT NULL,
     "taxAmount"     DECIMAL(17, 2)       NOT NULL,

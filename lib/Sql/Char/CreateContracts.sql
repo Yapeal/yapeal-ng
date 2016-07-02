@@ -3,12 +3,12 @@
 CREATE TABLE "{database}"."{table_prefix}charContracts" (
     "acceptorID"     BIGINT(20) UNSIGNED     NOT NULL,
     "assigneeID"     BIGINT(20) UNSIGNED     NOT NULL,
-    "availability"   CHAR(8)                 NOT NULL,
+    "availability"   CHAR(7)                 NOT NULL,
     "buyout"         DECIMAL(17, 2)          NOT NULL,
     "collateral"     DECIMAL(17, 2)          NOT NULL,
     "contractID"     BIGINT(20) UNSIGNED     NOT NULL,
-    "dateAccepted"   DATETIME  DEFAULT NULL,
-    "dateCompleted"  DATETIME  DEFAULT NULL,
+    "dateAccepted"   DATETIME                         DEFAULT NULL,
+    "dateCompleted"  DATETIME                         DEFAULT NULL,
     "dateExpired"    DATETIME                NOT NULL,
     "dateIssued"     DATETIME                NOT NULL,
     "endStationID"   BIGINT(20) UNSIGNED     NOT NULL,
@@ -20,9 +20,9 @@ CREATE TABLE "{database}"."{table_prefix}charContracts" (
     "price"          DECIMAL(17, 2)          NOT NULL,
     "reward"         DECIMAL(17, 2)          NOT NULL,
     "startStationID" BIGINT(20) UNSIGNED     NOT NULL,
-    "status"         CHAR(24)                NOT NULL,
-    "title"          CHAR(255) DEFAULT '',
-    "type"           CHAR(15)                NOT NULL,
+    "status"         CHAR(21)                NOT NULL,
+    "title"          CHAR(255)               NOT NULL DEFAULT '',
+    "type"           CHAR(12)                NOT NULL,
     "volume"         DECIMAL(20, 4) UNSIGNED NOT NULL,
     PRIMARY KEY ("ownerID", "contractID")
 );
