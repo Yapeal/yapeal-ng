@@ -3,33 +3,5 @@
 version 20160629053412.890 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified"
 elementFormDefault="qualified">
-    <xs:include schemaLocation="../common.xsd" />
-    <xs:complexType name="resultType">
-        <xs:sequence>
-            <xs:element name="blueprints" minOccurs="0" maxOccurs="1">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
-                            <xs:complexType>
-                                <xs:simpleContent>
-                                    <xs:extension base="xs:string">
-                                        <xs:attribute use="required" type="eveIDType" name="flagID" />
-                                        <xs:attribute use="required" type="eveIDType" name="itemID" />
-                                        <xs:attribute use="required" type="eveIDType" name="locationID" />
-                                        <xs:attribute use="required" type="xs:token" name="materialEfficiency" />
-                                        <xs:attribute use="required" type="xs:token" name="quantity" />
-                                        <xs:attribute use="required" type="xs:token" name="runs" />
-                                        <xs:attribute use="required" type="xs:unsignedByte" name="timeEfficiency" />
-                                        <xs:attribute use="required" type="eveIDType" name="typeID" />
-                                        <xs:attribute use="required" type="eveNameType" name="typeName" />
-                                    </xs:extension>
-                                </xs:simpleContent>
-                            </xs:complexType>
-                        </xs:element>
-                    </xs:sequence>
-                    <xs:attributeGroup ref="rowsetAttrs" />
-                </xs:complexType>
-            </xs:element>
-        </xs:sequence>
-    </xs:complexType>
+    <xs:include schemaLocation="../Char/Blueprints.xsd" />
 </xs:schema>

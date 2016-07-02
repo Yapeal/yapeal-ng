@@ -2,84 +2,40 @@
 <!-- Xsd/Corp/ContactList.xsd
 version 20160629053416.750 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified"
-elementFormDefault="qualified">
-    <xs:include schemaLocation="../common.xsd" />
+           elementFormDefault="qualified">
+    <xs:include schemaLocation="../common.xsd"/>
+    <xs:complexType name="contactLabelsType">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute use="required" type="eveIDType" name="labelID"/>
+                <xs:attribute use="required" type="eveNameType" name="name"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <xs:complexType name="contactListType">
+        <xs:sequence>
+            <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="xs:string">
+                            <xs:attribute use="required" type="eveIDType" name="contactID"/>
+                            <xs:attribute use="required" type="eveNameType" name="contactName"/>
+                            <xs:attribute use="required" type="eveIDType" name="contactTypeID"/>
+                            <xs:attribute use="required" type="xs:unsignedLong" name="labelMask"/>
+                            <xs:attribute use="required" type="eveStandingsType" name="standing"/>
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attributeGroup ref="rowsetAttrs"/>
+    </xs:complexType>
     <xs:complexType name="resultType">
         <xs:sequence>
-            <xs:element name="allianceContactLabels" minOccurs="0" maxOccurs="1">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
-                            <xs:complexType>
-                                <xs:simpleContent>
-                                    <xs:extension base="xs:string">
-                                        <xs:attribute use="required" type="eveIDType" name="labelID" />
-                                        <xs:attribute use="required" type="eveNameType" name="name" />
-                                    </xs:extension>
-                                </xs:simpleContent>
-                            </xs:complexType>
-                        </xs:element>
-                    </xs:sequence>
-                    <xs:attributeGroup ref="rowsetAttrs" />
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="allianceContactList" minOccurs="0" maxOccurs="1">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
-                            <xs:complexType>
-                                <xs:simpleContent>
-                                    <xs:extension base="xs:string">
-                                        <xs:attribute use="required" type="eveIDType" name="contactID" />
-                                        <xs:attribute use="required" type="eveNameType" name="contactName" />
-                                        <xs:attribute use="required" type="eveIDType" name="contactTypeID" />
-                                        <xs:attribute use="required" type="xs:token" name="labelMask" />
-                                        <xs:attribute use="required" type="xs:token" name="standing" />
-                                    </xs:extension>
-                                </xs:simpleContent>
-                            </xs:complexType>
-                        </xs:element>
-                    </xs:sequence>
-                    <xs:attributeGroup ref="rowsetAttrs" />
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="corporateContactLabels" minOccurs="0" maxOccurs="1">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
-                            <xs:complexType>
-                                <xs:simpleContent>
-                                    <xs:extension base="xs:string">
-                                        <xs:attribute use="required" type="eveIDType" name="labelID" />
-                                        <xs:attribute use="required" type="eveNameType" name="name" />
-                                    </xs:extension>
-                                </xs:simpleContent>
-                            </xs:complexType>
-                        </xs:element>
-                    </xs:sequence>
-                    <xs:attributeGroup ref="rowsetAttrs" />
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="corporateContactList" minOccurs="0" maxOccurs="1">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
-                            <xs:complexType>
-                                <xs:simpleContent>
-                                    <xs:extension base="xs:string">
-                                        <xs:attribute use="required" type="eveIDType" name="contactID" />
-                                        <xs:attribute use="required" type="eveNameType" name="contactName" />
-                                        <xs:attribute use="required" type="eveIDType" name="contactTypeID" />
-                                        <xs:attribute use="required" type="xs:token" name="labelMask" />
-                                        <xs:attribute use="required" type="xs:token" name="standing" />
-                                    </xs:extension>
-                                </xs:simpleContent>
-                            </xs:complexType>
-                        </xs:element>
-                    </xs:sequence>
-                    <xs:attributeGroup ref="rowsetAttrs" />
-                </xs:complexType>
-            </xs:element>
+            <xs:element type="contactLabelsType" name="allianceContactLabels" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="contactListType" name="allianceContactList" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="contactLabelsType" name="corporateContactLabels" minOccurs="0" maxOccurs="1"/>
+            <xs:element type="contactListType" name="corporateContactList" minOccurs="0" maxOccurs="1"/>
         </xs:sequence>
     </xs:complexType>
 </xs:schema>

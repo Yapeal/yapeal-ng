@@ -2,8 +2,8 @@
 <!-- Xsd/Char/WalletJournal.xsd
 version 20160629053500.160 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified"
-elementFormDefault="qualified">
-    <xs:include schemaLocation="../common.xsd" />
+           elementFormDefault="qualified">
+    <xs:include schemaLocation="../common.xsd"/>
     <xs:complexType name="resultType">
         <xs:sequence>
             <xs:element name="transactions" minOccurs="0" maxOccurs="1">
@@ -13,28 +13,28 @@ elementFormDefault="qualified">
                             <xs:complexType>
                                 <xs:simpleContent>
                                     <xs:extension base="xs:string">
-                                        <xs:attribute use="required" type="xs:token" name="amount" />
-                                        <xs:attribute use="required" type="xs:token" name="argID1" />
-                                        <xs:attribute use="required" type="eveNameType" name="argName1" />
-                                        <xs:attribute use="required" type="eveISKType" name="balance" />
-                                        <xs:attribute use="required" type="eveNEDTType" name="date" />
-                                        <xs:attribute use="required" type="eveIDType" name="owner1TypeID" />
-                                        <xs:attribute use="required" type="eveIDType" name="owner2TypeID" />
-                                        <xs:attribute use="required" type="xs:token" name="ownerID1" />
-                                        <xs:attribute use="required" type="xs:token" name="ownerID2" />
-                                        <xs:attribute use="required" type="eveNameType" name="ownerName1" />
-                                        <xs:attribute use="required" type="eveNameType" name="ownerName2" />
-                                        <xs:attribute use="required" type="xs:token" name="reason" />
-                                        <xs:attribute use="required" type="eveIDType" name="refID" />
-                                        <xs:attribute use="required" type="eveIDType" name="refTypeID" />
-                                        <xs:attribute use="required" type="eveISKType" name="taxAmount" />
-                                        <xs:attribute use="required" type="eveIDType" name="taxReceiverID" />
+                                        <xs:attribute use="required" type="eveISKType" name="amount"/>
+                                        <xs:attribute use="required" type="eveIDType" name="argID1"/>
+                                        <xs:attribute use="required" type="eveNameType" name="argName1"/>
+                                        <xs:attribute use="required" type="eveISKType" name="balance"/>
+                                        <xs:attribute use="required" type="eveNEDTType" name="date"/>
+                                        <xs:attribute use="required" type="eveIDType" name="owner1TypeID"/>
+                                        <xs:attribute use="required" type="eveIDType" name="owner2TypeID"/>
+                                        <xs:attribute use="required" type="eveIDType" name="ownerID1"/>
+                                        <xs:attribute use="required" type="eveIDType" name="ownerID2"/>
+                                        <xs:attribute use="required" type="eveNameType" name="ownerName1"/>
+                                        <xs:attribute use="required" type="eveNameType" name="ownerName2"/>
+                                        <xs:attribute use="required" type="xs:unsignedByte" name="reason"/>
+                                        <xs:attribute use="required" type="eveIDType" name="refID"/>
+                                        <xs:attribute use="required" type="xs:unsignedShort" name="refTypeID"/>
+                                        <xs:attribute use="required" type="eveISKType" name="taxAmount"/>
+                                        <xs:attribute use="required" type="eveIDType" name="taxReceiverID"/>
                                     </xs:extension>
                                 </xs:simpleContent>
                             </xs:complexType>
                         </xs:element>
                     </xs:sequence>
-                    <xs:attributeGroup ref="rowsetAttrs" />
+                    <xs:attributeGroup ref="rowsetAttrs"/>
                 </xs:complexType>
             </xs:element>
         </xs:sequence>

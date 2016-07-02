@@ -6,13 +6,15 @@ elementFormDefault="qualified">
     <xs:include schemaLocation="../common.xsd" />
     <xs:complexType name="resultType">
         <xs:sequence>
-            <xs:element type="xs:string" name="skillInTraining" />
-            <xs:element type="xs:string" name="trainingDestinationSP" />
-            <xs:element type="eveNEDTType" name="trainingEndTime" />
-            <xs:element type="xs:string" name="trainingStartSP" />
-            <xs:element type="eveNEDTType" name="trainingStartTime" />
-            <xs:element type="xs:unsignedShort" name="trainingToLevel" />
-            <xs:element type="eveIDType" name="trainingTypeID" />
+            <xs:element type="eveIDType" name="skillInTraining" />
+            <xs:element type="eveIDType" name="trainingDestinationSP" minOccurs="0" />
+            <xs:element type="eveNEDTType" name="trainingEndTime" minOccurs="0" />
+            <xs:element type="eveIDType" name="trainingStartSP" minOccurs="0" />
+            <xs:element type="eveNEDTType" name="trainingStartTime" minOccurs="0" />
+            <xs:element type="xs:unsignedShort" name="trainingToLevel" minOccurs="0" />
+            <xs:element type="eveIDType" name="trainingTypeID" minOccurs="0" />
+            <xs:element type="eveNEDTType" name="currentTQTime" minOccurs="0"/>
+            <xs:element type="xs:byte" name="offset" minOccurs="0"/>
         </xs:sequence>
     </xs:complexType>
 </xs:schema>

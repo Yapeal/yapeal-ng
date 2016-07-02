@@ -19,28 +19,28 @@ elementFormDefault="qualified">
                                         <xs:attribute use="required" type="eveIDType" name="blueprintTypeID" />
                                         <xs:attribute use="required" type="eveNameType" name="blueprintTypeName" />
                                         <xs:attribute use="required" type="eveIDType" name="completedCharacterID" />
-                                        <xs:attribute use="required" type="eveNEDTType" name="completedDate" />
-                                        <xs:attribute use="required" type="xs:token" name="cost" />
-                                        <xs:attribute use="required" type="eveNEDTType" name="endDate" />
+                                        <xs:attribute use="required" type="eveDTType" name="completedDate" />
+                                        <xs:attribute use="required" type="eveISKType" name="cost" />
+                                        <xs:attribute use="required" type="eveDTType" name="endDate" />
                                         <xs:attribute use="required" type="eveIDType" name="facilityID" />
                                         <xs:attribute use="required" type="eveIDType" name="installerID" />
                                         <xs:attribute use="required" type="eveNameType" name="installerName" />
                                         <xs:attribute use="required" type="eveIDType" name="jobID" />
-                                        <xs:attribute use="required" type="xs:token" name="licensedRuns" />
+                                        <xs:attribute use="required" type="xs:long" name="licensedRuns" />
                                         <xs:attribute use="required" type="eveIDType" name="outputLocationID" />
-                                        <xs:attribute use="required" type="eveNEDTType" name="pauseDate" />
-                                        <xs:attribute use="required" type="xs:token" name="probability" />
+                                        <xs:attribute use="required" type="eveDTType" name="pauseDate" />
+                                        <xs:attribute use="required" type="xs:double" name="probability" />
                                         <xs:attribute use="required" type="eveIDType" name="productTypeID" />
                                         <xs:attribute use="required" type="eveNameType" name="productTypeName" />
-                                        <xs:attribute use="required" type="xs:token" name="runs" />
+                                        <xs:attribute use="required" type="xs:long" name="runs" />
                                         <xs:attribute use="required" type="eveIDType" name="solarSystemID" />
                                         <xs:attribute use="required" type="eveNameType" name="solarSystemName" />
                                         <xs:attribute use="required" type="eveNEDTType" name="startDate" />
                                         <xs:attribute use="required" type="eveIDType" name="stationID" />
-                                        <xs:attribute use="required" type="xs:token" name="status" />
-                                        <xs:attribute use="required" type="xs:token" name="successfulRuns" />
+                                        <xs:attribute use="required" type="xs:unsignedByte" name="status" />
+                                        <xs:attribute use="required" type="xs:long" name="successfulRuns" />
                                         <xs:attribute use="required" type="eveIDType" name="teamID" />
-                                        <xs:attribute use="required" type="eveNEDTType" name="timeInSeconds" />
+                                        <xs:attribute use="required" type="xs:unsignedLong" name="timeInSeconds" />
                                     </xs:extension>
                                 </xs:simpleContent>
                             </xs:complexType>

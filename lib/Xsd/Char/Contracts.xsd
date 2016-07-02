@@ -2,8 +2,8 @@
 <!-- Xsd/Char/Contracts.xsd
 version 20160629053418.234 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified"
-elementFormDefault="qualified">
-    <xs:include schemaLocation="../common.xsd" />
+           elementFormDefault="qualified">
+    <xs:include schemaLocation="../common.xsd"/>
     <xs:complexType name="resultType">
         <xs:sequence>
             <xs:element name="contractList" minOccurs="0" maxOccurs="1">
@@ -13,34 +13,73 @@ elementFormDefault="qualified">
                             <xs:complexType>
                                 <xs:simpleContent>
                                     <xs:extension base="xs:string">
-                                        <xs:attribute use="required" type="eveIDType" name="acceptorID" />
-                                        <xs:attribute use="required" type="eveIDType" name="assigneeID" />
-                                        <xs:attribute use="required" type="xs:token" name="availability" />
-                                        <xs:attribute use="required" type="xs:token" name="buyout" />
-                                        <xs:attribute use="required" type="xs:token" name="collateral" />
-                                        <xs:attribute use="required" type="eveIDType" name="contractID" />
-                                        <xs:attribute use="required" type="eveNEDTType" name="dateAccepted" />
-                                        <xs:attribute use="required" type="eveNEDTType" name="dateCompleted" />
-                                        <xs:attribute use="required" type="eveNEDTType" name="dateExpired" />
-                                        <xs:attribute use="required" type="eveNEDTType" name="dateIssued" />
-                                        <xs:attribute use="required" type="eveIDType" name="endStationID" />
-                                        <xs:attribute use="required" type="xs:token" name="forCorp" />
-                                        <xs:attribute use="required" type="eveIDType" name="issuerCorpID" />
-                                        <xs:attribute use="required" type="eveIDType" name="issuerID" />
-                                        <xs:attribute use="required" type="xs:token" name="numDays" />
-                                        <xs:attribute use="required" type="xs:token" name="price" />
-                                        <xs:attribute use="required" type="xs:token" name="reward" />
-                                        <xs:attribute use="required" type="eveIDType" name="startStationID" />
-                                        <xs:attribute use="required" type="xs:token" name="status" />
-                                        <xs:attribute use="required" type="xs:token" name="title" />
-                                        <xs:attribute use="required" type="xs:token" name="type" />
-                                        <xs:attribute use="required" type="xs:token" name="volume" />
+                                        <xs:attribute use="required" type="eveIDType" name="acceptorID"/>
+                                        <xs:attribute use="required" type="eveIDType" name="assigneeID"/>
+                                        <xs:attribute use="required" name="availability">
+                                            <xs:simpleType>
+                                                <xs:restriction base="xs:string">
+                                                    <xs:enumeration value="Private"/>
+                                                    <xs:enumeration value="Public"/>
+                                                </xs:restriction>
+                                            </xs:simpleType>
+                                        </xs:attribute>
+                                        <xs:attribute use="required" type="eveISKType" name="buyout"/>
+                                        <xs:attribute use="required" type="eveISKType" name="collateral"/>
+                                        <xs:attribute use="required" type="eveIDType" name="contractID"/>
+                                        <xs:attribute use="required" type="eveDTType" name="dateAccepted"/>
+                                        <xs:attribute use="required" type="eveDTType" name="dateCompleted"/>
+                                        <xs:attribute use="required" type="eveDTType" name="dateExpired"/>
+                                        <xs:attribute use="required" type="eveNEDTType" name="dateIssued"/>
+                                        <xs:attribute use="required" type="eveIDType" name="endStationID"/>
+                                        <xs:attribute use="required" type="eveBooleanType" name="forCorp"/>
+                                        <xs:attribute use="required" type="eveIDType" name="issuerCorpID"/>
+                                        <xs:attribute use="required" type="eveIDType" name="issuerID"/>
+                                        <xs:attribute use="required" type="xs:unsignedShort" name="numDays"/>
+                                        <xs:attribute use="required" type="eveISKType" name="price"/>
+                                        <xs:attribute use="required" type="eveISKType" name="reward"/>
+                                        <xs:attribute use="required" type="eveIDType" name="startStationID"/>
+                                        <xs:attribute use="required" name="status">
+                                            <xs:simpleType>
+                                                <xs:restriction base="xs:string">
+                                                    <xs:enumeration value="Completed"/>
+                                                    <xs:enumeration value="CompletedByContractor"/>
+                                                    <xs:enumeration value="CompletedByIssuer"/>
+                                                    <xs:enumeration value="Cancelled"/>
+                                                    <xs:enumeration value="Deleted"/>
+                                                    <xs:enumeration value="Failed"/>
+                                                    <xs:enumeration value="InProgress"/>
+                                                    <xs:enumeration value="Outstanding"/>
+                                                    <xs:enumeration value="Rejected"/>
+                                                    <xs:enumeration value="Reversed"/>
+                                                </xs:restriction>
+                                            </xs:simpleType>
+                                        </xs:attribute>
+                                        <xs:attribute use="required" type="xs:token" name="title"/>
+                                        <xs:attribute use="required" name="type">
+                                            <xs:simpleType>
+                                                <xs:restriction base="xs:string">
+                                                    <xs:enumeration value="Auction"/>
+                                                    <xs:enumeration value="Courier"/>
+                                                    <xs:enumeration value="ItemExchange"/>
+                                                    <xs:enumeration value="Loan"/>
+                                                </xs:restriction>
+                                            </xs:simpleType>
+                                        </xs:attribute>
+                                        <xs:attribute use="required" name="volume">
+                                            <xs:simpleType>
+                                                <xs:restriction base="xs:decimal">
+                                                    <xs:fractionDigits value="4"/>
+                                                    <xs:minInclusive value="0"/>
+                                                    <xs:totalDigits value="20"/>
+                                                </xs:restriction>
+                                            </xs:simpleType>
+                                        </xs:attribute>
                                     </xs:extension>
                                 </xs:simpleContent>
                             </xs:complexType>
                         </xs:element>
                     </xs:sequence>
-                    <xs:attributeGroup ref="rowsetAttrs" />
+                    <xs:attributeGroup ref="rowsetAttrs"/>
                 </xs:complexType>
             </xs:element>
         </xs:sequence>

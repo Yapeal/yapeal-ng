@@ -102,6 +102,12 @@
             <xs:fractionDigits value="16" fixed="true"/>
         </xs:restriction>
     </xs:simpleType>
+    <xs:simpleType name="eveStandingsType">
+        <xs:restriction base="xs:decimal">
+            <xs:totalDigits value="5" fixed="true"/>
+            <xs:fractionDigits value="2" fixed="true"/>
+        </xs:restriction>
+    </xs:simpleType>
     <!-- Eve Attributes -->
     <xs:attributeGroup name="acfAttrs">
         <xs:attribute type="eveIDType" name="allianceID" use="required"/>

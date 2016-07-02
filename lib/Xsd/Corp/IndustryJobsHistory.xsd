@@ -2,53 +2,6 @@
 <!-- Xsd/Corp/IndustryJobsHistory.xsd
 version 20160629053422.903 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified"
-elementFormDefault="qualified">
-    <xs:include schemaLocation="../common.xsd" />
-    <xs:complexType name="resultType">
-        <xs:sequence>
-            <xs:element name="jobs" minOccurs="0" maxOccurs="1">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
-                            <xs:complexType>
-                                <xs:simpleContent>
-                                    <xs:extension base="xs:string">
-                                        <xs:attribute use="required" type="eveIDType" name="activityID" />
-                                        <xs:attribute use="required" type="eveIDType" name="blueprintID" />
-                                        <xs:attribute use="required" type="eveIDType" name="blueprintLocationID" />
-                                        <xs:attribute use="required" type="eveIDType" name="blueprintTypeID" />
-                                        <xs:attribute use="required" type="eveNameType" name="blueprintTypeName" />
-                                        <xs:attribute use="required" type="eveIDType" name="completedCharacterID" />
-                                        <xs:attribute use="required" type="eveNEDTType" name="completedDate" />
-                                        <xs:attribute use="required" type="xs:token" name="cost" />
-                                        <xs:attribute use="required" type="eveNEDTType" name="endDate" />
-                                        <xs:attribute use="required" type="eveIDType" name="facilityID" />
-                                        <xs:attribute use="required" type="eveIDType" name="installerID" />
-                                        <xs:attribute use="required" type="eveNameType" name="installerName" />
-                                        <xs:attribute use="required" type="eveIDType" name="jobID" />
-                                        <xs:attribute use="required" type="xs:token" name="licensedRuns" />
-                                        <xs:attribute use="required" type="eveIDType" name="outputLocationID" />
-                                        <xs:attribute use="required" type="eveNEDTType" name="pauseDate" />
-                                        <xs:attribute use="required" type="xs:token" name="probability" />
-                                        <xs:attribute use="required" type="eveIDType" name="productTypeID" />
-                                        <xs:attribute use="required" type="eveNameType" name="productTypeName" />
-                                        <xs:attribute use="required" type="xs:token" name="runs" />
-                                        <xs:attribute use="required" type="eveIDType" name="solarSystemID" />
-                                        <xs:attribute use="required" type="eveNameType" name="solarSystemName" />
-                                        <xs:attribute use="required" type="eveNEDTType" name="startDate" />
-                                        <xs:attribute use="required" type="eveIDType" name="stationID" />
-                                        <xs:attribute use="required" type="xs:token" name="status" />
-                                        <xs:attribute use="required" type="xs:token" name="successfulRuns" />
-                                        <xs:attribute use="required" type="eveIDType" name="teamID" />
-                                        <xs:attribute use="required" type="eveNEDTType" name="timeInSeconds" />
-                                    </xs:extension>
-                                </xs:simpleContent>
-                            </xs:complexType>
-                        </xs:element>
-                    </xs:sequence>
-                    <xs:attributeGroup ref="rowsetAttrs" />
-                </xs:complexType>
-            </xs:element>
-        </xs:sequence>
-    </xs:complexType>
+           elementFormDefault="qualified">
+    <xs:include schemaLocation="../Char/IndustryJobs.xsd"/>
 </xs:schema>

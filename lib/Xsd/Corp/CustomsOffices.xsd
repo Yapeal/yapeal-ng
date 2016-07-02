@@ -2,8 +2,8 @@
 <!-- Xsd/Corp/CustomsOffices.xsd
 version 20160629053419.243 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified"
-elementFormDefault="qualified">
-    <xs:include schemaLocation="../common.xsd" />
+           elementFormDefault="qualified">
+    <xs:include schemaLocation="../common.xsd"/>
     <xs:complexType name="resultType">
         <xs:sequence>
             <xs:element name="pocos" minOccurs="0" maxOccurs="1">
@@ -13,27 +13,26 @@ elementFormDefault="qualified">
                             <xs:complexType>
                                 <xs:simpleContent>
                                     <xs:extension base="xs:string">
-                                        <xs:attribute use="required" type="xs:token" name="allowAlliance" />
-                                        <xs:attribute use="required" type="xs:token" name="allowStandings" />
-                                        <xs:attribute use="required" type="eveIDType" name="itemID" />
-                                        <xs:attribute use="required" type="xs:token" name="reinforceHour" />
-                                        <xs:attribute use="required" type="eveIDType" name="solarSystemID" />
-                                        <xs:attribute use="required" type="eveNameType" name="solarSystemName" />
-                                        <xs:attribute use="required" type="xs:unsignedShort" name="standingLevel" />
-                                        <xs:attribute use="required" type="eveISKType" name="taxRateAlliance" />
-                                        <xs:attribute use="required" type="eveISKType" name="taxRateCorp" />
-                                        <xs:attribute use="required" type="eveISKType" name="taxRateStandingBad" />
-                                        <xs:attribute use="required" type="eveISKType" name="taxRateStandingGood" />
-                                        <xs:attribute use="required" type="eveISKType" name="taxRateStandingHigh" />
-                                        <xs:attribute use="required" type="eveISKType"
-                                        name="taxRateStandingHorrible" />
-                                        <xs:attribute use="required" type="eveISKType" name="taxRateStandingNeutral" />
+                                        <xs:attribute use="required" type="eveBooleanType" name="allowAlliance"/>
+                                        <xs:attribute use="required" type="eveBooleanType" name="allowStandings"/>
+                                        <xs:attribute use="required" type="eveIDType" name="itemID"/>
+                                        <xs:attribute use="required" type="xs:unsignedByte" name="reinforceHour"/>
+                                        <xs:attribute use="required" type="eveIDType" name="solarSystemID"/>
+                                        <xs:attribute use="required" type="eveNameType" name="solarSystemName"/>
+                                        <xs:attribute use="required" type="xs:decimal" name="standingLevel"/>
+                                        <xs:attribute use="required" type="xs:decimal" name="taxRateAlliance"/>
+                                        <xs:attribute use="required" type="xs:decimal" name="taxRateCorp"/>
+                                        <xs:attribute use="required" type="xs:decimal" name="taxRateStandingBad"/>
+                                        <xs:attribute use="required" type="xs:decimal" name="taxRateStandingGood"/>
+                                        <xs:attribute use="required" type="xs:decimal" name="taxRateStandingHigh"/>
+                                        <xs:attribute use="required" type="xs:decimal" name="taxRateStandingHorrible"/>
+                                        <xs:attribute use="required" type="xs:decimal" name="taxRateStandingNeutral"/>
                                     </xs:extension>
                                 </xs:simpleContent>
                             </xs:complexType>
                         </xs:element>
                     </xs:sequence>
-                    <xs:attributeGroup ref="rowsetAttrs" />
+                    <xs:attributeGroup ref="rowsetAttrs"/>
                 </xs:complexType>
             </xs:element>
         </xs:sequence>

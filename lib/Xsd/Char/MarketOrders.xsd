@@ -13,21 +13,21 @@ elementFormDefault="qualified">
                             <xs:complexType>
                                 <xs:simpleContent>
                                     <xs:extension base="xs:string">
-                                        <xs:attribute use="required" type="xs:token" name="accountKey" />
-                                        <xs:attribute use="required" type="xs:token" name="bid" />
+                                        <xs:attribute use="required" type="xs:unsignedShort" name="accountKey" />
+                                        <xs:attribute use="required" type="eveBooleanType" name="bid" />
                                         <xs:attribute use="required" type="eveIDType" name="charID" />
-                                        <xs:attribute use="required" type="xs:token" name="duration" />
-                                        <xs:attribute use="required" type="xs:token" name="escrow" />
-                                        <xs:attribute use="required" type="xs:token" name="issued" />
-                                        <xs:attribute use="required" type="xs:token" name="minVolume" />
+                                        <xs:attribute use="required" type="xs:unsignedShort" name="duration" />
+                                        <xs:attribute use="required" type="eveISKType" name="escrow" />
+                                        <xs:attribute use="required" type="eveNEDTType" name="issued" />
+                                        <xs:attribute use="required" type="xs:unsignedLong" name="minVolume" />
                                         <xs:attribute use="required" type="eveIDType" name="orderID" />
-                                        <xs:attribute use="required" type="xs:token" name="orderState" />
-                                        <xs:attribute use="required" type="xs:token" name="price" />
-                                        <xs:attribute use="required" type="xs:token" name="range" />
+                                        <xs:attribute use="required" type="xs:unsignedByte" name="orderState" />
+                                        <xs:attribute use="required" type="eveISKType" name="price" />
+                                        <xs:attribute use="required" type="xs:short" name="range" />
                                         <xs:attribute use="required" type="eveIDType" name="stationID" />
                                         <xs:attribute use="required" type="eveIDType" name="typeID" />
-                                        <xs:attribute use="required" type="xs:token" name="volEntered" />
-                                        <xs:attribute use="required" type="xs:token" name="volRemaining" />
+                                        <xs:attribute use="required" type="xs:unsignedLong" name="volEntered" />
+                                        <xs:attribute use="required" type="xs:unsignedLong" name="volRemaining" />
                                     </xs:extension>
                                 </xs:simpleContent>
                             </xs:complexType>

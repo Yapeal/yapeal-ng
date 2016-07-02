@@ -21,10 +21,10 @@ elementFormDefault="qualified">
             <xs:element type="eveIDType" name="corporationID" />
             <xs:element type="eveNameType" name="corporationName" />
             <xs:element type="eveNEDTType" name="DoB" />
-            <xs:element type="eveIDType" name="factionID" />
-            <xs:element type="eveNameType" name="factionName" />
-            <xs:element type="eveIDType" name="freeRespecs" />
-            <xs:element type="eveIDType" name="freeSkillPoints" />
+            <xs:element type="eveIDType" name="factionID" minOccurs="0" />
+            <xs:element type="eveNameType" name="factionName" minOccurs="0" />
+            <xs:element type="xs:unsignedShort" name="freeRespecs" />
+            <xs:element type="xs:unsignedLong" name="freeSkillPoints" />
             <xs:element name="gender">
                 <xs:simpleType>
                     <xs:restriction base="xs:string">
@@ -33,15 +33,24 @@ elementFormDefault="qualified">
                     </xs:restriction>
                 </xs:simpleType>
             </xs:element>
-            <xs:element type="eveIDType" name="homeStationID" />
-            <xs:element type="eveNEDTType" name="jumpActivation" />
-            <xs:element type="eveNEDTType" name="jumpFatigue" />
-            <xs:element type="eveNEDTType" name="jumpLastUpdate" />
-            <xs:element type="eveNEDTType" name="lastRespecDate" />
-            <xs:element type="eveNEDTType" name="lastTimedRespec" />
+            <xs:element type="eveIDType" name="homeStationID" minOccurs="0" />
+            <xs:element type="eveNEDTType" name="jumpActivation" minOccurs="0" />
+            <xs:element type="eveNEDTType" name="jumpFatigue" minOccurs="0" />
+            <xs:element type="eveNEDTType" name="jumpLastUpdate" minOccurs="0" />
+            <xs:element type="eveNEDTType" name="lastRespecDate" minOccurs="0" />
+            <xs:element type="eveNEDTType" name="lastTimedRespec" minOccurs="0" />
             <xs:element type="eveNameType" name="name" />
-            <xs:element type="eveNameType" name="race" />
-            <xs:element type="eveNEDTType" name="remoteStationDate" />
+            <xs:element name="race" >
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="Amarr"/>
+                        <xs:enumeration value="Caldari"/>
+                        <xs:enumeration value="Gallente"/>
+                        <xs:enumeration value="Minmatar"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element type="eveNEDTType" name="remoteStationDate" minOccurs="0" />
             <xs:element name="attributes">
                 <xs:complexType>
                     <xs:all>
@@ -215,9 +224,9 @@ elementFormDefault="qualified">
                             <xs:complexType>
                                 <xs:simpleContent>
                                     <xs:extension base="xs:string">
-                                        <xs:attribute use="required" type="xs:unsignedShort" name="level" />
-                                        <xs:attribute use="required" type="xs:unsignedByte" name="published" />
-                                        <xs:attribute use="required" type="eveIDType" name="skillpoints" />
+                                        <xs:attribute use="required" type="xs:unsignedByte" name="level" />
+                                        <xs:attribute use="required" type="eveBooleanType" name="published" />
+                                        <xs:attribute use="required" type="xs:unsignedLong" name="skillpoints" />
                                         <xs:attribute use="required" type="eveIDType" name="typeID" />
                                     </xs:extension>
                                 </xs:simpleContent>

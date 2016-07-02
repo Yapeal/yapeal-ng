@@ -14,7 +14,7 @@ elementFormDefault="qualified">
                                 <xs:simpleContent>
                                     <xs:extension base="xs:string">
                                         <xs:attribute use="required" type="eveIDType" name="accountID" />
-                                        <xs:attribute use="required" type="xs:token" name="accountKey" />
+                                        <xs:attribute use="required" type="xs:unsignedShort" name="accountKey" />
                                         <xs:attribute use="required" type="eveISKType" name="balance" />
                                     </xs:extension>
                                 </xs:simpleContent>

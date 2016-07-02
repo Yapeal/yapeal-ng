@@ -16,10 +16,10 @@ elementFormDefault="qualified">
                                         <xs:attribute use="required" type="eveIDType" name="flagID" />
                                         <xs:attribute use="required" type="eveIDType" name="itemID" />
                                         <xs:attribute use="required" type="eveIDType" name="locationID" />
-                                        <xs:attribute use="required" type="xs:token" name="materialEfficiency" />
-                                        <xs:attribute use="required" type="xs:token" name="quantity" />
-                                        <xs:attribute use="required" type="xs:token" name="runs" />
-                                        <xs:attribute use="required" type="xs:unsignedByte" name="timeEfficiency" />
+                                        <xs:attribute use="required" type="xs:short" name="materialEfficiency" />
+                                        <xs:attribute use="required" type="xs:unsignedLong" name="quantity" />
+                                        <xs:attribute use="required" type="xs:long" name="runs" />
+                                        <xs:attribute use="required" type="xs:short" name="timeEfficiency" />
                                         <xs:attribute use="required" type="eveIDType" name="typeID" />
                                         <xs:attribute use="required" type="eveNameType" name="typeName" />
                                     </xs:extension>

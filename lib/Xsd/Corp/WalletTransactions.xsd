@@ -2,8 +2,8 @@
 <!-- Xsd/Corp/WalletTransactions.xsd
 version 20160629053501.878 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified"
-elementFormDefault="qualified">
-    <xs:include schemaLocation="../common.xsd" />
+           elementFormDefault="qualified">
+    <xs:include schemaLocation="../common.xsd"/>
     <xs:complexType name="resultType">
         <xs:sequence>
             <xs:element name="transactions" minOccurs="0" maxOccurs="1">
@@ -13,28 +13,42 @@ elementFormDefault="qualified">
                             <xs:complexType>
                                 <xs:simpleContent>
                                     <xs:extension base="xs:string">
-                                        <xs:attribute use="required" type="eveIDType" name="characterID" />
-                                        <xs:attribute use="required" type="eveNameType" name="characterName" />
-                                        <xs:attribute use="required" type="eveIDType" name="clientID" />
-                                        <xs:attribute use="required" type="eveNameType" name="clientName" />
-                                        <xs:attribute use="required" type="eveIDType" name="clientTypeID" />
-                                        <xs:attribute use="required" type="eveIDType" name="journalTransactionID" />
-                                        <xs:attribute use="required" type="xs:token" name="price" />
-                                        <xs:attribute use="required" type="xs:token" name="quantity" />
-                                        <xs:attribute use="required" type="eveIDType" name="stationID" />
-                                        <xs:attribute use="required" type="eveNameType" name="stationName" />
-                                        <xs:attribute use="required" type="eveNEDTType" name="transactionDateTime" />
-                                        <xs:attribute use="required" type="xs:token" name="transactionFor" />
-                                        <xs:attribute use="required" type="eveIDType" name="transactionID" />
-                                        <xs:attribute use="required" type="xs:token" name="transactionType" />
-                                        <xs:attribute use="required" type="eveIDType" name="typeID" />
-                                        <xs:attribute use="required" type="eveNameType" name="typeName" />
+                                        <xs:attribute use="required" type="eveIDType" name="characterID"/>
+                                        <xs:attribute use="required" type="eveNameType" name="characterName"/>
+                                        <xs:attribute use="required" type="eveIDType" name="clientID"/>
+                                        <xs:attribute use="required" type="eveNameType" name="clientName"/>
+                                        <xs:attribute use="required" type="eveIDType" name="clientTypeID"/>
+                                        <xs:attribute use="required" type="eveIDType" name="journalTransactionID"/>
+                                        <xs:attribute use="required" type="eveISKType" name="price"/>
+                                        <xs:attribute use="required" type="xs:unsignedLong" name="quantity"/>
+                                        <xs:attribute use="required" type="eveIDType" name="stationID"/>
+                                        <xs:attribute use="required" type="eveNameType" name="stationName"/>
+                                        <xs:attribute use="required" type="eveNEDTType" name="transactionDateTime"/>
+                                        <xs:attribute use="required" name="transactionFor">
+                                            <xs:simpleType>
+                                                <xs:restriction base="xs:string">
+                                                    <xs:enumeration value="corporation"/>
+                                                    <xs:enumeration value="personal"/>
+                                                </xs:restriction>
+                                            </xs:simpleType>
+                                        </xs:attribute>
+                                        <xs:attribute use="required" type="eveIDType" name="transactionID"/>
+                                        <xs:attribute use="required" name="transactionType">
+                                            <xs:simpleType>
+                                                <xs:restriction base="xs:string">
+                                                    <xs:enumeration value="buy"/>
+                                                    <xs:enumeration value="sell"/>
+                                                </xs:restriction>
+                                            </xs:simpleType>
+                                        </xs:attribute>
+                                        <xs:attribute use="required" type="eveIDType" name="typeID"/>
+                                        <xs:attribute use="required" type="eveNameType" name="typeName"/>
                                     </xs:extension>
                                 </xs:simpleContent>
                             </xs:complexType>
                         </xs:element>
                     </xs:sequence>
-                    <xs:attributeGroup ref="rowsetAttrs" />
+                    <xs:attributeGroup ref="rowsetAttrs"/>
                 </xs:complexType>
             </xs:element>
         </xs:sequence>

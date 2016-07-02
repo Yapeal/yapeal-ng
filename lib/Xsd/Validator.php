@@ -79,7 +79,8 @@ class Validator
         if ('' === $fileName) {
             return $event;
         }
-        $oldErrors = libxml_use_internal_errors(true);
+        libxml_clear_errors();
+        libxml_use_internal_errors(true);
         libxml_clear_errors();
         $dom = new DOMDocument();
         $dom->loadXML($data->getEveApiXml());
@@ -95,7 +96,8 @@ class Validator
                 }
             }
             libxml_clear_errors();
-            libxml_use_internal_errors($oldErrors);
+            libxml_use_internal_errors(false);
+            libxml_clear_errors();
             $apiName = $data->getEveApiName();
             $data->setEveApiName('Invalid_' . $apiName);
             // Cache error XML.
@@ -104,7 +106,8 @@ class Validator
             return $event->setData($data);
         }
         libxml_clear_errors();
-        libxml_use_internal_errors($oldErrors);
+        libxml_use_internal_errors(false);
+        libxml_clear_errors();
         // Check for XML error element.
         if (false !== strpos($data->getEveApiXml(), '<error ')) {
             $this->emitEvents($data, 'error', 'Yapeal.Xml');

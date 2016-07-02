@@ -2,8 +2,8 @@
 <!-- Xsd/Api/CallList.xsd
 version 20160629012109.667 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified"
-elementFormDefault="qualified">
-    <xs:include schemaLocation="../common.xsd" />
+           elementFormDefault="qualified">
+    <xs:include schemaLocation="../common.xsd"/>
     <xs:complexType name="resultType">
         <xs:sequence>
             <xs:element name="callGroups" minOccurs="0" maxOccurs="1">
@@ -13,15 +13,15 @@ elementFormDefault="qualified">
                             <xs:complexType>
                                 <xs:simpleContent>
                                     <xs:extension base="xs:string">
-                                        <xs:attribute use="required" type="xs:string" name="description" />
-                                        <xs:attribute use="required" type="eveIDType" name="groupID" />
-                                        <xs:attribute use="required" type="eveNameType" name="name" />
+                                        <xs:attribute use="required" type="xs:string" name="description"/>
+                                        <xs:attribute use="required" type="xs:unsignedByte" name="groupID"/>
+                                        <xs:attribute use="required" type="eveNameType" name="name"/>
                                     </xs:extension>
                                 </xs:simpleContent>
                             </xs:complexType>
                         </xs:element>
                     </xs:sequence>
-                    <xs:attributeGroup ref="rowsetAttrs" />
+                    <xs:attributeGroup ref="rowsetAttrs"/>
                 </xs:complexType>
             </xs:element>
             <xs:element name="calls" minOccurs="0" maxOccurs="1">
@@ -31,17 +31,25 @@ elementFormDefault="qualified">
                             <xs:complexType>
                                 <xs:simpleContent>
                                     <xs:extension base="xs:string">
-                                        <xs:attribute use="required" type="xs:token" name="accessMask" />
-                                        <xs:attribute use="required" type="xs:string" name="description" />
-                                        <xs:attribute use="required" type="eveIDType" name="groupID" />
-                                        <xs:attribute use="required" type="eveNameType" name="name" />
-                                        <xs:attribute use="required" type="xs:token" name="type" />
+                                        <xs:attribute use="required" type="xs:unsignedLong" name="accessMask"/>
+                                        <xs:attribute use="required" type="xs:string" name="description"/>
+                                        <xs:attribute use="required" type="xs:unsignedByte" name="groupID"/>
+                                        <xs:attribute use="required" type="eveNameType" name="name"/>
+                                        <xs:attribute use="required" name="type">
+                                            <xs:simpleType>
+                                                <xs:restriction base="xs:string">
+                                                    <xs:enumeration value="Character"/>
+                                                    <xs:enumeration value="Corporation"/>
+                                                </xs:restriction>
+                                            </xs:simpleType>
+
+                                        </xs:attribute>
                                     </xs:extension>
                                 </xs:simpleContent>
                             </xs:complexType>
                         </xs:element>
                     </xs:sequence>
-                    <xs:attributeGroup ref="rowsetAttrs" />
+                    <xs:attributeGroup ref="rowsetAttrs"/>
                 </xs:complexType>
             </xs:element>
         </xs:sequence>
