@@ -1,6 +1,6 @@
 <?php
 /**
- * Contains NetworkRetriever class.
+ * Contains NetworkCache class.
  *
  * PHP version 5.5
  *
@@ -36,7 +36,6 @@ namespace Yapeal\Console\Command;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Yapeal\CommonToolsTrait;
 use Yapeal\Container\ContainerInterface;
@@ -44,9 +43,9 @@ use Yapeal\Event\EveApiEventEmitterTrait;
 use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
- * Class NetworkRetriever
+ * Class NetworkCache
  */
-class NetworkRetriever extends Command
+class NetworkCache extends Command
 {
     use CommonToolsTrait, ConfigFileTrait, EveApiEventEmitterTrait;
     /**
@@ -69,22 +68,22 @@ class NetworkRetriever extends Command
     protected function configure()
     {
         $help = <<<'EOF'
-The <info>%command.full_name%</info> command retrieves the XML data from the Eve Api
-server and stores it in a file. By default it will put the file in the current
-working directory.
+The <info>%command.full_name%</info> command retrieves the XML data from the
+Eve Api server and stores it in a file. It will put the file in the normal
+cache directory per the configuration settings.
 
     <info>php %command.full_name% section_name api_name</info>
 
 EXAMPLES:
-Save current server status in current directory.
+Save current server status to the cache directory.
     <info>%command.name% server ServerStatus</info>
 
 EOF;
+        $this->addConfigFileOption();
         $this->addArgument('section_name', InputArgument::REQUIRED, 'Name of Eve Api section to retrieve.')
             ->addArgument('api_name', InputArgument::REQUIRED, 'Name of Eve Api to retrieve.')
             ->addArgument('post', InputArgument::OPTIONAL | InputArgument::IS_ARRAY,
                 'Optional list of additional POST parameter(s) to send to server.', [])
-            ->addOption('directory', 'd', InputOption::VALUE_REQUIRED, 'Directory that XML will be sent to.')
             ->setHelp($help);
     }
     /** @noinspection PhpMissingParentCallCommonInspection */
@@ -100,7 +99,10 @@ EOF;
      * @param OutputInterface $output An OutputInterface instance
      *
      * @return int|null null or 0 if everything went fine, or an error code
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
      * @throws \LogicException
+     * @throws \Yapeal\Exception\YapealException
      *
      * @see    setCode()
      */
@@ -111,6 +113,10 @@ EOF;
          */
         $posts = $this->processPost($input);
         $dic = $this->getDic();
+        $options = $input->getOptions();
+        if (!empty($options['configFile'])) {
+            $this->processConfigFile($options['configFile'], $dic);
+        }
         $apiName = $input->getArgument('api_name');
         $sectionName = $input->getArgument('section_name');
         $this->setYem($dic['Yapeal.Event.Mediator']);
