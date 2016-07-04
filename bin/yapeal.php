@@ -31,6 +31,7 @@
  * @copyright 2014-2016 Michael Cummings
  * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
  * @author    Michael Cummings <mgcummings@yahoo.com>
+ * @deprecated 0.3.2  Being removed in favor of commands being added to yc instead.
  */
 namespace Yapeal;
 

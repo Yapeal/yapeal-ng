@@ -41,6 +41,7 @@ use Yapeal\Console\Command\DatabaseInitializer;
 use Yapeal\Console\Command\DatabaseUpdater;
 use Yapeal\Console\Command\EveApiCreator;
 use Yapeal\Console\Command\NetworkRetriever;
+use Yapeal\Console\Command\YapealAutoMagic;
 use Yapeal\Container\PimpleContainer;
 
 $dic = new PimpleContainer();
@@ -59,7 +60,8 @@ $application->addCommands([
     new DatabaseInitializer('Database:Init', $dic),
     new DatabaseUpdater('Database:Update', $dic),
     new EveApiCreator('EveApi:Creator', $dic),
-    new NetworkRetriever('Network:Cache', $dic)
+    new NetworkRetriever('Network:Cache', $dic),
+    new YapealAutoMagic('Yapeal:AutoMagic', $dic)
 ]);
 unset($dic, $gitVersion, $junk, $status, $version);
 return $application->run();
