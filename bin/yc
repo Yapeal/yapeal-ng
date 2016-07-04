@@ -34,7 +34,7 @@
  */
 namespace Yapeal;
 
-require_once __DIR__ . DIRECTORY_SEPARATOR . 'bootstrap.php';
+require_once __DIR__ . '/bootstrap.php';
 use Symfony\Component\Console\Application;
 use Yapeal\Configuration\Wiring;
 use Yapeal\Console\Command\DatabaseInitializer;
@@ -43,9 +43,6 @@ use Yapeal\Console\Command\EveApiCreator;
 use Yapeal\Console\Command\NetworkRetriever;
 use Yapeal\Container\PimpleContainer;
 
-/**
- * @var PimpleContainer $dic
- */
 $dic = new PimpleContainer();
 (new Wiring($dic))->wireAll();
 try {
@@ -64,4 +61,5 @@ $application->addCommands([
     new EveApiCreator('EveApi:Creator', $dic),
     new NetworkRetriever('Network:Cache', $dic)
 ]);
+unset($dic, $gitVersion, $junk, $status, $version);
 return $application->run();
