@@ -1,15 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg xmlns:dc="http://purl.org/dc/elements/1.1/"
-    xmlns:cc="http://creativecommons.org/ns#"
-    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-    xmlns="http://www.w3.org/2000/svg"
-    id="yapeal_ng_banner"
-    viewBox="0 0 728 90"
-    height="100%"
-    width="100%"
+<svg xmlns:xapRights="http://ns.adobe.com/xap/1.0/rights/" xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns="http://www.w3.org/2000/svg" id="yapeal_ng_banner" viewBox="0 0 728 90" height="90px" width="728px"
     version="1.0">
-    <title id="title3542">Yapeal-ng banner</title>
-    <defs id="defs3441">
+    <title>Yapeal-ng Banner</title>
+    <defs>
         <linearGradient id="lg1" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stop-color="#808080"/>
             <stop offset="20%" stop-color="#a0a0a0"/>
@@ -17,51 +12,79 @@
             <stop offset="95%" stop-color="#505050"/>
         </linearGradient>
         <radialGradient r="83%" fy="15%" fx="5%" cy="5%" cx="5%" id="rg01">
-            <stop id="stop3456" offset="0%" stop-color="#8888ff"/>
-            <stop id="stop3458" offset="25%" stop-color="#4040df"/>
+            <stop offset="0%" stop-color="#8888ff"/>
+            <stop offset="25%" stop-color="#4040df"/>
             <stop offset="65%" stop-color="#2020c0"/>
             <stop offset="85%" stop-color="#802080"/>
-            <stop id="stop3460" offset="90%" stop-color="#a04040"/>
+            <stop offset="90%" stop-color="#a04040"/>
         </radialGradient>
+        <style type="text/css">
+            @font-face { font-family: Brave New Era G98; src:url('./fonts/Brave-New-Era-G98.ttf.woff') format('woff'),
+            url('./fonts/Brave-New-Era-G98.ttf.svg#Brave-New-Era-G98') format('svg'),
+            url('./fonts/Brave-New-Era-G98.ttf.eot'), url('./fonts/Brave-New-Era-G98.ttf.eot?#iefix')
+            format('embedded-opentype'); }
+        </style>
     </defs>
-    <rect id="rect3462" fill="url(#lg1)" stroke="none" height="100%" width="100%" y="0" x="0" rx="10" ry="10"/>
-    <text id="text3534"
-        x="10"
-        y="62"
-        font-family="Brave New Era G98"
-        style="fill:url(#rg01);font-size:80px;font-style:normal;font-variant:normal;font-weight:bold;text-align:start;line-height:120%;text-anchor:start;font-family:'Brave New Era G98';font-stretch:normal;writing-mode:lr;">
+    <rect fill="url(#lg1)" stroke="none" height="100%" width="100%" y="0" x="0" rx="10" ry="10"/>
+    <text x="10" y="62" fill="url(#rg01)" font-family="Brave New Era G98" font-size="56" font-weight="900"
+        line-height="100%">
         Yapeal-ng
     </text>
-    <metadata id="metadata3538">
+    <metadata>
         <rdf:RDF>
-            <cc:Work>
+            <rdf:Description>
+                <xapRights:Marked>True</xapRights:Marked>
+            </rdf:Description>
+            <rdf:Description>
+                <xapRights:WebStatement rdf:resource="https://github.com/Yapeal/yapeal-ng"/>
+            </rdf:Description>
+            <rdf:Description>
+                <xapRights:UsageTerms>
+                    <rdf:Alt>
+                        <rdf:li xml:lang="en_US">This work is licensed under a &lt;a rel=&quot;license&quot; href=&quot;http://creativecommons.org/licenses/by-sa/4.0/&quot;&gt;Creative
+                            Commons Attribution-ShareAlike 4.0 International License&lt;/a&gt;.
+                        </rdf:li>
+                        <rdf:li xml:lang="en">This work is licensed under a &lt;a rel=&quot;license&quot; href=&quot;http://creativecommons.org/licenses/by-sa/4.0/&quot;&gt;Creative
+                            Commons Attribution-ShareAlike 4.0 International License&lt;/a&gt;.
+                        </rdf:li>
+                    </rdf:Alt>
+                </xapRights:UsageTerms>
+            </rdf:Description>
+            <rdf:Description>
+                <dc:title>
+                    <rdf:Alt>
+                        <rdf:li xml:lang="en_US">Yapeal-ng Banner</rdf:li>
+                    </rdf:Alt>
+                </dc:title>
+            </rdf:Description>
+            <rdf:Description>
+                <cc:license rdf:resource="http://creativecommons.org/licenses/by-sa/4.0/"/>
+            </rdf:Description>
+            <rdf:Description>
+                <cc:attributionName>Michael Cummings</cc:attributionName>
+            </rdf:Description>
+            <cc:Work rdf:about="">
                 <dc:format>image/svg+xml</dc:format>
                 <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+                <dc:title>Yapeal-ng Banner</dc:title>
                 <cc:license rdf:resource="http://creativecommons.org/licenses/by-sa/3.0/"/>
-                <dc:title>Yapeal-ng monkey</dc:title>
-                <dc:date>2016-07-04</dc:date>
-                <dc:description>a monkey holding a banana with Yapeal-ng text across bottom</dc:description>
-                <dc:source>https://openclipart.org/detail/4649/monkey-by-antontw</dc:source>
+                <dc:date>2016-07-07</dc:date>
                 <dc:creator>
                     <cc:Agent>
                         <dc:title>Michael Cummings</dc:title>
                     </cc:Agent>
                 </dc:creator>
-                <dc:subject>
-                    <rdf:Bag>
-                        <rdf:li>animal</rdf:li>
-                        <rdf:li>baby</rdf:li>
-                        <rdf:li>cartoon</rdf:li>
-                        <rdf:li>mammal</rdf:li>
-                        <rdf:li>monkey</rdf:li>
-                        <rdf:li>banana</rdf:li>
-                    </rdf:Bag>
-                </dc:subject>
                 <dc:rights>
                     <cc:Agent>
-                        <dc:title>http://creativecommons.org/licenses/by-sa/3.0/</dc:title>
+                        <dc:title>Copyright 2016 Michael Cummings</dc:title>
                     </cc:Agent>
                 </dc:rights>
+                <dc:subject>
+                    <rdf:Bag>
+                        <rdf:li>Yapeal-ng banner artwork</rdf:li>
+                    </rdf:Bag>
+                </dc:subject>
+                <dc:description>Simple web page banner for the open source project Yapeal-ng.</dc:description>
             </cc:Work>
             <cc:License rdf:about="http://creativecommons.org/licenses/by-sa/3.0/">
                 <cc:permits rdf:resource="http://creativecommons.org/ns#Reproduction"/>

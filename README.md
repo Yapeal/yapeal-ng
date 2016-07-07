@@ -1,5 +1,5 @@
-Yapeal-ng (Yet Another PHP Eve Api Library - Next Generation)
-========================================
+![Yapeal-ng banner](media/yapeal-ng_banner.svg "Yapeal-ng banner")
+# Yapeal-ng (Yet Another PHP Eve Api Library - Next Generation)
 
 Master: [![Build Status](https://travis-ci.org/Yapeal/yapeal-ng.svg?branch=master)](https://travis-ci.org/Yapeal/yapeal-ng.svg?branch=master)
 
