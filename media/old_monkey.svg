@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:cc="http://creativecommons.org/ns#"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    id="yapeal_monkey"
+    viewBox="0 0 320 300"
+    height="100%"
+    width="100%"
+    version="1.0">
+    <title id="title3542">Yapeal-ng monkey</title>
+    <defs id="defs3441">
+        <path d="M 37,260 a 82,53 0 0,0 245,-250" id="text_path01"/>
+        <radialGradient r="92%" fy="15%" fx="5%" cy="5%" cx="5%" id="rg01">
+            <stop id="stop3456" offset="0%" stop-color="#7070ff"/>
+            <stop id="stop3458" offset="25%" stop-color="#4040ff"/>
+            <stop offset="67%" stop-color="#2020d0" id="stop3343"/>
+            <stop offset="92%" stop-color="#800080" id="stop3345"/>
+            <stop id="stop3460" offset="95%" stop-color="#d01010"/>
+        </radialGradient>
+    </defs>
+    <rect id="rect3462" height="100%" width="100%" y="0" x="0" stroke="#0f500f" fill="#0f500f"/>
+    <path id="tail"
+        style="fill:none;stroke:#603000;stroke-width:10;stroke-linecap:round"
+        d="m 131,223 c -23,6 -48,12 -65,30 -12,14 6,29 19,31 40,11 83,7 123,3 11,-1 22,-2 32,-4"/>
+    <g id="body">
+        <path id="outer_body"
+            style="fill:#603000;fill-rule:evenodd;stroke:#000000;stroke-width:0"
+            d="m 128.522,235.59 c 3.752,16.77 22.512,19.35 30.954,18.06 12.194,0 23.45,-11.61 23.45,-28.38 0,-15.48 -4.69,-30.96 -16.884,-38.7 -11.256,-6.45 -21.574,-12.9 -33.768,2.58 -7.504,12.9 -3.752,29.67 -4.221,43.86 z"/>
+        <path id="inner_body"
+            d="m 143.53,233.01 c 2.814,18.06 27.202,18.06 26.264,-3.87 1.876,-14.19 1.876,-36.12 -11.256,-37.41 -15.946,-5.16 -17.822,21.93 -15.008,36.12 l 0,2.58 0,2.58 z"
+            style="fill:#e1e16f;fill-rule:evenodd;stroke:#000000;stroke-width:0"/>
+    </g>
+    <g id="head">
+        <g id="right_ear">
+            <path id="outer_right_ear"
+                d="M 36.3,118.18 C 22.51,128.797 1.23,117.453 7.81,101.359 5.99,87.321 24.96,71.298 36.51,83.989 l 0.56,1.932 0.56,1.932"
+                style="fill:#ffff83;fill-rule:evenodd;stroke:#000000;stroke-width:1"/>
+            <path id="inner_right_ear"
+                d="m 32.38,104.656 c -10.08,11.778 -15.33,-2.455 -4.34,-7.214 4.13,-5.149 11.76,-5.982 11.9,2.26"
+                style="fill:#ffff83;fill-rule:evenodd;stroke:#000000;stroke-width:1"/>
+        </g>
+        <g id="left_ear">
+            <path id="left_outer_ear"
+                d="m 281.935,134.312 c 14.594,9.137 38.825,2.623 34.98,-13.666 1.532,-12.106 -12.212,-31.417 -31.664,-22.909 -3.242,1.418 -5.545,4.059 -4.947,6.248"
+                style="fill:#ffff83;fill-rule:evenodd;stroke:#000000;stroke-width:1"/>
+            <path id="left_inner_ear"
+                d="m 290.549,121.559 c 7.255,6.629 18.859,4.821 11.006,-3.997 -5.036,-5.149 -20.312,-12.354 -20.223,-0.957"
+                style="fill:#ffff83;fill-rule:evenodd;stroke:#000000;stroke-width:1"/>
+        </g>
+        <path id="head_outline"
+            style="fill:#ffff83;fill-rule:evenodd;stroke:#603000;stroke-width:9"
+            d="M 178,19 C 145,7 106,12 79,36 58,55 42,80 36,108 c -4,19 9,38 26,48 21,12 46,19 70,22 42,7 87,11 125,-11 21,-19 33,-50 28,-78 C 280,73 266,61 254,51 231,35 205,25 178,19 Z"/>
+        <path id="forehead"
+            style="fill:#603000;fill-rule:evenodd;stroke:#603000;stroke-width:1"
+            d="M 183,19 C 149,11 110,9 81,32 63,46 52,66 43,87 60,75 75,57 96,54 c 19,-1 35,11 50,21 35,-9 74,-16 107,2 13,7 23,16 34,26 C 287,74 268,48 242,36 224,26 203,23 183,19 Z"/>
+        <path id="right_eye"
+            style="fill:none;stroke:#000000;stroke-width:7;stroke-linecap:round;stroke-linejoin:round"
+            d="m 197,133 c 0,5 -2,9 -1,1 0,-3 1,-12 1,-6 0,2 0,3 0,5 z"/>
+        <path id="left_eye"
+            style="fill:none;stroke:#000000;stroke-width:7;stroke-linecap:round;stroke-linejoin:round"
+            d="m 124,126 c 0,5 -2,9 -1,1 0,-3 1,-12 1,-6 0,2 0,3 0,5 z"/>
+        <path id="right_cheek"
+            style="fill:none;stroke:#ffa5c1;stroke-width:4.25;stroke-miterlimit:3.5"
+            d="m 240,149 c -4,17 -25,-5 -8,-9 17,-3 19,20 3,21"/>
+        <path id="left_cheek"
+            style="fill:none;stroke:#ffa5c1;stroke-width:4.25;stroke-miterlimit:3.5"
+            d="m 86,140 c 7,18 30,-8 7,-10 -18,1 -18,20 0,22"/>
+    </g>
+    <g id="right_foot">
+        <path id="right_foot_outline"
+            d="m 138.6,234.982 c 5.1,13.566 -5.95,34.314 -22.95,31.122 -15.3,-4.788 -9.35,-32.718 5.1,-35.112 5.95,-0.798 12.75,0.798 17.85,3.99 z"
+            style="fill:#ffff83;fill-rule:evenodd;stroke:#000000;stroke-width:1"/>
+        <path id="right_toe1"
+            d="m 139.45,241.366 c -4.25,0 -7.65,-0.798 -11.9,-0.798"
+            style="fill:none;stroke:#000000;stroke-width:1"/>
+        <path id="right_toe2"
+            d="m 138.6,248.548 c -4.25,0 -7.65,-0.798 -11.9,-0.798"
+            style="fill:none;stroke:#000000;stroke-width:1"/>
+        <path id="right_toe3"
+            d="m 136.9,254.932 c -4.25,0 -7.65,-0.798 -11.9,-0.798"
+            style="fill:none;stroke:#000000;stroke-width:1"/>
+    </g>
+    <g id="left_foot">
+        <path id="left_foot_outline"
+            d="m 182.292,231.982 c -5.148,13.566 6.006,34.314 23.166,31.122 15.444,-4.788 9.438,-32.718 -5.148,-35.112 -6.006,-0.798 -12.87,0.798 -18.018,3.99 z"
+            style="fill:#ffff83;fill-rule:evenodd;stroke:#000000;stroke-width:1"/>
+        <path id="left_toe1"
+            d="m 181.434,238.366 c 4.29,0 7.722,-0.798 12.012,-0.798"
+            style="fill:none;stroke:#000000;stroke-width:1"/>
+        <path id="left_toe2"
+            d="m 182.292,245.548 c 4.29,0 7.722,-0.798 12.012,-0.798"
+            style="fill:none;stroke:#000000;stroke-width:1"/>
+        <path id="left_toe3"
+            d="m 184.008,251.932 c 4.29,0 7.722,-0.798 12.012,-0.798"
+            style="fill:none;stroke:#000000;stroke-width:1"/>
+    </g>
+    <g id="banana">
+        <path id="banana_center"
+            d="m 146.5,162.5 c -2.25,23.5 -1,49.5 10.25,70.25 13.5,16 21.5,-12 19,-25.25 -0.75,-17.75 -1,-36.5 -8,-51.5 -6.25,-9.25 -20,-2 -21,6 z"
+            style="fill:#ffffcc;fill-rule:evenodd;stroke:#000000;stroke-width:1"/>
+        <path id="banana_right"
+            d="m 168,237.5 c -1.5,-15 -9.5,-29 -17.5,-41.25 -12,-7.5 -18.25,17.75 -16.75,26.25 11,-16 19,16 32,15 l 2.25,0 z"
+            style="fill:#ffff23;fill-rule:evenodd;stroke:#000000;stroke-width:1"/>
+        <path id="banana_left"
+            d="m 164.75,238.5 c -1.5,-15 2.25,-31 8,-45 8,-13 22.25,7.5 23,17 -15,-10.25 -14.25,19.5 -25.5,25.25 -1.5,2 -3,3 -5.5,3 z"
+            style="fill:#ffff23;fill-rule:evenodd;stroke:#000000;stroke-width:1"/>
+    </g>
+    <g id="right_hand">
+        <path id="right_hand_outline"
+            style="fill:#ffff83;fill-rule:evenodd;stroke:#000000;stroke-width:1"
+            d="m 147.5,230.5 c 9,-14 6.25,-38.75 -12,-44.5 -18.5,-4 -21.25,21.25 -18.5,34.25 2.75,13 21,14 30.5,10.25 z"/>
+        <path id="right_finger1"
+            d="m 148,196 c -4,-1 -9,-1 -13.25,-2"
+            style="fill:none;stroke:#000000;stroke-width:1"/>
+        <path id="right_finger2"
+            style="fill:none;stroke:#000000;stroke-width:1"
+            d="m 151,206.75 c -5,-1.25 -9,-1.25 -13.75,-2.5"/>
+        <path id="right_finger3"
+            d="m 152.25,217.5 c -4,-1 -9.75,-2 -14,-3"
+            style="fill:none;stroke:#000000;stroke-width:1"/>
+    </g>
+    <g id="left_hand">
+        <path id="left_hand_outline"
+            d="m 174,200.5 c -5,16 5,39 23,40 19,-1 15,-25 9,-36 -4,-14 -23,-10 -32,-4 z"
+            style="fill:#ffff83;fill-rule:evenodd;stroke:#000000"/>
+        <path id="left_finger1" d="m 173,208.5 c 5,0 9,-1 14,-1" style="fill:none;stroke:#000000;stroke-width:1"/>
+        <path id="left_finger2" d="m 174,217.5 c 5,0 9,-1 14,-1" style="fill:none;stroke:#000000;stroke-width:1"/>
+        <path id="left_finger3" d="m 176,225.5 c 5,0 9,-1 14,-1" style="fill:none;stroke:#000000;stroke-width:1"/>
+    </g>
+    <text id="text3534"
+        font-family="Brave New Era G98"
+        style="fill:url(#rg01);font-size:68px;font-style:normal;font-variant:normal;font-weight:bold;text-align:start;line-height:120%;text-anchor:start;font-family:'Brave New Era G98';font-stretch:normal;writing-mode:lr;">
+        <textPath id="textPath3536" xlink:href="#text_path01">Yapeal-ng</textPath>
+    </text>
+    <metadata id="metadata3538">
+        <rdf:RDF>
+            <cc:Work>
+                <dc:format>image/svg+xml</dc:format>
+                <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+                <cc:license rdf:resource="http://creativecommons.org/licenses/by-sa/3.0/"/>
+                <dc:title>Yapeal-ng monkey</dc:title>
+                <dc:date>2016-07-04</dc:date>
+                <dc:description>a monkey holding a banana with Yapeal-ng text across bottom</dc:description>
+                <dc:source>https://openclipart.org/detail/4649/monkey-by-antontw</dc:source>
+                <dc:creator>
+                    <cc:Agent>
+                        <dc:title>Michael Cummings</dc:title>
+                    </cc:Agent>
+                </dc:creator>
+                <dc:subject>
+                    <rdf:Bag>
+                        <rdf:li>animal</rdf:li>
+                        <rdf:li>baby</rdf:li>
+                        <rdf:li>cartoon</rdf:li>
+                        <rdf:li>mammal</rdf:li>
+                        <rdf:li>monkey</rdf:li>
+                        <rdf:li>banana</rdf:li>
+                    </rdf:Bag>
+                </dc:subject>
+                <dc:rights>
+                    <cc:Agent>
+                        <dc:title>http://creativecommons.org/licenses/by-sa/3.0/</dc:title>
+                    </cc:Agent>
+                </dc:rights>
+            </cc:Work>
+            <cc:License rdf:about="http://creativecommons.org/licenses/by-sa/3.0/">
+                <cc:permits rdf:resource="http://creativecommons.org/ns#Reproduction"/>
+                <cc:permits rdf:resource="http://creativecommons.org/ns#Distribution"/>
+                <cc:requires rdf:resource="http://creativecommons.org/ns#Notice"/>
+                <cc:requires rdf:resource="http://creativecommons.org/ns#Attribution"/>
+                <cc:permits rdf:resource="http://creativecommons.org/ns#DerivativeWorks"/>
+                <cc:requires rdf:resource="http://creativecommons.org/ns#ShareAlike"/>
+            </cc:License>
+        </rdf:RDF>
+    </metadata>
+</svg>
