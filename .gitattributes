@@ -20,6 +20,7 @@
 *.pem text eol=lf
 *.php text eol=lf
 *.sql text eol=lf
+*.svg text eol=lf
 *.xml text eol=lf
 *.xsd text eol=lf
 *.xsl text eol=lf
