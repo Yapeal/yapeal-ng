@@ -99,7 +99,7 @@ class ErrorCacheIntervalSubscriber
         $apiName = $data->getEveApiName();
         $data->setEveApiName('Error_' . $apiName);
         // Cache error XML.
-        $this->emitEvents($data, 'cache');
+        $this->emitEvents($data, 'preserve', 'Yapeal.Xml.Error');
         $data->setEveApiName($apiName);
         return $event->setData($data)
             ->setHandledSufficiently();
