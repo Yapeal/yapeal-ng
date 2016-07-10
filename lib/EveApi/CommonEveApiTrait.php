@@ -61,7 +61,7 @@ trait CommonEveApiTrait
             return false;
         }
         $result = true;
-        $eventSuffixes = ['retrieve', 'transform', 'validate', 'cache', 'preserve'];
+        $eventSuffixes = ['retrieve', 'transform', 'validate', 'preserve'];
         foreach ($eventSuffixes as $eventSuffix) {
             if (false === $this->emitEvents($data, $eventSuffix)) {
                 $result = false;
@@ -103,7 +103,9 @@ trait CommonEveApiTrait
      */
     public function startEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
     {
-        $this->setYem($yem);
+        if (!$this->hasYem()) {
+            $this->setYem($yem);
+        }
         $data = $event->getData();
         $yem->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG,
             $this->getReceivedEventMessage($data, $eventName, __CLASS__));

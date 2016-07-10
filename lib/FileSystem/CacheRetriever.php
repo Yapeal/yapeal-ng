@@ -59,6 +59,13 @@ class CacheRetriever implements EveApiRetrieverInterface
         $this->setCachePath($cachePath);
     }
     /**
+     * @return boolean
+     */
+    public function shouldRetrieve()
+    {
+        return $this->retrieve;
+    }
+    /**
      * @param EveApiEventInterface $event
      * @param string               $eventName
      * @param MediatorInterface    $yem
@@ -68,6 +75,9 @@ class CacheRetriever implements EveApiRetrieverInterface
      */
     public function retrieveEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
     {
+        if (!$this->shouldRetrieve()) {
+            return $event;
+        }
         $this->setYem($yem);
         $data = $event->getData();
         $yem->triggerLogEvent(
@@ -113,6 +123,16 @@ class CacheRetriever implements EveApiRetrieverInterface
         }
         $this->cachePath = $this->getFpn()
             ->normalizePath($value);
+        return $this;
+    }
+    /**
+     * @param boolean $value
+     *
+     * @return $this Fluent interface
+     */
+    public function setRetrieve($value)
+    {
+        $this->retrieve = (boolean)$value;
         return $this;
     }
     /**
@@ -182,4 +202,8 @@ class CacheRetriever implements EveApiRetrieverInterface
      * @var string $cachePath
      */
     protected $cachePath;
+    /**
+     * @var bool $retrieve
+     */
+    private $retrieve = false;
 }

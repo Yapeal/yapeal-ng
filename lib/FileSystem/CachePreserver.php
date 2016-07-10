@@ -33,30 +33,36 @@
  */
 namespace Yapeal\FileSystem;
 
-use DomainException;
 use FilePathNormalizer\FilePathNormalizerTrait;
-use InvalidArgumentException;
-use LogicException;
 use Yapeal\Event\EveApiEventEmitterTrait;
 use Yapeal\Event\EveApiEventInterface;
 use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
+use Yapeal\Xml\EveApiPreserverInterface;
 
 /**
  * Class CachePreserver
  */
-class CachePreserver
+class CachePreserver implements EveApiPreserverInterface
 {
     use CommonFileHandlingTrait, EveApiEventEmitterTrait, FilePathNormalizerTrait;
     /**
      * @param string|null $cachePath
+     * @param bool        $preserve
      *
-     * @throws InvalidArgumentException
-     * @throws DomainException
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
      */
-    public function __construct($cachePath = null)
+    public function __construct($cachePath = null, $preserve = false)
     {
-        $this->setCachePath($cachePath);
+        $this->setCachePath($cachePath)->setPreserve($preserve);
+    }
+    /**
+     * @return boolean
+     */
+    public function shouldPreserve()
+    {
+        return $this->preserve;
     }
     /**
      * @param EveApiEventInterface $event
@@ -64,10 +70,13 @@ class CachePreserver
      * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
-     * @throws LogicException
+     * @throws \LogicException
      */
     public function preserveEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
     {
+        if (!$this->shouldPreserve()) {
+            return $event;
+        }
         $data = $event->getData();
         $this->setYem($yem);
         $yem->triggerLogEvent(
@@ -97,8 +106,8 @@ class CachePreserver
      * @param string|null $value
      *
      * @return self Fluent interface.
-     * @throws DomainException
-     * @throws InvalidArgumentException
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
      */
     public function setCachePath($value = null)
     {
@@ -107,26 +116,44 @@ class CachePreserver
         }
         if (!is_string($value)) {
             $mess = 'Cache path MUST be string, but was given ' . gettype($value);
-            throw new InvalidArgumentException($mess);
+            throw new \InvalidArgumentException($mess);
         }
         if ('' === $this->cachePath) {
             $mess = 'Cache path can NOT be empty';
-            throw new DomainException($mess);
+            throw new \DomainException($mess);
         }
         $this->cachePath = $this->getFpn()
             ->normalizePath($value);
         return $this;
     }
     /**
+     * @param boolean $value
+     *
+     * @return $this Fluent interface
+     */
+    public function setPreserve($value = true)
+    {
+        $this->preserve = (boolean)$value;
+        return $this;
+    }
+    /**
      * @return string
-     * @throws LogicException
+     * @throws \LogicException
      */
     protected function getCachePath()
     {
+        if (null === $this->cachePath) {
+            $mess = ' Trying to use cachePath before it was set';
+            throw new \LogicException($mess);
+        }
         return $this->cachePath;
     }
     /**
      * @var string $cachePath
      */
-    protected $cachePath;
+    private $cachePath;
+    /**
+     * @var bool $preserve
+     */
+    private $preserve = false;
 }
