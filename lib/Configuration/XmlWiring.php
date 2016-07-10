@@ -57,13 +57,11 @@ class XmlWiring implements WiringInterface
             );
         }
         if (empty($dic['Yapeal.Xml.Error.Subscriber'])) {
-            $dic['Yapeal.Xml.Error.Subscriber'] = $dic->factory(
-                function ($dic) {
+            $dic['Yapeal.Xml.Error.Subscriber'] = function () use ($dic) {
                     return new $dic['Yapeal.Xml.Handlers.error']();
-                }
-            );
+                };
         }
-        if (!isset($dic['Yapeal.Event.Mediator'])) {
+        if (empty($dic['Yapeal.Event.Mediator'])) {
             $mess = 'Tried to call Mediator before it has been added';
             throw new \LogicException($mess);
         }
@@ -73,7 +71,7 @@ class XmlWiring implements WiringInterface
         $mediator = $dic['Yapeal.Event.Mediator'];
         $mediator->addServiceSubscriberByEventList(
             'Yapeal.Xml.Error.Subscriber',
-            ['Yapeal.Xml.error' => ['processXmlError', 'last']]
+            ['Yapeal.Xml.Error.start' => ['processXmlError', 'last']]
         );
         return $this;
     }

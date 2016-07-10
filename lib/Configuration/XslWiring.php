@@ -50,13 +50,11 @@ class XslWiring implements WiringInterface
     public function wire(ContainerInterface $dic)
     {
         if (empty($dic['Yapeal.Xsl.Transformer'])) {
-            $dic['Yapeal.Xsl.Transformer'] = $dic->factory(
-                function ($dic) {
+            $dic['Yapeal.Xsl.Transformer'] = function () use ($dic) {
                     return new $dic['Yapeal.Xsl.transform']($dic['Yapeal.Xsl.dir']);
-                }
-            );
+                };
         }
-        if (!isset($dic['Yapeal.Event.Mediator'])) {
+        if (empty($dic['Yapeal.Event.Mediator'])) {
             $mess = 'Tried to call Mediator before it has been added';
             throw new \LogicException($mess);
         }

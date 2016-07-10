@@ -48,42 +48,42 @@ class LogWiring implements WiringInterface
      */
     public function wire(ContainerInterface $dic)
     {
+        if (empty($dic['Yapeal.Log.Strategy'])) {
+            $dic['Yapeal.Log.Strategy'] = function () use ($dic) {
+                return new $dic['Yapeal.Log.Handlers.strategy']((int)$dic['Yapeal.Log.threshold']);
+           };
+        }
         if (empty($dic['Yapeal.Log.Logger'])) {
             $dic['Yapeal.Log.Logger'] = function () use ($dic) {
                 $group = [];
                 $lineFormatter = new LineFormatter(null, 'Ymd His.u', true, true);
                 $lineFormatter->includeStacktraces();
                 /**
-                 * @var \Monolog\Handler\StreamHandler $handler
+                 * @var \Monolog\Handler\HandlerInterface $handler
                  */
                 if (PHP_SAPI === 'cli') {
-                    $handler = new $dic['Yapeal.Log.Handlers.stream'](
-                        'php://stderr', 100
-                    );
+                    $handler = new $dic['Yapeal.Log.Handlers.stream']('php://stderr', 100);
                     $handler->setFormatter($lineFormatter);
                     $group[] = $handler;
                 }
-                $handler = new $dic['Yapeal.Log.Handlers.stream'](
-                    $dic['Yapeal.Log.dir'] . $dic['Yapeal.Log.fileName'], 100
-                );
-                $handler->setFormatter($lineFormatter);
-                $group[] = $handler;
-                return new $dic['Yapeal.Log.class'](
-                    $dic['Yapeal.Log.channel'], [
-                        new $dic['Yapeal.Log.Handlers.fingersCrossed'](new $dic['Yapeal.Log.Handlers.group']($group),
-                            (int)$dic['Yapeal.Log.threshold'], (int)$dic['Yapeal.Log.bufferSize'], true, false)
-                    ]
-                );
+                $handler = new $dic['Yapeal.Log.Handlers.stream']($dic['Yapeal.Log.dir'] . $dic['Yapeal.Log.fileName'],
+                    100);
+                $group[] = $handler->setFormatter($lineFormatter);
+                return new $dic['Yapeal.Log.Handlers.class']($dic['Yapeal.Log.channel'], [
+                    new $dic['Yapeal.Log.Handlers.fingersCrossed'](new $dic['Yapeal.Log.Handlers.group']($group),
+                        $dic['Yapeal.Log.Strategy'],
+                        (int)$dic['Yapeal.Log.bufferSize'],
+                        true,
+                        false)
+                ]);
             };
         }
         /**
          * @var \Yapeal\Event\MediatorInterface $mediator
          */
         $mediator = $dic['Yapeal.Event.Mediator'];
-        $mediator->addServiceSubscriberByEventList(
-            'Yapeal.Log.Logger',
-            ['Yapeal.Log.log' => ['logEvent', 'last']]
-        );
+        $mediator->addServiceSubscriberByEventList('Yapeal.Log.Logger',
+            ['Yapeal.Log.log' => ['logEvent', 'last']]);
         return $this;
     }
 }

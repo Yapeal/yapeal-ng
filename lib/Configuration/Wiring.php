@@ -34,7 +34,6 @@
 namespace Yapeal\Configuration;
 
 use FilePathNormalizer\FilePathNormalizerTrait;
-use RecursiveIteratorIterator;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Parser;
 use Yapeal\Container\ContainerInterface;
@@ -104,7 +103,7 @@ class Wiring
      */
     public function wireAll()
     {
-        $names = ['Config', 'Error', 'Event', 'Log', 'Sql', 'Xml', 'Xsd', 'Xsl', 'Cache', 'Network', 'EveApi'];
+        $names = ['Config', 'Error', 'Event', 'Log', 'Sql', 'Xml', 'Xsd', 'Xsl', 'FileSystem', 'Network', 'EveApi'];
         foreach ($names as $name) {
             $className = __NAMESPACE__ . '\\' . $name . 'Wiring';
             if (class_exists($className, true)) {
@@ -193,8 +192,8 @@ class Wiring
         }
         );
         /** @noinspection SpellCheckingInspection */
-        $rii = new RecursiveIteratorIterator(
-            $rcfi, RecursiveIteratorIterator::LEAVES_ONLY, RecursiveIteratorIterator::CATCH_GET_CHILD
+        $rii = new \RecursiveIteratorIterator(
+            $rcfi, \RecursiveIteratorIterator::LEAVES_ONLY, \RecursiveIteratorIterator::CATCH_GET_CHILD
         );
         $rii->setMaxDepth(3);
         $fpn = $this->getFpn();
@@ -245,6 +244,7 @@ class Wiring
     }
     /**
      * @return self Fluent interface.
+     * @throws \LogicException
      */
     protected function wireEveApi()
     {
@@ -252,6 +252,10 @@ class Wiring
          * @var ContainerInterface $dic
          */
         $dic = $this->dic;
+        if (empty($dic['Yapeal.Event.Mediator'])) {
+            $mess = 'Tried to call Mediator before it has been added';
+            throw new \LogicException($mess);
+        }
         /**
          * @var \Yapeal\Event\MediatorInterface $mediator
          */

@@ -33,7 +33,6 @@
  */
 namespace Yapeal\Configuration;
 
-use Monolog\ErrorHandler;
 use Yapeal\Container\ContainerInterface;
 use Yapeal\Log\LineFormatter;
 use Yapeal\Log\Logger;
@@ -50,41 +49,46 @@ class ErrorWiring implements WiringInterface
      */
     public function wire(ContainerInterface $dic)
     {
-        if (!empty($dic['Yapeal.Error.Logger'])) {
-            return $this;
+        if (empty($dic['Yapeal.Error.Strategy'])) {
+            $dic['Yapeal.Error.Strategy'] = function () use ($dic) {
+                return new $dic['Yapeal.Error.Handlers.strategy']((int)$dic['Yapeal.Error.threshold']);
+            };
         }
-        $dic['Yapeal.Error.Logger'] = function ($dic) {
-            /**
-             * @var Logger $logger
-             */
-            $logger = new $dic['Yapeal.Error.class']($dic['Yapeal.Error.channel']);
-            $group = [];
-            $lineFormatter = new LineFormatter(null, 'Ymd His.u', true, true);
-            $lineFormatter->includeStacktraces();
-            /**
-             * @var \Monolog\Handler\StreamHandler $handler
-             */
-            if ('cli' === PHP_SAPI) {
-                $handler = new $dic['Yapeal.Error.Handlers.stream']('php://stderr', 100);
+        if (empty($dic['Yapeal.Error.Logger'])) {
+            $dic['Yapeal.Error.Logger'] = function () use ($dic) {
+                /**
+                 * @var Logger $logger
+                 */
+                $logger = new $dic['Yapeal.Error.Handlers.class']($dic['Yapeal.Error.channel']);
+                $group = [];
+                $lineFormatter = new LineFormatter(null, 'Ymd His.u', true, true);
+                $lineFormatter->includeStacktraces();
+                /**
+                 * @var \Monolog\Handler\StreamHandler $handler
+                 */
+                if ('cli' === PHP_SAPI) {
+                    $handler = new $dic['Yapeal.Error.Handlers.stream']('php://stderr', 100);
+                    $group[] = $handler->setFormatter($lineFormatter);
+                }
+                $handler = new $dic['Yapeal.Error.Handlers.stream']($dic['Yapeal.Error.dir']
+                    . $dic['Yapeal.Error.fileName'], 100);
                 $group[] = $handler->setFormatter($lineFormatter);
-            }
-            $handler = new $dic['Yapeal.Error.Handlers.stream']($dic['Yapeal.Error.dir'] . $dic['Yapeal.Error.fileName'],
-                100);
-            $group[] = $handler->setFormatter($lineFormatter);
-            $logger->pushHandler(
-                new $dic['Yapeal.Error.Handlers.fingersCrossed'](new $dic['Yapeal.Error.Handlers.group']($group),
-                    (int)$dic['Yapeal.Error.threshold'], (int)$dic['Yapeal.Error.bufferSize'], true, false)
-            );
-            /**
-             * @var ErrorHandler $error
-             */
-            $error = $dic['Yapeal.Error.Handlers.error'];
-            $error::register($logger, [], (int)$dic['Yapeal.Error.threshold'], (int)$dic['Yapeal.Error.threshold']);
-            return $error;
-        };
-        // Activate error logger now since it is needed to log any future fatal
-        // errors or exceptions.
-        $dic['Yapeal.Error.Logger'];
+                $logger->pushHandler(new $dic['Yapeal.Error.Handlers.fingersCrossed'](new $dic['Yapeal.Error.Handlers.group']($group),
+                    $dic['Yapeal.Error.Strategy'],
+                    (int)$dic['Yapeal.Error.bufferSize'],
+                    true,
+                    false));
+                /**
+                 * @var \Monolog\ErrorHandler $error
+                 */
+                $error = $dic['Yapeal.Error.Handlers.error'];
+                $error::register($logger, [], (int)$dic['Yapeal.Error.threshold'], (int)$dic['Yapeal.Error.threshold']);
+                return $error;
+            };
+            // Activate error logger now since it is needed to log any future fatal
+            // errors or exceptions.
+            $dic['Yapeal.Error.Logger'];
+        }
         return $this;
     }
 }

@@ -1,44 +1,47 @@
 ---
 Yapeal:
     version: '0.3.0-0-g36048b7'
-    Cache:
-        dir: '{Yapeal.baseDir}cache/'
-        fileSystemMode: none
-        Handlers:
-            preserve: Yapeal\FileSystem\CachePreserver
-            retrieve: Yapeal\FileSystem\CacheRetriever
     Error:
         bufferSize: 25
         channel: php
-        class: Monolog\Logger
-        dir: '{Yapeal.baseDir}log/'
-        fileName: yapeal.log
+        dir: '{Yapeal.Log.dir}'
+        fileName: '{Yapeal.Log.fileName}'
         threshold: 400
         Handlers:
+            class: Monolog\Logger
             error: Monolog\ErrorHandler
             fingersCrossed: Monolog\Handler\FingersCrossedHandler
             group: Monolog\Handler\GroupHandler
+            strategy: Yapeal\Log\ActivationStrategy
             stream: Monolog\Handler\StreamHandler
     EveApi:
         create: Yapeal\EveApi\Creator
         dir: '{Yapeal.libDir}EveApi/'
-        start: Yapeal\EveApi\Creator
     Event:
         mediator: Yapeal\Event\Mediator
         Factories:
             eveApi: Yapeal\Event\EveApiEvent
             log: Yapeal\Event\LogEvent
+    FileSystem:
+        Cache:
+            dir: '{Yapeal.baseDir}cache/'
+            preserve: false
+            retrieve: false
+        Handlers:
+            preserve: Yapeal\FileSystem\CachePreserver
+            retrieve: Yapeal\FileSystem\CacheRetriever
     Log:
         bufferSize: 25
         channel: yapeal
-        class: Yapeal\Log\Logger
         dir: '{Yapeal.baseDir}log/'
         fileName: yapeal.log
         threshold: 300
         Handlers:
+            class: Yapeal\Log\Logger
             logger: Monolog\Logger
             fingersCrossed: Monolog\Handler\FingersCrossedHandler
             group: Monolog\Handler\GroupHandler
+            strategy: Yapeal\Log\ActivationStrategy
             stream: Monolog\Handler\StreamHandler
     Network:
         appComment: ''

@@ -33,9 +33,6 @@
  */
 namespace Yapeal\Configuration;
 
-use Twig_Environment;
-use Twig_Loader_Filesystem;
-use Twig_SimpleFilter;
 use Yapeal\Container\ContainerInterface;
 
 /**
@@ -53,19 +50,18 @@ class XsdWiring implements WiringInterface
     public function wire(ContainerInterface $dic)
     {
         if (empty($dic['Yapeal.Xsd.Creator'])) {
-            $dic['Yapeal.Xsd.Creator'] = $dic->factory(
-                function ($dic) {
-                    $loader = new Twig_Loader_Filesystem($dic['Yapeal.Xsd.dir']);
-                    $twig = new Twig_Environment(
+            $dic['Yapeal.Xsd.Creator'] = function () use ($dic) {
+                    $loader = new \Twig_Loader_Filesystem($dic['Yapeal.Xsd.dir']);
+                    $twig = new \Twig_Environment(
                         $loader, ['debug' => true, 'strict_variables' => true, 'autoescape' => false]
                     );
-                    $filter = new Twig_SimpleFilter(
+                    $filter = new \Twig_SimpleFilter(
                         'ucFirst', function ($value) {
                         return ucfirst($value);
                     }
                     );
                     $twig->addFilter($filter);
-                    $filter = new Twig_SimpleFilter(
+                    $filter = new \Twig_SimpleFilter(
                         'lcFirst', function ($value) {
                         return lcfirst($value);
                     }
@@ -75,21 +71,18 @@ class XsdWiring implements WiringInterface
                      * @var \Yapeal\Xsd\Creator $create
                      */
                     $create = new $dic['Yapeal.Xsd.create']($twig, $dic['Yapeal.Xsd.dir']);
-                    if (array_key_exists('Yapeal.Create.overwrite', $dic)) {
+                    if (!empty($dic['Yapeal.Create.overwrite'])) {
                         $create->setOverwrite($dic['Yapeal.Create.overwrite']);
                     }
                     return $create;
-                }
-            );
+                };
         }
         if (empty($dic['Yapeal.Xsd.Validator'])) {
-            $dic['Yapeal.Xsd.Validator'] = $dic->factory(
-                function ($dic) {
+            $dic['Yapeal.Xsd.Validator'] = function () use ($dic) {
                     return new $dic['Yapeal.Xsd.validate']($dic['Yapeal.Xsd.dir']);
-                }
-            );
+                };
         }
-        if (!isset($dic['Yapeal.Event.Mediator'])) {
+        if (empty($dic['Yapeal.Event.Mediator'])) {
             $mess = 'Tried to call Mediator before it has been added';
             throw new \LogicException($mess);
         }

@@ -1,21 +1,26 @@
 ---
 Yapeal:
     Cache:
+    # DEPRECATED (see new FileSystem settings) will be removing in future and no long effects Yapeal-ng.
     # Settings in the 'Cache' section normally will only be changed during troubleshooting or development work.
 
-        # Base directory where the cached XML will be stored if filesystem caching is active.
+        # DEPRECATED (see new FileSystem settings) will be removing in future and no long effects Yapeal-ng.
+        # Base directory where the cached XML will be stored if filesystem
+        # caching is active.
         # The default setting of '{Yapeal.baseDir}cache/' uses a cache/ directory inside the directory where Yapeal was
         # installed.
-        dir: '{Yapeal.baseDir}cache/'
+        # dir: '{Yapeal.baseDir}cache/'
 
+        # DEPRECATED (see new FileSystem settings) will be removing in future and no long effects Yapeal-ng.
         # Used to set the file system caching mode to be used. Currently the only modes are 'all' and 'none' but
         # additional modes may be added in the future. If you want the to continue to have the cache files change
         # the setting to 'all'.
         # The default of 'none' turns off using the filesystem cache.
-        fileSystemMode: none
+        # fileSystemMode: none
 
     Error:
-    # Changes to all settings in the 'Error' section should only be done if directed to by a developer for debugging.
+    # Changes to any settings in the 'Error' section should only be done if directed to by a Yapeal-ng developer for
+    # debugging.
     # Incorrect changes to these settings could prevent fatal programming errors from being logged.
 
         # See Yapeal.Log.bufferSize for full description as this setting is used in the same way but for error level
@@ -26,25 +31,50 @@ Yapeal:
         channel: php
 
         # See Yapeal.Log.dir for full description as this setting is used in the same way but for error level logging.
-        dir: '{Yapeal.baseDir}log/'
+        dir: '{Yapeal.Log.dir}'
 
         # Same as the Yapeal.Log.fileName setting but for errors.
-        fileName: yapeal.log
+        fileName: '{Yapeal.Log.fileName}'
 
-        # (Optional) Defaults to another instance of Yapeal.Log.class
-        # loggerClass: Monolog\Logger
+        Handlers:
+        # list of handlers used.
 
-        # Threshold that should trigger logging.
+            # Defaults to an instance of the base logger class without the wrapper.
+            # class: Monolog\Logger
+
+        # Threshold that should trigger the more severe error level logging.
         # See Yapeal.Log.threshold for allowed values.
         # Recommended default is 1-2 levels above Yapeal.Log.threshold but capped no higher than 500(CRITICAL)
         threshold: 400
 
     Event:
-    # Events
+    # Events - Yapeal-ng developer(s) only settings in here.
 
+    FileSystem:
+    # Settings for filesystem operations. Most have to do with the optional caching of XML to files from the Eve APIs.
+
+        Cache:
+        # Cache settings
+
+            # Base directory where the cached XML will be stored if filesystem caching is active.
+            # The default setting of '{Yapeal.baseDir}cache/' uses a cache/ directory under the directory where Yapeal
+            # was installed. NOTE: If you are using Yapeal-ng with composer this will be inside the vendor/ directory
+            # and this will probably need to be changed.
+            dir: '{Yapeal.baseDir}cache/'
+
+            # The following two settings replace the now deprecated Yapeal.Cache.fileSystemMode setting which was
+            # handled static when the configuration files were read at startup. With new settings and some code changes
+            # the possiblity of turning caching on or off during execution becomes possible.
+
+            # Used to enable writing of XML cache files for Eve APIs. Yapeal-ng does not require filesystem caching to
+            # work but can be helpful during development and troubleshooting Eve API changes. Defaults to 'false'.
+            preserve: false
+            # Used to enable reading of XML cache files for Eve APIs. Yapeal-ng does not require filesystem caching to
+            # work but can be helpful during development and troubleshooting Eve API changes. Defaults to 'false'.
+            retrieve: false
     Log:
     # Care should be taken when making changes to the 'Log' section as mistakes here could cause Yapeal not to run
-    # correctly and also have no way to let the user know.
+    # correctly and also have no way to let you know why or what went wrong.
 
         # This setting is used in the FingersCrossedHandlier that is used by the normal Monolog\ErrorHandlier.
         # How many entries should be buffered at most, beyond that the oldest items are removed from the buffer.
@@ -54,30 +84,45 @@ Yapeal:
         # See Monolog at https://github.com/Seldaek/monolog for more details about how this setting is used.
         channel: yapeal
 
-        # Yapeal by default uses Monolog with a light event wrapper but it can be changed to use any logger that follows
-        # PSR-3 and implements the EventAwareLoggerInterface. You can find more information about PSR-3 at
-        # http://www.php-fig.org/psr/psr-3/
-        class: Yapeal\Log\Logger
-
         # Directory where log file will be stored.
-        # The default setting of '{Yapeal.baseDir}log/' uses a log/ directory inside the directory where Yapeal was
-        # installed.
+        # The default setting of '{Yapeal.baseDir}log/' uses a log/ directory under the directory where Yapeal was
+        # installed. NOTE: If you are using Yapeal-ng with composer this will be inside the vendor/ directory and this
+        # will probably need to be changed.
         dir: '{Yapeal.baseDir}log/'
 
         # Name of the log file to be used.
-        # The default 'yapeal.log' will be found in the logDir.
+        # The default 'yapeal.log' will be found in the log dir from above.
         # For example: /where/installed/yapeal/log/yapeal.log
         fileName: yapeal.log
 
-        # Threshold that should trigger logging.
+        # Threshold that should trigger logging. A lower number increase the
+        # amount of logging you will see.
+        # NOTE: This setting MUST BE less than Yapeal.Error.threshold to see
+        # any limitting effects on logging.
         # Allowed values:
-        # 100(DEBUG), 200(INFO), 250(NOTICE), 300(WARNING), 400(ERROR), 500(CRITICAL), 550(ALERT), 600(EMERGENCY)
-        # Recommended default for development NOTICE or INFO
-        # Recommended default for production WARNING or ERROR
+        # 100(DEBUG), 200(INFO), 250(NOTICE), 300(WARNING), 400(ERROR),
+        # 500(CRITICAL), 550(ALERT), 600(EMERGENCY)
+        # Note that if you are using one of the 'bin/yc' commands then the -q,
+        # -v, -vv, and -vvv verbosity levels can be used to override this
+        # setting at runtime.
+        # -q maps to 400(ERROR), and the -v options are mapped from 250(NOTICE)
+        # to 100(DEBUG) with each step causing increased logging.
+        # When neither of the options are given 'yc' commands use a default
+        # threshold of 300(WARNING).
+        # Recommended default for development NOTICE or INFO.
+        # Recommended default for production WARNING or ERROR.
         threshold: 300
 
+        Handlers:
+        # list of handlers used.
+
+            # Yapeal by default uses Monolog with a light event wrapper but it can be changed to use any logger that
+            # follows PSR-3 and implements the EventAwareLoggerInterface. You can find more information about PSR-3 at
+            # http://www.php-fig.org/psr/psr-3/
+            class: Yapeal\Log\Logger
+
     Network:
-    # Some network related settings mostly having to do with Eve API server connection.
+    # Some network related settings mostly having to do with the Eve API server connection used.
 
         # Used to set a custom application comment which will be added to the User Agent header sent to the Eve API
         # server.
@@ -88,8 +133,8 @@ Yapeal:
         appComment: ''
 
         # Used to set a custom application name which will be added to the User Agent header sent to the Eve API server.
-        # Application developers please insure you use this especially in publicly released software so CCP contacts
-        # YOU and NOT me if something breaks in your application.
+        # ATTENTION: Application developers please insure you use this especially in publicly released software so CCP
+        # contacts YOU and NOT me if something breaks in your application.
         # Note if this is blank the Yapeal.Network.appVersion and Yapeal.Network.appComment will also be ignored.
         # See Yapeal.Network.userAgent for more information.
         appName: ''
@@ -110,15 +155,17 @@ Yapeal:
         # php_uname(). The {phpVersion} will be replaced by PHP_VERSION constant. The other three {app*} parts will be
         # replaced by their Yaml settings.
         # If 'appName' is empty the other two settings will be ignored as well.
-        # Note that any and all parts of the string can be removed or replaced including the 'Yapeal/2.0 (...)' part if
-        # you prefer.
+        # Note that any and all parts of the string can be removed or replaced including the
+        # 'Yapeal-ng/{Yapeal.version} (...)' part if you prefer.
         # Note that if this setting is empty (NOT recommend) no user agent header will be sent.
         # Example result:
-        # myApp/0.1 (poc@myApp.com) Yapeal/2.0 (Windows NT 6.1; PHP 5.4.29; Platform i586)
-        userAgent: '{appName}/{appVersion} {appComment} Yapeal-ng/0.1 ({osName} {osRelease}; PHP {phpVersion}; Platform {machineType})'
+        # myApp/0.1 (poc@myApp.com) Yapeal-ng/0.3.0-0-g36048b7 (Windows NT 10.0; PHP 7.0.8; Platform AMD64)
+        userAgent: '{appName}/{appVersion} {appComment} Yapeal-ng/{Yapeal.version} ({osName} {osRelease}; PHP {phpVersion}; Platform {machineType})'
 
     Sql:
-    # Settings in the 'Sql' section will normal be the only ones that need changed by most users.
+    # 'Sql' section settings.
+    # NOTE: Some of these settings along with the log and cache directory
+    # settings are likely be the only settings that application developers will need to change.
 
         # Name of the database (schema) Yapeal will use for tables.
         # Note that the database user will need create and drop access to this database and it's tables during install
@@ -129,7 +176,7 @@ Yapeal:
         # Database engine to use for tables during table create like when using
         # 'yc D:I' or 'yc D:U'.
         # Note that ONLY transaction compatible engines are supported for example:
-        # 'InnoDB', 'tokuDB', etc but NOT 'MyISAM', etc.
+        # 'InnoDB', 'tokuDB', etc but NOT 'MyISAM', 'archive', etc.
         engine: InnoDB
 
         # Host name of computer where database server is.
@@ -152,7 +199,7 @@ Yapeal:
         # Prefix to add to all database table names.
         # This default to an empty string and will have no effect on the table names in Yapeal.
         # This setting is mostly used when you want or need to share a single database between Yapeal and rest of your
-        # application.
+        # application there are table name conflicts.
         tablePrefix: ''
 
         # User name used to access the database.

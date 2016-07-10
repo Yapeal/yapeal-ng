@@ -33,10 +33,6 @@
  */
 namespace Yapeal\Configuration;
 
-use PDO;
-use Twig_Environment;
-use Twig_Loader_Filesystem;
-use Twig_SimpleFilter;
 use Yapeal\Container\ContainerInterface;
 use Yapeal\Exception\YapealDatabaseException;
 
@@ -50,15 +46,14 @@ class SqlWiring implements WiringInterface
      *
      * @return self Fluent interface.
      * @throws \InvalidArgumentException
+     * @throws \LogicException
      * @throws \Yapeal\Exception\YapealDatabaseException
      */
     public function wire(ContainerInterface $dic)
     {
         if (empty($dic['Yapeal.Sql.CommonQueries'])) {
             $dic['Yapeal.Sql.CommonQueries'] = function ($dic) {
-                return new $dic['Yapeal.Sql.sharedSql'](
-                    $dic['Yapeal.Sql.database'], $dic['Yapeal.Sql.tablePrefix']
-                );
+                return new $dic['Yapeal.Sql.sharedSql']($dic['Yapeal.Sql.database'], $dic['Yapeal.Sql.tablePrefix']);
             };
         }
         if (!empty($dic['Yapeal.Sql.Connection'])) {
@@ -69,20 +64,15 @@ class SqlWiring implements WiringInterface
             throw new YapealDatabaseException($mess);
         }
         $dic['Yapeal.Sql.Connection'] = function ($dic) {
-            $dsn = $dic['Yapeal.Sql.platform'] . ':host=' . $dic['Yapeal.Sql.hostName'] . ';charset=utf8';
+            $dsn = $dic['Yapeal.Sql.platform'] . ':host=' . $dic['Yapeal.Sql.hostName'] . ';charset=utf8mb4';
             if (!empty($dic['Yapeal.Sql.port'])) {
                 $dsn .= ';port=' . $dic['Yapeal.Sql.port'];
             }
             /**
-             * @var PDO $database
+             * @var \PDO $database
              */
-            $database = new $dic['Yapeal.Sql.class'](
-                $dsn, $dic['Yapeal.Sql.userName'], $dic['Yapeal.Sql.password']
-            );
-            $database->setAttribute(
-                PDO::ATTR_ERRMODE,
-                PDO::ERRMODE_EXCEPTION
-            );
+            $database = new $dic['Yapeal.Sql.class']($dsn, $dic['Yapeal.Sql.userName'], $dic['Yapeal.Sql.password']);
+            $database->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
             $database->exec('SET SESSION SQL_MODE=\'ANSI,TRADITIONAL\'');
             $database->exec('SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE');
             $database->exec('SET SESSION TIME_ZONE=\'+00:00\'');
@@ -92,43 +82,38 @@ class SqlWiring implements WiringInterface
             return $database;
         };
         if (empty($dic['Yapeal.Sql.Creator'])) {
-            $dic['Yapeal.Sql.Creator'] = $dic->factory(
-                function ($dic) {
-                    $loader = new Twig_Loader_Filesystem($dic['Yapeal.Sql.dir']);
-                    $twig = new Twig_Environment(
-                        $loader, ['debug' => true, 'strict_variables' => true, 'autoescape' => false]
-                    );
-                    $filter = new Twig_SimpleFilter(
-                        'ucFirst', function ($value) {
-                        return ucfirst($value);
-                    }
-                    );
-                    $twig->addFilter($filter);
-                    $filter = new Twig_SimpleFilter(
-                        'lcFirst', function ($value) {
-                        return lcfirst($value);
-                    }
-                    );
-                    $twig->addFilter($filter);
-                    /**
-                     * @var \Yapeal\Sql\Creator $create
-                     */
-                    $create = new $dic['Yapeal.Sql.create']($twig, $dic['Yapeal.Sql.dir'], $dic['Yapeal.Sql.platform']);
-                    if (array_key_exists('Yapeal.Create.overwrite', $dic)) {
-                        $create->setOverwrite($dic['Yapeal.Create.overwrite']);
-                    }
-                    return $create;
+            $dic['Yapeal.Sql.Creator'] = function () use ($dic) {
+                $loader = new \Twig_Loader_Filesystem($dic['Yapeal.Sql.dir']);
+                $twig = new \Twig_Environment($loader,
+                    ['debug' => true, 'strict_variables' => true, 'autoescape' => false]);
+                $filter = new \Twig_SimpleFilter('ucFirst', function ($value) {
+                    return ucfirst($value);
+                });
+                $twig->addFilter($filter);
+                $filter = new \Twig_SimpleFilter('lcFirst', function ($value) {
+                    return lcfirst($value);
+                });
+                $twig->addFilter($filter);
+                /**
+                 * @var \Yapeal\Sql\Creator $create
+                 */
+                $create = new $dic['Yapeal.Sql.create']($twig, $dic['Yapeal.Sql.dir'], $dic['Yapeal.Sql.platform']);
+                if (!empty($dic['Yapeal.Create.overwrite'])) {
+                    $create->setOverwrite($dic['Yapeal.Create.overwrite']);
                 }
-            );
+                return $create;
+            };
+        }
+        if (empty($dic['Yapeal.Event.Mediator'])) {
+            $mess = 'Tried to call Mediator before it has been added';
+            throw new \LogicException($mess);
         }
         /**
          * @var \Yapeal\Event\MediatorInterface $mediator
          */
         $mediator = $dic['Yapeal.Event.Mediator'];
-        $mediator->addServiceSubscriberByEventList(
-            'Yapeal.Sql.Creator',
-            ['Yapeal.EveApi.create' => ['createSql', 'last']]
-        );
+        $mediator->addServiceSubscriberByEventList('Yapeal.Sql.Creator',
+            ['Yapeal.EveApi.create' => ['createSql', 'last']]);
         return $this;
     }
 }
