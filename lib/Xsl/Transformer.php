@@ -33,10 +33,6 @@
  */
 namespace Yapeal\Xsl;
 
-use DOMDocument;
-use SimpleXMLElement;
-use tidy;
-use XSLTProcessor;
 use Yapeal\Event\EveApiEventEmitterTrait;
 use Yapeal\Event\EveApiEventInterface;
 use Yapeal\Event\MediatorInterface;
@@ -74,11 +70,9 @@ class Transformer implements TransformerInterface
         $this->setYem($yem);
         $data = $event->getData();
         $this->getYem()
-            ->triggerLogEvent(
-                'Yapeal.Log.log',
+            ->triggerLogEvent('Yapeal.Log.log',
                 Logger::DEBUG,
-                $this->getReceivedEventMessage($data, $eventName, __CLASS__)
-            );
+                $this->getReceivedEventMessage($data, $eventName, __CLASS__));
         $fileName = $this->findEveApiFile($data->getEveApiSectionName(), $data->getEveApiName(), 'xsl');
         if ('' === $fileName) {
             return $event;
@@ -87,14 +81,12 @@ class Transformer implements TransformerInterface
             ->performTransform($fileName, $data);
         if (false === $xml) {
             $mess = 'Failed to transform xml during';
-            $yem->triggerLogEvent(
-                'Yapeal.Log.log',
+            $yem->triggerLogEvent('Yapeal.Log.log',
                 Logger::WARNING,
-                $this->createEventMessage($mess, $data, $eventName)
-            );
+                $this->createEventMessage($mess, $data, $eventName));
             return $event;
         }
-        $xml = (new tidy())->repairString($xml, $this->tidyConfig, 'utf8');
+        $xml = (new \tidy())->repairString($xml, $this->tidyConfig, 'utf8');
         return $event->setData($data->setEveApiXml($xml))
             ->eventHandled();
     }
@@ -126,14 +118,12 @@ class Transformer implements TransformerInterface
         unset($arguments['mask'], $arguments['rowCount']);
         ksort($arguments);
         $json = json_encode($arguments);
-        $xml = str_replace(
-            ["encoding='UTF-8'?>\r\n<eveapi", "encoding='UTF-8'?>\n<eveapi"],
+        $xml = str_replace(["encoding='UTF-8'?>\r\n<eveapi", "encoding='UTF-8'?>\n<eveapi"],
             [
                 "encoding='UTF-8'?>\r\n<?yapeal.parameters.json " . $json . "?>\r\n<eveapi",
                 "encoding='UTF-8'?>\n<?yapeal.parameters.json " . $json . "?>\n<eveapi"
             ],
-            $xml
-        );
+            $xml);
         $data->setEveApiXml($xml);
         return $this;
     }
@@ -148,24 +138,23 @@ class Transformer implements TransformerInterface
      */
     protected function performTransform($fileName, EveApiReadWriteInterface $data)
     {
-        $xslt = new XSLTProcessor();
-        $oldErrors = libxml_use_internal_errors(true);
         libxml_clear_errors();
-        $dom = new DOMDocument();
+        libxml_use_internal_errors(true);
+        libxml_clear_errors();
+        $xslt = $this->getXslt();
+        $dom = $this->getDom();
         $dom->load($fileName);
         $xslt->importStylesheet($dom);
         $result = false;
         try {
-            $result = $xslt->transformToXml(new SimpleXMLElement($data->getEveApiXml()));
+            $result = $xslt->transformToXml(new \SimpleXMLElement($data->getEveApiXml()));
         } catch (\Exception $exc) {
             $mess = 'XML cause SimpleXMLElement exception in';
             $this->getYem()
-                ->triggerLogEvent(
-                    'Yapeal.log.log',
+                ->triggerLogEvent('Yapeal.log.log',
                     Logger::WARNING,
                     $this->createEveApiMessage($mess, $data),
-                    ['exception' => $exc]
-                );
+                    ['exception' => $exc]);
         }
         if (false === $result) {
             /**
@@ -178,17 +167,47 @@ class Transformer implements TransformerInterface
                         ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $error->message);
                 }
             }
+            $apiName = $data->getEveApiName();
+            $data->setEveApiName('Untransformed_' . $apiName);
+            // Cache error causing XML.
+            $this->emitEvents($data, 'preserve', 'Yapeal.Xml.Error');
+            $data->setEveApiName($apiName);
         }
         libxml_clear_errors();
-        libxml_use_internal_errors($oldErrors);
+        libxml_use_internal_errors(false);
+        libxml_clear_errors();
         return $result;
     }
+    /**
+     * @return \DOMDocument
+     */
+    private function getDom()
+    {
+        if (null === $this->dom) {
+            $this->dom = new \DOMDocument();
+        }
+        return $this->dom;
+    }
+    /**
+     * @return \XSLTProcessor
+     */
+    private function getXslt()
+    {
+        if (null === $this->xslt) {
+            $this->xslt = new \XSLTProcessor();
+        }
+        return $this->xslt;
+    }
+    /**
+     * @var \DOMDocument $dom
+     */
+    private $dom;
     /**
      * Holds tidy config settings.
      *
      * @var array $tidyConfig
      */
-    protected $tidyConfig = [
+    private $tidyConfig = [
         'indent' => true,
         'indent-spaces' => 4,
         'input-xml' => true,
@@ -196,4 +215,8 @@ class Transformer implements TransformerInterface
         'output-xml' => true,
         'wrap' => '1000'
     ];
+    /**
+     * @var \XSLTProcessor $xslt
+     */
+    private $xslt;
 }
