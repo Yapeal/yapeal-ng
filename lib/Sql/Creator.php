@@ -29,9 +29,6 @@
  */
 namespace Yapeal\Sql;
 
-use SimpleXMLElement;
-use SimpleXMLIterator;
-use Twig_Environment;
 use Yapeal\Console\Command\EveApiCreatorTrait;
 use Yapeal\Event\EveApiEventInterface;
 use Yapeal\Event\MediatorInterface;
@@ -48,11 +45,11 @@ class Creator
     /**
      * Creator constructor.
      *
-     * @param Twig_Environment $twig
-     * @param string           $dir
-     * @param string           $platform
+     * @param \Twig_Environment $twig
+     * @param string            $dir
+     * @param string            $platform
      */
-    public function __construct(Twig_Environment $twig, $dir = __DIR__, $platform = 'MySql')
+    public function __construct(\Twig_Environment $twig, $dir = __DIR__, $platform = 'MySql')
     {
         $this->setDir($dir);
         $this->setPlatform($platform);
@@ -74,28 +71,24 @@ class Creator
         $this->setYem($yem);
         $data = $event->getData();
         $this->getYem()
-            ->triggerLogEvent(
-                'Yapeal.Log.log',
+            ->triggerLogEvent('Yapeal.Log.log',
                 Logger::DEBUG,
-                $this->getReceivedEventMessage($data, $eventName, __CLASS__)
-            );
+                $this->getReceivedEventMessage($data, $eventName, __CLASS__));
         // Only work with raw unaltered XML data.
         if (false !== strpos($data->getEveApiXml(), '<?yapeal.parameters.json')) {
             return $event->setHandledSufficiently();
         }
         $this->sectionName = $data->getEveApiSectionName();
         $this->apiName = $data->getEveApiName();
-        $outputFile = sprintf(
-            '%1$s%2$s/Create%3$s.sql',
+        $outputFile = sprintf('%1$s%2$s/Create%3$s.sql',
             $this->getDir(),
             ucfirst($this->sectionName),
-            ucfirst($this->apiName)
-        );
+            ucfirst($this->apiName));
         // Nothing to do if NOT overwriting and file exists.
         if (false === $this->isOverwrite() && is_file($outputFile)) {
             return $event;
         }
-        $sxi = new SimpleXMLIterator($data->getEveApiXml());
+        $sxi = new \SimpleXMLIterator($data->getEveApiXml());
         $this->tables = [];
         $this->processValueOnly($sxi, $this->apiName);
         $this->processRowset($sxi, $this->apiName);
@@ -106,7 +99,6 @@ class Creator
                 ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $this->createEveApiMessage($mess, $data));
         }
         ksort($this->tables);
-//        $tableNames = array_keys($this->tables);
         list($mSec, $sec) = explode(' ', microtime());
         $vars = [
             'className' => lcfirst($this->apiName),
@@ -119,22 +111,18 @@ class Creator
                 ->render($this->getSqlTemplateName($data, $this->getPlatform()), $vars);
         } catch (\Twig_Error $exp) {
             $this->getYem()
-                ->triggerLogEvent(
-                    'Yapeal.Log.log',
+                ->triggerLogEvent('Yapeal.Log.log',
                     Logger::WARNING,
-                    $this->getFailedToWriteFile($data, $eventName, $outputFile)
-                );
+                    $this->getFailedToWriteFile($data, $eventName, $outputFile));
             $this->getYem()
                 ->triggerLogEvent('Yapeal.Log.log', Logger::ERROR, 'Twig error', ['exception' => $exp]);
             return $event;
         }
         if (false === $this->saveToFile($outputFile, $contents)) {
             $this->getYem()
-                ->triggerLogEvent(
-                    $eventName,
+                ->triggerLogEvent($eventName,
                     Logger::WARNING,
-                    $this->getFailedToWriteFile($data, $eventName, $outputFile)
-                );
+                    $this->getFailedToWriteFile($data, $eventName, $outputFile));
             return $event;
         }
         return $event->setHandledSufficiently();
@@ -181,27 +169,22 @@ class Creator
     {
         // Section/Api.Platform.Suffix, Section/Api.Suffix, Section/Platform.Suffix,
         // Api.Platform.Suffix, Api.Suffix, Platform.Suffix, sql.Suffix
-        $names = explode(
-            ',',
-            sprintf(
-                '%1$s/%2$s.%3$s.%4$s,%1$s/%2$s.%4$s,%1$s/%3$s.%4$s,' . '%2$s.%3$s.%4$s,%2$s.%4$s,%3$s.%4$s,sql.%4$s',
+        $names = explode(',',
+            sprintf('%1$s/%2$s.%3$s.%4$s,%1$s/%2$s.%4$s,%1$s/%3$s.%4$s,'
+                . '%2$s.%3$s.%4$s,%2$s.%4$s,%3$s.%4$s,sql.%4$s',
                 ucfirst($data->getEveApiSectionName()),
                 $data->getEveApiName(),
                 $platform,
-                $suffix
-            )
-        );
+                $suffix));
         foreach ($names as $fileName) {
             if (is_file($this->getDir() . $fileName)) {
                 return $fileName;
             }
         }
-        $mess = sprintf(
-            'Failed to find usable sql template file for EveApi %1$s/%2$s with platform of %3$s',
+        $mess = sprintf('Failed to find usable sql template file for EveApi %1$s/%2$s with platform of %3$s',
             ucfirst($data->getEveApiSectionName()),
             $data->getEveApiName(),
-            $platform
-        );
+            $platform);
         throw new YapealException($mess);
     }
     /**
@@ -216,7 +199,7 @@ class Creator
     /**
      * Used to infer(choose) type from element or attribute's name.
      *
-     * @param string $name     Name of the element or attribute.
+     * @param string $name Name of the element or attribute.
      * @param bool   $forValue Determines if returned type is going to be used for element or an attribute.
      *
      * @return string Returns the inferred type from the name.
@@ -253,11 +236,11 @@ class Creator
         return $forValue ? 'TEXT NOT NULL' : 'VARCHAR(255) DEFAULT \'\'';
     }
     /**
-     * @param SimpleXMLIterator $sxi
-     * @param string            $apiName
-     * @param string            $xPath
+     * @param \SimpleXMLIterator $sxi
+     * @param string             $apiName
+     * @param string             $xPath
      */
-    protected function processRowset(SimpleXMLIterator $sxi, $apiName, $xPath = '//result/rowset')
+    protected function processRowset(\SimpleXMLIterator $sxi, $apiName, $xPath = '//result/rowset')
     {
         $items = $sxi->xpath($xPath);
         if (0 === count($items)) {
@@ -277,16 +260,17 @@ class Creator
             if ($this->hasOwner()) {
                 $columns['ownerID'] = 'BIGINT(20) UNSIGNED NOT NULL';
             }
-            uksort($columns, function ($alpha, $beta) {
-                $alpha = strtolower($alpha);
-                $beta = strtolower($beta);
-                if ($alpha < $beta) {
-                    return -1;
-                } elseif ($alpha > $beta) {
-                    return 1;
-                }
-                return 0;
-            });
+            uksort($columns,
+                function ($alpha, $beta) {
+                    $alpha = strtolower($alpha);
+                    $beta = strtolower($beta);
+                    if ($alpha < $beta) {
+                        return -1;
+                    } elseif ($alpha > $beta) {
+                        return 1;
+                    }
+                    return 0;
+                });
             if (0 === count($this->tables)) {
                 $this->tables[$apiName] = ['columns' => $columns, 'keys' => $this->getSqlKeys($keyNames)];
             } else {
@@ -295,12 +279,12 @@ class Creator
         }
     }
     /**
-     * @param SimpleXMLIterator $sxi
-     * @param string            $tableName
-     * @param string            $xpath
+     * @param \SimpleXMLIterator $sxi
+     * @param string             $tableName
+     * @param string             $xpath
      */
     protected function processValueOnly(
-        SimpleXMLIterator $sxi,
+        \SimpleXMLIterator $sxi,
         $tableName,
         $xpath = '//result/child::*[not(*|@*|self::dataTime)]'
     ) {
@@ -310,7 +294,7 @@ class Creator
         }
         $columns = [];
         /**
-         * @var SimpleXMLElement $ele
+         * @var \SimpleXMLElement $ele
          */
         foreach ($items as $ele) {
             $name = (string)$ele->getName();
@@ -319,16 +303,17 @@ class Creator
         if ($this->hasOwner()) {
             $columns['ownerID'] = 'BIGINT(20) UNSIGNED NOT NULL';
         }
-        uksort($columns, function ($alpha, $beta) {
-            $alpha = strtolower($alpha);
-            $beta = strtolower($beta);
-            if ($alpha < $beta) {
-                return -1;
-            } elseif ($alpha > $beta) {
-                return 1;
-            }
-            return 0;
-        });
+        uksort($columns,
+            function ($alpha, $beta) {
+                $alpha = strtolower($alpha);
+                $beta = strtolower($beta);
+                if ($alpha < $beta) {
+                    return -1;
+                } elseif ($alpha > $beta) {
+                    return 1;
+                }
+                return 0;
+            });
         $keys = $this->getSqlKeys();
         if (0 !== count($keys)) {
             $this->tables[$tableName] = ['columns' => $columns, 'keys' => $keys];

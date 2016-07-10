@@ -33,9 +33,6 @@
  */
 namespace Yapeal\EveApi;
 
-use SimpleXMLElement;
-use SimpleXMLIterator;
-use Twig_Environment;
 use Yapeal\Console\Command\EveApiCreatorTrait;
 use Yapeal\Event\EveApiEventInterface;
 use Yapeal\Event\MediatorInterface;
@@ -50,10 +47,10 @@ class Creator
     /**
      * Creator constructor.
      *
-     * @param Twig_Environment $twig
+     * @param \Twig_Environment $twig
      * @param string           $dir
      */
-    public function __construct(Twig_Environment $twig, $dir = __DIR__)
+    public function __construct(\Twig_Environment $twig, $dir = __DIR__)
     {
         $this->setDir($dir);
         $this->setTwig($twig);
@@ -93,7 +90,7 @@ class Creator
             return $event;
         }
         $this->sectionName = $data->getEveApiSectionName();
-        $sxi = new SimpleXMLIterator($data->getEveApiXml());
+        $sxi = new \SimpleXMLIterator($data->getEveApiXml());
         $this->tables = [];
         $this->processValueOnly($sxi, $data->getEveApiName());
         $this->processRowset($sxi, $data->getEveApiName());
@@ -183,13 +180,11 @@ class Creator
         return $column;
     }
     /**
-     * @param SimpleXMLIterator $sxi
+     * @param \SimpleXMLIterator $sxi
      * @param string            $apiName
      * @param string            $xPath
-     *
-     * @return array
      */
-    protected function processRowset(SimpleXMLIterator $sxi, $apiName, $xPath = '//result/rowset')
+    protected function processRowset(\SimpleXMLIterator $sxi, $apiName, $xPath = '//result/rowset')
     {
         $items = $sxi->xpath($xPath);
         if (0 === count($items)) {
@@ -227,12 +222,12 @@ class Creator
         }
     }
     /**
-     * @param SimpleXMLIterator $sxi
+     * @param \SimpleXMLIterator $sxi
      * @param string            $tableName
      * @param string            $xpath
      */
     protected function processValueOnly(
-        SimpleXMLIterator $sxi,
+        \SimpleXMLIterator $sxi,
         $tableName,
         $xpath = '//result/child::*[not(*|@*|self::dataTime)]'
     ) {
@@ -242,7 +237,7 @@ class Creator
         }
         $values = [];
         /**
-         * @var SimpleXMLElement $ele
+         * @var \SimpleXMLElement $ele
          */
         foreach ($items as $ele) {
             $name = (string)$ele->getName();
