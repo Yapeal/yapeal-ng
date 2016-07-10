@@ -35,7 +35,6 @@ namespace Yapeal\Network;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
-use LogicException;
 use Yapeal\Event\EveApiEventEmitterTrait;
 use Yapeal\Event\EveApiEventInterface;
 use Yapeal\Event\MediatorInterface;
@@ -63,39 +62,35 @@ class GuzzleNetworkRetriever implements EveApiRetrieverInterface
      * @param string               $eventName
      * @param MediatorInterface    $yem
      *
-     * @return EveApiEventInterface
-     * @throws LogicException
+     * @return \Yapeal\Event\EveApiEventInterface
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
      */
     public function retrieveEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
     {
         $data = $event->getData();
-        $yem->triggerLogEvent(
-            'Yapeal.Log.log',
+        $yem->triggerLogEvent('Yapeal.Log.log',
             Logger::DEBUG,
-            $this->getReceivedEventMessage($data, $eventName, __CLASS__)
-        );
+            $this->getReceivedEventMessage($data, $eventName, __CLASS__));
         $uri = sprintf('/%1$s/%2$s.xml.aspx', strtolower($data->getEveApiSectionName()), $data->getEveApiName());
         try {
             $response = $this->getClient()
                 ->post($uri, ['form_params' => $data->getEveApiArguments()]);
         } catch (RequestException $exc) {
             $messagePrefix = 'Could NOT retrieve XML data during';
-            $yem->triggerLogEvent(
-                'Yapeal.Log.log',
+            $yem->triggerLogEvent('Yapeal.Log.log',
                 Logger::DEBUG,
                 $this->createEventMessage($messagePrefix, $data, $eventName),
-                ['exception' => $exc]
-            );
+                ['exception' => $exc]);
             return $event;
         }
         $body = (string)$response->getBody();
         if ('' === $body) {
             $messagePrefix = 'Received empty body during';
-            $yem->triggerLogEvent(
-                'Yapeal.Log.log',
+            $yem->triggerLogEvent('Yapeal.Log.log',
                 Logger::NOTICE,
-                $this->createEventMessage($messagePrefix, $data, $eventName)
-            );
+                $this->createEventMessage($messagePrefix, $data, $eventName));
         }
         $data->setEveApiXml($body);
         $yem->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->getFinishedEventMessage($data, $eventName));
@@ -114,13 +109,13 @@ class GuzzleNetworkRetriever implements EveApiRetrieverInterface
     }
     /**
      * @return Client
-     * @throws LogicException
+     * @throws \LogicException
      */
     protected function getClient()
     {
         if (null === $this->client) {
             $mess = 'Tried to use client before it was set';
-            throw new LogicException($mess);
+            throw new \LogicException($mess);
         }
         return $this->client;
     }
