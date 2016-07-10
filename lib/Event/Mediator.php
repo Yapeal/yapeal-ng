@@ -33,7 +33,9 @@
  */
 namespace Yapeal\Event;
 
-use EventMediator\PimpleContainerMediator;
+use EventMediator\AbstractContainerMediator;
+use Yapeal\Container\ContainerInterface;
+use Yapeal\Container\PimpleContainer;
 use Yapeal\Log\Logger;
 use Yapeal\Xml\EveApiReadWriteInterface;
 
@@ -41,8 +43,46 @@ use Yapeal\Xml\EveApiReadWriteInterface;
 /**
  * Class Mediator
  */
-class Mediator extends PimpleContainerMediator implements MediatorInterface
+class Mediator extends AbstractContainerMediator implements MediatorInterface
 {
+    /**
+     * @param ContainerInterface|null $serviceContainer
+     *
+     * @throws \InvalidArgumentException
+     * @throws \RuntimeException
+     */
+    public function __construct(ContainerInterface $serviceContainer = null)
+    {
+        $this->setServiceContainer($serviceContainer);
+    }
+    /**
+     * This is used to bring in the service container that will be used.
+     *
+     * Though not required it would be considered best practice for this method
+     * to create a new instance of the container when given null. Another good
+     * practice is to call this method from the class constructor to allow
+     * easier testing.
+     *
+     * @param ContainerInterface|null $value
+     *
+     * @return $this Fluent interface.
+     * @throws \InvalidArgumentException
+     * @throws \RuntimeException
+     *
+     * @link http://pimple.sensiolabs.org/ Pimple
+     */
+    public function setServiceContainer($value = null)
+    {
+        if (null === $value) {
+            $value = new PimpleContainer();
+        }
+        if (!$value instanceof ContainerInterface) {
+            $mess = sprintf('Must be an instance of ContainerInterface but was given %s',
+                gettype($value));
+            throw new \InvalidArgumentException($mess);
+        }
+        $this->serviceContainer = $value;
+    }
     /**
      * @param string                   $eventName
      * @param EveApiReadWriteInterface $data
@@ -89,5 +129,21 @@ class Mediator extends PimpleContainerMediator implements MediatorInterface
             ->setMessage($message)
             ->setContext($context);
         return $this->trigger($eventName, $event);
+    }
+    /**
+     * This method is used any time the mediator need to get the actual instance
+     * of the class for an event.
+     *
+     * Normal will only be called during actual trigger of an event since lazy
+     * loading is used.
+     *
+     * @param string $serviceName
+     *
+     * @return array
+     * @throws \LogicException
+     */
+    protected function getServiceByName($serviceName)
+    {
+        return $this->getServiceContainer()[$serviceName];
     }
 }

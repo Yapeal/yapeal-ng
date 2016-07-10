@@ -33,8 +33,6 @@
  */
 namespace Yapeal\Event;
 
-use EventMediator\ContainerMediatorInterface;
-use LogicException;
 use Yapeal\Log\Logger;
 use Yapeal\Log\MessageBuilderTrait;
 use Yapeal\Xml\EveApiReadWriteInterface;
@@ -73,77 +71,70 @@ trait EveApiEventEmitterTrait
      */
     protected function emitEvents(EveApiReadWriteInterface $data, $eventSuffix, $eventPrefix = 'Yapeal.EveApi')
     {
+        $yem = $this->getYem();
         // Prefix.Section.Api.Suffix, Prefix.Api.Suffix,
         // Prefix.Section.Suffix, Prefix.Suffix
         /**
          * @var string[] $eventNames
          */
-        $eventNames = explode(
-            ',',
-            sprintf(
-                '%3$s.%1$s.%2$s.%4$s,%3$s.%2$s.%4$s,%3$s.%1$s.%4$s,%3$s.%4$s',
+        $eventNames = explode(',',
+            sprintf('%3$s.%1$s.%2$s.%4$s,%3$s.%2$s.%4$s,%3$s.%1$s.%4$s,%3$s.%4$s',
                 ucfirst($data->getEveApiSectionName()),
                 $data->getEveApiName(),
                 $eventPrefix,
-                $eventSuffix
-            )
-        );
+                $eventSuffix));
         $event = null;
         /**
          * @var bool $sufficientlyHandled
          */
         $sufficientlyHandled = false;
         foreach ($eventNames as $eventName) {
-            $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->getEmittingEventMessage($data, $eventName));
-            $event = $this->getYem()
-                ->triggerEveApiEvent($eventName, $data);
+            $yem->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->getEmittingEventMessage($data, $eventName));
+            $event = $yem->triggerEveApiEvent($eventName, $data);
             $data = $event->getData();
             if ($event->hasBeenHandled()) {
-                $this->getYem()
-                    ->triggerLogEvent(
-                        'Yapeal.Log.log',
-                        Logger::INFO,
-                        $this->getWasHandledEventMessage($data, $eventName)
-                    );
+                $yem->triggerLogEvent('Yapeal.Log.log',
+                    Logger::INFO,
+                    $this->getWasHandledEventMessage($data, $eventName));
                 $sufficientlyHandled = true;
                 break;
             }
             if ($event->isSufficientlyHandled()) {
-                $this->getYem()
-                    ->triggerLogEvent(
-                        'Yapeal.Log.log',
-                        Logger::INFO,
-                        $this->getSufficientlyHandledEventMessage($data, $eventName)
-                    );
+                $yem->triggerLogEvent('Yapeal.Log.log',
+                    Logger::INFO,
+                    $this->getSufficientlyHandledEventMessage($data, $eventName));
                 $sufficientlyHandled = true;
             }
         }
         if (null === $event || false === $sufficientlyHandled) {
-            $this->getYem()
-                ->triggerLogEvent(
-                    'Yapeal.Log.log',
-                    Logger::NOTICE,
-                    $this->getNonHandledEventMessage($data, $eventSuffix)
-                );
+            $yem->triggerLogEvent('Yapeal.Log.log',
+                Logger::NOTICE,
+                $this->getNonHandledEventMessage($data, $eventSuffix));
             return false;
         }
         return true;
     }
     /**
      * @return MediatorInterface
-     * @throws LogicException
+     * @throws \LogicException
      */
     protected function getYem()
     {
-        if (!$this->yem instanceof ContainerMediatorInterface) {
+        if (null === $this->yem || !$this->yem instanceof MediatorInterface) {
             $mess = 'Tried to use yem before it was set';
-            throw new LogicException($mess);
+            throw new \LogicException($mess);
         }
         return $this->yem;
     }
     /**
+     * @return bool
+     */
+    protected function hasYem()
+    {
+        return null !== $this->yem;
+    }
+    /**
      * @var MediatorInterface $yem
      */
-    protected $yem;
+    private $yem;
 }
