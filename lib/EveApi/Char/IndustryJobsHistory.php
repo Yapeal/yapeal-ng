@@ -62,7 +62,8 @@ class IndustryJobsHistory extends CharSection
      */
     protected function preserveToIndustryJobsHistory(EveApiReadWriteInterface $data)
     {
-        $tableName = 'charIndustryJobsHistory';
+        // Shared table.
+        $tableName = 'charIndustryJobs';
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
         $sql = $this->getCsq()
             ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
@@ -77,9 +78,9 @@ class IndustryJobsHistory extends CharSection
             'blueprintTypeID' => null,
             'blueprintTypeName' => '',
             'completedCharacterID' => null,
-            'completedDate' => '1970-01-01 00:00:01',
+            'completedDate' => null,
             'cost' => null,
-            'endDate' => '1970-01-01 00:00:01',
+            'endDate' => null,
             'facilityID' => null,
             'installerID' => null,
             'installerName' => '',
@@ -87,19 +88,19 @@ class IndustryJobsHistory extends CharSection
             'licensedRuns' => null,
             'outputLocationID' => null,
             'ownerID' => $ownerID,
-            'pauseDate' => '1970-01-01 00:00:01',
+            'pauseDate' => null,
             'probability' => null,
             'productTypeID' => null,
             'productTypeName' => '',
             'runs' => null,
             'solarSystemID' => null,
             'solarSystemName' => '',
-            'startDate' => '1970-01-01 00:00:01',
+            'startDate' => null,
             'stationID' => null,
             'status' => null,
             'successfulRuns' => null,
             'teamID' => null,
-            'timeInSeconds' => '1970-01-01 00:00:01'
+            'timeInSeconds' => null
         ];
         $xPath = '//jobs/row';
         $elements = (new \SimpleXMLElement($data->getEveApiXml()))->xpath($xPath);

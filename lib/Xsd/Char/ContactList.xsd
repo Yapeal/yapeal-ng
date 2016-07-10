@@ -1,16 +1,22 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Xsd/Char/ContactList.xsd
+<?xml version="1.0" encoding="utf-8"?><!-- Xsd/Char/ContactList.xsd
 version 20160629053416.238 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified"
-           elementFormDefault="qualified">
+    elementFormDefault="qualified">
     <xs:include schemaLocation="../common.xsd"/>
     <xs:complexType name="contactLabelsType">
-        <xs:simpleContent>
-            <xs:extension base="xs:string">
-                <xs:attribute use="required" type="eveIDType" name="labelID"/>
-                <xs:attribute use="required" type="eveNameType" name="name"/>
-            </xs:extension>
-        </xs:simpleContent>
+        <xs:sequence>
+            <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="xs:string">
+                            <xs:attribute use="required" type="eveIDType" name="labelID"/>
+                            <xs:attribute use="required" type="eveNameType" name="name"/>
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attributeGroup ref="rowsetAttrs"/>
     </xs:complexType>
     <xs:complexType name="contactListType">
         <xs:sequence>

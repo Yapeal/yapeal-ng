@@ -29,10 +29,6 @@
  */
 namespace Yapeal\Xsd;
 
-use SimpleXMLElement;
-use SimpleXMLIterator;
-use tidy;
-use Twig_Environment;
 use Yapeal\Console\Command\EveApiCreatorTrait;
 use Yapeal\Event\EveApiEventInterface;
 use Yapeal\Event\MediatorInterface;
@@ -47,10 +43,10 @@ class Creator
     /**
      * Creator constructor.
      *
-     * @param Twig_Environment $twig
-     * @param string           $dir
+     * @param \Twig_Environment $twig
+     * @param string            $dir
      */
-    public function __construct(Twig_Environment $twig, $dir = __DIR__)
+    public function __construct(\Twig_Environment $twig, $dir = __DIR__)
     {
         $this->setDir($dir);
         $this->setTwig($twig);
@@ -70,21 +66,17 @@ class Creator
         $this->setYem($yem);
         $data = $event->getData();
         $this->getYem()
-            ->triggerLogEvent(
-                'Yapeal.Log.log',
+            ->triggerLogEvent('Yapeal.Log.log',
                 Logger::DEBUG,
-                $this->getReceivedEventMessage($data, $eventName, __CLASS__)
-            );
+                $this->getReceivedEventMessage($data, $eventName, __CLASS__));
         // Only work with raw unaltered XML data.
         if (false !== strpos($data->getEveApiXml(), '<?yapeal.parameters.json')) {
             return $event->setHandledSufficiently();
         }
-        $outputFile = sprintf(
-            '%1$s%2$s/%3$s.xsd',
+        $outputFile = sprintf('%1$s%2$s/%3$s.xsd',
             $this->getDir(),
             $data->getEveApiSectionName(),
-            $data->getEveApiName()
-        );
+            $data->getEveApiName());
         // Nothing to do if NOT overwriting and file exists.
         if (false === $this->isOverwrite() && is_file($outputFile)) {
             return $event;
@@ -94,7 +86,7 @@ class Creator
         if (false === $xml) {
             return $event->setHandledSufficiently();
         }
-        $sxi = new SimpleXMLIterator($xml);
+        $sxi = new \SimpleXMLIterator($xml);
         $this->tables = [];
         $this->processValueOnly($sxi, lcfirst($data->getEveApiName()));
         $this->processRowset($sxi);
@@ -112,29 +104,18 @@ class Creator
             $this->getYem()
                 ->triggerLogEvent('Yapeal.Log.log', Logger::ERROR, 'Twig error', ['exception' => $exc]);
             $this->getYem()
-                ->triggerLogEvent(
-                    'Yapeal.Log.log',
+                ->triggerLogEvent('Yapeal.Log.log',
                     Logger::WARNING,
-                    $this->getFailedToWriteFile($data, $eventName, $outputFile)
-                );
+                    $this->getFailedToWriteFile($data, $eventName, $outputFile));
             return $event;
         }
-        $tidyConfig = [
-            'indent' => true,
-            'indent-spaces' => 4,
-            'input-xml' => true,
-            'newline' => 'LF',
-            'output-xml' => true,
-            'wrap' => '120'
-        ];
-        $contents = (new tidy())->repairString($contents, $tidyConfig, 'utf8');
+        $contents = $this->getTidy()
+            ->repairString($contents);
         if (false === $this->saveToFile($outputFile, $contents)) {
             $this->getYem()
-                ->triggerLogEvent(
-                    $eventName,
+                ->triggerLogEvent($eventName,
                     Logger::WARNING,
-                    $this->getFailedToWriteFile($data, $eventName, $outputFile)
-                );
+                    $this->getFailedToWriteFile($data, $eventName, $outputFile));
             return $event;
         }
         return $event->setHandledSufficiently();
@@ -173,10 +154,10 @@ class Creator
         return $forValue ? 'xs:string' : 'xs:token';
     }
     /**
-     * @param SimpleXMLIterator $sxi
-     * @param string            $xpath
+     * @param \SimpleXMLIterator $sxi
+     * @param string             $xpath
      */
-    protected function processRowset(SimpleXMLIterator $sxi, $xpath = '//result/rowset')
+    protected function processRowset(\SimpleXMLIterator $sxi, $xpath = '//result/rowset')
     {
         $items = $sxi->xpath($xpath);
         if (0 === count($items)) {
@@ -200,7 +181,21 @@ class Creator
             foreach ($colNames as $colName) {
                 $columns[$colName] = $this->inferTypeFromName($colName);
             }
-            uksort($columns, function ($alpha, $beta) {
+            uksort($columns,
+                function ($alpha, $beta) {
+                    $alpha = strtolower($alpha);
+                    $beta = strtolower($beta);
+                    if ($alpha < $beta) {
+                        return -1;
+                    } elseif ($alpha > $beta) {
+                        return 1;
+                    }
+                    return 0;
+                });
+            $tables[$tableName] = ['attributes' => $columns];
+        }
+        uksort($tables,
+            function ($alpha, $beta) {
                 $alpha = strtolower($alpha);
                 $beta = strtolower($beta);
                 if ($alpha < $beta) {
@@ -210,30 +205,16 @@ class Creator
                 }
                 return 0;
             });
-            $tables[$tableName] = ['attributes' => $columns];
-        }
-        uksort($tables, function ($alpha, $beta) {
-            $alpha = strtolower($alpha);
-            $beta = strtolower($beta);
-            if ($alpha < $beta) {
-                return -1;
-            } elseif ($alpha > $beta) {
-                return 1;
-            }
-            return 0;
-        });
         $this->tables = array_merge($this->tables, $tables);
     }
     /**
-     * @param SimpleXMLIterator $sxi
+     * @param \SimpleXMLIterator $sxi
      *
-     * @param string            $tableName
-     * @param string            $xpath
-     *
-     * @return array
+     * @param string             $tableName
+     * @param string             $xpath
      */
     protected function processValueOnly(
-        SimpleXMLIterator $sxi,
+        \SimpleXMLIterator $sxi,
         $tableName,
         $xpath = '//result/child::*[not(*|@*|self::dataTime)]'
     ) {
@@ -243,22 +224,23 @@ class Creator
         }
         $columns = [];
         /**
-         * @var SimpleXMLElement $ele
+         * @var \SimpleXMLElement $ele
          */
         foreach ($items as $ele) {
             $name = (string)$ele->getName();
             $columns[$name] = $this->inferTypeFromName($name, true);
         }
-        uksort($columns, function ($alpha, $beta) {
-            $alpha = strtolower($alpha);
-            $beta = strtolower($beta);
-            if ($alpha < $beta) {
-                return -1;
-            } elseif ($alpha > $beta) {
-                return 1;
-            }
-            return 0;
-        });
+        uksort($columns,
+            function ($alpha, $beta) {
+                $alpha = strtolower($alpha);
+                $beta = strtolower($beta);
+                if ($alpha < $beta) {
+                    return -1;
+                } elseif ($alpha > $beta) {
+                    return 1;
+                }
+                return 0;
+            });
         $this->tables[$tableName] = ['values' => $columns];
     }
     /**
@@ -269,4 +251,26 @@ class Creator
      * @var array $tables
      */
     protected $tables;
+    /**
+     * @return \tidy
+     */
+    private function getTidy()
+    {
+        if (null === $this->tidy) {
+            $tidyConfig = [
+                'indent' => true,
+                'indent-spaces' => 4,
+                'input-xml' => true,
+                'newline' => 'LF',
+                'output-xml' => true,
+                'wrap' => '120'
+            ];
+            $this->tidy = new \tidy(null, $tidyConfig, 'utf8');
+        }
+        return $this->tidy;
+    }
+    /**
+     * @var \tidy $tidy
+     */
+    private $tidy;
 }

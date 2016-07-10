@@ -33,6 +33,8 @@
  */
 namespace Yapeal\EveApi\Char;
 
+use Yapeal\Event\EveApiEventInterface;
+use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
 use Yapeal\Xml\EveApiReadWriteInterface;
@@ -43,6 +45,7 @@ use Yapeal\Xml\EveApiReadWriteInterface;
 class IndustryJobs extends CharSection
 {
     use PreserverTrait;
+
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -53,6 +56,28 @@ class IndustryJobs extends CharSection
         $this->preserveTos = [
             'preserveToIndustryJobs'
         ];
+    }
+    /**
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
+     *
+     * @return EveApiEventInterface
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
+     * @throws \Yapeal\Exception\YapealDatabaseException
+     */
+    public function startEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
+    {
+        if (!$this->hasYem()) {
+            $this->setYem($yem);
+        }
+        $data = $event->getData();
+        $data->setEveApiName($data->getEveApiName() . 'History');
+        // Insure history has already been updated first so current data overwrites old data.
+        $this->emitEvents($data, 'start');
+        return parent::startEveApi($event, $eventName, $yem);
     }
     /**
      * @param EveApiReadWriteInterface $data
@@ -77,9 +102,9 @@ class IndustryJobs extends CharSection
             'blueprintTypeID' => null,
             'blueprintTypeName' => '',
             'completedCharacterID' => null,
-            'completedDate' => '1970-01-01 00:00:01',
+            'completedDate' => null,
             'cost' => null,
-            'endDate' => '1970-01-01 00:00:01',
+            'endDate' => null,
             'facilityID' => null,
             'installerID' => null,
             'installerName' => '',
@@ -87,19 +112,19 @@ class IndustryJobs extends CharSection
             'licensedRuns' => null,
             'outputLocationID' => null,
             'ownerID' => $ownerID,
-            'pauseDate' => '1970-01-01 00:00:01',
+            'pauseDate' => null,
             'probability' => null,
             'productTypeID' => null,
             'productTypeName' => '',
             'runs' => null,
             'solarSystemID' => null,
             'solarSystemName' => '',
-            'startDate' => '1970-01-01 00:00:01',
+            'startDate' => null,
             'stationID' => null,
             'status' => null,
             'successfulRuns' => null,
             'teamID' => null,
-            'timeInSeconds' => '1970-01-01 00:00:01'
+            'timeInSeconds' => null
         ];
         $xPath = '//jobs/row';
         $elements = (new \SimpleXMLElement($data->getEveApiXml()))->xpath($xPath);

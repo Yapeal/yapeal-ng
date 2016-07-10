@@ -35,14 +35,16 @@ namespace Yapeal\EveApi\Account;
 
 use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
+use Yapeal\Xml\EveApiPreserverInterface;
 use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
  * Class AccountStatus
  */
-class AccountStatus extends AccountSection
+class AccountStatus extends AccountSection implements EveApiPreserverInterface
 {
     use PreserverTrait;
+
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -52,7 +54,8 @@ class AccountStatus extends AccountSection
         $this->mask = 33554432;
         $this->preserveTos = [
             'preserveToAccountStatus',
-            'preserveToMultiCharacterTraining'
+            'preserveToMultiCharacterTraining',
+            'preserveToOffers'
         ];
     }
     /**
@@ -104,6 +107,35 @@ class AccountStatus extends AccountSection
             'trainingEnd' => null
         ];
         $xPath = '//multiCharacterTraining/row';
+        $elements = (new \SimpleXMLElement($data->getEveApiXml()))->xpath($xPath);
+        $this->attributePreserveData($elements, $columnDefaults, $tableName);
+        return $this;
+    }
+    /**
+     * @param EveApiReadWriteInterface $data
+     *
+     * @return self Fluent interface.
+     * @throws \LogicException
+     */
+    protected function preserveToOffers(EveApiReadWriteInterface $data)
+    {
+        $tableName = 'accountOffers';
+        $ownerID = $this->extractOwnerID($data->getEveApiArguments());
+        $sql = $this->getCsq()
+            ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
+        $this->getYem()
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
+        $this->getPdo()
+            ->exec($sql);
+        $columnDefaults = [
+            'keyID' => $ownerID,
+            'offerID' => null,
+            'offeredDate' => null,
+            'from' => null,
+            'to' => null,
+            'ISK' => null
+        ];
+        $xPath = '//Offers/row';
         $elements = (new \SimpleXMLElement($data->getEveApiXml()))->xpath($xPath);
         $this->attributePreserveData($elements, $columnDefaults, $tableName);
         return $this;

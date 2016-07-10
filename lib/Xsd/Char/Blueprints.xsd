@@ -17,7 +17,7 @@ elementFormDefault="qualified">
                                         <xs:attribute use="required" type="eveIDType" name="itemID" />
                                         <xs:attribute use="required" type="eveIDType" name="locationID" />
                                         <xs:attribute use="required" type="xs:short" name="materialEfficiency" />
-                                        <xs:attribute use="required" type="xs:unsignedLong" name="quantity" />
+                                        <xs:attribute use="required" type="xs:long" name="quantity" />
                                         <xs:attribute use="required" type="xs:long" name="runs" />
                                         <xs:attribute use="required" type="xs:short" name="timeEfficiency" />
                                         <xs:attribute use="required" type="eveIDType" name="typeID" />

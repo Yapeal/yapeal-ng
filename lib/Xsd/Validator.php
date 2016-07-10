@@ -33,7 +33,6 @@
  */
 namespace Yapeal\Xsd;
 
-use DOMDocument;
 use Yapeal\Event\EveApiEventEmitterTrait;
 use Yapeal\Event\EveApiEventInterface;
 use Yapeal\Event\MediatorInterface;
@@ -69,12 +68,20 @@ class Validator
     {
         $this->setYem($yem);
         $data = $event->getData();
-        $this->getYem()
-            ->triggerLogEvent(
-                'Yapeal.Log.log',
-                Logger::DEBUG,
-                $this->getReceivedEventMessage($data, $eventName, __CLASS__)
-            );
+        $yem->triggerLogEvent('Yapeal.Log.log',
+            Logger::DEBUG,
+            $this->getReceivedEventMessage($data, $eventName, __CLASS__));
+        $htmlError = strpos($data->getEveApiXml(), '<!DOCTYPE html');
+        if (false !== $htmlError) {
+            $mess = 'Received HTML result from ';
+            $yem->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $this->createEveApiMessage($mess, $data));
+            $apiName = $data->getEveApiName();
+            $data->setEveApiName('Invalid_' . $apiName);
+            // Cache error html.
+            $this->emitEvents($data, 'preserve', 'Yapeal.Xml.Error');
+            $data->setEveApiName($apiName);
+            return $event->setData($data);
+        }
         $fileName = $this->findEveApiFile($data->getEveApiSectionName(), $data->getEveApiName(), 'xsd');
         if ('' === $fileName) {
             return $event;
@@ -82,9 +89,9 @@ class Validator
         libxml_clear_errors();
         libxml_use_internal_errors(true);
         libxml_clear_errors();
-        $dom = new DOMDocument();
-        $dom->loadXML($data->getEveApiXml());
-        if (!$dom->schemaValidate($fileName)) {
+        $dom = new \DOMDocument();
+        $loaded = $dom->loadXML($data->getEveApiXml());
+        if (!$loaded || !$dom->schemaValidate($fileName)) {
             /**
              * @var array $errors
              */
@@ -100,8 +107,8 @@ class Validator
             libxml_clear_errors();
             $apiName = $data->getEveApiName();
             $data->setEveApiName('Invalid_' . $apiName);
-            // Cache error XML.
-            $this->emitEvents($data, 'cache');
+            // Cache error causing XML.
+            $this->emitEvents($data, 'preserve', 'Yapeal.Xml.Error');
             $data->setEveApiName($apiName);
             return $event->setData($data);
         }
@@ -110,9 +117,23 @@ class Validator
         libxml_clear_errors();
         // Check for XML error element.
         if (false !== strpos($data->getEveApiXml(), '<error ')) {
-            $this->emitEvents($data, 'error', 'Yapeal.Xml');
+            $this->emitEvents($data, 'start', 'Yapeal.Xml.Error');
             return $event->setData($data);
         }
         return $event->setHandledSufficiently();
     }
+    /**
+     * @return \DOMDocument
+     */
+    private function getDom()
+    {
+        if (null === $this->getDom()) {
+            $this->dom = new \DOMDocument();
+        }
+        return $this->dom;
+    }
+    /**
+     * @var \DOMDocument $dom
+     */
+    private $dom;
 }

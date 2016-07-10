@@ -34,12 +34,13 @@
 namespace Yapeal\EveApi\Account;
 
 use Yapeal\Sql\PreserverTrait;
+use Yapeal\Xml\EveApiPreserverInterface;
 use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
  * Class APIKeyInfo
  */
-class APIKeyInfo extends AccountSection
+class APIKeyInfo extends AccountSection implements EveApiPreserverInterface
 {
     use PreserverTrait;
 
