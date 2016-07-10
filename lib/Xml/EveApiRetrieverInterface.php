@@ -50,9 +50,5 @@ interface EveApiRetrieverInterface
      * @return EveApiEventInterface
      * @throws \LogicException
      */
-    public function retrieveEveApi(
-        EveApiEventInterface $event,
-        $eventName,
-        MediatorInterface $yem
-    );
+    public function retrieveEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem);
 }

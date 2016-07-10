@@ -33,6 +33,9 @@
  */
 namespace Yapeal\Xml;
 
+use Yapeal\Event\EveApiEventInterface;
+use Yapeal\Event\MediatorInterface;
+
 /**
  * Common interface for any class that would preserve (save / cache) the Eve Api
  * data in some way.
@@ -40,9 +43,12 @@ namespace Yapeal\Xml;
 interface EveApiPreserverInterface
 {
     /**
-     * @param EveApiReadWriteInterface $data
+     * @param EveApiEventInterface $event
+     * @param string               $eventName
+     * @param MediatorInterface    $yem
      *
-     * @return self Fluent interface.
+     * @return EveApiEventInterface
+     *
      */
-    public function preserveEveApi(EveApiReadWriteInterface $data);
+    public function preserveEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem);
 }
