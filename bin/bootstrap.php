@@ -36,7 +36,7 @@ namespace Yapeal;
 /*
  * Find Composer auto loader after striping away any vendor path.
  */
-$path = dirname(__DIR__);
+$path = str_replace('\\', '/', dirname(__DIR__));
 $vendorPos = strpos($path, 'vendor/');
 if (false !== $vendorPos) {
     $path = substr($path, 0, $vendorPos);
@@ -49,9 +49,11 @@ include_once $path . '/vendor/autoload.php';
 error_reporting($errorReporting);
 unset($errorReporting);
 if (!class_exists('\\Composer\\Autoload\\ClassLoader', false)) {
+    $mess = 'Could NOT find required Composer class auto loader. Aborting ...';
     if ('cli' === PHP_SAPI) {
-        $mess = 'Could NOT find required Composer class auto loader. Aborting ...';
         fwrite(STDERR, $mess);
+    } else {
+        fwrite(STDOUT, $mess);
     }
     return 1;
 }
