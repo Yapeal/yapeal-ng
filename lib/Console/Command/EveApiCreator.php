@@ -86,8 +86,21 @@ class EveApiCreator extends Command
         $data->setEveApiName($apiName)
             ->setEveApiSectionName($sectionName)
             ->setEveApiArguments($posts);
-        foreach (['retrieve', 'create', 'transform', 'validate', 'cache'] as $eventName) {
-            if (false === $this->emitEvents($data, $eventName)) {
+        /*
+         * Create can't use pre-processed Eve Api XML, it needs to be unaltered version directly from the servers.
+         * For now use Raw preserve since DB tables are not added automatically which would cause normal preservers to
+         * fail and add junk to the logs.
+         * TODO: Need to decide if implementing a hybrid SQL update/init system is worth doing.
+         */
+        $events = [
+            'retrieve' => 'Yapeal.EveApi.Raw',
+            'create' => 'Yapeal.EveApi',
+            'transform' => 'Yapeal.EveApi',
+            'validate' => 'Yapeal.EveApi',
+            'preserve' => 'Yapeal.EveApi.Raw'
+        ];
+        foreach ($events as $eventName => $eventPrefix) {
+            if (false === $this->emitEvents($data, $eventName, $eventPrefix)) {
                 return 2;
             }
         }
@@ -114,9 +127,13 @@ EOF;
         $this->addArgument('section_name', InputArgument::REQUIRED, 'Name of Eve Api section to retrieve.')
             ->addArgument('api_name', InputArgument::REQUIRED, 'Name of Eve Api to retrieve.')
             ->addArgument('mask', InputArgument::REQUIRED, 'Bit mask for Eve Api.')
-            ->addArgument('post', InputArgument::OPTIONAL | InputArgument::IS_ARRAY,
-                'Optional list of additional POST parameter(s) to send to server.', [])
-            ->addOption('overwrite', null, InputOption::VALUE_NONE,
+            ->addArgument('post',
+                InputArgument::OPTIONAL | InputArgument::IS_ARRAY,
+                'Optional list of additional POST parameter(s) to send to server.',
+                [])
+            ->addOption('overwrite',
+                null,
+                InputOption::VALUE_NONE,
                 'Causes command to overwrite any existing per Eve API files.')
             ->setHelp($help);
     }
