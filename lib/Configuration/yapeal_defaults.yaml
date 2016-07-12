@@ -70,17 +70,18 @@ Yapeal:
             'Connection': 'Keep-Alive'
             'Keep-Alive': '300'
     Sql:
-        class: PDO
-        create: Yapeal\Sql\Creator
         database: yapeal
         dir: '{Yapeal.libDir}Sql/'
         engine: InnoDB
         hostName: localhost
         password: secret
         platform: mysql
-        sharedSql: Yapeal\Sql\CommonSqlQueries
         tablePrefix: ''
         userName: YapealUser
+        Handlers:
+            create: Yapeal\Sql\Creator
+            connection: PDO
+            queries: Yapeal\Sql\CommonSqlQueries
     Xml:
         data: Yapeal\Xml\EveApiXmlData
         dir: '{Yapeal.libDir}Xml/'

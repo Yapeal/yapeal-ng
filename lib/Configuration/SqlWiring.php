@@ -53,34 +53,38 @@ class SqlWiring implements WiringInterface
     {
         if (empty($dic['Yapeal.Sql.CommonQueries'])) {
             $dic['Yapeal.Sql.CommonQueries'] = function ($dic) {
-                return new $dic['Yapeal.Sql.sharedSql']($dic['Yapeal.Sql.database'], $dic['Yapeal.Sql.tablePrefix']);
+                return new $dic['Yapeal.Sql.Handlers.queries']($dic['Yapeal.Sql.database'],
+                    $dic['Yapeal.Sql.tablePrefix']);
             };
         }
-        if (!empty($dic['Yapeal.Sql.Connection'])) {
-            return $this;
-        }
-        if ('mysql' !== $dic['Yapeal.Sql.platform']) {
-            $mess = 'Unknown platform, was given ' . $dic['Yapeal.Sql.platform'];
-            throw new YapealDatabaseException($mess);
-        }
-        $dic['Yapeal.Sql.Connection'] = function ($dic) {
-            $dsn = $dic['Yapeal.Sql.platform'] . ':host=' . $dic['Yapeal.Sql.hostName'] . ';charset=utf8mb4';
-            if (!empty($dic['Yapeal.Sql.port'])) {
-                $dsn .= ';port=' . $dic['Yapeal.Sql.port'];
+        if (empty($dic['Yapeal.Sql.Connection'])) {
+            if ('mysql' !== $dic['Yapeal.Sql.platform']) {
+                $mess = 'Unknown platform, was given ' . $dic['Yapeal.Sql.platform'];
+                throw new YapealDatabaseException($mess);
             }
-            /**
-             * @var \PDO $database
-             */
-            $database = new $dic['Yapeal.Sql.class']($dsn, $dic['Yapeal.Sql.userName'], $dic['Yapeal.Sql.password']);
-            $database->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-            $database->exec('SET SESSION SQL_MODE=\'ANSI,TRADITIONAL\'');
-            $database->exec('SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE');
-            $database->exec('SET SESSION TIME_ZONE=\'+00:00\'');
-            $database->exec('SET NAMES utf8mb4 COLLATE utf8mb4_unicode_520_ci');
-            $database->exec('SET COLLATION_CONNECTION=utf8mb4_unicode_520_ci');
-            $database->exec('SET DEFAULT_STORAGE_ENGINE=' . $dic['Yapeal.Sql.engine']);
-            return $database;
-        };
+            $dic['Yapeal.Sql.Connection'] = function ($dic) {
+                $dsn = '%1$s:host=%2$s;charset=utf8mb4';
+                $subs = [$dic['Yapeal.Sql.platform'], $dic['Yapeal.Sql.hostName']];
+                if (!empty($dic['Yapeal.Sql.port'])) {
+                    $dsn .= ';port=%3$s';
+                    $subs[] = $dic['Yapeal.Sql.port'];
+                }
+                /**
+                 * @var \PDO $database
+                 */
+                $database = new $dic['Yapeal.Sql.Handlers.connection'](vsprintf($dsn, $subs),
+                    $dic['Yapeal.Sql.userName'],
+                    $dic['Yapeal.Sql.password']);
+                $database->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+                $database->exec('SET SESSION SQL_MODE=\'ANSI,TRADITIONAL\'');
+                $database->exec('SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE');
+                $database->exec('SET SESSION TIME_ZONE=\'+00:00\'');
+                $database->exec('SET NAMES utf8mb4 COLLATE utf8mb4_unicode_520_ci');
+                $database->exec('SET COLLATION_CONNECTION=utf8mb4_unicode_520_ci');
+                $database->exec('SET DEFAULT_STORAGE_ENGINE=' . $dic['Yapeal.Sql.engine']);
+                return $database;
+            };
+        }
         if (empty($dic['Yapeal.Sql.Creator'])) {
             $dic['Yapeal.Sql.Creator'] = function () use ($dic) {
                 $loader = new \Twig_Loader_Filesystem($dic['Yapeal.Sql.dir']);
@@ -97,7 +101,9 @@ class SqlWiring implements WiringInterface
                 /**
                  * @var \Yapeal\Sql\Creator $create
                  */
-                $create = new $dic['Yapeal.Sql.create']($twig, $dic['Yapeal.Sql.dir'], $dic['Yapeal.Sql.platform']);
+                $create = new $dic['Yapeal.Sql.Handlers.create']($twig,
+                    $dic['Yapeal.Sql.dir'],
+                    $dic['Yapeal.Sql.platform']);
                 if (!empty($dic['Yapeal.Create.overwrite'])) {
                     $create->setOverwrite($dic['Yapeal.Create.overwrite']);
                 }
