@@ -52,7 +52,7 @@ class XmlWiring implements WiringInterface
         if (empty($dic['Yapeal.Xml.Data'])) {
             $dic['Yapeal.Xml.Data'] = $dic->factory(
                 function ($dic) {
-                    return new $dic['Yapeal.Xml.data']();
+                    return new $dic['Yapeal.Xml.Handlers.data']();
                 }
             );
         }
