@@ -51,11 +51,13 @@ class GuzzleNetworkRetriever implements EveApiRetrieverInterface
 {
     use EveApiEventEmitterTrait;
     /**
-     * @param Client|null $client
+     * @param Client $client
+     * @param bool   $preserve
      */
-    public function __construct(Client $client = null)
+    public function __construct(Client $client, $preserve = true)
     {
-        $this->setClient($client);
+        $this->setClient($client)
+            ->setRetrieve($preserve);
     }
     /**
      * @param EveApiEventInterface $event
@@ -101,31 +103,15 @@ class GuzzleNetworkRetriever implements EveApiRetrieverInterface
             ->setHandledSufficiently();
     }
     /**
-     * @param Client|null $value
+     * @param Client $value
      *
-     * @return self Fluent interface.
+     * @return $this Fluent interface.
      */
-    public function setClient(Client $value = null)
+    public function setClient(Client $value)
     {
         $this->client = $value;
         return $this;
     }
-    /**
-     * @return Client
-     * @throws \LogicException
-     */
-    protected function getClient()
-    {
-        if (null === $this->client) {
-            $mess = 'Tried to use client before it was set';
-            throw new \LogicException($mess);
-        }
-        return $this->client;
-    }
-    /**
-     * @var Client $client
-     */
-    protected $client;
     /**
      * Turn on or off retrieving of Eve API data by this retriever.
      *
@@ -141,12 +127,28 @@ class GuzzleNetworkRetriever implements EveApiRetrieverInterface
         return $this;
     }
     /**
+     * @return Client
+     * @throws \LogicException
+     */
+    protected function getClient()
+    {
+        if (null === $this->client) {
+            $mess = 'Tried to use client before it was set';
+            throw new \LogicException($mess);
+        }
+        return $this->client;
+    }
+    /**
      * @return boolean
      */
     private function shouldRetrieve()
     {
         return $this->retrieve;
     }
+    /**
+     * @var Client $client
+     */
+    private $client;
     /**
      * @var bool $retrieve
      */

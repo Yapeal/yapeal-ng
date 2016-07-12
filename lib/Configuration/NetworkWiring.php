@@ -34,7 +34,6 @@
 namespace Yapeal\Configuration;
 
 use Yapeal\Container\ContainerInterface;
-use Yapeal\Network\GuzzleNetworkRetriever;
 
 /**
  * Class NetworkWiring.
@@ -59,23 +58,16 @@ class NetworkWiring implements WiringInterface
                     $appVersion = '';
                 }
                 $userAgent = trim(str_replace([
-                        '{machineType}',
-                        '{osName}',
-                        '{osRelease}',
-                        '{phpVersion}',
-                        '{appComment}',
-                        '{appName}',
-                        '{appVersion}'
-                    ], [
-                        php_uname('m'),
-                        php_uname('s'),
-                        php_uname('r'),
-                        PHP_VERSION,
-                        $appComment,
-                        $appName,
-                        $appVersion
-                    ], $dic['Yapeal.Network.userAgent'])
-                );
+                    '{machineType}',
+                    '{osName}',
+                    '{osRelease}',
+                    '{phpVersion}',
+                    '{appComment}',
+                    '{appName}',
+                    '{appVersion}'
+                ],
+                    [php_uname('m'), php_uname('s'), php_uname('r'), PHP_VERSION, $appComment, $appName, $appVersion],
+                    $dic['Yapeal.Network.userAgent']));
                 $userAgent = ltrim($userAgent, '/ ');
                 $headers = [
                     'Accept' => $dic['Yapeal.Network.Headers.Accept'],
@@ -86,9 +78,10 @@ class NetworkWiring implements WiringInterface
                     'Keep-Alive' => $dic['Yapeal.Network.Headers.Keep-Alive']
                 ];
                 // Clean up any extra spaces and EOL chars from Yaml.
-                array_walk($headers, function (&$value) {
-                    $value = trim(str_replace(' ', '', (string)$value));
-                });
+                array_walk($headers,
+                    function (&$value) {
+                        $value = trim(str_replace(' ', '', (string)$value));
+                    });
                 if ('' !== $userAgent) {
                     $headers['User-Agent'] = $userAgent;
                 }
@@ -99,12 +92,13 @@ class NetworkWiring implements WiringInterface
                     'timeout' => (int)$dic['Yapeal.Network.timeout'],
                     'verify' => $dic['Yapeal.Network.verify']
                 ];
-                return new $dic['Yapeal.Network.class']($defaults);
+                return new $dic['Yapeal.Network.Handlers.client']($defaults);
             };
         }
         if (empty($dic['Yapeal.Network.Retriever'])) {
             $dic['Yapeal.Network.Retriever'] = function ($dic) {
-                return new GuzzleNetworkRetriever($dic['Yapeal.Network.Client']);
+                return new $dic['Yapeal.Network.Handlers.retrieve']($dic['Yapeal.Network.Client'],
+                    $dic['Yapeal.Network.Cache:retrieve']);
             };
         }
         if (!isset($dic['Yapeal.Event.Mediator'])) {
@@ -115,10 +109,8 @@ class NetworkWiring implements WiringInterface
          * @var \Yapeal\Event\MediatorInterface $mediator
          */
         $mediator = $dic['Yapeal.Event.Mediator'];
-        $mediator->addServiceSubscriberByEventList(
-            'Yapeal.Network.Retriever',
-            ['Yapeal.EveApi.retrieve' => ['retrieveEveApi', 'last']]
-        );
+        $mediator->addServiceSubscriberByEventList('Yapeal.Network.Retriever',
+            ['Yapeal.EveApi.retrieve' => ['retrieveEveApi', 'last']]);
         return $this;
     }
 }

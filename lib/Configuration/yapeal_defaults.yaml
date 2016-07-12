@@ -51,12 +51,14 @@ Yapeal:
         appVersion: ''
         baseUrl: 'https://api.eveonline.com'
         timeout: 10
-        class: GuzzleHttp\Client
         connect_timeout: 30
         verify: '{Yapeal.baseDir}config/eveonline.pem'
         userAgent: '{appName}/{appVersion} {appComment} Yapeal-ng/{Yapeal.version} ({osName} {osRelease}; PHP {phpVersion}; Platform {machineType})'
         Cache:
             retrieve: true
+        Handlers:
+            client: GuzzleHttp\Client
+            retrieve: Yapeal\Network\GuzzleNetworkRetriever
         Headers:
             'Accept': >
                 text/xml,application/xml,application/xhtml+xml;
