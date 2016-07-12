@@ -17,6 +17,8 @@ Yapeal:
     EveApi:
         create: Yapeal\EveApi\Creator
         dir: '{Yapeal.libDir}EveApi/'
+        Cache:
+            preserve: true
     Event:
         mediator: Yapeal\Event\Mediator
         Factories:
@@ -53,6 +55,8 @@ Yapeal:
         connect_timeout: 30
         verify: '{Yapeal.baseDir}config/eveonline.pem'
         userAgent: '{appName}/{appVersion} {appComment} Yapeal-ng/{Yapeal.version} ({osName} {osRelease}; PHP {phpVersion}; Platform {machineType})'
+        Cache:
+            retrieve: true
         Headers:
             'Accept': >
                 text/xml,application/xml,application/xhtml+xml;
