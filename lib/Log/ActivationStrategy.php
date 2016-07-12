@@ -34,7 +34,6 @@
 namespace Yapeal\Log;
 
 use Monolog\Handler\FingersCrossed\ActivationStrategyInterface;
-use Monolog\Logger;
 
 /**
  * Class ActivationStrategy.
