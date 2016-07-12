@@ -20,10 +20,11 @@ Yapeal:
         Cache:
             preserve: true
     Event:
-        mediator: Yapeal\Event\Mediator
         Factories:
             eveApi: Yapeal\Event\EveApiEvent
             log: Yapeal\Event\LogEvent
+        Handlers:
+            mediator: Yapeal\Event\Mediator
     FileSystem:
         Cache:
             dir: '{Yapeal.baseDir}cache/'

@@ -64,7 +64,7 @@ class EventWiring implements WiringInterface
         }
         if (empty($dic['Yapeal.Event.Mediator'])) {
             $dic['Yapeal.Event.Mediator'] = function ($dic) {
-                return new $dic['Yapeal.Event.mediator']($dic);
+                return new $dic['Yapeal.Event.Handlers.mediator']($dic);
             };
         }
         return $this;
