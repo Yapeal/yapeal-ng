@@ -1,6 +1,6 @@
 <?php
 /**
- * Contains EveApiRetrieverInterface Interface.
+ * Contains EveApiPreserverInterface Interface.
  *
  * PHP version 5.5
  *
@@ -31,16 +31,13 @@
  * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
  * @author    Michael Cummings <mgcummings@yahoo.com>
  */
-namespace Yapeal\Xml;
-
-use Yapeal\Event\EveApiEventInterface;
-use Yapeal\Event\MediatorInterface;
+namespace Yapeal\Event;
 
 /**
- * Common interface for any class that would retrieve (file / network) the Eve
- * Api data in some way.
+ * Common interface for any class that would preserve (save / cache) the Eve Api
+ * data in some way.
  */
-interface EveApiRetrieverInterface
+interface EveApiPreserverInterface
 {
     /**
      * @param EveApiEventInterface $event
@@ -48,7 +45,17 @@ interface EveApiRetrieverInterface
      * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
-     * @throws \LogicException
+     *
      */
-    public function retrieveEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem);
+    public function preserveEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem);
+    /**
+     * Turn on or off preserving of Eve API data by this preserver.
+     *
+     * Allows class to stay registered for events but be enabled or disabled during runtime.
+     *
+     * @param boolean $value
+     *
+     * @return $this Fluent interface
+     */
+    public function setPreserve($value = true);
 }
