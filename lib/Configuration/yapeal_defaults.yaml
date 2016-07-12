@@ -15,10 +15,11 @@ Yapeal:
             strategy: Yapeal\Log\ActivationStrategy
             stream: Monolog\Handler\StreamHandler
     EveApi:
-        create: Yapeal\EveApi\Creator
         dir: '{Yapeal.libDir}EveApi/'
         Cache:
             preserve: true
+        Handlers:
+            create: Yapeal\EveApi\Creator
     Event:
         Factories:
             eveApi: Yapeal\Event\EveApiEvent

@@ -312,7 +312,7 @@ class Wiring
                 /**
                  * @var \Yapeal\EveApi\Creator $create
                  */
-                $create = new $dic['Yapeal.EveApi.create']($twig, $dic['Yapeal.EveApi.dir']);
+                $create = new $dic['Yapeal.EveApi.Handlers.create']($twig, $dic['Yapeal.EveApi.dir']);
                 if (!empty($dic['Yapeal.Create.overwrite'])) {
                     $create->setOverwrite($dic['Yapeal.Create.overwrite']);
                 }
