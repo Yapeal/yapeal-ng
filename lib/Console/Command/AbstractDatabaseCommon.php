@@ -174,16 +174,16 @@ abstract class AbstractDatabaseCommon extends Command
      */
     protected function processCliOptions(InputInterface $input)
     {
-        $base = 'Yapeal.Sql.';
         $dic = $this->getDic();
         $options = $input->getOptions();
+        if (!empty($options['configFile'])) {
+            $this->processConfigFile($options['configFile'], $dic);
+        }
+        $base = 'Yapeal.Sql.';
         foreach (['class', 'database', 'hostName', 'password', 'platform', 'tablePrefix', 'userName'] as $option) {
             if (!empty($options[$option])) {
                 $dic[$base . $option] = $options[$option];
             }
-        }
-        if (!empty($options['configFile'])) {
-            $this->processConfigFile($options['configFile'], $dic);
         }
         return $this;
     }
