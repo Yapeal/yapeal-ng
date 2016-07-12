@@ -71,6 +71,7 @@ class FileSystemWiring implements WiringInterface
         $mediator->addServiceSubscriberByEventList('Yapeal.FileSystem.CachePreserver',
             [
                 'Yapeal.EveApi.preserve' => ['preserveEveApi', 'last'],
+                'Yapeal.EveApi.Raw.preserve' => ['preserveEveApi', 'last'],
                 'Yapeal.Xml.Error.preserve' => ['preserveEveApi', 'last']
             ]);
         $mediator->addServiceSubscriberByEventList('Yapeal.FileSystem.CacheRetriever',

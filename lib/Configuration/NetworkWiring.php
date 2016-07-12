@@ -110,7 +110,10 @@ class NetworkWiring implements WiringInterface
          */
         $mediator = $dic['Yapeal.Event.Mediator'];
         $mediator->addServiceSubscriberByEventList('Yapeal.Network.Retriever',
-            ['Yapeal.EveApi.retrieve' => ['retrieveEveApi', 'last']]);
+            [
+                'Yapeal.EveApi.retrieve' => ['retrieveEveApi', 'last'],
+                'Yapeal.EveApi.Raw.retrieve' => ['retrieveEveApi', 'last']
+            ]);
         return $this;
     }
 }
