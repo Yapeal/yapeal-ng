@@ -70,7 +70,7 @@ class XsdWiring implements WiringInterface
                     /**
                      * @var \Yapeal\Xsd\Creator $create
                      */
-                    $create = new $dic['Yapeal.Xsd.create']($twig, $dic['Yapeal.Xsd.dir']);
+                $create = new $dic['Yapeal.Xsd.Handlers.create']($twig, $dic['Yapeal.Xsd.dir']);
                     if (!empty($dic['Yapeal.Create.overwrite'])) {
                         $create->setOverwrite($dic['Yapeal.Create.overwrite']);
                     }
@@ -79,7 +79,7 @@ class XsdWiring implements WiringInterface
         }
         if (empty($dic['Yapeal.Xsd.Validator'])) {
             $dic['Yapeal.Xsd.Validator'] = function () use ($dic) {
-                    return new $dic['Yapeal.Xsd.validate']($dic['Yapeal.Xsd.dir']);
+                return new $dic['Yapeal.Xsd.Handlers.validate']($dic['Yapeal.Xsd.dir']);
                 };
         }
         if (empty($dic['Yapeal.Event.Mediator'])) {

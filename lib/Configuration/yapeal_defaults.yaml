@@ -88,9 +88,10 @@ Yapeal:
             data: Yapeal\Xml\EveApiXmlData
             error: Yapeal\Xml\ErrorCacheIntervalSubscriber
     Xsd:
-        create: Yapeal\Xsd\Creator
-        validate: Yapeal\Xsd\Validator
         dir: '{Yapeal.libDir}Xsd/'
+        Handlers:
+            create: Yapeal\Xsd\Creator
+            validate: Yapeal\Xsd\Validator
     Xsl:
         transform: Yapeal\Xsl\Transformer
         dir: '{Yapeal.libDir}Xsl/'
