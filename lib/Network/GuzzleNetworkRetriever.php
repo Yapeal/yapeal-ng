@@ -37,9 +37,9 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use Yapeal\Event\EveApiEventEmitterTrait;
 use Yapeal\Event\EveApiEventInterface;
+use Yapeal\Event\EveApiRetrieverInterface;
 use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
-use Yapeal\Xml\EveApiRetrieverInterface;
 
 /**
  * Class GuzzleNetworkRetriever
@@ -69,6 +69,9 @@ class GuzzleNetworkRetriever implements EveApiRetrieverInterface
      */
     public function retrieveEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
     {
+        if (!$this->shouldRetrieve()) {
+            return $event;
+        }
         $data = $event->getData();
         $yem->triggerLogEvent('Yapeal.Log.log',
             Logger::DEBUG,
@@ -123,4 +126,29 @@ class GuzzleNetworkRetriever implements EveApiRetrieverInterface
      * @var Client $client
      */
     protected $client;
+    /**
+     * Turn on or off retrieving of Eve API data by this retriever.
+     *
+     * Allows class to stay registered for events but be enabled or disabled during runtime.
+     *
+     * @param boolean $value
+     *
+     * @return $this Fluent interface
+     */
+    public function setRetrieve($value = true)
+    {
+        $this->retrieve = (boolean)$value;
+        return $this;
+    }
+    /**
+     * @return boolean
+     */
+    private function shouldRetrieve()
+    {
+        return $this->retrieve;
+    }
+    /**
+     * @var bool $retrieve
+     */
+    private $retrieve = true;
 }

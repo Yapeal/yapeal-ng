@@ -34,14 +34,12 @@
 namespace Yapeal\FileSystem;
 
 use FilePathNormalizer\FilePathNormalizerTrait;
-use InvalidArgumentException;
-use LogicException;
-use SimpleXMLElement;
 use Yapeal\Event\EveApiEventEmitterTrait;
 use Yapeal\Event\EveApiEventInterface;
+use Yapeal\Event\EveApiRetrieverInterface;
 use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
-use Yapeal\Xml\EveApiRetrieverInterface;
+use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
  * Class CacheRetriever
@@ -52,18 +50,11 @@ class CacheRetriever implements EveApiRetrieverInterface
     /**
      * @param string|null $cachePath
      *
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public function __construct($cachePath = null)
     {
         $this->setCachePath($cachePath);
-    }
-    /**
-     * @return boolean
-     */
-    public function shouldRetrieve()
-    {
-        return $this->retrieve;
     }
     /**
      * @param EveApiEventInterface $event
@@ -71,7 +62,7 @@ class CacheRetriever implements EveApiRetrieverInterface
      * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
-     * @throws LogicException
+     * @throws \LogicException
      */
     public function retrieveEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
     {
@@ -80,30 +71,27 @@ class CacheRetriever implements EveApiRetrieverInterface
         }
         $this->setYem($yem);
         $data = $event->getData();
-        $yem->triggerLogEvent(
-            'Yapeal.Log.log',
+        $yem->triggerLogEvent('Yapeal.Log.log',
             Logger::DEBUG,
-            $this->getReceivedEventMessage($data, $eventName, __CLASS__)
-        );
+            $this->getReceivedEventMessage($data, $eventName, __CLASS__));
         // BaseSection/ApiHash.xml
-        $cacheFile = sprintf(
-            '%1$s%2$s/%3$s%4$s.xml',
+        $cacheFile = sprintf('%1$s%2$s/%3$s%4$s.xml',
             $this->getCachePath(),
             ucfirst($data->getEveApiSectionName()),
             ucfirst($data->getEveApiName()),
-            $data->getHash()
-        );
+            $data->getHash());
         $result = $this->safeFileRead($cacheFile, $yem);
         if (false === $result) {
             return $event;
         }
-        if ($this->isExpired($result)) {
+        $data->setEveApiXml($result);
+        if ($this->isExpired($data)) {
             $this->deleteWithRetry($cacheFile, $yem);
             return $event;
         }
         $mess = sprintf('Found usable cache file %1$s', $cacheFile);
         $yem->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->createEventMessage($mess, $data, $eventName));
-        return $event->setData($data->setEveApiXml($result))
+        return $event->setData($data)
             ->eventHandled();
     }
     /**
@@ -118,75 +106,80 @@ class CacheRetriever implements EveApiRetrieverInterface
             $value = dirname(dirname(__DIR__)) . '/cache/';
         }
         if (!is_string($value)) {
-            $mess = 'Cache path MUST be string, but given ' . gettype($value);
-            throw new InvalidArgumentException($mess);
+            $mess = 'Cache path MUST be string, but was given ' . gettype($value);
+            throw new \InvalidArgumentException($mess);
         }
         $this->cachePath = $this->getFpn()
             ->normalizePath($value);
         return $this;
     }
     /**
+     * Turn on or off retrieving of Eve API data by this retriever.
+     *
+     * Allows class to stay registered for events but be enabled or disabled during runtime.
+     *
      * @param boolean $value
      *
      * @return $this Fluent interface
      */
-    public function setRetrieve($value)
+    public function setRetrieve($value = true)
     {
         $this->retrieve = (boolean)$value;
         return $this;
     }
     /**
      * @return string
-     * @throws LogicException
+     * @throws \LogicException
      */
     protected function getCachePath()
     {
         if ('' === $this->cachePath) {
             $mess = 'Tried to access $cachePath before it was set';
-            throw new LogicException($mess);
+            throw new \LogicException($mess);
         }
         return $this->getFpn()
             ->normalizePath($this->cachePath);
     }
     /**
-     * @param string $xml
+     * @param EveApiReadWriteInterface $data
      *
      * @return bool
      * @throws \DomainException
      * @throws \LogicException
      * @throws \InvalidArgumentException
      */
-    protected function isExpired($xml)
+    protected function isExpired(EveApiReadWriteInterface $data)
     {
-        $simple = new SimpleXMLElement($xml);
+        $xml = $data->getEveApiXml();
+        $simple = new \SimpleXMLElement($xml);
         /** @noinspection PhpUndefinedFieldInspection */
-        if (null === $simple->currentTime[0]) {
-            $mess = 'Xml file missing required currentTime element';
+        $current = $simple->currentTime[0];
+        /** @noinspection PhpUndefinedFieldInspection */
+        $until = $simple->cachedUntil[0];
+        if (null === $current) {
+            $mess = 'Cached XML file missing required currentTime element in';
             $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
+                ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $this->createEveApiMessage($mess, $data));
             return true;
         }
-        /** @noinspection PhpUndefinedFieldInspection */
-        if (null === $simple->cachedUntil[0]) {
-            $mess = 'Xml file missing required cachedUntil element';
+        if (null === $until) {
+            $mess = 'Cached XML file missing required cachedUntil element in';
             $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
+                ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $this->createEveApiMessage($mess, $data));
             return true;
         }
         $now = time();
-        /** @noinspection PhpUndefinedFieldInspection */
-        $current = strtotime($simple->currentTime[0] . '+00:00');
-        /** @noinspection PhpUndefinedFieldInspection */
-        $until = strtotime($simple->cachedUntil[0] . '+00:00');
+        $current = strtotime($current . '+00:00');
+        $until = strtotime($until . '+00:00');
         // At minimum use cached XML for 5 minutes (300 secs).
         if (($now - $current) <= 300) {
             return false;
         }
         // Catch and log APIs with bad CachedUntil times so CCP can be told and get them fixed.
         if ($until <= $current) {
-            $mess = sprintf('CachedUntil is invalid was given %1$s and currentTime is %2$s', $until, $current);
+            $mess = sprintf('CachedUntil is invalid was given %1$s and currentTime is %2$s in', $until, $current);
             $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $mess);
+                ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $this->createEveApiMessage($mess, $data));
             return true;
         }
         // Now plus a day.
@@ -202,6 +195,13 @@ class CacheRetriever implements EveApiRetrieverInterface
      * @var string $cachePath
      */
     protected $cachePath;
+    /**
+     * @return boolean
+     */
+    private function shouldRetrieve()
+    {
+        return $this->retrieve;
+    }
     /**
      * @var bool $retrieve
      */

@@ -36,9 +36,9 @@ namespace Yapeal\FileSystem;
 use FilePathNormalizer\FilePathNormalizerTrait;
 use Yapeal\Event\EveApiEventEmitterTrait;
 use Yapeal\Event\EveApiEventInterface;
+use Yapeal\Event\EveApiPreserverInterface;
 use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
-use Yapeal\Xml\EveApiPreserverInterface;
 
 /**
  * Class CachePreserver
@@ -55,14 +55,8 @@ class CachePreserver implements EveApiPreserverInterface
      */
     public function __construct($cachePath = null, $preserve = false)
     {
-        $this->setCachePath($cachePath)->setPreserve($preserve);
-    }
-    /**
-     * @return boolean
-     */
-    public function shouldPreserve()
-    {
-        return $this->preserve;
+        $this->setCachePath($cachePath)
+            ->setPreserve($preserve);
     }
     /**
      * @param EveApiEventInterface $event
@@ -79,19 +73,15 @@ class CachePreserver implements EveApiPreserverInterface
         }
         $data = $event->getData();
         $this->setYem($yem);
-        $yem->triggerLogEvent(
-            'Yapeal.Log.log',
+        $yem->triggerLogEvent('Yapeal.Log.log',
             Logger::DEBUG,
-            $this->getReceivedEventMessage($data, $eventName, __CLASS__)
-        );
+            $this->getReceivedEventMessage($data, $eventName, __CLASS__));
         // BaseSection/ApiHash.xml
-        $cacheFile = sprintf(
-            '%1$s%2$s/%3$s%4$s.xml',
+        $cacheFile = sprintf('%1$s%2$s/%3$s%4$s.xml',
             $this->getCachePath(),
             ucfirst($data->getEveApiSectionName()),
             ucfirst($data->getEveApiName()),
-            $data->getHash()
-        );
+            $data->getHash());
         $xml = $data->getEveApiXml();
         if (false === $xml) {
             return $event->setHandledSufficiently();
@@ -127,6 +117,10 @@ class CachePreserver implements EveApiPreserverInterface
         return $this;
     }
     /**
+     * Turn on or off preserving of Eve API data by this preserver.
+     *
+     * Allows class to stay registered for events but be enabled or disabled during runtime.
+     *
      * @param boolean $value
      *
      * @return $this Fluent interface
@@ -147,6 +141,13 @@ class CachePreserver implements EveApiPreserverInterface
             throw new \LogicException($mess);
         }
         return $this->cachePath;
+    }
+    /**
+     * @return boolean
+     */
+    private function shouldPreserve()
+    {
+        return $this->preserve;
     }
     /**
      * @var string $cachePath
