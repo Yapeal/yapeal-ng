@@ -83,8 +83,10 @@ EOF;
         $this->addConfigFileOption();
         $this->addArgument('section_name', InputArgument::REQUIRED, 'Name of Eve Api section to retrieve.')
             ->addArgument('api_name', InputArgument::REQUIRED, 'Name of Eve Api to retrieve.')
-            ->addArgument('post', InputArgument::OPTIONAL | InputArgument::IS_ARRAY,
-                'Optional list of additional POST parameter(s) to send to server.', [])
+            ->addArgument('post',
+                InputArgument::OPTIONAL | InputArgument::IS_ARRAY,
+                'Optional list of additional POST parameter(s) to send to server.',
+                [])
             ->setHelp($help);
     }
     /** @noinspection PhpMissingParentCallCommonInspection */
@@ -135,7 +137,8 @@ EOF;
             ->setEveApiArguments($posts);
         $mess = 'Starting ' . $this->getName() . ' of';
         $mess = $this->createEveApiMessage($mess, $data);
-        $this->getYem()->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess);
+        $this->getYem()
+            ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess);
         if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
             $output->writeln('<info>' . $mess . '</info>');
         }
@@ -145,9 +148,10 @@ EOF;
         if (false === $data->getEveApiXml()) {
             $mess = 'Could NOT retrieve Eve Api data of';
             $mess = $this->createEveApiMessage($mess, $data);
-            $this->getYem()->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess);
+            $this->getYem()
+                ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess);
             if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
-                $output->writeln('<error>' . $mess .'</error>');
+                $output->writeln('<error>' . $mess . '</error>');
             }
             return 2;
         }
@@ -173,12 +177,5 @@ EOF;
             $arguments[$key] = $value;
         }
         return $arguments;
-    }
-    /**
-     * @param ContainerInterface $dic
-     */
-    private function configureRetrieversAndPreservers(ContainerInterface $dic)
-    {
-
     }
 }
