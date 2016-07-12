@@ -34,6 +34,12 @@
 namespace Yapeal;
 
 /*
+ * Nothing to do if Composer auto loader already exists.
+ */
+if (class_exists('\\Composer\\Autoload\\ClassLoader', false)) {
+    return;
+}
+/*
  * Find Composer auto loader after striping away any vendor path.
  */
 $path = str_replace('\\', '/', dirname(__DIR__));
