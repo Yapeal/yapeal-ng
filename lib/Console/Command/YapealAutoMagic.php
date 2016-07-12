@@ -39,6 +39,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Yapeal\CommonToolsTrait;
 use Yapeal\Container\ContainerInterface;
 use Yapeal\Event\EveApiEventEmitterTrait;
+use Yapeal\Log\Logger;
 use Yapeal\Yapeal;
 
 /**
@@ -46,7 +47,7 @@ use Yapeal\Yapeal;
  */
 class YapealAutoMagic extends Command
 {
-    use CommonToolsTrait, ConfigFileTrait, EveApiEventEmitterTrait;
+    use CommonToolsTrait, ConfigFileTrait, EveApiEventEmitterTrait, VerbosityToStrategyTrait;
     /**
      * @param string|null        $name
      * @param ContainerInterface $dic
@@ -105,13 +106,15 @@ EOF;
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        /**
-         * @var \Symfony\Component\Console\Output\Output $output
-         */
         $dic = $this->getDic();
+        if (!$this->hasYem()) {
+            $this->setYem($dic['Yapeal.Event.Mediator']);
+        }
+        $this->setLogThresholdFromVerbosity($output);
         if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
             $mess = sprintf('<info>Starting %1$s</info>', $this->getName());
             $output->writeln($mess);
+            $this->getYem()->triggerLogEvent('Yapeal.Log.log', Logger::INFO, strip_tags($mess));
         }
         $options = $input->getOptions();
         if (!empty($options['configFile'])) {
