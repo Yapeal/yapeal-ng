@@ -40,6 +40,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Yapeal\CommonToolsTrait;
 use Yapeal\Container\ContainerInterface;
 use Yapeal\Event\EveApiEventEmitterTrait;
+use Yapeal\Log\Logger;
 use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
@@ -47,7 +48,7 @@ use Yapeal\Xml\EveApiReadWriteInterface;
  */
 class NetworkCache extends Command
 {
-    use CommonToolsTrait, ConfigFileTrait, EveApiEventEmitterTrait;
+    use CommonToolsTrait, ConfigFileTrait, EveApiEventEmitterTrait, VerbosityToStrategyTrait;
     /**
      * @param string|null        $name
      * @param ContainerInterface $dic
@@ -119,7 +120,10 @@ EOF;
         }
         $apiName = $input->getArgument('api_name');
         $sectionName = $input->getArgument('section_name');
-        $this->setYem($dic['Yapeal.Event.Mediator']);
+        if (!$this->hasYem()) {
+            $this->setYem($dic['Yapeal.Event.Mediator']);
+        }
+        $this->setLogThresholdFromVerbosity($output);
         /**
          * Get new Data instance from factory.
          *
@@ -129,22 +133,21 @@ EOF;
         $data->setEveApiName($apiName)
             ->setEveApiSectionName($sectionName)
             ->setEveApiArguments($posts);
+        $mess = 'Starting ' . $this->getName() . ' of';
+        $mess = $this->createEveApiMessage($mess, $data);
+        $this->getYem()->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess);
         if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
-            $mess = sprintf('<info>Starting %1$s of%2$s</info>', $this->getName(),
-                $this->createEveApiMessage('', $data));
-            $output->writeln($mess);
+            $output->writeln('<info>' . $mess . '</info>');
         }
-        foreach (['retrieve', 'cache'] as $eventName) {
-            $this->emitEvents($data, $eventName);
+        foreach (['retrieve', 'preserve'] as $eventName) {
+            $this->emitEvents($data, $eventName, 'Yapeal.EveApi.Raw');
         }
         if (false === $data->getEveApiXml()) {
+            $mess = 'Could NOT retrieve Eve Api data of';
+            $mess = $this->createEveApiMessage($mess, $data);
+            $this->getYem()->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess);
             if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
-                $mess = sprintf(
-                    '<error>Could NOT retrieve Eve Api data for %1$s/%2$s</error>',
-                    strtolower($sectionName),
-                    $apiName
-                );
-                $output->writeln($mess);
+                $output->writeln('<error>' . $mess .'</error>');
             }
             return 2;
         }
@@ -170,5 +173,12 @@ EOF;
             $arguments[$key] = $value;
         }
         return $arguments;
+    }
+    /**
+     * @param ContainerInterface $dic
+     */
+    private function configureRetrieversAndPreservers(ContainerInterface $dic)
+    {
+
     }
 }
