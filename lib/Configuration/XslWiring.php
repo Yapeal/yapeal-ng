@@ -51,7 +51,7 @@ class XslWiring implements WiringInterface
     {
         if (empty($dic['Yapeal.Xsl.Transformer'])) {
             $dic['Yapeal.Xsl.Transformer'] = function () use ($dic) {
-                    return new $dic['Yapeal.Xsl.transform']($dic['Yapeal.Xsl.dir']);
+                return new $dic['Yapeal.Xsl.Handlers.transform']($dic['Yapeal.Xsl.dir']);
                 };
         }
         if (empty($dic['Yapeal.Event.Mediator'])) {

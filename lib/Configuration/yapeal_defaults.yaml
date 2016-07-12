@@ -93,6 +93,7 @@ Yapeal:
             create: Yapeal\Xsd\Creator
             validate: Yapeal\Xsd\Validator
     Xsl:
-        transform: Yapeal\Xsl\Transformer
         dir: '{Yapeal.libDir}Xsl/'
+        Handlers:
+            transform: Yapeal\Xsl\Transformer
 ...
