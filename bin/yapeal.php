@@ -37,9 +37,9 @@ namespace Yapeal;
 
 require_once __DIR__ . '/bootstrap.php';
 use Yapeal\Configuration\Wiring;
-use Yapeal\Container\PimpleContainer;
+use Yapeal\Container\Container;
 
-$dic = new PimpleContainer();
+$dic = new Container();
 (new Wiring($dic))->wireAll();
 $yapeal = new Yapeal($dic);
 exit($yapeal->autoMagic());

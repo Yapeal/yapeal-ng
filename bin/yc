@@ -42,9 +42,9 @@ use Yapeal\Console\Command\DatabaseUpdater;
 use Yapeal\Console\Command\EveApiCreator;
 use Yapeal\Console\Command\NetworkCache;
 use Yapeal\Console\Command\YapealAutoMagic;
-use Yapeal\Container\PimpleContainer;
+use Yapeal\Container\Container;
 
-$dic = new PimpleContainer();
+$dic = new Container();
 (new Wiring($dic))->wireAll();
 try {
     $version = $dic['Yapeal.version'];

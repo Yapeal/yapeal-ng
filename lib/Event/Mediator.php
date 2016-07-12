@@ -34,8 +34,8 @@
 namespace Yapeal\Event;
 
 use EventMediator\AbstractContainerMediator;
+use Yapeal\Container\Container;
 use Yapeal\Container\ContainerInterface;
-use Yapeal\Container\PimpleContainer;
 use Yapeal\Log\Logger;
 use Yapeal\Xml\EveApiReadWriteInterface;
 
@@ -74,7 +74,7 @@ class Mediator extends AbstractContainerMediator implements MediatorInterface
     public function setServiceContainer($value = null)
     {
         if (null === $value) {
-            $value = new PimpleContainer();
+            $value = new Container();
         }
         if (!$value instanceof ContainerInterface) {
             $mess = sprintf('Must be an instance of ContainerInterface but was given %s',

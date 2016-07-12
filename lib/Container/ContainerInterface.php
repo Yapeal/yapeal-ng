@@ -44,7 +44,7 @@ namespace Yapeal\Container;
  *
  * @since 2.0.0-alpha5
  */
-interface ContainerInterface
+interface ContainerInterface extends \ArrayAccess
 {
     /**
      * Extends an object definition.
@@ -64,7 +64,7 @@ interface ContainerInterface
     /**
      * Marks a callable as being a factory service.
      *
-     * @param callable|object $callable A service definition to be used as a
+     * @param callable $callable        A service definition to be used as a
      *                                  factory
      *
      * @return callable The passed callable
@@ -80,70 +80,11 @@ interface ContainerInterface
      */
     public function keys();
     /**
-     * (PHP 5 &gt;= 5.0.0)<br/>
-     * Whether a offset exists
-     *
-     * @link http://php.net/manual/en/arrayaccess.offsetexists.php
-     *
-     * @param mixed $offset <p>
-     *                      An offset to check for.
-     *                      </p>
-     *
-     * @return boolean true on success or false on failure.
-     * </p>
-     * <p>
-     * The return value will be casted to boolean if non-boolean was returned.
-     */
-    public function offsetExists($offset);
-    /**
-     * (PHP 5 &gt;= 5.0.0)<br/>
-     * Offset to retrieve
-     *
-     * @link http://php.net/manual/en/arrayaccess.offsetget.php
-     *
-     * @param mixed $offset <p>
-     *                      The offset to retrieve.
-     *                      </p>
-     *
-     * @return mixed Can return all value types.
-     */
-    public function offsetGet($offset);
-    /**
-     * (PHP 5 &gt;= 5.0.0)<br/>
-     * Offset to set
-     *
-     * @link http://php.net/manual/en/arrayaccess.offsetset.php
-     *
-     * @param mixed $offset <p>
-     *                      The offset to assign the value to.
-     *                      </p>
-     * @param mixed $value  <p>
-     *                      The value to set.
-     *                      </p>
-     *
-     * @return void
-     */
-    public function offsetSet($offset, $value);
-    /**
-     * (PHP 5 &gt;= 5.0.0)<br/>
-     * Offset to unset
-     *
-     * @link http://php.net/manual/en/arrayaccess.offsetunset.php
-     *
-     * @param mixed $offset <p>
-     *                      The offset to unset.
-     *                      </p>
-     *
-     * @return void
-     */
-    public function offsetUnset($offset);
-    /**
      * Protects a callable from being interpreted as a service.
      *
      * This is useful when you want to store a callable as a parameter.
      *
-     * @param callable|object $callable A callable to protect from being
-     *                                  evaluated
+     * @param callable $callable A callable to protect from being evaluated
      *
      * @return callable The passed callable
      *
