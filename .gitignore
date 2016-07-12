@@ -8,6 +8,7 @@ config/yapeal.yaml
 *.log
 .idea/
 cache/
+cachegrind*
 docs/
 ext/
 export/
