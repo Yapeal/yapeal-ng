@@ -34,6 +34,7 @@
 namespace Yapeal\Network;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\RequestException;
 use Yapeal\Event\EveApiEventEmitterTrait;
 use Yapeal\Event\EveApiEventInterface;
@@ -68,6 +69,7 @@ class GuzzleNetworkRetriever implements EveApiRetrieverInterface
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
+     * @throws \GuzzleHttp\Exception\ClientException
      */
     public function retrieveEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
     {
@@ -82,6 +84,17 @@ class GuzzleNetworkRetriever implements EveApiRetrieverInterface
         try {
             $response = $this->getClient()
                 ->post($uri, ['form_params' => $data->getEveApiArguments()]);
+        } catch (ClientException $exc) {
+            if ($exc->hasResponse()) {
+                $response = $exc->getResponse();
+            } else {
+                $messagePrefix = 'Could NOT retrieve XML data during';
+                $yem->triggerLogEvent('Yapeal.Log.log',
+                    Logger::DEBUG,
+                    $this->createEventMessage($messagePrefix, $data, $eventName),
+                    ['exception' => $exc]);
+                return $event;
+            }
         } catch (RequestException $exc) {
             $messagePrefix = 'Could NOT retrieve XML data during';
             $yem->triggerLogEvent('Yapeal.Log.log',
