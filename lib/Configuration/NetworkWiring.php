@@ -98,7 +98,7 @@ class NetworkWiring implements WiringInterface
         if (empty($dic['Yapeal.Network.Retriever'])) {
             $dic['Yapeal.Network.Retriever'] = function ($dic) {
                 return new $dic['Yapeal.Network.Handlers.retrieve']($dic['Yapeal.Network.Client'],
-                    $dic['Yapeal.Network.Cache:retrieve']);
+                    $dic['Yapeal.Network.Cache.retrieve']);
             };
         }
         if (!isset($dic['Yapeal.Event.Mediator'])) {
