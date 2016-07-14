@@ -108,6 +108,20 @@ trait PreserverTrait
         return $event->setHandledSufficiently();
     }
     /**
+     * Turn on or off preserving of Eve API data by this preserver.
+     *
+     * Allows class to stay registered for events but be enabled or disabled during runtime.
+     *
+     * @param boolean $value
+     *
+     * @return $this Fluent interface
+     */
+    public function setPreserve($value = true)
+    {
+        // TODO Need to actual finish implementation.
+        return $this;
+    }
+    /**
      * @param \SimpleXMLElement[]|string $rows
      * @param array                      $columnDefaults
      * @param string                     $tableName
