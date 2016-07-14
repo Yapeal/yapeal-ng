@@ -33,9 +33,9 @@
  */
 namespace Yapeal\EveApi\Account;
 
+use Yapeal\Event\EveApiPreserverInterface;
 use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
-use Yapeal\Xml\EveApiPreserverInterface;
 use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
