@@ -54,7 +54,7 @@ class ErrorCacheIntervalSubscriber
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
-    protected function processXmlError(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
+    public function processXmlError(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
     {
         $this->setYem($yem);
         $data = $event->getData();
