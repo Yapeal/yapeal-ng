@@ -43,6 +43,18 @@ use Yapeal\Sql\CommonSqlQueries;
 trait CommonToolsTrait
 {
     /**
+     * @return ContainerInterface
+     * @throws \LogicException
+     */
+    public function getDic()
+    {
+        if (!$this->dic instanceof ContainerInterface) {
+            $mess = 'Tried to use dic before it was set';
+            throw new \LogicException($mess, 1);
+        }
+        return $this->dic;
+    }
+    /**
      * @param CommonSqlQueries $value
      *
      * @return self Fluent interface.
@@ -88,18 +100,6 @@ trait CommonToolsTrait
         return $this->csq;
     }
     /**
-     * @return ContainerInterface
-     * @throws \LogicException
-     */
-    protected function getDic()
-    {
-        if (!$this->dic instanceof ContainerInterface) {
-            $mess = 'Tried to use dic before it was set';
-            throw new \LogicException($mess, 1);
-        }
-        return $this->dic;
-    }
-    /**
      * @return \PDO
      * @throws \LogicException
      * @throws \Yapeal\Exception\YapealDatabaseException
@@ -110,11 +110,9 @@ trait CommonToolsTrait
             try {
                 $this->pdo = $this->getDic()['Yapeal.Sql.Connection'];
             } catch (\PDOException $exc) {
-                $mess = sprintf(
-                    'Could NOT connect to database. Database error was (%1$s) %2$s',
+                $mess = sprintf('Could NOT connect to database. Database error was (%1$s) %2$s',
                     $exc->getCode(),
-                    $exc->getMessage()
-                );
+                    $exc->getMessage());
                 throw new YapealDatabaseException($mess, 1, $exc);
             }
         }
