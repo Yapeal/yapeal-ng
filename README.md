@@ -12,8 +12,8 @@ Master: [![SensioLabsInsight](https://insight.sensiolabs.com/projects/bd0be573-0
 Installation instructions can be found in [INSTALL.md](INSTALL.md) and
 configuration instructions in [CONFIG.md](CONFIG.md).
 
-For additional information about any changes see the commit messages in the
-repository.
+For additional information about any changes see the commit messages in
+the repository.
 
 ## Licensing
 
