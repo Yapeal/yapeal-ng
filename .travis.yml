@@ -1,6 +1,6 @@
 language: php
 before_install:
-  - if [[ php --version | grep -qi xdebug ]]; then phpenv config-rm xdebug.ini; fi
+  - if `php --version | grep -qi xdebug`; then phpenv config-rm xdebug.ini; fi
 #  - if [[ $TRAVIS_PHP_VERSION != 7.1 ]]; then phpenv config-rm xdebug.ini; fi
   - phpenv config-rm xdebug.ini
 git:
