@@ -66,8 +66,7 @@
         "lib-openssl": ">=0.9.8",
         "guzzlehttp/guzzle": "~6.0",
         "monolog/monolog": "~1.11",
-        "pimple/pimple": "~3.0",
-        "php": ">=5.5.1,<7.1",
+        "php": ">=7.0.0,<7.2",
         "symfony/console": "~2.5",
         "symfony/yaml": "~2.5",
         "twig/twig": "<2.0"
@@ -76,6 +75,7 @@
         "dragonrun1/semantic-version": "master@dev",
         "dragonrun1/phpspec": "2.1.*@dev",
         "erusev/parsedown": "<1.6",
+        "henrikbjorn/phpspec-code-coverage": "1.0.1",
         "mikey179/vfsStream": "~1.4",
         "phploc/phploc": "<2.3",
         "phpspec/nyan-formatters": "1.0.1",
