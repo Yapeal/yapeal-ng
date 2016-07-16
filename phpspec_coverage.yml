@@ -7,15 +7,16 @@ suites:
         src_path: lib
 
 extensions:
-#    - PhpSpec\Extension\CodeCoverageExtension
-    - PhpSpec\NyanFormattersExtension\Extension
+    - PhpSpec\Extension\CodeCoverageExtension
+#    - PhpSpec\NyanFormattersExtension\Extension
 
-formatter.name: nyan.cat
-#formatter.name: dot
+#formatter.name: nyan.cat
+formatter.name: dot
 code_coverage:
   format:
     #- html
     - clover
   output:
     #html: coverage
-    clover: build/clover.xml
+    clover: log/clover.xml
+  show_uncovered_files: false
