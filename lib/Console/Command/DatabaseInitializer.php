@@ -87,7 +87,6 @@ HELP;
         $desc = 'Drop existing database before re-creating. <comment>Warning all the tables will be dropped as well!</comment>';
         $this->addOption('dropDatabase', null, InputOption::VALUE_NONE, $desc);
     }
-    /** @noinspection PhpMissingParentCallCommonInspection */
     /**
      * Executes the current command.
      *
@@ -113,7 +112,6 @@ HELP;
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->processCliOptions($input);
         if ($input->getOption('dropDatabase')) {
             /**
              * @var QuestionHelper $question
@@ -126,7 +124,7 @@ HELP;
                 $output->writeln('<info>Ignoring drop database</info>');
             }
         }
-        return $this->processSql($output);
+        return parent::execute($input, $output);
     }
     /**
      * @param OutputInterface $output

@@ -68,11 +68,11 @@ class DatabaseUpdater extends AbstractDatabaseCommon
     {
         $name = 'DatabaseUpdater::addDatabaseProcedure';
         $csq = $this->getCsq();
-        $this->executeSqlStatements(
-            $csq->getDropAddOrModifyColumnProcedure() . PHP_EOL . $csq->getCreateAddOrModifyColumnProcedure(),
+        $this->executeSqlStatements($csq->getDropAddOrModifyColumnProcedure()
+            . PHP_EOL
+            . $csq->getCreateAddOrModifyColumnProcedure(),
             $name,
-            $output
-        );
+            $output);
         $output->writeln('');
     }
     /**
@@ -112,7 +112,9 @@ HELP;
     {
         $name = 'DatabaseUpdater::dropDatabaseProcedure';
         $this->executeSqlStatements($this->getCsq()
-            ->getDropAddOrModifyColumnProcedure(), $name, $output);
+            ->getDropAddOrModifyColumnProcedure(),
+            $name,
+            $output);
     }
     /**
      * @param OutputInterface $output
@@ -134,10 +136,8 @@ HELP;
             $version = '19700101000001.000';
             $mess = sprintf('<error>Could NOT get latest database version using default %1$s</error>', $version);
             $output->writeln([$sql, $mess]);
-            $mess = sprintf(
-                '<info>Error message from database connection was %s</info>',
-                $exc->getMessage()
-            );
+            $mess = sprintf('<info>Error message from database connection was %s</info>',
+                $exc->getMessage());
             $output->writeln($mess);
         }
         return $version;
@@ -153,10 +153,8 @@ HELP;
         $fileNames = [];
         $path = $this->getDic()['Yapeal.Sql.dir'] . 'updates/';
         if (!is_readable($path) || !is_dir($path)) {
-            $mess = sprintf(
-                '<info>Could NOT access update directory %1$s</info>',
-                $path
-            );
+            $mess = sprintf('<info>Could NOT access update directory %1$s</info>',
+                $path);
             $output->writeln($mess);
             return $fileNames;
         }
@@ -185,6 +183,7 @@ HELP;
     {
         $this->addDatabaseProcedure($output);
         foreach ($this->getUpdateFileList($output) as $fileName) {
+            /** @noinspection DisconnectedForeachInstructionInspection */
             $latestVersion = $this->getLatestDatabaseVersion($output);
             if (!is_file($fileName)) {
                 if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
@@ -196,11 +195,9 @@ HELP;
             $updateVersion = basename($fileName, '.sql');
             if ($updateVersion <= $latestVersion) {
                 if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
-                    $mess = sprintf(
-                        '<info>Skipping SQL file %1$s since its <= the latest database version %2$s</info>',
+                    $mess = sprintf('<info>Skipping SQL file %1$s since its <= the latest database version %2$s</info>',
                         basename($fileName),
-                        $latestVersion
-                    );
+                        $latestVersion);
                     $output->writeln($mess);
                 }
                 continue;
@@ -208,10 +205,8 @@ HELP;
             $sqlStatements = file_get_contents($fileName);
             if (false === $sqlStatements) {
                 if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
-                    $mess = sprintf(
-                        '<error>Could NOT get contents of SQL file %1$s</error>',
-                        $fileName
-                    );
+                    $mess = sprintf('<error>Could NOT get contents of SQL file %1$s</error>',
+                        $fileName);
                     $output->writeln($mess);
                 }
                 continue;
@@ -241,10 +236,8 @@ HELP;
         } catch (\PDOException $exc) {
             $mess = $sql . PHP_EOL;
             $mess .= sprintf('Database error message was %s', $exc->getMessage()) . PHP_EOL;
-            $mess .= sprintf(
-                'Database "version" update failed for %1$s',
-                $updateVersion
-            );
+            $mess .= sprintf('Database "version" update failed for %1$s',
+                $updateVersion);
             if ($this->getPdo()
                 ->inTransaction()
             ) {
