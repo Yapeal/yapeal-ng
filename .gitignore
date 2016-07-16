@@ -1,3 +1,4 @@
+.coveralls_local.yml
 composer.phar
 junk*.*
 test*.*
