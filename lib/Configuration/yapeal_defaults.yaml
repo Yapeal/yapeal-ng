@@ -1,6 +1,6 @@
 ---
 Yapeal:
-    version: '0.3.2-0-g211342c'
+    version: '0.4.1-0-g309d7a8'
     Error:
         bufferSize: 25
         channel: php
