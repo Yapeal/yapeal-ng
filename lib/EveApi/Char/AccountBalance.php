@@ -33,6 +33,7 @@
  */
 namespace Yapeal\EveApi\Char;
 
+use Yapeal\CommonToolsInterface;
 use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
 use Yapeal\Xml\EveApiReadWriteInterface;
@@ -40,7 +41,7 @@ use Yapeal\Xml\EveApiReadWriteInterface;
 /**
  * Class AccountBalance
  */
-class AccountBalance extends CharSection
+class AccountBalance extends CharSection implements CommonToolsInterface
 {
     use PreserverTrait;
     /** @noinspection MagicMethodsValidityInspection */
