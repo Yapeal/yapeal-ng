@@ -56,3 +56,34 @@ to provide any custom settings need for Yapeal-ng.
 If you are using any of the commands from `bin/yc` including
 'Yapeal:AutoMagic' you can use the --configFile option to have it
 process any accessible file on the local system.
+
+## Summary
+
+So just to make it clear how they all look in a directory list here a
+simplified one for you using a typical directory structure for composer
+projects:
+
+```
+amazingApp/
+    ...
+    config/
+        yapeal.yaml
+    src/
+    ...
+    vendor/
+        bin/
+        ...
+        yapeal/
+            yapeal-ng/
+                bin/
+                cache/
+                config/
+                    ...
+                    yapeal.yaml
+                    yapeal-example.yaml
+                docs/
+                lib/
+                    Configuration/
+                        ...
+                        yapeal_defaults.yaml
+```

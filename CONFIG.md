@@ -1,74 +1,71 @@
 Configuring Yapeal
 ==================
 
-Older versions of Yapeal used a mix of 'ini' style and XML configurations files. To make configuring Yapeal easier than
-using XML configuration files but allow more complex configuration structures than 'ini' files allowed Yapeal is now
-using an 'yaml' file.
+Older versions of Yapeal used a mix of 'ini' style and XML
+configurations files. To make configuring Yapeal easier than using XML
+configuration files but allow more complex configuration structures than
+'ini' files allowed Yapeal is now using an 'yaml' file.
 
-You can think of [Yaml](http://www.yaml.org/) as a super-set of [Json](http://www.json.org/) but made to be more human
-friendly. It also was designed for things like configuration files where Json was created for information transfer
-between computer applications like a web browser and a web site.
+You can think of [Yaml](http://www.yaml.org/) as a super-set of
+[Json](http://www.json.org/) but made to be more human friendly. It also
+was designed for things like configuration files where Json was created
+for information transfer between computer applications like a web
+browser and a web site.
 
 NOTE:
 
-    All of the following examples will be for Linux style command line interface. Windows user in most cases will simply
-    need to change any '/' into '\' on paths if the command does NOT seem to work.
+    All of the following examples will be for Linux style command line
+    interface. Windows user in most cases will simply need to change any
+     '/' into '\' on paths if the command does NOT seem to work.
 
-## yapeal.yaml
+## Configuration files
 
-Yapeal's default configuration file is `config/yapeal.yaml` inside the directory where it was installed. Additionally if
-it is install as a composer package under the `vendor/` directory it will also look for a `config/yapeal.yaml` where
-`config/` is a sibling directory of `vendor/`. Here an example directory structure:
+Instead of having everything here about configuration files please read
+[Configuration File](docs/ConfigurationFiles.md) which covers where
+Yapeal-ng looks for them and it's processing order etc.
 
-```
-yourSuperApp/
-  config/
-    yapeal.yaml
-  vendor/
-    composer/
-    yapeal/
-      yapeal-ng/
-        config/
-          yapeal.yaml
-    autoload.php
-...
-```
-Any settings in `yourSuperApp/config/yapeal.yaml` will override settings from the
-`yourSuperApp/vendor/yapeal/yapeal/config/yapeal.yaml` if they are both used.
-
-You will find a example configuration file in `config/yapeal-example.yaml` which can be copied and used as a template if
-you want. You will see that the example file has several sections named `Error`, `Log`, `Network`, and `Sql` in it.
-It may also have some additional sections which are of little interest to most developers.
-
-The example has comments for all the settings that you might need to change so make sure to have a look at it but we
-will be going over the most common settings that you will probably want to make changes to below.
+Next we go over the more interesting settings of the configuration an
+application developer can or should change before using Yapeal-ng in
+production with their app.
 
 ### Sql Section
 
-Located in the `Sql` section of `yapeal.yaml` are the settings that most people will need to change.
+Located in the `Sql` section of `yapeal.yaml` is where most of the
+settings that need to be change can be found.
 
-The first two settings we will talk about are the `userName` and `password` ones. Normally the user and password Yapeal
-uses only needs typical insert, update, delete, and select access to the data in the tables but during the
-initialization of the database and it's tables Yapeal will need create and drop access to both as well. It is
-recommended that the user added to the yapeal.yaml file only has the table data access it needs during normal operation
-and that a separate user be used only during initialization which has the required additional database access. Later
-I'll show how to override the userName and password given in the config file during initialization of the database.
+The first two settings we will talk about are the `userName` and
+`password` ones. Normally the user that Yapeal-ng uses only needs
+typical insert, update, delete, and select access to the data in the
+database tables but during the initialization of the database and it's
+tables Yapeal-ng will need create and drop access to both as well. It is
+recommended that the user added to the yapeal.yaml file only has the
+table data access it needs during normal operation and that a separate
+user be used only during initialization which has the required
+additional database access. Later I'll show how to override the userName
+and password given in the config file while initialization of the
+database is done.
 
-Next we have the `database` setting which gives the name of the database where Yapeal will look for it's tables. This
-database table can contain additional tables used else where in your application but you will need to take care NOT to
-create tables that have the same names as the ones Yapeal uses to store the Eve API data or any of it's admin tables.
+Next we have the `database` setting which gives the name of the database
+where Yapeal will look for it's tables. This database table can contain
+additional tables used else where in your application but you will need
+to take care NOT to create tables that have the same names as the ones
+Yapeal-ng uses to store the Eve API data or any of it's admin tables.
 
-If you find there is a conflict between the table names of your application and Yapeal there is another setting called
-`tablePrefix` that can be useful. Yapeal will prefix the string from this setting to all the table names for all of it's
-operations automatically for you. If this setting is going to be used it must be done during initialization as well as
-the tables must be created with the prefix.
+If you find there is a conflict between the table names of your
+application and Yapeal-ng there is another setting called `tablePrefix`
+that can be useful. Yapeal will prefix the string from this setting to
+all the table names for all of it's operations automatically for you. If
+this setting is going to be used it must be done during initialization
+as well since the tables must be created with the prefixed names.
 
-I'll give an example here to make it easier to understand how the settings work.
+I'll give an example here to make it easier to understand how the
+settings work.
 
 Let say you have a `config/yapeal.yaml` file that has these settings:
 
 ```
 Yapeal:
+...
   Sql:
     database: yapeal
     password: secret
@@ -80,34 +77,47 @@ Yapeal:
 And you have the following database table SQL:
 
 ```
-DROP TABLE IF EXISTS "{database}"."{table_prefix}eveErrorList";
-CREATE TABLE IF NOT EXISTS "{database}"."{table_prefix}eveErrorList" (
+CREATE TABLE "{database}"."{table_prefix}eveErrorList" (
     "errorCode" SMALLINT(4) UNSIGNED NOT NULL,
     "errorText" TEXT,
     PRIMARY KEY ("errorCode")
 )
-    ENGINE =InnoDB
-    DEFAULT CHARSET =ascii;
+    ENGINE = InnoDB;
 ```
 
-The resulting SQL will like like this:
+The resulting SQL will look something like this:
 
 ```
-DROP TABLE IF EXISTS "yapeal"."eveErrorList";
-CREATE TABLE IF NOT EXISTS "yapeal"."eveErrorList" (
+CREATE TABLE "yapeal"."eveErrorList" (
     "errorCode" SMALLINT(3) UNSIGNED NOT NULL,
     "errorText" TEXT,
     PRIMARY KEY ("errorCode")
 )
-    ENGINE =InnoDB
-    DEFAULT CHARSET =ascii;
+    ENGINE = InnoDB;
 ```
 
-with the `{database}` and `{table_prefix}` replaced with the values. The user name used for the connection will be
-`YapealUser` and the password `password`.
+with the `{database}` and `{table_prefix}` replaced with the values. The
+user name used for the connection will be `YapealUser` and the password
+use will be `password`.
+
+There are several other settings a application developer might need to
+update as well in the SQL settings but they aren't typical needed. For
+them read the include comments in yapeal-example.yaml and if you still
+need addition assistance just contact me through Github and I'll be more
+than happy to help you figure out what settings you'll need.
 
 ### Log Section
 
+There are a couple settings as an application developer that you might
+need to change. The first that MUST be changed when Yapeal-ng is under
+the vendor/ directory is the `dir` setting. Normally this is set to a
+`log/` directory inside of  Yapeal-ng itself and since anything under
+`vendor/` should be read only this is a bad place for it to be writing
+a log file. Best thing to do is setting it to the same directory you use
+for logging errors in your application. In cases where you application
+doesn't have a log directory you might redirect to a tmp directory etc.
+Another option if you already have PSR-3 compatible logging set up in
+your application is to
 The only setting anyone is likely to change here is the `threshold` one. You may during development or at least during
 initial deployment want to see some additional logging then switch to less level later. Main thing here is to make sure
 this setting is always below the setting in `Yapeal.Error.threshold`. For example if the setting in Error section is
