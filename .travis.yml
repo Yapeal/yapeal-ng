@@ -22,7 +22,7 @@ php:
 
 script:
 #    - mkdir -p build
-    - phpdbg -qrr -f vendor\dragonrun1\phpspec\bin\phpspec --config=phpspec_coverage.yml run
+    - phpdbg -qrr -f vendor/dragonrun1/phpspec/bin/phpspec --config=phpspec_coverage.yml run
 #    - phpunit --coverage-clover build/logs/clover.xml
 
 after_script:
