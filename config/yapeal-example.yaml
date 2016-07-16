@@ -87,7 +87,7 @@ Yapeal:
         # Directory where log file will be stored.
         # The default setting of '{Yapeal.baseDir}log/' uses a log/ directory under the directory where Yapeal was
         # installed. NOTE: If you are using Yapeal-ng with composer this will be inside the vendor/ directory and this
-        # will probably need to be changed.
+        # MUST be changed.
         dir: '{Yapeal.baseDir}log/'
 
         # Name of the log file to be used.
