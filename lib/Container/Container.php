@@ -1,4 +1,5 @@
 <?php
+declare(strict_types = 1);
 /**
  * Contains class Container.
  *
@@ -75,16 +76,13 @@ class Container implements ContainerInterface
      *
      * @throws \InvalidArgumentException if the identifier is not defined or not a service definition
      */
-    public function extend($id, $callable)
+    public function extend(string $id, callable $callable): callable
     {
         if (!$this->offsetExists($id)) {
             throw new \InvalidArgumentException(sprintf('Identifier "%s" is not defined.', $id));
         }
         if (!is_object($this->values[$id]) || !method_exists($this->values[$id], '__invoke')) {
             throw new \InvalidArgumentException(sprintf('Identifier "%s" does not contain an object definition.', $id));
-        }
-        if (!is_object($callable) || !method_exists($callable, '__invoke')) {
-            throw new \InvalidArgumentException('Extension service definition is not a Closure or invokable object.');
         }
         $factory = $this->values[$id];
         $extended = function ($c) use ($callable, $factory) {
@@ -105,11 +103,8 @@ class Container implements ContainerInterface
      *
      * @throws \InvalidArgumentException Service definition has to be a closure of an invokable object
      */
-    public function factory($callable)
+    public function factory(callable $callable): callable
     {
-        if (!method_exists($callable, '__invoke')) {
-            throw new \InvalidArgumentException('Service definition is not a Closure or invokable object.');
-        }
         /** @noinspection PhpParamsInspection */
         $this->factories->attach($callable);
         return $callable;
@@ -119,7 +114,7 @@ class Container implements ContainerInterface
      *
      * @return array An array of value names
      */
-    public function keys()
+    public function keys(): array
     {
         return array_keys($this->values);
     }
@@ -211,11 +206,8 @@ class Container implements ContainerInterface
      *
      * @throws \InvalidArgumentException Service definition has to be a closure of an invokable object
      */
-    public function protect($callable)
+    public function protect(callable $callable): callable
     {
-        if (!method_exists($callable, '__invoke')) {
-            throw new \InvalidArgumentException('Callable is not a Closure or invokable object.');
-        }
         /** @noinspection PhpParamsInspection */
         $this->protected->attach($callable);
         return $callable;
@@ -229,7 +221,7 @@ class Container implements ContainerInterface
      *
      * @throws \InvalidArgumentException if the identifier is not defined
      */
-    public function raw($id)
+    public function raw(string $id)
     {
         if (!$this->offsetExists($id)) {
             throw new \InvalidArgumentException(sprintf('Identifier "%s" is not defined.', $id));
@@ -238,6 +230,22 @@ class Container implements ContainerInterface
             return $this->raw[$id];
         }
         return $this->values[$id];
+    }
+    /**
+     * Registers a service provider.
+     *
+     * @param ServiceProviderInterface $provider A ServiceProviderInterface instance
+     * @param array                    $values   An array of values that customizes the provider
+     *
+     * @return ContainerInterface
+     */
+    public function register(ServiceProviderInterface $provider, array $values = []): ContainerInterface
+    {
+        $provider->register($this);
+        foreach ($values as $key => $value) {
+            $this[(string)$key] = $value;
+        }
+        return $this;
     }
     /**
      * @var \SplObjectStorage $factories

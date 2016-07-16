@@ -1,4 +1,5 @@
 <?php
+declare(strict_types = 1);
 /**
  * Contains ContainerInterface Interface.
  *
@@ -60,7 +61,7 @@ interface ContainerInterface extends \ArrayAccess
      * @throws \InvalidArgumentException If the identifier is NOT defined or NOT
      * a service definition
      */
-    public function extend($key, $callable);
+    public function extend(string $key, callable $callable): callable;
     /**
      * Marks a callable as being a factory service.
      *
@@ -72,13 +73,13 @@ interface ContainerInterface extends \ArrayAccess
      * @throws \InvalidArgumentException Service definition has to be a closure
      * of an invokable object
      */
-    public function factory($callable);
+    public function factory(callable $callable): callable;
     /**
      * Returns all defined value names.
      *
      * @return array An array of value names
      */
-    public function keys();
+    public function keys(): array;
     /**
      * Protects a callable from being interpreted as a service.
      *
@@ -91,7 +92,7 @@ interface ContainerInterface extends \ArrayAccess
      * @throws \InvalidArgumentException Service definition has to be a closure
      *                                   of an invokable object
      */
-    public function protect($callable);
+    public function protect(callable $callable): callable;
     /**
      * Gets a parameter or the closure defining an object.
      *
@@ -102,5 +103,14 @@ interface ContainerInterface extends \ArrayAccess
      *
      * @throws \InvalidArgumentException if the identifier is NOT defined
      */
-    public function raw($key);
+    public function raw(string $key);
+    /**
+     * Registers a service provider.
+     *
+     * @param ServiceProviderInterface $provider A ServiceProviderInterface instance
+     * @param array                    $values   An array of values that customizes the provider
+     *
+     * @return ContainerInterface
+     */
+    public function register(ServiceProviderInterface $provider, array $values = []): ContainerInterface;
 }
