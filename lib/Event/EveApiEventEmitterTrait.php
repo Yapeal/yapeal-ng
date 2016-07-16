@@ -44,6 +44,13 @@ trait EveApiEventEmitterTrait
 {
     use MessageBuilderTrait;
     /**
+     * @return bool
+     */
+    public function hasYem()
+    {
+        return null !== $this->yem;
+    }
+    /**
      * @param MediatorInterface $value
      *
      * @return self Fluent interface.
@@ -125,13 +132,6 @@ trait EveApiEventEmitterTrait
             throw new \LogicException($mess);
         }
         return $this->yem;
-    }
-    /**
-     * @return bool
-     */
-    protected function hasYem()
-    {
-        return null !== $this->yem;
     }
     /**
      * @var MediatorInterface $yem
