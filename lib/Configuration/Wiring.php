@@ -69,17 +69,13 @@ class Wiring
             /**
              * @var \RecursiveIteratorIterator|\Traversable $rItIt
              */
-            $rItIt = new \RecursiveIteratorIterator(
-                new \RecursiveArrayIterator(
-                    (new Parser())->parse(file_get_contents($configFile), true, false)
-                )
-            );
+            $rItIt = new \RecursiveIteratorIterator(new \RecursiveArrayIterator((new Parser())->parse(file_get_contents($configFile),
+                true,
+                false)));
         } catch (ParseException $exc) {
-            $mess = sprintf(
-                'Unable to parse the YAML configuration file %2$s. The error message was %1$s',
+            $mess = sprintf('Unable to parse the YAML configuration file %2$s. The error message was %1$s',
                 $exc->getMessage(),
-                $configFile
-            );
+                $configFile);
             throw new YapealException($mess, 0, $exc);
         }
         foreach ($rItIt as $leafValue) {
@@ -103,15 +99,19 @@ class Wiring
      */
     public function wireAll()
     {
+        $dic = $this->dic;
+        $base = 'Yapeal.Wiring.Handlers.';
         $names = ['Config', 'Error', 'Event', 'Log', 'Sql', 'Xml', 'Xsd', 'Xsl', 'FileSystem', 'Network', 'EveApi'];
+        /**
+         * @var WiringInterface $class
+         */
         foreach ($names as $name) {
-            $className = __NAMESPACE__ . '\\' . $name . 'Wiring';
-            if (class_exists($className, true)) {
-                /**
-                 * @var WiringInterface $class
-                 */
-                $class = new $className();
-                $class->wire($this->dic);
+            $setting = $base . strtolower($name);
+            if (!empty($dic[$setting])
+                && is_subclass_of($dic[$setting], '\\Yapeal\\Configuration\\WiringInterface', true)
+            ) {
+                $class = new $dic[$setting];
+                $class->wire($dic);
                 continue;
             }
             $methodName = 'wire' . $name;
@@ -140,8 +140,7 @@ class Wiring
         $regEx = '/(?<all>\{(?<name>Yapeal(?:\.\w+)+)\})/';
         $dic = $this->dic;
         do {
-            $settings = preg_replace_callback(
-                $regEx,
+            $settings = preg_replace_callback($regEx,
                 function ($match) use ($settings, $dic) {
                     if (!empty($settings[$match['name']])) {
                         return $settings[$match['name']];
@@ -153,8 +152,7 @@ class Wiring
                 },
                 $settings,
                 -1,
-                $count
-            );
+                $count);
             if (++$depth > $maxDepth) {
                 $mess = 'Exceeded maximum depth, check for possible circular reference(s)';
                 throw new \DomainException($mess);
@@ -181,20 +179,19 @@ class Wiring
         $rdi = new \RecursiveDirectoryIterator($this->dic['Yapeal.EveApi.dir']);
         $rdi->setFlags($flags);
         /** @noinspection SpellCheckingInspection */
-        $rcfi = new \RecursiveCallbackFilterIterator(
-            $rdi, function (\SplFileInfo $current, $key, \RecursiveDirectoryIterator $rdi) {
-            if ($rdi->hasChildren()) {
-                return true;
-            }
-            $dirs = ['Account', 'Api', 'Char', 'Corp', 'Eve', 'Map', 'Server'];
-            $dirExists = in_array(basename(dirname($key)), $dirs, true);
-            return ($dirExists && $current->isFile() && 'php' === $current->getExtension());
-        }
-        );
+        $rcfi = new \RecursiveCallbackFilterIterator($rdi,
+            function (\SplFileInfo $current, $key, \RecursiveDirectoryIterator $rdi) {
+                if ($rdi->hasChildren()) {
+                    return true;
+                }
+                $dirs = ['Account', 'Api', 'Char', 'Corp', 'Eve', 'Map', 'Server'];
+                $dirExists = in_array(basename(dirname($key)), $dirs, true);
+                return ($dirExists && $current->isFile() && 'php' === $current->getExtension());
+            });
         /** @noinspection SpellCheckingInspection */
-        $rii = new \RecursiveIteratorIterator(
-            $rcfi, \RecursiveIteratorIterator::LEAVES_ONLY, \RecursiveIteratorIterator::CATCH_GET_CHILD
-        );
+        $rii = new \RecursiveIteratorIterator($rcfi,
+            \RecursiveIteratorIterator::LEAVES_ONLY,
+            \RecursiveIteratorIterator::CATCH_GET_CHILD);
         $rii->setMaxDepth(3);
         $fpn = $this->getFpn();
         $files = [];
@@ -267,21 +264,23 @@ class Wiring
              * @var \SplFileInfo $subscriber
              */
             foreach ($internal as $subscriber) {
-                $service = sprintf(
-                    '%1$s.%2$s.%3$s',
+                $service = sprintf('%1$s.%2$s.%3$s',
                     $base,
                     basename(dirname($subscriber)),
-                    basename($subscriber, '.php')
-                );
+                    basename($subscriber, '.php'));
                 if (!isset($dic[$service])) {
                     $dic[$service] = function () use ($dic, $service) {
                         $class = '\\' . str_replace('.', '\\', $service);
                         /**
-                         * @var \Yapeal\CommonToolsTrait $callable
+                         * @var \Yapeal\CommonToolsInterface|\Yapeal\Event\EveApiPreserverInterface $callable
                          */
                         $callable = new $class();
-                        return $callable->setCsq($dic['Yapeal.Sql.CommonQueries'])
+                        $callable->setCsq($dic['Yapeal.Sql.CommonQueries'])
                             ->setPdo($dic['Yapeal.Sql.Connection']);
+                        if (false === strpos($service, 'Section')) {
+                            $callable->setPreserve($dic['Yapeal.EveApi.Cache.preserve']);
+                        }
+                        return $callable;
                     };
                 }
                 $events = [$service . '.start' => ['startEveApi', 'last']];
@@ -294,20 +293,15 @@ class Wiring
         if (empty($dic['Yapeal.EveApi.Creator'])) {
             $dic['Yapeal.EveApi.Creator'] = function () use ($dic) {
                 $loader = new \Twig_Loader_Filesystem($dic['Yapeal.EveApi.dir']);
-                $twig = new \Twig_Environment(
-                    $loader, ['debug' => true, 'strict_variables' => true, 'autoescape' => false]
-                );
-                $filter = new \Twig_SimpleFilter(
-                    'ucFirst', function ($value) {
+                $twig = new \Twig_Environment($loader,
+                    ['debug' => true, 'strict_variables' => true, 'autoescape' => false]);
+                $filter = new \Twig_SimpleFilter('ucFirst', function ($value) {
                     return ucfirst($value);
-                }
-                );
+                });
                 $twig->addFilter($filter);
-                $filter = new \Twig_SimpleFilter(
-                    'lcFirst', function ($value) {
+                $filter = new \Twig_SimpleFilter('lcFirst', function ($value) {
                     return lcfirst($value);
-                }
-                );
+                });
                 $twig->addFilter($filter);
                 /**
                  * @var \Yapeal\EveApi\Creator $create
@@ -318,10 +312,8 @@ class Wiring
                 }
                 return $create;
             };
-            $mediator->addServiceSubscriberByEventList(
-                'Yapeal.EveApi.Creator',
-                ['Yapeal.EveApi.create' => ['createEveApi', 'last']]
-            );
+            $mediator->addServiceSubscriberByEventList('Yapeal.EveApi.Creator',
+                ['Yapeal.EveApi.create' => ['createEveApi', 'last']]);
         }
         return $this;
     }

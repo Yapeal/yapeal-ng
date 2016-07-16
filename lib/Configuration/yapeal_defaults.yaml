@@ -82,8 +82,19 @@ Yapeal:
         userName: YapealUser
         Handlers:
             create: Yapeal\Sql\Creator
-            connection: PDO
+            connection: \PDO
             queries: Yapeal\Sql\CommonSqlQueries
+    Wiring:
+        Handlers:
+            error: Yapeal\Configuration\ErrorWiring
+            event: Yapeal\Configuration\EventWiring
+            filesystem: Yapeal\Configuration\FileSystemWiring
+            log: Yapeal\Configuration\LogWiring
+            network: Yapeal\Configuration\NetworkWiring
+            sql: Yapeal\Configuration\SqlWiring
+            xml: Yapeal\Configuration\XmlWiring
+            xsd: Yapeal\Configuration\XsdWiring
+            xsl: Yapeal\Configuration\XslWiring
     Xml:
         dir: '{Yapeal.libDir}Xml/'
         Handlers:

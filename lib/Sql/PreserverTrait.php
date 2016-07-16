@@ -70,6 +70,9 @@ trait PreserverTrait
      */
     public function preserveEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
     {
+        if (!$this->shouldPreserve()) {
+            return $event;
+        }
         $this->setYem($yem);
         $data = $event->getData();
         $xml = $data->getEveApiXml();
@@ -77,11 +80,9 @@ trait PreserverTrait
             return $event->setHandledSufficiently();
         }
         $this->getYem()
-            ->triggerLogEvent(
-                'Yapeal.Log.log',
+            ->triggerLogEvent('Yapeal.Log.log',
                 Logger::DEBUG,
-                $this->getReceivedEventMessage($data, $eventName, __CLASS__)
-            );
+                $this->getReceivedEventMessage($data, $eventName, __CLASS__));
         $this->getPdo()
             ->beginTransaction();
         try {
@@ -93,12 +94,10 @@ trait PreserverTrait
         } catch (\PDOException $exc) {
             $mess = 'Failed to upsert data of';
             $this->getYem()
-                ->triggerLogEvent(
-                    'Yapeal.Log.log',
+                ->triggerLogEvent('Yapeal.Log.log',
                     Logger::WARNING,
                     $this->createEveApiMessage($mess, $data),
-                    ['exception' => $exc]
-                );
+                    ['exception' => $exc]);
             $this->getPdo()
                 ->rollBack();
             return $event;
@@ -118,23 +117,23 @@ trait PreserverTrait
      */
     public function setPreserve($value = true)
     {
-        // TODO Need to actual finish implementation.
+        $this->preserve = (boolean)$value;
         return $this;
     }
     /**
-     * @param \SimpleXMLElement[]|string $rows
-     * @param array                      $columnDefaults
-     * @param string                     $tableName
+     * @param \SimpleXMLElement[] $rows
+     * @param array               $columnDefaults
+     * @param string              $tableName
      *
      * @return self Fluent interface.
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
-    protected function attributePreserveData($rows, array $columnDefaults, $tableName)
+    protected function attributePreserveData(array $rows, array $columnDefaults, $tableName)
     {
         $maxRowCount = 1000;
-        if (is_string($rows) || 0 === count($rows)) {
+        if (0 === count($rows)) {
             return $this;
         }
         $rows = array_chunk($rows, $maxRowCount, true);
@@ -226,26 +225,40 @@ trait PreserverTrait
                 $columnDefaults[$columnName] = (string)$element;
             }
         }
-        $required = array_reduce($columnDefaults, function ($carry, $item) {
-            return $carry + (int)(null === $item);
-        }, 0);
+        $required = array_reduce($columnDefaults,
+            function ($carry, $item) {
+                return $carry + (int)(null === $item);
+            },
+            0);
         if ($required > $eleCount) {
             return $this;
         }
-        uksort($columnDefaults, function ($alpha, $beta) {
-            $alpha = strtolower($alpha);
-            $beta = strtolower($beta);
-            if ($alpha < $beta) {
-                return -1;
-            } elseif ($alpha > $beta) {
-                return 1;
-            }
-            return 0;
-        });
+        uksort($columnDefaults,
+            function ($alpha, $beta) {
+                $alpha = strtolower($alpha);
+                $beta = strtolower($beta);
+                if ($alpha < $beta) {
+                    return -1;
+                } elseif ($alpha > $beta) {
+                    return 1;
+                }
+                return 0;
+            });
         return $this->flush(array_values($columnDefaults), array_keys($columnDefaults), $tableName);
     }
     /**
      * @var string[] preserveTos
      */
     protected $preserveTos = [];
+    /**
+     * @return boolean
+     */
+    private function shouldPreserve()
+    {
+        return $this->preserve;
+    }
+    /**
+     * @var bool $preserve
+     */
+    private $preserve = true;
 }
