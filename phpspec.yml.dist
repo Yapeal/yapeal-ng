@@ -5,17 +5,6 @@ suites:
         spec_path: specs
         spec_prefix: Spec
         src_path: lib
-
 extensions:
-#    - PhpSpec\Extension\CodeCoverageExtension
     - PhpSpec\NyanFormattersExtension\Extension
-
 formatter.name: nyan.cat
-#formatter.name: dot
-code_coverage:
-  format:
-    #- html
-    - clover
-  output:
-    #html: coverage
-    clover: build/clover.xml

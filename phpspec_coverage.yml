@@ -8,15 +8,29 @@ suites:
 
 extensions:
     - PhpSpec\Extension\CodeCoverageExtension
-#    - PhpSpec\NyanFormattersExtension\Extension
-
-#formatter.name: nyan.cat
 formatter.name: dot
 code_coverage:
-  format:
-    #- html
-    - clover
-  output:
-    #html: coverage
-    clover: log/clover.xml
-  show_uncovered_files: false
+    whitelist:
+        - lib
+    blacklist:
+        - bin
+        - build
+        - composer
+        - docs
+        - specs
+        - tests
+        - vendor
+    blacklist_files:
+        - bootstrap.php
+        - UtilRegisterKey.php
+        - yapeal.php
+        - yc.php
+        - "Mock*.php"
+        - "*Spec.php"
+        - "*Test.php"
+        - "junk*.*"
+        - "test*.*"
+    format:
+        - clover
+    output:
+        clover: log/clover.xml
