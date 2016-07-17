@@ -1,17 +1,6 @@
 {
     "name": "yapeal/yapeal-ng",
     "description": "Yet Another Php Eve Api Library Next Generation also know as Yapeal-ng which can be used to access the Eve Online API data and place it into a database.",
-    "keywords": [
-        "curl",
-        "database",
-        "Eve",
-        "Eve-Online",
-        "mysql",
-        "PDO",
-        "REST",
-        "RESTful"
-    ],
-    "license": "LGPL-3.0+",
     "autoload": {
         "psr-4": {
             "Yapeal\\": [
@@ -40,13 +29,23 @@
     "config": {
         "optimize-autoloader": true
     },
-    "homepage": "https://github.com/Yapeal/yapeal",
-    "support": {
-        "forum": "https://forums.eveonline.com/default.aspx?g=posts&t=360758",
-        "issues": "https://github.com/Yapeal/yapeal-ng/issues?state=open",
-        "source": "https://github.com/Yapeal/yapeal-ng",
-        "wiki": "https://github.com/Yapeal/yapeal-ng/wiki"
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.*-dev"
+        }
     },
+    "homepage": "https://github.com/Yapeal/yapeal",
+    "keywords": [
+        "curl",
+        "database",
+        "Eve",
+        "Eve-Online",
+        "mysql",
+        "PDO",
+        "REST",
+        "RESTful"
+    ],
+    "license": "LGPL-3.0+",
     "require": {
         "dragonrun1/file_path_normalizer": "1.1.*",
         "dragonrun1/event-mediator": "<1.1.0",
@@ -72,7 +71,6 @@
         "twig/twig": "<2.0"
     },
     "require-dev": {
-        "dragonrun1/semantic-version": "master@dev",
         "dragonrun1/phpspec": "2.1.*@dev",
         "erusev/parsedown": "<1.6",
         "henrikbjorn/phpspec-code-coverage": "1.0.1",
@@ -80,5 +78,11 @@
         "phploc/phploc": "<2.3",
         "phpspec/nyan-formatters": "1.0.1",
         "satooshi/php-coveralls": "dev-master"
+    },
+    "support": {
+        "forum": "https://forums.eveonline.com/default.aspx?g=posts&t=360758",
+        "issues": "https://github.com/Yapeal/yapeal-ng/issues?state=open",
+        "source": "https://github.com/Yapeal/yapeal-ng",
+        "wiki": "https://github.com/Yapeal/yapeal-ng/wiki"
     }
 }
