@@ -1,6 +1,6 @@
 <?php
 /**
- * Contains Yapeal Bootstrap.
+ * Contains Bootstrap.
  *
  * PHP version 5.5
  *
@@ -31,8 +31,6 @@
  * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
  * @author    Michael Cummings <mgcummings@yahoo.com>
  */
-namespace Yapeal;
-
 /*
  * Nothing to do if Composer auto loader already exists.
  */
@@ -53,7 +51,7 @@ if (false !== $vendorPos) {
 $errorReporting = error_reporting(E_ALL & ~E_WARNING);
 include_once $path . '/vendor/autoload.php';
 error_reporting($errorReporting);
-unset($errorReporting);
+unset($errorReporting, $path, $vendorPos);
 if (!class_exists('\\Composer\\Autoload\\ClassLoader', false)) {
     $mess = 'Could NOT find required Composer class auto loader. Aborting ...';
     if ('cli' === PHP_SAPI) {
