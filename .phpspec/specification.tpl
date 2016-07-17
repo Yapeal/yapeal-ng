@@ -39,7 +39,7 @@ use Prophecy\Argument;
 /**
  * Class %name%
  *
- * @mixin \%namespace%\%name%
+ * @mixin \%subject%
  *
  * @method void during($method, array $params)
  * @method void shouldBe($value)
@@ -52,7 +52,7 @@ use Prophecy\Argument;
  */
 class %name% extends ObjectBehavior
 {
-    public function it_is_initializable()
+    public function itIsInitializable()
     {
         $this->shouldHaveType('%subject%');
     }
