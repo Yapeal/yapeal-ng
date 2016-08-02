@@ -1,4 +1,5 @@
 <?php
+declare(strict_types = 1);
 /**
  * Contains MessageBuilderTrait Trait.
  *
@@ -47,7 +48,7 @@ trait MessageBuilderTrait
      * @return string
      * @throws \LogicException
      */
-    protected function createEveApiMessage($messagePrefix, EveApiReadWriteInterface $data)
+    protected function createEveApiMessage(string $messagePrefix, EveApiReadWriteInterface $data): string
     {
         $mess = $messagePrefix . ' Eve API %1$s/%2$s';
         $subs = [lcfirst($data->getEveApiSectionName()), $data->getEveApiName()];
@@ -72,7 +73,11 @@ trait MessageBuilderTrait
      * @return string
      * @throws \LogicException
      */
-    protected function createEventMessage($messagePrefix, EveApiReadWriteInterface $data, $eventName)
+    protected function createEventMessage(
+        string $messagePrefix,
+        EveApiReadWriteInterface $data,
+        string $eventName
+    ): string
     {
         $messagePrefix .= sprintf(' %s event from', $eventName);
         return $this->createEveApiMessage($messagePrefix, $data);
@@ -84,7 +89,7 @@ trait MessageBuilderTrait
      * @return string
      * @throws \LogicException
      */
-    protected function getEmittingEventMessage(EveApiReadWriteInterface $data, $eventName)
+    protected function getEmittingEventMessage(EveApiReadWriteInterface $data, string $eventName): string
     {
         $messagePrefix = 'Emitting';
         return $this->createEventMessage($messagePrefix, $data, $eventName);
@@ -96,7 +101,7 @@ trait MessageBuilderTrait
      * @return string
      * @throws \LogicException
      */
-    protected function getEmptyXmlDataMessage(EveApiReadWriteInterface $data, $eventName)
+    protected function getEmptyXmlDataMessage(EveApiReadWriteInterface $data, string $eventName): string
     {
         $messagePrefix = 'XML empty after';
         return $this->createEventMessage($messagePrefix, $data, $eventName);
@@ -109,7 +114,7 @@ trait MessageBuilderTrait
      * @return string
      * @throws \LogicException
      */
-    protected function getFailedToWriteFile(EveApiReadWriteInterface $data, $eventName, $fileName)
+    protected function getFailedToWriteFile(EveApiReadWriteInterface $data, string $eventName, string $fileName): string
     {
         $messagePrefix = sprintf('Failed writing %s file during', $fileName);
         return $this->createEventMessage($messagePrefix, $data, $eventName);
@@ -121,7 +126,7 @@ trait MessageBuilderTrait
      * @return string
      * @throws \LogicException
      */
-    protected function getFinishedEventMessage(EveApiReadWriteInterface $data, $eventName)
+    protected function getFinishedEventMessage(EveApiReadWriteInterface $data, string $eventName): string
     {
         $messagePrefix = 'Finished';
         return $this->createEventMessage($messagePrefix, $data, $eventName);
@@ -133,7 +138,7 @@ trait MessageBuilderTrait
      * @return string
      * @throws \LogicException
      */
-    protected function getNonHandledEventMessage(EveApiReadWriteInterface $data, $eventName)
+    protected function getNonHandledEventMessage(EveApiReadWriteInterface $data, string $eventName): string
     {
         $messagePrefix = 'Nothing reported handling';
         return $this->createEventMessage($messagePrefix, $data, $eventName);
@@ -146,7 +151,11 @@ trait MessageBuilderTrait
      * @return string
      * @throws \LogicException
      */
-    protected function getReceivedEventMessage(EveApiReadWriteInterface $data, $eventName, $location)
+    protected function getReceivedEventMessage(
+        EveApiReadWriteInterface $data,
+        string $eventName,
+        string $location
+    ): string
     {
         $messagePrefix = sprintf('Received in %s', $location);
         return $this->createEventMessage($messagePrefix, $data, $eventName);
@@ -158,7 +167,7 @@ trait MessageBuilderTrait
      * @return string
      * @throws \LogicException
      */
-    protected function getSufficientlyHandledEventMessage(EveApiReadWriteInterface $data, $eventName)
+    protected function getSufficientlyHandledEventMessage(EveApiReadWriteInterface $data, string $eventName): string
     {
         $messagePrefix = 'Sufficiently handled';
         return $this->createEventMessage($messagePrefix, $data, $eventName);
@@ -170,7 +179,7 @@ trait MessageBuilderTrait
      * @return string
      * @throws \LogicException
      */
-    protected function getWasHandledEventMessage(EveApiReadWriteInterface $data, $eventName)
+    protected function getWasHandledEventMessage(EveApiReadWriteInterface $data, string $eventName): string
     {
         $messagePrefix = 'Handled';
         return $this->createEventMessage($messagePrefix, $data, $eventName);
