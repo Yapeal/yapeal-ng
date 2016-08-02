@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * Contains EveApiPreserverInterface Interface.
  *
@@ -47,7 +48,7 @@ interface EveApiPreserverInterface
      * @return EveApiEventInterface
      *
      */
-    public function preserveEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem);
+    public function preserveEveApi(EveApiEventInterface $event, string $eventName, MediatorInterface $yem): EveApiEventInterface;
     /**
      * Turn on or off preserving of Eve API data by this preserver.
      *
@@ -55,7 +56,7 @@ interface EveApiPreserverInterface
      *
      * @param boolean $value
      *
-     * @return $this Fluent interface
+     * @return EveApiPreserverInterface Fluent interface
      */
-    public function setPreserve($value = true);
+    public function setPreserve(bool $value = true): EveApiPreserverInterface;
 }

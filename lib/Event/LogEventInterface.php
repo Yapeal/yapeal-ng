@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * LogEventInterface.php
  *
@@ -43,31 +44,31 @@ interface LogEventInterface extends EventInterface
     /**
      * @return array
      */
-    public function getContext();
+    public function getContext(): array;
     /**
-     * @return mixed
+     * @return int
      */
-    public function getLevel();
+    public function getLevel(): int;
     /**
      * @return string
      */
-    public function getMessage();
+    public function getMessage(): string;
     /**
      * @param array $value
      *
-     * @return self Fluent interface.
+     * @return LogEventInterface Fluent interface.
      */
-    public function setContext(array $value);
+    public function setContext(array $value): LogEventInterface;
     /**
-     * @param mixed $value
+     * @param int $value
      *
-     * @return self
+     * @return LogEventInterface Fluent interface.
      */
-    public function setLevel($value);
+    public function setLevel(int $value): LogEventInterface;
     /**
      * @param string $value
      *
-     * @return self Fluent interface.
+     * @return LogEventInterface Fluent interface.
      */
-    public function setMessage($value);
+    public function setMessage(string $value): LogEventInterface;
 }

@@ -1,4 +1,5 @@
 <?php
+declare(strict_types = 1);
 /**
  * Contains LogEvent class.
  *
@@ -42,13 +43,13 @@ use Yapeal\Log\Logger;
 class LogEvent extends Event implements LogEventInterface
 {
     /**
-     * @param mixed  $level
+     * @param int    $level
      * @param string $message
      * @param array  $context
      */
     public function __construct(
-        $level = Logger::DEBUG,
-        $message = '',
+        int $level = Logger::DEBUG,
+        string $message = '',
         array $context = []
     ) {
         $this->setLevel($level)
@@ -58,40 +59,40 @@ class LogEvent extends Event implements LogEventInterface
     /**
      * @return array
      */
-    public function getContext()
+    public function getContext(): array
     {
         return $this->context;
     }
     /**
-     * @return mixed
+     * @return int
      */
-    public function getLevel()
+    public function getLevel(): int
     {
         return $this->level;
     }
     /**
      * @return string
      */
-    public function getMessage()
+    public function getMessage(): string
     {
         return $this->message;
     }
     /**
      * @param array $value
      *
-     * @return self Fluent interface.
+     * @return LogEventInterface Fluent interface.
      */
-    public function setContext(array $value)
+    public function setContext(array $value): LogEventInterface
     {
         $this->context = $value;
         return $this;
     }
     /**
-     * @param mixed $value
+     * @param int $value
      *
-     * @return self
+     * @return LogEventInterface Fluent interface.
      */
-    public function setLevel($value)
+    public function setLevel(int $value): LogEventInterface
     {
         $this->level = $value;
         return $this;
@@ -99,9 +100,9 @@ class LogEvent extends Event implements LogEventInterface
     /**
      * @param string $value
      *
-     * @return self Fluent interface.
+     * @return LogEventInterface Fluent interface.
      */
-    public function setMessage($value)
+    public function setMessage(string $value): LogEventInterface
     {
         $this->message = $value;
         return $this;
@@ -111,7 +112,7 @@ class LogEvent extends Event implements LogEventInterface
      */
     protected $context;
     /**
-     * @var mixed $level
+     * @var int $level
      */
     protected $level;
     /**

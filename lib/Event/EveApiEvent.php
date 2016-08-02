@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * Contains EveApiEvent class.
  *
@@ -48,7 +49,7 @@ class EveApiEvent extends Event implements EveApiEventInterface
      * @return EveApiReadWriteInterface
      * @throws \LogicException Throws exception if code tries to access data before it is set.
      */
-    public function getData()
+    public function getData(): EveApiReadWriteInterface
     {
         if (!$this->data instanceof EveApiReadWriteInterface) {
             $mess = 'Tried to use data before it was set';
@@ -64,18 +65,18 @@ class EveApiEvent extends Event implements EveApiEventInterface
      *
      * @return bool
      */
-    public function isSufficientlyHandled()
+    public function isSufficientlyHandled(): bool
     {
-        return ($this->handledSufficiently || $this->handled);
+        return ($this->handledSufficiently || $this->hasBeenHandled());
     }
     /**
      * Set data object.
      *
      * @param EveApiReadWriteInterface $value
      *
-     * @return self Fluent interface.
+     * @return EveApiEventInterface Fluent interface.
      */
-    public function setData(EveApiReadWriteInterface $value)
+    public function setData(EveApiReadWriteInterface $value): EveApiEventInterface
     {
         $this->data = $value;
         return $this;
@@ -84,9 +85,9 @@ class EveApiEvent extends Event implements EveApiEventInterface
      * Set to indicate event was handled sufficiently while still allows additional listener(s) to have a chance to
      * handle the event as well.
      *
-     * @return self Fluent interface.
+     * @return EveApiEventInterface Fluent interface.
      */
-    public function setHandledSufficiently()
+    public function setHandledSufficiently(): EveApiEventInterface
     {
         $this->handledSufficiently = true;
         return $this;

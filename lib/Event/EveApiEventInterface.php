@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * Contains EveApiEventInterface Interface.
  *
@@ -47,7 +48,7 @@ interface EveApiEventInterface extends EventInterface
      * @return EveApiReadWriteInterface
      * @throws \LogicException Throws exception if code tries to access data before it is set.
      */
-    public function getData();
+    public function getData(): EveApiReadWriteInterface;
     /**
      * Used to check if event was handled sufficiently by any listener(s).
      *
@@ -56,20 +57,20 @@ interface EveApiEventInterface extends EventInterface
      *
      * @return bool
      */
-    public function isSufficientlyHandled();
+    public function isSufficientlyHandled(): bool;
     /**
      * Set data object.
      *
      * @param EveApiReadWriteInterface $value
      *
-     * @return self Fluent interface.
+     * @return EveApiEventInterface Fluent interface.
      */
-    public function setData(EveApiReadWriteInterface $value);
+    public function setData(EveApiReadWriteInterface $value): EveApiEventInterface;
     /**
      * Set to indicate event was handled sufficiently while still allows additional listener(s) to have a chance to
      * handle the event as well.
      *
-     * @return self Fluent interface.
+     * @return EveApiEventInterface Fluent interface.
      */
-    public function setHandledSufficiently();
+    public function setHandledSufficiently(): EveApiEventInterface;
 }

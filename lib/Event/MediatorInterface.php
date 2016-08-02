@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * Contains MediatorInterface interface.
  *
@@ -34,6 +35,7 @@
 namespace Yapeal\Event;
 
 use EventMediator\ContainerMediatorInterface;
+use EventMediator\EventInterface;
 use Yapeal\Log\Logger;
 use Yapeal\Xml\EveApiReadWriteInterface;
 
@@ -47,7 +49,7 @@ interface MediatorInterface extends ContainerMediatorInterface
      * @param EveApiReadWriteInterface $data
      * @param EveApiEventInterface     $event
      *
-     * @return EveApiEventInterface
+     * @return EventInterface|EveApiEventInterface
      * @throws \DomainException
      * @throws \InvalidArgumentException
      */
@@ -55,7 +57,7 @@ interface MediatorInterface extends ContainerMediatorInterface
         $eventName,
         EveApiReadWriteInterface $data,
         EveApiEventInterface $event = null
-    );
+    ): EventInterface;
     /** @noinspection MoreThanThreeArgumentsInspection */
     /**
      * @param string            $eventName
@@ -64,7 +66,7 @@ interface MediatorInterface extends ContainerMediatorInterface
      * @param array             $context
      * @param LogEventInterface $event
      *
-     * @return LogEventInterface
+     * @return EventInterface|LogEventInterface
      * @throws \DomainException
      * @throws \InvalidArgumentException
      */
@@ -74,5 +76,5 @@ interface MediatorInterface extends ContainerMediatorInterface
         $message = '',
         array $context = [],
         LogEventInterface $event = null
-    );
+    ): EventInterface;
 }
