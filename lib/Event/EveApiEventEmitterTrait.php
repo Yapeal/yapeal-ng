@@ -1,4 +1,5 @@
 <?php
+declare(strict_types = 1);
 /**
  * Contains EveApiEventEmitterTrait Trait.
  *
@@ -42,24 +43,7 @@ use Yapeal\Xml\EveApiReadWriteInterface;
  */
 trait EveApiEventEmitterTrait
 {
-    use MessageBuilderTrait;
-    /**
-     * @return bool
-     */
-    public function hasYem()
-    {
-        return null !== $this->yem;
-    }
-    /**
-     * @param MediatorInterface $value
-     *
-     * @return self Fluent interface.
-     */
-    public function setYem(MediatorInterface $value)
-    {
-        $this->yem = $value;
-        return $this;
-    }
+    use MessageBuilderTrait, YEMAwareTrait;
     /**
      * Emits a series of Eve API events and logs the handling of them.
      *
@@ -76,20 +60,10 @@ trait EveApiEventEmitterTrait
      * @return bool
      * @throws \LogicException
      */
-    protected function emitEvents(EveApiReadWriteInterface $data, $eventSuffix, $eventPrefix = 'Yapeal.EveApi')
+    protected function emitEvents(EveApiReadWriteInterface $data, string $eventSuffix, string $eventPrefix = 'Yapeal.EveApi'): bool
     {
         $yem = $this->getYem();
-        // Prefix.Section.Api.Suffix, Prefix.Api.Suffix,
-        // Prefix.Section.Suffix, Prefix.Suffix
-        /**
-         * @var string[] $eventNames
-         */
-        $eventNames = explode(',',
-            sprintf('%3$s.%1$s.%2$s.%4$s,%3$s.%2$s.%4$s,%3$s.%1$s.%4$s,%3$s.%4$s',
-                ucfirst($data->getEveApiSectionName()),
-                $data->getEveApiName(),
-                $eventPrefix,
-                $eventSuffix));
+        $eventNames = $this->getEmitterEvents($data, $eventSuffix, $eventPrefix);
         $event = null;
         /**
          * @var bool $sufficientlyHandled
@@ -122,19 +96,26 @@ trait EveApiEventEmitterTrait
         return true;
     }
     /**
-     * @return MediatorInterface
+     * @param EveApiReadWriteInterface $data
+     * @param string                   $eventSuffix
+     * @param string                   $eventPrefix
+     *
+     * @return string[]
      * @throws \LogicException
      */
-    protected function getYem()
+    private function getEmitterEvents(EveApiReadWriteInterface $data, string $eventSuffix, string $eventPrefix): array
     {
-        if (null === $this->yem || !$this->yem instanceof MediatorInterface) {
-            $mess = 'Tried to use yem before it was set';
-            throw new \LogicException($mess);
-        }
-        return $this->yem;
+        // Prefix.Section.Api.Suffix, Prefix.Api.Suffix,
+        // Prefix.Section.Suffix, Prefix.Suffix
+        /**
+         * @var string[] $eventNames
+         */
+        $eventNames = explode(',',
+            sprintf('%3$s.%1$s.%2$s.%4$s,%3$s.%2$s.%4$s,%3$s.%1$s.%4$s,%3$s.%4$s',
+                ucfirst($data->getEveApiSectionName()),
+                $data->getEveApiName(),
+                $eventPrefix,
+                $eventSuffix));
+        return $eventNames;
     }
-    /**
-     * @var MediatorInterface $yem
-     */
-    private $yem;
 }

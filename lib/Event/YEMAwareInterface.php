@@ -1,14 +1,15 @@
 <?php
+declare(strict_types=1);
 /**
- * Contains YapealRetrieverException class.
+ * Contains interface YEMAwareInterface.
  *
- * PHP version 5.5
+ * PHP version 7.0
  *
  * LICENSE:
  * This file is part of Yet Another Php Eve Api Library also know as Yapeal
  * which can be used to access the Eve Online API data and place it into a
  * database.
- * Copyright (C) 2014-2016 Michael Cummings
+ * Copyright (C) 2016 Michael Cummings
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by the
@@ -27,15 +28,25 @@
  * You should be able to find a copy of this license in the LICENSE.md file. A
  * copy of the GNU GPL should also be available in the GNU-GPL.md file.
  *
- * @copyright 2014-2016 Michael Cummings
- * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
+ * @copyright 2016 Michael Cummings
+ * @license   LGPL-3.0+
  * @author    Michael Cummings <mgcummings@yahoo.com>
  */
-namespace Yapeal\Exception;
+namespace Yapeal\Event;
 
 /**
- * Class YapealRetrieverException
+ * Interface YEMAwareInterface.
  */
-class YapealRetrieverException extends YapealException
+interface YEMAwareInterface
 {
+    /**
+     * @return bool
+     */
+    public function hasYem(): bool;
+    /**
+     * @param MediatorInterface $value
+     *
+     * @return YEMAwareInterface Fluent interface.
+     */
+    public function setYem(MediatorInterface $value): YEMAwareInterface;
 }
