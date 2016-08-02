@@ -1,11 +1,13 @@
 ![Yapeal-ng banner](media/yapeal-ng_banner.png)
 # Yapeal-ng (Yet Another PHP Eve Api Library - Next Generation)
 
-Master: [![Build Status](https://travis-ci.org/Yapeal/yapeal-ng.svg?branch=master)](https://travis-ci.org/Yapeal/yapeal-ng.svg?branch=master)
+[![SensioLabsInsight](https://insight.sensiolabs.com/projects/bd0be573-010a-42d6-8010-cdab48ff23c5/big.png)](https://insight.sensiolabs.com/projects/bd0be573-010a-42d6-8010-cdab48ff23c5)
 
-Master: [![Coverage Status](https://coveralls.io/repos/Yapeal/yapeal-ng/badge.svg?branch=master&service=github)](https://coveralls.io/github/Yapeal/yapeal-ng?branch=master)
+Travis-ci: [![Build Status](https://travis-ci.org/Yapeal/yapeal-ng.png?branch=master)](https://travis-ci.org/Yapeal/yapeal-ng.svg?branch=master)
 
-Master: [![SensioLabsInsight](https://insight.sensiolabs.com/projects/bd0be573-010a-42d6-8010-cdab48ff23c5/mini.png)](https://insight.sensiolabs.com/projects/bd0be573-010a-42d6-8010-cdab48ff23c5)
+Scrutinizer-ci: [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/Yapeal/yapeal-ng/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/Yapeal/yapeal-ng/?branch=master)
+
+Coveralls: [![Coverage Status](https://coveralls.io/repos/github/Yapeal/yapeal-ng/badge.png?branch=master)](https://coveralls.io/github/Yapeal/yapeal-ng?branch=master)
 
 ## Installing
 

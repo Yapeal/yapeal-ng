@@ -71,18 +71,20 @@
         "twig/twig": "<2.0"
     },
     "require-dev": {
-        "phpspec/phpspec": "~3.0.0",
         "erusev/parsedown": "<1.6",
-        "henrikbjorn/phpspec-code-coverage": "dev-master",
+        "henrikbjorn/phpspec-code-coverage": "~3.0.1",
         "mikey179/vfsStream": "~1.4",
         "phploc/phploc": "<2.3",
         "phpspec/nyan-formatters": "~2.0.0",
-        "satooshi/php-coveralls": "dev-master"
+        "phpspec/phpspec": "~3.0.0"
     },
     "support": {
         "forum": "https://forums.eveonline.com/default.aspx?g=posts&t=360758",
         "issues": "https://github.com/Yapeal/yapeal-ng/issues?state=open",
         "source": "https://github.com/Yapeal/yapeal-ng",
         "wiki": "https://github.com/Yapeal/yapeal-ng/wiki"
+    },
+    "replace": {
+        "yapeal/yapeal-ng": "0.*-dev"
     }
 }

@@ -30,5 +30,5 @@ extensions:
         format:
             - clover
         output:
-            clover: log/clover.xml
+            clover: build/clover.xml
 formatter.name: dot

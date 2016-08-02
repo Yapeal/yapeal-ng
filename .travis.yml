@@ -6,13 +6,15 @@ git:
 install:
     - composer install
     - cp config/yapeal-example.yaml config/yapeal.yaml
-matrix:
-    allow_failures:
-        - php:7.1
 php:
     - 7.0
     - 7.1
 script:
+    - mkdir -p build
     - phpdbg -qrr -f vendor/dragonrun1/phpspec/bin/phpspec --no-interaction --config=phpspec_coverage.yml run
 after_success:
+    - composer require --dev satooshi/php-coveralls:dev-master
     - travis_retry php vendor/bin/coveralls -v
+after_script:
+    - wget https://scrutinizer-ci.com/ocular.phar
+    - travis_retry php ocular.phar code-coverage:upload --format=php-clover build/clover.xml

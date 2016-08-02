@@ -21,5 +21,7 @@
         <directory>lib</directory>
         <file>bin/yc</file>
         <ignore>Database/*</ignore>
+        <ignore>specs/*</ignore>
+        <ignore>vendor/*</ignore>
     </files>
 </phpdoc>
