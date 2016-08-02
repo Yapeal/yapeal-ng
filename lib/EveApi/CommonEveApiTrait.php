@@ -1,4 +1,5 @@
 <?php
+declare(strict_types = 1);
 /**
  * Contains CommonEveApiTrait trait.
  *
@@ -55,34 +56,12 @@ trait CommonEveApiTrait
      * @throws \LogicException
      * @throws \Yapeal\Exception\YapealDatabaseException
      */
-    public function oneShot(EveApiReadWriteInterface $data)
+    public function oneShot(EveApiReadWriteInterface $data): bool
     {
         if (!$this->gotApiLock($data)) {
             return false;
         }
-        $result = true;
-        $eventSuffixes = ['retrieve', 'transform', 'validate', 'preserve'];
-        foreach ($eventSuffixes as $eventSuffix) {
-            if (false === $this->emitEvents($data, $eventSuffix)) {
-                $result = false;
-                break;
-            }
-            if (false === $data->getEveApiXml()) {
-                if ($data->hasEveApiArgument('accountKey') && '10000' === $data->getEveApiArgument('accountKey')
-                    && 'corp' === strtolower($data->getEveApiSectionName())
-                ) {
-                    $mess = 'No faction warfare account data in';
-                    $this->getYem()
-                        ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $this->createEveApiMessage($mess, $data));
-                    break;
-                }
-                $this->getYem()
-                    ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE,
-                        $this->getEmptyXmlDataMessage($data, $eventSuffix));
-                $result = false;
-                break;
-            }
-        }
+        $result = $this->processEvents($data);
         if ($result) {
             $this->updateCachedUntil($data);
             $this->emitEvents($data, 'end');
@@ -101,13 +80,14 @@ trait CommonEveApiTrait
      * @throws \LogicException
      * @throws \Yapeal\Exception\YapealDatabaseException
      */
-    public function startEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
+    public function startEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem): EveApiEventInterface
     {
         if (!$this->hasYem()) {
             $this->setYem($yem);
         }
         $data = $event->getData();
-        $yem->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG,
+        $yem->triggerLogEvent('Yapeal.Log.log',
+            Logger::DEBUG,
             $this->getReceivedEventMessage($data, $eventName, __CLASS__));
         // If method doesn't exist still needs array with member for count but return '0' from extractOwnerID().
         $active = method_exists($this, 'getActive') ? $this->getActive($data) : [[null]];
@@ -152,7 +132,7 @@ trait CommonEveApiTrait
      * @throws \LogicException
      * @throws \Yapeal\Exception\YapealDatabaseException
      */
-    protected function cachedUntilIsNotExpired(EveApiReadWriteInterface $data)
+    protected function cachedUntilIsNotExpired(EveApiReadWriteInterface $data): bool
     {
         $columns = [
             'accountKey' => $data->hasEveApiArgument('accountKey') ? $data->getEveApiArgument('accountKey') : '0',
@@ -171,7 +151,9 @@ trait CommonEveApiTrait
         } catch (\PDOException $exc) {
             $mess = 'Could NOT get cache expired for';
             $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $this->createEveApiMessage($mess, $data),
+                ->triggerLogEvent('Yapeal.Log.log',
+                    Logger::WARNING,
+                    $this->createEveApiMessage($mess, $data),
                     ['exception' => $exc]);
             return false;
         }
@@ -200,7 +182,7 @@ trait CommonEveApiTrait
      *
      * @return string
      */
-    protected function extractOwnerID(array $candidates)
+    protected function extractOwnerID(array $candidates): string
     {
         foreach (['corporationID', 'characterID', 'keyID'] as $item) {
             if (array_key_exists($item, $candidates)) {
@@ -212,7 +194,7 @@ trait CommonEveApiTrait
     /**
      * @return int
      */
-    protected function getMask()
+    protected function getMask(): int
     {
         return $this->mask;
     }
@@ -225,7 +207,7 @@ trait CommonEveApiTrait
      * @throws \LogicException
      * @throws \Yapeal\Exception\YapealDatabaseException
      */
-    protected function gotApiLock(EveApiReadWriteInterface $data)
+    protected function gotApiLock(EveApiReadWriteInterface $data): bool
     {
         $sql = $this->getCsq()
             ->getApiLock($data->getHash());
@@ -254,7 +236,7 @@ trait CommonEveApiTrait
      * @throws \LogicException
      * @throws \Yapeal\Exception\YapealDatabaseException
      */
-    protected function releaseApiLock(EveApiReadWriteInterface $data)
+    protected function releaseApiLock(EveApiReadWriteInterface $data): bool
     {
         $sql = $this->getCsq()
             ->getApiLockRelease($data->getHash());
@@ -332,4 +314,37 @@ trait CommonEveApiTrait
      * @var int $mask
      */
     protected $mask;
+    /**
+     * @param EveApiReadWriteInterface $data
+     *
+     * @return bool
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
+     */
+    private function processEvents(EveApiReadWriteInterface $data): bool
+    {
+        $eventSuffixes = ['retrieve', 'transform', 'validate', 'preserve'];
+        foreach ($eventSuffixes as $eventSuffix) {
+            if (false === $this->emitEvents($data, $eventSuffix)) {
+                return false;
+            }
+            if (false === $data->getEveApiXml()) {
+                if ($data->hasEveApiArgument('accountKey') && '10000' === $data->getEveApiArgument('accountKey')
+                    && 'corp' === strtolower($data->getEveApiSectionName())
+                ) {
+                    $mess = 'No faction warfare account data in';
+                    $this->getYem()
+                        ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $this->createEveApiMessage($mess, $data));
+                    return false;
+                }
+                $this->getYem()
+                    ->triggerLogEvent('Yapeal.Log.log',
+                        Logger::INFO,
+                        $this->getEmptyXmlDataMessage($data, $eventSuffix));
+                return false;
+            }
+        }
+        return true;
+    }
 }
