@@ -5,32 +5,30 @@ suites:
         spec_path: specs
         spec_prefix: Spec
         src_path: lib
-
 extensions:
-    - PhpSpec\Extension\CodeCoverageExtension
+    PhpSpecCodeCoverage\CodeCoverageExtension:
+        whitelist:
+            - lib
+        blacklist:
+            - bin
+            - build
+            - composer
+            - docs
+            - specs
+            - tests
+            - vendor
+        blacklist_files:
+            - bootstrap.php
+            - UtilRegisterKey.php
+            - yapeal.php
+            - yc.php
+            - "Mock*.php"
+            - "*Spec.php"
+            - "*Test.php"
+            - "junk*.*"
+            - "test*.*"
+        format:
+            - clover
+        output:
+            clover: log/clover.xml
 formatter.name: dot
-code_coverage:
-    whitelist:
-        - lib
-    blacklist:
-        - bin
-        - build
-        - composer
-        - docs
-        - specs
-        - tests
-        - vendor
-    blacklist_files:
-        - bootstrap.php
-        - UtilRegisterKey.php
-        - yapeal.php
-        - yc.php
-        - "Mock*.php"
-        - "*Spec.php"
-        - "*Test.php"
-        - "junk*.*"
-        - "test*.*"
-    format:
-        - clover
-    output:
-        clover: log/clover.xml

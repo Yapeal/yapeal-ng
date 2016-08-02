@@ -6,5 +6,5 @@ suites:
         spec_prefix: Spec
         src_path: lib
 extensions:
-    - PhpSpec\NyanFormattersExtension\Extension
+    PhpSpec\NyanFormattersExtension\Extension: ~
 formatter.name: nyan.cat
