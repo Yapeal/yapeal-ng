@@ -34,7 +34,6 @@ declare(strict_types=1);
  */
 namespace Yapeal\Console\Command;
 
-use FilePathNormalizer\FilePathNormalizerTrait;
 use Twig_Environment;
 use Yapeal\Event\EveApiEventEmitterTrait;
 use Yapeal\FileSystem\CommonFileHandlingTrait;
@@ -44,7 +43,7 @@ use Yapeal\FileSystem\CommonFileHandlingTrait;
  */
 trait EveApiCreatorTrait
 {
-    use CommonFileHandlingTrait, EveApiEventEmitterTrait, FilePathNormalizerTrait;
+    use CommonFileHandlingTrait, EveApiEventEmitterTrait;
     /**
      * Getter for $overwrite.
      *
