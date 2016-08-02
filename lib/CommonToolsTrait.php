@@ -1,4 +1,5 @@
 <?php
+declare(strict_types = 1);
 /**
  * Contains CommandToolsTrait trait.
  *
@@ -46,7 +47,7 @@ trait CommonToolsTrait
      * @return ContainerInterface
      * @throws \LogicException
      */
-    public function getDic()
+    public function getDic(): ContainerInterface
     {
         if (!$this->dic instanceof ContainerInterface) {
             $mess = 'Tried to use dic before it was set';
@@ -88,7 +89,7 @@ trait CommonToolsTrait
      * @return CommonSqlQueries
      * @throws \LogicException
      */
-    protected function getCsq()
+    protected function getCsq(): CommonSqlQueries
     {
         if (null === $this->csq) {
             $this->csq = $this->getDic()['Yapeal.Sql.CommonQueries'];
@@ -104,7 +105,7 @@ trait CommonToolsTrait
      * @throws \LogicException
      * @throws \Yapeal\Exception\YapealDatabaseException
      */
-    protected function getPdo()
+    protected function getPdo(): \PDO
     {
         if (null === $this->pdo) {
             try {
