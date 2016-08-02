@@ -1,4 +1,5 @@
 <?php
+declare(strict_types = 1);
 /**
  * Contains class XslWiring.
  *
@@ -43,7 +44,6 @@ class XslWiring implements WiringInterface
     /**
      * @param ContainerInterface $dic
      *
-     * @return self Fluent interface.
      * @throws \LogicException
      * @throws \InvalidArgumentException
      */
@@ -52,7 +52,7 @@ class XslWiring implements WiringInterface
         if (empty($dic['Yapeal.Xsl.Transformer'])) {
             $dic['Yapeal.Xsl.Transformer'] = function () use ($dic) {
                 return new $dic['Yapeal.Xsl.Handlers.transform']($dic['Yapeal.Xsl.dir']);
-                };
+            };
         }
         if (empty($dic['Yapeal.Event.Mediator'])) {
             $mess = 'Tried to call Mediator before it has been added';
@@ -62,10 +62,6 @@ class XslWiring implements WiringInterface
          * @var \Yapeal\Event\MediatorInterface $mediator
          */
         $mediator = $dic['Yapeal.Event.Mediator'];
-        $mediator->addServiceSubscriberByEventList(
-            'Yapeal.Xsl.Transformer',
-            ['Yapeal.EveApi.transform' => ['transformEveApi', 'last']]
-        );
-        return $this;
+        $mediator->addServiceListener('Yapeal.EveApi.transform', ['Yapeal.Xsl.Transformer', 'transformEveApi'], 'last');
     }
 }

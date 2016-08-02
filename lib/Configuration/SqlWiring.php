@@ -1,4 +1,5 @@
 <?php
+declare(strict_types = 1);
 /**
  * Contains class SqlWiring.
  *
@@ -44,7 +45,6 @@ class SqlWiring implements WiringInterface
     /**
      * @param ContainerInterface $dic
      *
-     * @return self Fluent interface.
      * @throws \InvalidArgumentException
      * @throws \LogicException
      * @throws \Yapeal\Exception\YapealDatabaseException
@@ -85,6 +85,15 @@ class SqlWiring implements WiringInterface
                 return $database;
             };
         }
+        $this->wireCreator($dic);
+    }
+    /**
+     * @param \Yapeal\Container\ContainerInterface $dic
+     *
+     * @throws \LogicException
+     */
+    private function wireCreator(ContainerInterface $dic)
+    {
         if (empty($dic['Yapeal.Sql.Creator'])) {
             $dic['Yapeal.Sql.Creator'] = function () use ($dic) {
                 $loader = new \Twig_Loader_Filesystem($dic['Yapeal.Sql.dir']);
@@ -118,8 +127,6 @@ class SqlWiring implements WiringInterface
          * @var \Yapeal\Event\MediatorInterface $mediator
          */
         $mediator = $dic['Yapeal.Event.Mediator'];
-        $mediator->addServiceSubscriberByEventList('Yapeal.Sql.Creator',
-            ['Yapeal.EveApi.create' => ['createSql', 'last']]);
-        return $this;
+        $mediator->addServiceListener('Yapeal.EveApi.create', ['Yapeal.Sql.Creator', 'createSql'], 'last');
     }
 }

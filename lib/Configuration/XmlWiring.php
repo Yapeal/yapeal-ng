@@ -1,4 +1,5 @@
 <?php
+declare(strict_types = 1);
 /**
  * Contains class XmlWiring.
  *
@@ -43,23 +44,20 @@ class XmlWiring implements WiringInterface
     /**
      * @param ContainerInterface $dic
      *
-     * @return self Fluent interface.
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
     public function wire(ContainerInterface $dic)
     {
         if (empty($dic['Yapeal.Xml.Data'])) {
-            $dic['Yapeal.Xml.Data'] = $dic->factory(
-                function ($dic) {
-                    return new $dic['Yapeal.Xml.Handlers.data']();
-                }
-            );
+            $dic['Yapeal.Xml.Data'] = $dic->factory(function ($dic) {
+                return new $dic['Yapeal.Xml.Handlers.data']();
+            });
         }
         if (empty($dic['Yapeal.Xml.Error.Subscriber'])) {
             $dic['Yapeal.Xml.Error.Subscriber'] = function () use ($dic) {
-                    return new $dic['Yapeal.Xml.Handlers.error']();
-                };
+                return new $dic['Yapeal.Xml.Handlers.error']();
+            };
         }
         if (empty($dic['Yapeal.Event.Mediator'])) {
             $mess = 'Tried to call Mediator before it has been added';
@@ -69,10 +67,8 @@ class XmlWiring implements WiringInterface
          * @var \Yapeal\Event\MediatorInterface $mediator
          */
         $mediator = $dic['Yapeal.Event.Mediator'];
-        $mediator->addServiceSubscriberByEventList(
-            'Yapeal.Xml.Error.Subscriber',
-            ['Yapeal.Xml.Error.start' => ['processXmlError', 'last']]
-        );
-        return $this;
+        $mediator->addServiceListener('Yapeal.Xml.Error.start',
+            ['Yapeal.Xml.Error.Subscriber', 'processXmlError'],
+            'last');
     }
 }

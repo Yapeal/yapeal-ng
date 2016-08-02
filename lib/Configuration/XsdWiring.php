@@ -1,4 +1,5 @@
 <?php
+declare(strict_types = 1);
 /**
  * Contains class XsdWiring.
  *
@@ -43,7 +44,6 @@ class XsdWiring implements WiringInterface
     /**
      * @param ContainerInterface $dic
      *
-     * @return self Fluent interface.
      * @throws \LogicException
      * @throws \InvalidArgumentException
      */
@@ -51,36 +51,31 @@ class XsdWiring implements WiringInterface
     {
         if (empty($dic['Yapeal.Xsd.Creator'])) {
             $dic['Yapeal.Xsd.Creator'] = function () use ($dic) {
-                    $loader = new \Twig_Loader_Filesystem($dic['Yapeal.Xsd.dir']);
-                    $twig = new \Twig_Environment(
-                        $loader, ['debug' => true, 'strict_variables' => true, 'autoescape' => false]
-                    );
-                    $filter = new \Twig_SimpleFilter(
-                        'ucFirst', function ($value) {
-                        return ucfirst($value);
-                    }
-                    );
-                    $twig->addFilter($filter);
-                    $filter = new \Twig_SimpleFilter(
-                        'lcFirst', function ($value) {
-                        return lcfirst($value);
-                    }
-                    );
-                    $twig->addFilter($filter);
-                    /**
-                     * @var \Yapeal\Xsd\Creator $create
-                     */
+                $loader = new \Twig_Loader_Filesystem($dic['Yapeal.Xsd.dir']);
+                $twig = new \Twig_Environment($loader,
+                    ['debug' => true, 'strict_variables' => true, 'autoescape' => false]);
+                $filter = new \Twig_SimpleFilter('ucFirst', function ($value) {
+                    return ucfirst($value);
+                });
+                $twig->addFilter($filter);
+                $filter = new \Twig_SimpleFilter('lcFirst', function ($value) {
+                    return lcfirst($value);
+                });
+                $twig->addFilter($filter);
+                /**
+                 * @var \Yapeal\Xsd\Creator $create
+                 */
                 $create = new $dic['Yapeal.Xsd.Handlers.create']($twig, $dic['Yapeal.Xsd.dir']);
-                    if (!empty($dic['Yapeal.Create.overwrite'])) {
-                        $create->setOverwrite($dic['Yapeal.Create.overwrite']);
-                    }
-                    return $create;
-                };
+                if (!empty($dic['Yapeal.Create.overwrite'])) {
+                    $create->setOverwrite($dic['Yapeal.Create.overwrite']);
+                }
+                return $create;
+            };
         }
         if (empty($dic['Yapeal.Xsd.Validator'])) {
             $dic['Yapeal.Xsd.Validator'] = function () use ($dic) {
                 return new $dic['Yapeal.Xsd.Handlers.validate']($dic['Yapeal.Xsd.dir']);
-                };
+            };
         }
         if (empty($dic['Yapeal.Event.Mediator'])) {
             $mess = 'Tried to call Mediator before it has been added';
@@ -90,14 +85,7 @@ class XsdWiring implements WiringInterface
          * @var \Yapeal\Event\MediatorInterface $mediator
          */
         $mediator = $dic['Yapeal.Event.Mediator'];
-        $mediator->addServiceSubscriberByEventList(
-            'Yapeal.Xsd.Creator',
-            ['Yapeal.EveApi.create' => ['createXsd', 'last']]
-        );
-        $mediator->addServiceSubscriberByEventList(
-            'Yapeal.Xsd.Validator',
-            ['Yapeal.EveApi.validate' => ['validateEveApi', 'last']]
-        );
-        return $this;
+        $mediator->addServiceListener('Yapeal.EveApi.create', ['Yapeal.Xsd.Creator', 'createXsd'], 'last');
+        $mediator->addServiceListener('Yapeal.EveApi.validate', ['Yapeal.Xsd.Validator', 'validateEveApi'], 'last');
     }
 }

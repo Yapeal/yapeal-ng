@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * Contains class ErrorWiring.
  *
@@ -44,8 +45,6 @@ class ErrorWiring implements WiringInterface
 {
     /**
      * @param ContainerInterface $dic
-     *
-     * @return self Fluent interface.
      */
     public function wire(ContainerInterface $dic)
     {
@@ -89,6 +88,5 @@ class ErrorWiring implements WiringInterface
             // errors or exceptions.
             $dic['Yapeal.Error.Logger'];
         }
-        return $this;
     }
 }

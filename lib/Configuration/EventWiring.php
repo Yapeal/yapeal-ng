@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * Contains class EventWiring.
  *
@@ -43,7 +44,6 @@ class EventWiring implements WiringInterface
     /**
      * @param ContainerInterface $dic
      *
-     * @return self Fluent interface.
      * @throws \InvalidArgumentException
      */
     public function wire(ContainerInterface $dic)
@@ -67,6 +67,5 @@ class EventWiring implements WiringInterface
                 return new $dic['Yapeal.Event.Handlers.mediator']($dic);
             };
         }
-        return $this;
     }
 }

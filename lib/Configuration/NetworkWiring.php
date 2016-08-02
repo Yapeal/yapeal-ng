@@ -1,4 +1,5 @@
 <?php
+declare(strict_types = 1);
 /**
  * Contains class NetworkWiring.
  *
@@ -43,7 +44,6 @@ class NetworkWiring implements WiringInterface
     /**
      * @param ContainerInterface $dic
      *
-     * @return self Fluent interface.
      * @throws \LogicException
      */
     public function wire(ContainerInterface $dic)
@@ -109,11 +109,9 @@ class NetworkWiring implements WiringInterface
          * @var \Yapeal\Event\MediatorInterface $mediator
          */
         $mediator = $dic['Yapeal.Event.Mediator'];
-        $mediator->addServiceSubscriberByEventList('Yapeal.Network.Retriever',
-            [
-                'Yapeal.EveApi.retrieve' => ['retrieveEveApi', 'last'],
-                'Yapeal.EveApi.Raw.retrieve' => ['retrieveEveApi', 'last']
-            ]);
-        return $this;
+        $mediator->addServiceListener('Yapeal.EveApi.retrieve', ['Yapeal.Network.Retriever', 'retrieveEveApi'], 'last');
+        $mediator->addServiceListener('Yapeal.EveApi.Raw.retrieve',
+            ['Yapeal.Network.Retriever', 'retrieveEveApi'],
+            'last');
     }
 }

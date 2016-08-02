@@ -1,4 +1,5 @@
 <?php
+declare(strict_types = 1);
 /**
  * Contains class LogWiring.
  *
@@ -43,15 +44,13 @@ class LogWiring implements WiringInterface
 {
     /**
      * @param ContainerInterface $dic
-     *
-     * @return self Fluent interface.
      */
     public function wire(ContainerInterface $dic)
     {
         if (empty($dic['Yapeal.Log.Strategy'])) {
             $dic['Yapeal.Log.Strategy'] = function () use ($dic) {
                 return new $dic['Yapeal.Log.Handlers.strategy']((int)$dic['Yapeal.Log.threshold']);
-           };
+            };
         }
         if (empty($dic['Yapeal.Log.Logger'])) {
             $dic['Yapeal.Log.Logger'] = function () use ($dic) {
@@ -82,8 +81,6 @@ class LogWiring implements WiringInterface
          * @var \Yapeal\Event\MediatorInterface $mediator
          */
         $mediator = $dic['Yapeal.Event.Mediator'];
-        $mediator->addServiceSubscriberByEventList('Yapeal.Log.Logger',
-            ['Yapeal.Log.log' => ['logEvent', 'last']]);
-        return $this;
+        $mediator->addServiceListener('Yapeal.Log.log', ['Yapeal.Log.Logger', 'logEvent'], 'last');
     }
 }

@@ -1,4 +1,5 @@
 <?php
+declare(strict_types = 1);
 /**
  * Contains class FileSystemWiring.
  *
@@ -43,7 +44,6 @@ class FileSystemWiring implements WiringInterface
     /**
      * @param ContainerInterface $dic
      *
-     * @return self Fluent interface.
      * @throws \LogicException
      */
     public function wire(ContainerInterface $dic)
@@ -68,14 +68,11 @@ class FileSystemWiring implements WiringInterface
          * @var \Yapeal\Event\MediatorInterface $mediator
          */
         $mediator = $dic['Yapeal.Event.Mediator'];
-        $mediator->addServiceSubscriberByEventList('Yapeal.FileSystem.CachePreserver',
-            [
-                'Yapeal.EveApi.preserve' => ['preserveEveApi', 'last'],
-                'Yapeal.EveApi.Raw.preserve' => ['preserveEveApi', 'last'],
-                'Yapeal.Xml.Error.preserve' => ['preserveEveApi', 'last']
-            ]);
-        $mediator->addServiceSubscriberByEventList('Yapeal.FileSystem.CacheRetriever',
-            ['Yapeal.EveApi.retrieve' => ['retrieveEveApi', 'last']]);
-        return $this;
+        foreach (['Yapeal.EveApi.preserve', 'Yapeal.EveApi.Raw.preserve', 'Yapeal.Xml.Error.preserve'] as $event) {
+            $mediator->addServiceListener($event, ['Yapeal.FileSystem.CachePreserver', 'preserveEveApi'], 'last');
+        }
+        $mediator->addServiceListener('Yapeal.EveApi.retrieve',
+            ['Yapeal.FileSystem.CacheRetriever', 'retrieveEveApi'],
+            'last');
     }
 }

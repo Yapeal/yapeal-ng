@@ -1,4 +1,5 @@
 <?php
+declare(strict_types = 1);
 /**
  * Contains Wiring class.
  *
@@ -60,7 +61,7 @@ class Wiring
      * @throws \DomainException
      * @throws \Yapeal\Exception\YapealException
      */
-    public function parserConfigFile($configFile, array $settings = [])
+    public function parserConfigFile(string $configFile, array $settings = []): array
     {
         if (!is_readable($configFile) || !is_file($configFile)) {
             return $settings;
@@ -80,12 +81,7 @@ class Wiring
         }
         foreach ($rItIt as $leafValue) {
             $keys = [];
-            /** @noinspection DisconnectedForeachInstructionInspection */
-            /**
-             * @var array $depths
-             */
-            $depths = range(0, $rItIt->getDepth());
-            foreach ($depths as $depth) {
+            foreach (range(0, $rItIt->getDepth()) as $depth) {
                 $keys[] = $rItIt->getSubIterator($depth)
                     ->key();
             }
@@ -130,7 +126,7 @@ class Wiring
      * @return array
      * @throws \DomainException
      */
-    protected function doSubs(array $settings)
+    protected function doSubs(array $settings): array
     {
         if (0 === count($settings)) {
             return [];
@@ -168,44 +164,11 @@ class Wiring
         return $settings;
     }
     /**
-     * @return array
-     */
-    protected function getFilteredEveApiSubscriberList()
-    {
-        $flags = \FilesystemIterator::CURRENT_AS_FILEINFO
-            | \FilesystemIterator::KEY_AS_PATHNAME
-            | \FilesystemIterator::SKIP_DOTS
-            | \FilesystemIterator::UNIX_PATHS;
-        $rdi = new \RecursiveDirectoryIterator($this->dic['Yapeal.EveApi.dir']);
-        $rdi->setFlags($flags);
-        /** @noinspection SpellCheckingInspection */
-        $rcfi = new \RecursiveCallbackFilterIterator($rdi,
-            function (\SplFileInfo $current, $key, \RecursiveDirectoryIterator $rdi) {
-                if ($rdi->hasChildren()) {
-                    return true;
-                }
-                $dirs = ['Account', 'Api', 'Char', 'Corp', 'Eve', 'Map', 'Server'];
-                $dirExists = in_array(basename(dirname($key)), $dirs, true);
-                return ($dirExists && $current->isFile() && 'php' === $current->getExtension());
-            });
-        /** @noinspection SpellCheckingInspection */
-        $rii = new \RecursiveIteratorIterator($rcfi,
-            \RecursiveIteratorIterator::LEAVES_ONLY,
-            \RecursiveIteratorIterator::CATCH_GET_CHILD);
-        $rii->setMaxDepth(3);
-        $fpn = $this->getFpn();
-        $files = [];
-        foreach ($rii as $file) {
-            $files[] = $fpn->normalizeFile($file->getPathname());
-        }
-        return $files;
-    }
-    /**
-     * @return self Fluent interface.
+     * @return Wiring Fluent interface.
      * @throws \DomainException
      * @throws \Yapeal\Exception\YapealException
      */
-    protected function wireConfig()
+    protected function wireConfig(): Wiring
     {
         $dic = $this->dic;
         $fpn = $this->getFpn();
@@ -234,86 +197,8 @@ class Wiring
         if (0 !== count($settings)) {
             // Assure NOT overwriting already existing settings from previously processed CLI or application settings.
             foreach ($settings as $key => $value) {
-                $dic[$key] = empty($dic[$key]) ? $value : $dic[$key];
+                $dic[$key] = $dic[$key] ?? $value;
             }
-        }
-        return $this;
-    }
-    /**
-     * @return self Fluent interface.
-     * @throws \LogicException
-     */
-    protected function wireEveApi()
-    {
-        /**
-         * @var ContainerInterface $dic
-         */
-        $dic = $this->dic;
-        if (empty($dic['Yapeal.Event.Mediator'])) {
-            $mess = 'Tried to call Mediator before it has been added';
-            throw new \LogicException($mess);
-        }
-        /**
-         * @var \Yapeal\Event\MediatorInterface $mediator
-         */
-        $mediator = $dic['Yapeal.Event.Mediator'];
-        $internal = $this->getFilteredEveApiSubscriberList();
-        if (0 !== count($internal)) {
-            $base = 'Yapeal.EveApi';
-            /**
-             * @var \SplFileInfo $subscriber
-             */
-            foreach ($internal as $subscriber) {
-                $service = sprintf('%1$s.%2$s.%3$s',
-                    $base,
-                    basename(dirname($subscriber)),
-                    basename($subscriber, '.php'));
-                if (!isset($dic[$service])) {
-                    $dic[$service] = function () use ($dic, $service) {
-                        $class = '\\' . str_replace('.', '\\', $service);
-                        /**
-                         * @var \Yapeal\CommonToolsInterface|\Yapeal\Event\EveApiPreserverInterface $callable
-                         */
-                        $callable = new $class();
-                        $callable->setCsq($dic['Yapeal.Sql.CommonQueries'])
-                            ->setPdo($dic['Yapeal.Sql.Connection']);
-                        if (false === strpos($service, 'Section')) {
-                            $callable->setPreserve($dic['Yapeal.EveApi.Cache.preserve']);
-                        }
-                        return $callable;
-                    };
-                }
-                $events = [$service . '.start' => ['startEveApi', 'last']];
-                if (false === strpos($subscriber, 'Section')) {
-                    $events[$service . '.preserve'] = ['preserveEveApi', 'last'];
-                }
-                $mediator->addServiceSubscriberByEventList($service, $events);
-            }
-        }
-        if (empty($dic['Yapeal.EveApi.Creator'])) {
-            $dic['Yapeal.EveApi.Creator'] = function () use ($dic) {
-                $loader = new \Twig_Loader_Filesystem($dic['Yapeal.EveApi.dir']);
-                $twig = new \Twig_Environment($loader,
-                    ['debug' => true, 'strict_variables' => true, 'autoescape' => false]);
-                $filter = new \Twig_SimpleFilter('ucFirst', function ($value) {
-                    return ucfirst($value);
-                });
-                $twig->addFilter($filter);
-                $filter = new \Twig_SimpleFilter('lcFirst', function ($value) {
-                    return lcfirst($value);
-                });
-                $twig->addFilter($filter);
-                /**
-                 * @var \Yapeal\EveApi\Creator $create
-                 */
-                $create = new $dic['Yapeal.EveApi.Handlers.create']($twig, $dic['Yapeal.EveApi.dir']);
-                if (!empty($dic['Yapeal.Create.overwrite'])) {
-                    $create->setOverwrite($dic['Yapeal.Create.overwrite']);
-                }
-                return $create;
-            };
-            $mediator->addServiceSubscriberByEventList('Yapeal.EveApi.Creator',
-                ['Yapeal.EveApi.create' => ['createEveApi', 'last']]);
         }
         return $this;
     }
