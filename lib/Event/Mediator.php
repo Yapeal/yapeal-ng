@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * Contains Mediator class.
  *
@@ -34,6 +35,8 @@
 namespace Yapeal\Event;
 
 use EventMediator\AbstractContainerMediator;
+use EventMediator\ContainerMediatorInterface;
+use EventMediator\EventInterface;
 use Yapeal\Container\Container;
 use Yapeal\Container\ContainerInterface;
 use Yapeal\Log\Logger;
@@ -65,13 +68,13 @@ class Mediator extends AbstractContainerMediator implements MediatorInterface
      *
      * @param ContainerInterface|null $value
      *
-     * @return $this Fluent interface.
+     * @return ContainerMediatorInterface Fluent interface.
      * @throws \InvalidArgumentException
      * @throws \RuntimeException
      *
      * @link http://pimple.sensiolabs.org/ Pimple
      */
-    public function setServiceContainer($value = null)
+    public function setServiceContainer($value = null): ContainerMediatorInterface
     {
         if (null === $value) {
             $value = new Container();
@@ -82,13 +85,14 @@ class Mediator extends AbstractContainerMediator implements MediatorInterface
             throw new \InvalidArgumentException($mess);
         }
         $this->serviceContainer = $value;
+        return $this;
     }
     /**
      * @param string                   $eventName
      * @param EveApiReadWriteInterface $data
      * @param EveApiEventInterface     $event
      *
-     * @return EveApiEventInterface
+     * @return EventInterface|EveApiEventInterface
      * @throws \DomainException
      * @throws \InvalidArgumentException
      */
@@ -96,7 +100,7 @@ class Mediator extends AbstractContainerMediator implements MediatorInterface
         $eventName,
         EveApiReadWriteInterface $data,
         EveApiEventInterface $event = null
-    ) {
+    ): EventInterface {
         if (null === $event) {
             $event = new EveApiEvent();
         }
@@ -111,7 +115,7 @@ class Mediator extends AbstractContainerMediator implements MediatorInterface
      * @param array             $context
      * @param LogEventInterface $event
      *
-     * @return LogEventInterface
+     * @return EventInterface
      * @throws \DomainException
      * @throws \InvalidArgumentException
      */
@@ -121,7 +125,7 @@ class Mediator extends AbstractContainerMediator implements MediatorInterface
         $message = '',
         array $context = [],
         LogEventInterface $event = null
-    ) {
+    ): EventInterface {
         if (null === $event) {
             $event = new LogEvent();
         }
@@ -130,6 +134,7 @@ class Mediator extends AbstractContainerMediator implements MediatorInterface
             ->setContext($context);
         return $this->trigger($eventName, $event);
     }
+    /** @noinspection GenericObjectTypeUsageInspection */
     /**
      * This method is used any time the mediator need to get the actual instance
      * of the class for an event.
@@ -139,11 +144,26 @@ class Mediator extends AbstractContainerMediator implements MediatorInterface
      *
      * @param string $serviceName
      *
-     * @return array
+     * @return object
      * @throws \LogicException
      */
-    protected function getServiceByName($serviceName)
+    public function getServiceByName(string $serviceName)
     {
         return $this->getServiceContainer()[$serviceName];
     }
+    /**
+     * Used to get the service container.
+     *
+     * @return ContainerInterface|null
+     */
+    private function getServiceContainer()
+    {
+        return $this->serviceContainer;
+    }
+    /**
+     * Holds the container instance to be used.
+     *
+     * @var ContainerInterface|null $serviceContainer
+     */
+    private $serviceContainer;
 }
