@@ -1,4 +1,5 @@
 <?php
+declare(strict_types = 1);
 /**
  * Contains Custom Yapeal exception class.
  *
@@ -33,11 +34,9 @@
  */
 namespace Yapeal\Exception;
 
-use Exception;
-
 /**
  * Base class used for all Yapeal exceptions.
  */
-class YapealException extends Exception
+class YapealException extends \Exception
 {
 }
