@@ -1,4 +1,5 @@
 <?php
+declare(strict_types = 1);
 /**
  * Contains class ErrorWiringSpec.
  *
@@ -34,6 +35,7 @@
 namespace Spec\Yapeal\Configuration;
 
 use PhpSpec\ObjectBehavior;
+use Yapeal\Container\ContainerInterface;
 
 /**
  * Class ErrorWiringSpec
@@ -54,14 +56,14 @@ class ErrorWiringSpec extends ObjectBehavior
     /**
      *
      */
-    public function itIsInitializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Yapeal\Configuration\ErrorWiring');
     }
     /**
-     * @param \Yapeal\Container\ContainerInterface $dic
+     * @param ContainerInterface $dic
      */
-    public function itProvidesFluentInterfaceFromWire($dic)
+    public function it_provides_fluent_interface_from_wire(ContainerInterface $dic)
     {
         $this->wire($dic)
             ->shouldReturn($this);

@@ -1,4 +1,5 @@
 <?php
+declare(strict_types = 1);
 /**
  * Contains class ContainerSpec.
  *
@@ -55,11 +56,11 @@ use Spec\Yapeal\NonInvokable;
  */
 class ContainerSpec extends ObjectBehavior
 {
-    public function itIsInitializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('Yapeal\Container\Container');
     }
-    public function itProvidedFluentInterfaceFromRegister($provider)
+    public function it_provided_fluent_interface_from_register($provider)
     {
         /**
          * @var \Yapeal\Container\ServiceProviderInterface $provider
@@ -70,7 +71,7 @@ class ContainerSpec extends ObjectBehavior
         $this->register($provider)
             ->shouldReturn($this);
     }
-    public function itShouldAllowDefiningNewServiceAfterFreezingFirst()
+    public function it_should_allow_defining_new_service_after_freezing_first()
     {
         $this['foo'] = function () {
             return 'fooValue';
@@ -81,7 +82,7 @@ class ContainerSpec extends ObjectBehavior
         };
         $this['bar']->shouldReturn('barValue');
     }
-    public function itShouldAllowExtendingNonFrozenService()
+    public function it_should_allow_extending_non_frozen_service()
     {
         $this['foo'] = function () {
             return 'foo';
@@ -96,7 +97,7 @@ class ContainerSpec extends ObjectBehavior
             });
         $this['foo']->shouldReturn('foo.bar.baz');
     }
-    public function itShouldAllowExtendingOtherServiceAfterFreezingFirst()
+    public function it_should_allow_extending_other_service_after_freezing_first()
     {
         $this['foo'] = function () {
             return 'foo';
@@ -111,7 +112,7 @@ class ContainerSpec extends ObjectBehavior
             });
         $this['bar']->shouldReturn('bar.baz');
     }
-    public function itShouldAllowGlobalFunctionNamesAsParameterValue()
+    public function it_should_allow_global_function_names_as_parameter_value()
     {
         $globals = ['strlen', 'count', 'strtolower'];
         foreach ($globals as $global) {
@@ -119,7 +120,7 @@ class ContainerSpec extends ObjectBehavior
             $this['global_function']->shouldReturn($global);
         }
     }
-    public function itShouldAllowRemovingFrozenServiceAndThenSettingAgain()
+    public function it_should_allow_removing_frozen_service_and_then_setting_again()
     {
         $this['foo'] = function () {
             return 'fooValue';
@@ -130,7 +131,7 @@ class ContainerSpec extends ObjectBehavior
             return 'barValue';
         };
     }
-    public function itShouldAlsoUnsetKeyWhenUnsettingOffsets()
+    public function it_should_also_unset_key_when_unsetting_offsets()
     {
         $this['param'] = 'value';
         $this['service'] = function () {
@@ -142,7 +143,7 @@ class ContainerSpec extends ObjectBehavior
         $this->keys()
             ->shouldHaveCount(0);
     }
-    public function itShouldHaveAnOffsetAfterOneIsSet()
+    public function it_should_have_an_offset_after_one_is_set()
     {
         $this->keys()
             ->shouldHaveCount(0);
@@ -152,18 +153,18 @@ class ContainerSpec extends ObjectBehavior
         $this->keys()
             ->shouldHaveCount(1);
     }
-    public function itShouldHonorNullValuesInOffsetGet()
+    public function it_should_honor_null_values_in_offset_get()
     {
         $this['foo'] = null;
         $this['foo']->shouldReturn(null);
     }
-    public function itShouldHonorReturningNullValuesFromRaw()
+    public function it_should_honor_returning_null_values_from_raw()
     {
         $this['foo'] = null;
         $this->raw('foo')
             ->shouldReturn(null);
     }
-    public function itShouldInitialiseOffsetsFromConstructor()
+    public function it_should_initialise_offsets_from_constructor()
     {
         $params = ['param' => 'value', 'param2' => false];
         $this->beConstructedWith($params);
@@ -173,7 +174,7 @@ class ContainerSpec extends ObjectBehavior
             $this[$param]->shouldBe($value);
         }
     }
-    public function itShouldNotInvokeProtectedServices()
+    public function it_should_not_invoke_protected_services()
     {
         $services = [
             function ($value) {
@@ -188,7 +189,7 @@ class ContainerSpec extends ObjectBehavior
             $this['protected']->shouldReturn($service);
         }
     }
-    public function itShouldPassContainerAsParameter()
+    public function it_should_pass_container_as_parameter()
     {
         $this['service'] = function () {
             return new MockService();
@@ -199,7 +200,7 @@ class ContainerSpec extends ObjectBehavior
         $this['service']->shouldNotEqual($this);
         $this['container']->shouldEqual($this);
     }
-    public function itShouldReturnDifferentInstancesOfSameTypeFromFactory()
+    public function it_should_return_different_instances_of_same_type_from_factory()
     {
         $this['service'] = $this->factory(function () {
             return new MockService();
@@ -207,7 +208,7 @@ class ContainerSpec extends ObjectBehavior
         $serviceOne = $this['service']->shouldHaveType('Spec\Yapeal\MockService');
         $this['service']->shouldNotEqual($serviceOne);
     }
-    public function itShouldReturnOriginalInstanceFromRawWhenUsingFactory()
+    public function it_should_return_original_instance_from_raw_when_using_factory()
     {
         $definition = $this->factory(function () {
             return 'foo';
@@ -217,7 +218,7 @@ class ContainerSpec extends ObjectBehavior
             ->shouldReturn($definition);
         $this['service']->shouldNotReturn($definition);
     }
-    public function itShouldReturnSameInstanceAndTypeAsCallableReturns()
+    public function it_should_return_same_instance_and_type_as_callable_returns()
     {
         $this['service'] = function () {
             return new MockService();
@@ -225,14 +226,14 @@ class ContainerSpec extends ObjectBehavior
         $serviceOne = $this['service']->shouldHaveType('Spec\Yapeal\MockService');
         $this['service']->shouldEqual($serviceOne);
     }
-    public function itShouldReturnSameTypeAndValueForSimpleValues()
+    public function it_should_return_same_type_and_value_for_simple_values()
     {
         foreach ([true, false, null, 'value', 1, 1.0, ['value']] as $item) {
             $this['param'] = $item;
             $this['param']->shouldBe($item);
         }
     }
-    public function itShouldReturnTrueFromOffsetExistsForAnySetKey()
+    public function it_should_return_true_from_offset_exists_for_any_set_key()
     {
         $this['param'] = 'value';
         $this['service'] = function () {
@@ -256,18 +257,18 @@ class ContainerSpec extends ObjectBehavior
         $this->offsetExists('non_existent')
             ->shouldNotReturn(isset($this['non_existent']));
     }
-    public function itShouldTreatInvokableObjectLikeCallable()
+    public function it_should_treat_invokable_object_like_callable()
     {
         $this['invokable'] = new Invokable();
         $invoked = $this['invokable']->shouldHaveType('Spec\Yapeal\MockService');
         $this['invokable']->shouldReturn($invoked);
     }
-    public function itShouldTreatNonInvokableObjectLikeParameter()
+    public function it_should_treat_non_invokable_object_like_parameter()
     {
         $this['non_invokable'] = new NonInvokable();
         $this['non_invokable']->shouldHaveType('Spec\Yapeal\NonInvokable');
     }
-    public function itThrowsExceptionForNonExistentExtendOffset()
+    public function it_throws_exception_for_non_existent_extend_offset()
     {
         $id = 'param';
         $mess = sprintf('Identifier "%s" is not defined.', $id);
@@ -279,21 +280,21 @@ class ContainerSpec extends ObjectBehavior
                     }
                 ]);
     }
-    public function itThrowsExceptionForNonExistentGetOffset()
+    public function it_throws_exception_for_non_existent_get_offset()
     {
         $id = 'param';
         $mess = sprintf('Identifier "%s" is not defined.', $id);
         $this->shouldThrow(new \InvalidArgumentException($mess))
             ->during('offsetGet', [$id]);
     }
-    public function itThrowsExceptionForNonExistentRawOffset()
+    public function it_throws_exception_for_non_existent_raw_offset()
     {
         $id = 'param';
         $mess = sprintf('Identifier "%s" is not defined.', $id);
         $this->shouldThrow(new \InvalidArgumentException($mess))
             ->during('raw', [$id]);
     }
-    public function itThrowsExceptionWhenExtendIsGivenNonInvokable()
+    public function it_throws_exception_when_extend_is_given_non_invokable()
     {
         if (version_compare(PHP_VERSION, '7.0.0', '>=')) {
             throw new SkippingException('Unneeded on PHP 7.x or higher caught by TypeError');
@@ -304,7 +305,7 @@ class ContainerSpec extends ObjectBehavior
         $this->shouldThrow(new \InvalidArgumentException('Extension service definition is not a Closure or invokable object.'))
             ->during('extend', ['foo', new NonInvokable()]);
     }
-    public function itThrowsExceptionWhenFactoryIsGivenNonInvokable()
+    public function it_throws_exception_when_factory_is_given_non_invokable()
     {
         if (version_compare(PHP_VERSION, '7.0.0', '>=')) {
             throw new SkippingException('Unneeded on PHP 7.x or higher caught by TypeError');
@@ -314,7 +315,7 @@ class ContainerSpec extends ObjectBehavior
         $this['service'] = $this->shouldThrow(new \InvalidArgumentException('Service definition is not a Closure or invokable object.'))
             ->during('factory', [new NonInvokable()]);
     }
-    public function itThrowsExceptionWhenProtectIsGivenNonInvokable()
+    public function it_throws_exception_when_protect_is_given_non_invokable()
     {
         if (version_compare(PHP_VERSION, '7.0.0', '>=')) {
             throw new SkippingException('Unneeded on PHP 7.x or higher caught by TypeError');
@@ -322,7 +323,7 @@ class ContainerSpec extends ObjectBehavior
         $this->shouldThrow(new \InvalidArgumentException('Callable is not a Closure or invokable object.'))
             ->during('protect', [new NonInvokable()]);
     }
-    public function itThrowsExceptionWhenTryingToExtendNonInvokable()
+    public function it_throws_exception_when_trying_to_extend_non_invokable()
     {
         $this['param'] = 123;
         $this['non_invokable'] = new NonInvokable();
@@ -341,7 +342,7 @@ class ContainerSpec extends ObjectBehavior
                     }
                 ]);
     }
-    public function itThrowsExceptionWhenTryingToExtendingFrozenService()
+    public function it_throws_exception_when_trying_to_extending_frozen_service()
     {
         $this['foo'] = function () {
             return 'foo';
@@ -360,7 +361,7 @@ class ContainerSpec extends ObjectBehavior
                     }
                 ]);
     }
-    public function itThrowsExceptionWhenTryingToGetOffsetAfterTheyHaveBeenUnset()
+    public function it_throws_exception_when_trying_to_get_offset_after_they_have_been_unset()
     {
         $this['param'] = 'value';
         $this['service'] = function () {
@@ -374,7 +375,7 @@ class ContainerSpec extends ObjectBehavior
         $this->shouldThrow(new \InvalidArgumentException('Identifier "service" is not defined.'))
             ->during('offsetGet', ['service']);
     }
-    public function itThrowsExceptionWhenTryingToOverWriteFrozenService()
+    public function it_throws_exception_when_trying_to_over_write_frozen_service()
     {
         $this['foo'] = function () {
             return 'foo';
