@@ -13,6 +13,7 @@ cachegrind*
 docs/
 ext/
 export/
+phpspec.yml
 upload/
 vendor/
 xdebug/
