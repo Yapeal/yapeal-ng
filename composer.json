@@ -47,8 +47,8 @@
     ],
     "license": "LGPL-3.0+",
     "require": {
-        "dragonrun1/file_path_normalizer": "1.1.*",
-        "dragonrun1/event-mediator": "<1.1.0",
+        "dragonrun1/file_path_normalizer": "~2.0.0",
+        "dragonrun1/event-mediator": "~2.0.0",
         "ext-curl": "*",
         "ext-date": "*",
         "ext-hash": "*",
@@ -71,12 +71,12 @@
         "twig/twig": "<2.0"
     },
     "require-dev": {
-        "dragonrun1/phpspec": "2.1.*@dev",
+        "phpspec/phpspec": "~3.0.0",
         "erusev/parsedown": "<1.6",
-        "henrikbjorn/phpspec-code-coverage": "1.0.1",
+        "henrikbjorn/phpspec-code-coverage": "dev-master",
         "mikey179/vfsStream": "~1.4",
         "phploc/phploc": "<2.3",
-        "phpspec/nyan-formatters": "1.0.1",
+        "phpspec/nyan-formatters": "~2.0.0",
         "satooshi/php-coveralls": "dev-master"
     },
     "support": {
