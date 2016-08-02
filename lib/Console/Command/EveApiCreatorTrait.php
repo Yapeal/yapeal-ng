@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * Contains EveApiCreatorTrait trait.
  *
@@ -36,19 +37,20 @@ namespace Yapeal\Console\Command;
 use FilePathNormalizer\FilePathNormalizerTrait;
 use Twig_Environment;
 use Yapeal\Event\EveApiEventEmitterTrait;
+use Yapeal\FileSystem\CommonFileHandlingTrait;
 
 /**
  * Trait EveApiCreatorTrait
  */
 trait EveApiCreatorTrait
 {
-    use EveApiEventEmitterTrait, FilePathNormalizerTrait;
+    use CommonFileHandlingTrait, EveApiEventEmitterTrait, FilePathNormalizerTrait;
     /**
      * Getter for $overwrite.
      *
      * @return boolean
      */
-    public function isOverwrite()
+    public function isOverwrite(): bool
     {
         return $this->overwrite;
     }
@@ -65,11 +67,11 @@ trait EveApiCreatorTrait
     /**
      * Fluent interface setter for $overwrite.
      *
-     * @param boolean $value
+     * @param bool $value
      *
      * @return self Fluent interface.
      */
-    public function setOverwrite($value = true)
+    public function setOverwrite(bool $value = true)
     {
         $this->overwrite = (bool)$value;
         return $this;
@@ -87,7 +89,7 @@ trait EveApiCreatorTrait
     /**
      * @return string
      */
-    protected function getDir()
+    protected function getDir(): string
     {
         return $this->dir;
     }
@@ -101,16 +103,17 @@ trait EveApiCreatorTrait
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
-    protected function getTemplateName($for, $sectionName, $apiName)
+    protected function getTemplateName(string $for, string $sectionName, string $apiName)
     {
         // section/api.for.twig, api.for.twig, section.for.twig, for.twig
         $templateNames = explode(
             ',',
             sprintf('%1$s/%2$s.%3$s.twig,%2$s.%3$s.twig,%1$s.%3$s.twig,%3$s.twig', $sectionName, $apiName, $for)
         );
+        $dir = $this->getDir();
         foreach ($templateNames as $templateName) {
-            if (is_file($templateName)) {
-                return $templateName;
+            if (is_file($dir . $templateName)) {
+                return $dir . $templateName;
             }
         }
         return false;
@@ -118,21 +121,9 @@ trait EveApiCreatorTrait
     /**
      * @return Twig_Environment
      */
-    protected function getTwig()
+    protected function getTwig(): Twig_Environment
     {
         return $this->twig;
-    }
-    /**
-     * @param string $fileName
-     * @param string $contents
-     *
-     * @return int
-     */
-    protected function saveToFile($fileName, $contents)
-    {
-        $fileName = $this->getFpn()
-            ->normalizeFile($fileName);
-        return file_put_contents($fileName, $contents);
     }
     /**
      * @var string $dir Directory path used when saving new files.
