@@ -1,4 +1,5 @@
 <?php
+declare(strict_types = 1);
 /**
  * Contains PreserverTrait Trait.
  *
@@ -47,10 +48,10 @@ use Yapeal\Log\Logger;
 trait PreserverTrait
 {
     /**
-     * @return \string[]
+     * @return string[]
      * @throws \LogicException
      */
-    public function getPreserveTos()
+    public function getPreserveTos(): array
     {
         if (0 === count($this->preserveTos)) {
             $mess = 'Tried to access preserveTos before it was set';
@@ -68,7 +69,11 @@ trait PreserverTrait
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
-    public function preserveEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
+    public function preserveEveApi(
+        EveApiEventInterface $event,
+        string $eventName,
+        MediatorInterface $yem
+    ): EveApiEventInterface
     {
         if (!$this->shouldPreserve()) {
             return $event;
@@ -115,7 +120,7 @@ trait PreserverTrait
      *
      * @return $this Fluent interface
      */
-    public function setPreserve($value = true)
+    public function setPreserve(bool $value = true)
     {
         $this->preserve = (boolean)$value;
         return $this;
@@ -130,7 +135,7 @@ trait PreserverTrait
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
-    protected function attributePreserveData(array $rows, array $columnDefaults, $tableName)
+    protected function attributePreserveData(array $rows, array $columnDefaults, string $tableName)
     {
         $maxRowCount = 1000;
         if (0 === count($rows)) {
@@ -153,7 +158,7 @@ trait PreserverTrait
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
-    protected function flush(array $columns, array $columnNames, $tableName)
+    protected function flush(array $columns, array $columnNames, string $tableName)
     {
         if (0 === count($columns)) {
             return $this;
@@ -184,7 +189,7 @@ trait PreserverTrait
      *
      * @return array
      */
-    protected function processXmlRows(array $columnDefaults, array $rows)
+    protected function processXmlRows(array $columnDefaults, array $rows): array
     {
         $columns = [];
         foreach ($rows as $row) {
@@ -209,9 +214,9 @@ trait PreserverTrait
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
-    protected function valuesPreserveData(array $elements, array $columnDefaults, $tableName)
+    protected function valuesPreserveData(array $elements, array $columnDefaults, string $tableName)
     {
-        if (false === $elements || 0 === count($elements)) {
+        if (0 === count($elements)) {
             return $this;
         }
         $eleCount = 0;
@@ -235,14 +240,7 @@ trait PreserverTrait
         }
         uksort($columnDefaults,
             function ($alpha, $beta) {
-                $alpha = strtolower($alpha);
-                $beta = strtolower($beta);
-                if ($alpha < $beta) {
-                    return -1;
-                } elseif ($alpha > $beta) {
-                    return 1;
-                }
-                return 0;
+                return strtolower($alpha) <=> strtolower($beta);
             });
         return $this->flush(array_values($columnDefaults), array_keys($columnDefaults), $tableName);
     }
@@ -251,9 +249,9 @@ trait PreserverTrait
      */
     protected $preserveTos = [];
     /**
-     * @return boolean
+     * @return bool
      */
-    private function shouldPreserve()
+    private function shouldPreserve(): bool
     {
         return $this->preserve;
     }
