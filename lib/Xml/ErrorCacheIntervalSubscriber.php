@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1);
 /**
  * Contains class ErrorCacheIntervalSubscriber.
  *
@@ -26,7 +26,7 @@ declare(strict_types=1);
  * <http://spdx.org/licenses/LGPL-3.0.html>.
  *
  * You should be able to find a copy of this license in the COPYING-LESSER.md
- * file. A copy of the GNU GPL should also be available in the COPYING.md file. 
+ * file. A copy of the GNU GPL should also be available in the COPYING.md file.
  *
  * @copyright 2016 Michael Cummings
  * @license   LGPL-3.0+
@@ -59,12 +59,9 @@ class ErrorCacheIntervalSubscriber
     {
         $this->setYem($yem);
         $data = $event->getData();
-        $this->getYem()
-            ->triggerLogEvent(
-                'Yapeal.Log.log',
-                Logger::DEBUG,
-                $this->getReceivedEventMessage($data, $eventName, __CLASS__)
-            );
+        $yem->triggerLogEvent('Yapeal.Log.log',
+            Logger::DEBUG,
+            $this->getReceivedEventMessage($data, $eventName, __CLASS__));
         $simple = new \SimpleXMLElement($data->getEveApiXml());
         /** @noinspection PhpUndefinedFieldInspection */
         $errorText = (string)$simple->error[0];
@@ -75,7 +72,8 @@ class ErrorCacheIntervalSubscriber
             $mess = sprintf('Received XML error (%1$s) - %2$s during', $code, $errorText);
         } else {
             $mess = sprintf('Received XML error with no code attribute - %1$s during', $errorText);
-            $yem->triggerLogEvent('Yapeal.Log.log', Logger::WARNING,
+            $yem->triggerLogEvent('Yapeal.Log.log',
+                Logger::WARNING,
                 $this->createEventMessage($mess, $data, $eventName));
             return $event;
         }
@@ -83,7 +81,8 @@ class ErrorCacheIntervalSubscriber
             if (false !== strpos($mess, 'retry after')) {
                 $data->setCacheInterval(strtotime(substr($mess, -19) . '+00:00') - time());
             }
-            $yem->triggerLogEvent('Yapeal.Log.log', Logger::WARNING,
+            $yem->triggerLogEvent('Yapeal.Log.log',
+                Logger::WARNING,
                 $this->createEventMessage($mess, $data, $eventName));
         } elseif ($code < 300) {
             $yem->triggerLogEvent('Yapeal.Log.log', Logger::ERROR, $this->createEventMessage($mess, $data, $eventName));
@@ -93,7 +92,8 @@ class ErrorCacheIntervalSubscriber
             $yem->triggerLogEvent('Yapeal.Log.log', Logger::ALERT, $this->createEventMessage($mess, $data, $eventName));
             $data->setCacheInterval(86400);
         } else {
-            $yem->triggerLogEvent('Yapeal.Log.log', Logger::WARNING,
+            $yem->triggerLogEvent('Yapeal.Log.log',
+                Logger::WARNING,
                 $this->createEventMessage($mess, $data, $eventName));
             $data->setCacheInterval(300);
         }
