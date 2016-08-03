@@ -53,7 +53,7 @@ use Prophecy\Argument;
  */
 class %name% extends ObjectBehavior
 {
-    public function itIsInitializable()
+    public function it_is_initializable()
     {
         $this->shouldHaveType('%subject%');
     }
