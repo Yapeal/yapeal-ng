@@ -26,7 +26,7 @@ declare(strict_types=1);
  * <http://spdx.org/licenses/LGPL-3.0.html>.
  *
  * You should be able to find a copy of this license in the COPYING-LESSER.md
- * file. A copy of the GNU GPL should also be available in the COPYING.md file. 
+ * file. A copy of the GNU GPL should also be available in the COPYING.md file.
  *
  * @copyright 2015-2016 Michael Cummings
  * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
@@ -90,7 +90,7 @@ class Validator
         libxml_clear_errors();
         libxml_use_internal_errors(true);
         libxml_clear_errors();
-        $dom = new \DOMDocument();
+        $dom = $this->getDom();
         $loaded = $dom->loadXML($data->getEveApiXml());
         if (!$loaded || !$dom->schemaValidate($fileName)) {
             /**
@@ -99,8 +99,7 @@ class Validator
             $errors = libxml_get_errors();
             if (0 !== count($errors)) {
                 foreach ($errors as $error) {
-                    $this->getYem()
-                        ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $error->message);
+                    $yem->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $error->message);
                 }
             }
             libxml_clear_errors();
@@ -126,9 +125,9 @@ class Validator
     /**
      * @return \DOMDocument
      */
-    private function getDom()
+    private function getDom(): \DOMDocument
     {
-        if (null === $this->getDom()) {
+        if (null === $this->dom) {
             $this->dom = new \DOMDocument();
         }
         return $this->dom;
