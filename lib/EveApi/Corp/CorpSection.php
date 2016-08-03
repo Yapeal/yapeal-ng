@@ -3,7 +3,7 @@ declare(strict_types=1);
 /**
  * Contains CorpSection class.
  *
- * PHP version 5.4
+ * PHP version 7.0+
  *
  * LICENSE:
  * This file is part of Yet Another Php Eve Api Library also know as Yapeal which can be used to access the Eve Online
@@ -19,7 +19,7 @@ declare(strict_types=1);
  * details.
  *
  * You should have received a copy of the GNU Lesser General Public License along with this program. If not, see
- * <http://www.gnu.org/licenses/>.
+ * <http://spdx.org/licenses/LGPL-3.0.html>.
  *
  * You should be able to find a copy of this license in the LICENSE.md file. A copy of the GNU GPL should also be
  * available in the GNU-GPL.md file.

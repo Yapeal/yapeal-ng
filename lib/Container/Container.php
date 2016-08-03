@@ -7,7 +7,7 @@ declare(strict_types = 1);
  * idea just did not work do to the design of Pimple so I re-implemented
  * everything here and use my interface.
  *
- * PHP version 5.5
+ * PHP version 7.0+
  *
  * This file is part of Yet Another Php Eve Api Library also know as Yapeal
  * which can be used to access the Eve Online API data and place it into a
@@ -26,10 +26,10 @@ declare(strict_types = 1);
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program. If not, see
- * <http://www.gnu.org/licenses/>.
+ * <http://spdx.org/licenses/LGPL-3.0.html>.
  *
- * You should be able to find a copy of this license in the LICENSE.md file. A
- * copy of the GNU GPL should also be available in the GNU-GPL.md file.
+ * You should be able to find a copy of this license in the COPYING-LESSER.md
+ * file. A copy of the GNU GPL should also be available in the COPYING.md file.
  *
  * @copyright 2014-2016 Michael Cummings
  * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
