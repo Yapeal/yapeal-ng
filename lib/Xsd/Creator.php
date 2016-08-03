@@ -1,4 +1,5 @@
 <?php
+declare(strict_types = 1);
 /**
  * Contains Creator class.
  *
@@ -46,7 +47,7 @@ class Creator
      * @param \Twig_Environment $twig
      * @param string            $dir
      */
-    public function __construct(\Twig_Environment $twig, $dir = __DIR__)
+    public function __construct(\Twig_Environment $twig, string $dir = __DIR__)
     {
         $this->setDir($dir);
         $this->setTwig($twig);
@@ -61,12 +62,15 @@ class Creator
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
-    public function createXsd(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
+    public function createXsd(
+        EveApiEventInterface $event,
+        string $eventName,
+        MediatorInterface $yem
+    ): EveApiEventInterface
     {
         $this->setYem($yem);
         $data = $event->getData();
-        $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log',
+        $yem->triggerLogEvent('Yapeal.Log.log',
                 Logger::DEBUG,
                 $this->getReceivedEventMessage($data, $eventName, __CLASS__));
         // Only work with raw unaltered XML data.
@@ -97,23 +101,30 @@ class Creator
             'sectionName' => lcfirst($this->sectionName),
             'version' => gmdate('YmdHis', $sec) . sprintf('.%0-3s', floor($mSec * 1000))
         ];
+        $templateName = $this->getTemplateName('xsd',
+            ucfirst($this->sectionName),
+            $data->getEveApiName());
+        if (false === $templateName) {
+            $mess ='Failed to find usable xsd template file during';
+            $yem->triggerLogEvent('Yapeal.Log.log',
+                Logger::WARNING,
+                $this->createEventMessage($mess, $data, $eventName));
+            return $event;
+        }
         try {
             $contents = $this->getTwig()
-                ->render('xsd.twig', $vars);
+                ->render($templateName, $vars);
         } catch (\Twig_Error $exc) {
-            $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::ERROR, 'Twig error', ['exception' => $exc]);
-            $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log',
+            $yem->triggerLogEvent('Yapeal.Log.log', Logger::ERROR, 'Twig error', ['exception' => $exc]);
+            $yem->triggerLogEvent('Yapeal.Log.log',
                     Logger::WARNING,
                     $this->getFailedToWriteFile($data, $eventName, $outputFile));
             return $event;
         }
         $contents = $this->getTidy()
             ->repairString($contents);
-        if (false === $this->saveToFile($outputFile, $contents)) {
-            $this->getYem()
-                ->triggerLogEvent($eventName,
+        if (false === $this->safeFileWrite($contents, $outputFile, $this->getYem())) {
+            $yem->triggerLogEvent($eventName,
                     Logger::WARNING,
                     $this->getFailedToWriteFile($data, $eventName, $outputFile));
             return $event;
@@ -123,12 +134,12 @@ class Creator
     /**
      * Used to infer(choose) type from element or attribute's name.
      *
-     * @param string $name     Name of the element or attribute.
+     * @param string $name Name of the element or attribute.
      * @param bool   $forValue Determines if returned type is going to be used for element or an attribute.
      *
      * @return string Returns the inferred type from the name.
      */
-    protected function inferTypeFromName($name, $forValue = false)
+    private function inferTypeFromName(string $name, bool $forValue = false): string
     {
         if ('ID' === substr($name, -2)) {
             return 'eveIDType';
@@ -157,7 +168,7 @@ class Creator
      * @param \SimpleXMLIterator $sxi
      * @param string             $xpath
      */
-    protected function processRowset(\SimpleXMLIterator $sxi, $xpath = '//result/rowset')
+    protected function processRowset(\SimpleXMLIterator $sxi, string $xpath = '//result/rowset')
     {
         $items = $sxi->xpath($xpath);
         if (0 === count($items)) {
@@ -183,27 +194,13 @@ class Creator
             }
             uksort($columns,
                 function ($alpha, $beta) {
-                    $alpha = strtolower($alpha);
-                    $beta = strtolower($beta);
-                    if ($alpha < $beta) {
-                        return -1;
-                    } elseif ($alpha > $beta) {
-                        return 1;
-                    }
-                    return 0;
+                    return strtolower($alpha) <=> strtolower($beta);
                 });
             $tables[$tableName] = ['attributes' => $columns];
         }
         uksort($tables,
             function ($alpha, $beta) {
-                $alpha = strtolower($alpha);
-                $beta = strtolower($beta);
-                if ($alpha < $beta) {
-                    return -1;
-                } elseif ($alpha > $beta) {
-                    return 1;
-                }
-                return 0;
+                return strtolower($alpha) <=> strtolower($beta);
             });
         $this->tables = array_merge($this->tables, $tables);
     }
@@ -215,8 +212,8 @@ class Creator
      */
     protected function processValueOnly(
         \SimpleXMLIterator $sxi,
-        $tableName,
-        $xpath = '//result/child::*[not(*|@*|self::dataTime)]'
+        string $tableName,
+        string $xpath = '//result/child::*[not(*|@*|self::dataTime)]'
     ) {
         $items = $sxi->xpath($xpath);
         if (0 === count($items)) {
@@ -232,29 +229,14 @@ class Creator
         }
         uksort($columns,
             function ($alpha, $beta) {
-                $alpha = strtolower($alpha);
-                $beta = strtolower($beta);
-                if ($alpha < $beta) {
-                    return -1;
-                } elseif ($alpha > $beta) {
-                    return 1;
-                }
-                return 0;
+                return strtolower($alpha) <=> strtolower($beta);
             });
         $this->tables[$tableName] = ['values' => $columns];
     }
     /**
-     * @var string $sectionName
-     */
-    protected $sectionName;
-    /**
-     * @var array $tables
-     */
-    protected $tables;
-    /**
      * @return \tidy
      */
-    private function getTidy()
+    private function getTidy(): \tidy
     {
         if (null === $this->tidy) {
             $tidyConfig = [
@@ -269,6 +251,14 @@ class Creator
         }
         return $this->tidy;
     }
+    /**
+     * @var string $sectionName
+     */
+    private $sectionName;
+    /**
+     * @var array $tables
+     */
+    private $tables;
     /**
      * @var \tidy $tidy
      */

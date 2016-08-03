@@ -1,4 +1,5 @@
 <?php
+declare(strict_types = 1);
 /**
  * Contains Creator class.
  *
@@ -48,9 +49,9 @@ class Creator
      * Creator constructor.
      *
      * @param \Twig_Environment $twig
-     * @param string           $dir
+     * @param string            $dir
      */
-    public function __construct(\Twig_Environment $twig, $dir = __DIR__)
+    public function __construct(\Twig_Environment $twig, string $dir = __DIR__)
     {
         $this->setDir($dir);
         $this->setTwig($twig);
@@ -65,26 +66,25 @@ class Creator
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
-    public function createEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
+    public function createEveApi(
+        EveApiEventInterface $event,
+        string $eventName,
+        MediatorInterface $yem
+    ): EveApiEventInterface
     {
         $this->setYem($yem);
         $data = $event->getData();
-        $this->getYem()
-            ->triggerLogEvent(
-                'Yapeal.Log.log',
-                Logger::DEBUG,
-                $this->getReceivedEventMessage($data, $eventName, __CLASS__)
-            );
+        $yem->triggerLogEvent('Yapeal.Log.log',
+            Logger::DEBUG,
+            $this->getReceivedEventMessage($data, $eventName, __CLASS__));
         // Only work with raw unaltered XML data.
         if (false !== strpos($data->getEveApiXml(), '<?yapeal.parameters.json')) {
             return $event->setHandledSufficiently();
         }
-        $outputFile = sprintf(
-            '%1$s%2$s/%3$s.php',
+        $outputFile = sprintf('%1$s%2$s/%3$s.php',
             $this->getDir(),
             $data->getEveApiSectionName(),
-            $data->getEveApiName()
-        );
+            $data->getEveApiName());
         // Nothing to do if NOT overwriting and file exists.
         if (false === $this->isOverwrite() && is_file($outputFile)) {
             return $event;
@@ -97,8 +97,7 @@ class Creator
         $tCount = count($this->tables);
         if (0 === $tCount) {
             $mess = 'No SQL tables to create for';
-            $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $this->createEveApiMessage($mess, $data));
+            $yem->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $this->createEveApiMessage($mess, $data));
         }
         ksort($this->tables);
         $vars = [
@@ -110,79 +109,38 @@ class Creator
             'sectionName' => $this->sectionName,
             'tableNames' => array_keys($this->tables)
         ];
-        try {
-            $contents = $this->getTwig()
-                ->render('php.twig', $vars);
-        } catch (\Twig_Error $exp) {
-            $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::ERROR, 'Twig error', ['exception' => $exp]);
-            $this->getYem()
-                ->triggerLogEvent(
-                    'Yapeal.Log.log',
-                    Logger::WARNING,
-                    $this->getFailedToWriteFile($data, $eventName, $outputFile)
-                );
+        $templateName = $this->getTemplateName('php',
+            ucfirst($this->sectionName),
+            $data->getEveApiName());
+        if (false === $templateName) {
+            $mess = 'Failed to find usable xsd template file during';
+            $yem->triggerLogEvent('Yapeal.Log.log',
+                Logger::WARNING,
+                $this->createEventMessage($mess, $data, $eventName));
             return $event;
         }
-        if (false === $this->saveToFile($outputFile, $contents)) {
-            $this->getYem()
-                ->triggerLogEvent(
-                    $eventName,
-                    Logger::WARNING,
-                    $this->getFailedToWriteFile($data, $eventName, $outputFile)
-                );
+        try {
+            $contents = $this->getTwig()
+                ->render($templateName, $vars);
+        } catch (\Twig_Error $exp) {
+            $yem->triggerLogEvent('Yapeal.Log.log', Logger::ERROR, 'Twig error', ['exception' => $exp]);
+            $yem->triggerLogEvent('Yapeal.Log.log',
+                Logger::WARNING,
+                $this->getFailedToWriteFile($data, $eventName, $outputFile));
+            return $event;
+        }
+        if (false === $this->safeFileWrite($contents, $outputFile, $this->getYem())) {
+            $yem->triggerLogEvent($eventName,
+                Logger::WARNING,
+                $this->getFailedToWriteFile($data, $eventName, $outputFile));
             return $event;
         }
         return $event->setHandledSufficiently();
     }
     /**
-     * @return string
-     */
-    protected function getNamespace()
-    {
-        return 'Yapeal\EveApi\\' . ucfirst($this->sectionName);
-    }
-    /**
-     * Used to determine if API is in section that has an owner.
-     *
-     * @return bool
-     */
-    protected function hasOwner()
-    {
-        return in_array(strtolower($this->sectionName), ['account', 'char', 'corp'], true);
-    }
-    /**
-     * Used to infer(choose) default value from element or attribute's name.
-     *
-     * @param string $name Name of the element or attribute.
-     *
-     * @return string Returns the inferred value from the name.
-     */
-    protected function inferDefaultFromName($name)
-    {
-        $name = strtolower($name);
-        $column = 'null';
-        foreach ([
-                     'descr' => '\'\'',
-                     'name' => '\'\'',
-                     'balance' => '\'0.0\'',
-                     'isk' => '\'0.0\'',
-                     'tax' => '\'0.0\'',
-                     'timeefficiency' => 'null',
-                     'date' => '\'1970-01-01 00:00:01\'',
-                     'time' => '\'1970-01-01 00:00:01\'',
-                     'until' => '\'1970-01-01 00:00:01\''
-                 ] as $search => $replace) {
-            if (false !== strpos($name, $search)) {
-                return $replace;
-            }
-        }
-        return $column;
-    }
-    /**
      * @param \SimpleXMLIterator $sxi
-     * @param string            $apiName
-     * @param string            $xPath
+     * @param string             $apiName
+     * @param string             $xPath
      */
     protected function processRowset(\SimpleXMLIterator $sxi, $apiName, $xPath = '//result/rowset')
     {
@@ -204,16 +162,10 @@ class Creator
             if ($this->hasOwner()) {
                 $attributes['ownerID'] = '$ownerID';
             }
-            uksort($attributes, function ($alpha, $beta) {
-                $alpha = strtolower($alpha);
-                $beta = strtolower($beta);
-                if ($alpha < $beta) {
-                    return -1;
-                } elseif ($alpha > $beta) {
-                    return 1;
-                }
-                return 0;
-            });
+            uksort($attributes,
+                function ($alpha, $beta) {
+                    return strtolower($alpha) <=> strtolower($beta);
+                });
             if (0 === count($this->tables)) {
                 $this->tables[$apiName] = ['attributes' => $attributes, 'xpath' => $rsName];
             } else {
@@ -223,13 +175,13 @@ class Creator
     }
     /**
      * @param \SimpleXMLIterator $sxi
-     * @param string            $tableName
-     * @param string            $xpath
+     * @param string             $tableName
+     * @param string             $xpath
      */
     protected function processValueOnly(
         \SimpleXMLIterator $sxi,
-        $tableName,
-        $xpath = '//result/child::*[not(*|@*|self::dataTime)]'
+        string $tableName,
+        string $xpath = '//result/child::*[not(*|@*|self::dataTime)]'
     ) {
         $items = $sxi->xpath($xpath);
         if (0 === count($items)) {
@@ -246,24 +198,62 @@ class Creator
         if ($this->hasOwner()) {
             $values['ownerID'] = '$ownerID';
         }
-        uksort($values, function ($alpha, $beta) {
-            $alpha = strtolower($alpha);
-            $beta = strtolower($beta);
-            if ($alpha < $beta) {
-                return -1;
-            } elseif ($alpha > $beta) {
-                return 1;
-            }
-            return 0;
-        });
+        uksort($values,
+            function ($alpha, $beta) {
+                return strtolower($alpha) <=> strtolower($beta);
+            });
         $this->tables[$tableName] = ['values' => $values];
+    }
+    /**
+     * @return string
+     */
+    private function getNamespace(): string
+    {
+        return 'Yapeal\EveApi\\' . ucfirst($this->sectionName);
+    }
+    /**
+     * Used to determine if API is in section that has an owner.
+     *
+     * @return bool
+     */
+    private function hasOwner(): bool
+    {
+        return in_array(strtolower($this->sectionName), ['account', 'char', 'corp'], true);
+    }
+    /**
+     * Used to infer(choose) default value from element or attribute's name.
+     *
+     * @param string $name Name of the element or attribute.
+     *
+     * @return string Returns the inferred value from the name.
+     */
+    private function inferDefaultFromName(string $name): string
+    {
+        $name = strtolower($name);
+        $column = 'null';
+        foreach ([
+                     'descr' => '\'\'',
+                     'name' => '\'\'',
+                     'balance' => '\'0.0\'',
+                     'isk' => '\'0.0\'',
+                     'tax' => '\'0.0\'',
+                     'timeefficiency' => 'null',
+                     'date' => '\'1970-01-01 00:00:01\'',
+                     'time' => '\'1970-01-01 00:00:01\'',
+                     'until' => '\'1970-01-01 00:00:01\''
+                 ] as $search => $replace) {
+            if (false !== strpos($name, $search)) {
+                return $replace;
+            }
+        }
+        return $column;
     }
     /**
      * @var string $sectionName
      */
-    protected $sectionName;
+    private $sectionName;
     /**
      * @var array $tables
      */
-    protected $tables;
+    private $tables;
 }

@@ -1,4 +1,5 @@
 <?php
+declare(strict_types = 1);
 /**
  * Contains Creator class.
  *
@@ -32,9 +33,7 @@ namespace Yapeal\Sql;
 use Yapeal\Console\Command\EveApiCreatorTrait;
 use Yapeal\Event\EveApiEventInterface;
 use Yapeal\Event\MediatorInterface;
-use Yapeal\Exception\YapealException;
 use Yapeal\Log\Logger;
-use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
  * Class Creator
@@ -49,7 +48,7 @@ class Creator
      * @param string            $dir
      * @param string            $platform
      */
-    public function __construct(\Twig_Environment $twig, $dir = __DIR__, $platform = 'MySql')
+    public function __construct(\Twig_Environment $twig, string $dir = __DIR__, $platform = 'MySql')
     {
         $this->setDir($dir);
         $this->setPlatform($platform);
@@ -61,19 +60,21 @@ class Creator
      * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
-     * @throws YapealException
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
-    public function createSql(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
+    public function createSql(
+        EveApiEventInterface $event,
+        string $eventName,
+        MediatorInterface $yem
+    ): EveApiEventInterface
     {
         $this->setYem($yem);
         $data = $event->getData();
-        $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log',
-                Logger::DEBUG,
-                $this->getReceivedEventMessage($data, $eventName, __CLASS__));
+        $yem->triggerLogEvent('Yapeal.Log.log',
+            Logger::DEBUG,
+            $this->getReceivedEventMessage($data, $eventName, __CLASS__));
         // Only work with raw unaltered XML data.
         if (false !== strpos($data->getEveApiXml(), '<?yapeal.parameters.json')) {
             return $event->setHandledSufficiently();
@@ -86,7 +87,7 @@ class Creator
             ucfirst($this->apiName));
         // Nothing to do if NOT overwriting and file exists.
         if (false === $this->isOverwrite() && is_file($outputFile)) {
-            return $event;
+            return $event->setHandledSufficiently();
         }
         $sxi = new \SimpleXMLIterator($data->getEveApiXml());
         $this->tables = [];
@@ -95,8 +96,8 @@ class Creator
         $tCount = count($this->tables);
         if (0 === $tCount) {
             $mess = 'No SQL tables to create for';
-            $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $this->createEveApiMessage($mess, $data));
+            $yem->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $this->createEveApiMessage($mess, $data));
+            return $event->setHandledSufficiently();
         }
         ksort($this->tables);
         list($mSec, $sec) = explode(' ', microtime());
@@ -106,21 +107,28 @@ class Creator
             'sectionName' => lcfirst($this->sectionName),
             'version' => gmdate('YmdHis', $sec) . substr($mSec, 1, 4)
         ];
-        try {
-            $contents = $this->getTwig()
-                ->render($this->getSqlTemplateName($data, $this->getPlatform()), $vars);
-        } catch (\Twig_Error $exp) {
-            $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log',
-                    Logger::WARNING,
-                    $this->getFailedToWriteFile($data, $eventName, $outputFile));
-            $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::ERROR, 'Twig error', ['exception' => $exp]);
+        $templateName = $this->getTemplateName($this->getPlatform(),
+            ucfirst($this->sectionName),
+            $data->getEveApiName());
+        if (false === $templateName) {
+            $mess = sprintf('Failed to find usable %1$s template file during', $this->getPlatform());
+            $yem->triggerLogEvent('Yapeal.Log.log',
+                Logger::WARNING,
+                $this->createEventMessage($mess, $data, $eventName));
             return $event;
         }
-        if (false === $this->saveToFile($outputFile, $contents)) {
-            $this->getYem()
-                ->triggerLogEvent($eventName,
+        try {
+            $contents = $this->getTwig()
+                ->render($templateName, $vars);
+        } catch (\Twig_Error $exp) {
+            $yem->triggerLogEvent('Yapeal.Log.log',
+                    Logger::WARNING,
+                    $this->getFailedToWriteFile($data, $eventName, $outputFile));
+            $yem->triggerLogEvent('Yapeal.Log.log', Logger::ERROR, 'Twig error', ['exception' => $exp]);
+            return $event;
+        }
+        if (false === $this->safeFileWrite($contents, $outputFile, $this->getYem())) {
+            $yem->triggerLogEvent($eventName,
                     Logger::WARNING,
                     $this->getFailedToWriteFile($data, $eventName, $outputFile));
             return $event;
@@ -132,24 +140,93 @@ class Creator
      *
      * @return self Fluent interface.
      */
-    public function setPlatform($platform)
+    public function setPlatform(string $platform)
     {
         $this->platform = $platform;
         return $this;
     }
     /**
+     * @param \SimpleXMLIterator $sxi
+     * @param string             $apiName
+     * @param string             $xPath
+     */
+    protected function processRowset(\SimpleXMLIterator $sxi, string $apiName, string $xPath = '//result/rowset')
+    {
+        $items = $sxi->xpath($xPath);
+        if (0 === count($items)) {
+            return;
+        }
+        foreach ($items as $ele) {
+            $rsName = ucfirst((string)$ele['name']);
+            $colNames = explode(',', (string)$ele['columns']);
+            $keyNames = explode(',', (string)$ele['key']);
+            $columns = [];
+            foreach ($keyNames as $keyName) {
+                $columns[$keyName] = $this->inferTypeFromName($keyName);
+            }
+            foreach ($colNames as $colName) {
+                $columns[$colName] = $this->inferTypeFromName($colName);
+            }
+            if ($this->hasOwner()) {
+                $columns['ownerID'] = 'BIGINT(20) UNSIGNED NOT NULL';
+            }
+            uksort($columns,
+                function ($alpha, $beta) {
+                    return strtolower($alpha) <=> strtolower($beta);
+                });
+            if (0 === count($this->tables)) {
+                $this->tables[$apiName] = ['columns' => $columns, 'keys' => $this->getSqlKeys($keyNames)];
+            } else {
+                $this->tables[$rsName] = ['columns' => $columns, 'keys' => $this->getSqlKeys($keyNames)];
+            }
+        }
+    }
+    /**
+     * @param \SimpleXMLIterator $sxi
+     * @param string             $tableName
+     * @param string             $xpath
+     */
+    protected function processValueOnly(
+        \SimpleXMLIterator $sxi,
+        string $tableName,
+        string $xpath = '//result/child::*[not(*|@*|self::dataTime)]'
+    ) {
+        $items = $sxi->xpath($xpath);
+        if (0 === count($items)) {
+            return;
+        }
+        $columns = [];
+        foreach ($items as $ele) {
+            $name = (string)$ele->getName();
+            $columns[$name] = $this->inferTypeFromName($name, true);
+        }
+        if ($this->hasOwner()) {
+            $columns['ownerID'] = 'BIGINT(20) UNSIGNED NOT NULL';
+        }
+        uksort($columns,
+            function ($alpha, $beta) {
+                return strtolower($alpha) <=> strtolower($beta);
+            });
+        $keys = $this->getSqlKeys();
+        if (0 !== count($keys)) {
+            $this->tables[$tableName] = ['columns' => $columns, 'keys' => $keys];
+        } else {
+            $this->tables[$tableName] = ['columns' => $columns];
+        }
+    }
+    /**
      * @return string
      */
-    protected function getPlatform()
+    private function getPlatform(): string
     {
         return $this->platform;
     }
     /**
      * @param string[] $keyNames
      *
-     * @return string
+     * @return string[]
      */
-    protected function getSqlKeys(array $keyNames = [])
+    private function getSqlKeys(array $keyNames = []): array
     {
         if ($this->hasOwner()) {
             array_unshift($keyNames, 'ownerID');
@@ -157,42 +234,11 @@ class Creator
         return array_unique($keyNames);
     }
     /**
-     * @param EveApiReadWriteInterface $data
-     * @param string                   $platform
-     * @param string                   $suffix
-     *
-     * @return string
-     * @throws YapealException
-     * @throws \LogicException
-     */
-    protected function getSqlTemplateName(EveApiReadWriteInterface $data, $platform = 'MySql', $suffix = 'twig')
-    {
-        // Section/Api.Platform.Suffix, Section/Api.Suffix, Section/Platform.Suffix,
-        // Api.Platform.Suffix, Api.Suffix, Platform.Suffix, sql.Suffix
-        $names = explode(',',
-            sprintf('%1$s/%2$s.%3$s.%4$s,%1$s/%2$s.%4$s,%1$s/%3$s.%4$s,'
-                . '%2$s.%3$s.%4$s,%2$s.%4$s,%3$s.%4$s,sql.%4$s',
-                ucfirst($data->getEveApiSectionName()),
-                $data->getEveApiName(),
-                $platform,
-                $suffix));
-        foreach ($names as $fileName) {
-            if (is_file($this->getDir() . $fileName)) {
-                return $fileName;
-            }
-        }
-        $mess = sprintf('Failed to find usable sql template file for EveApi %1$s/%2$s with platform of %3$s',
-            ucfirst($data->getEveApiSectionName()),
-            $data->getEveApiName(),
-            $platform);
-        throw new YapealException($mess);
-    }
-    /**
      * Used to determine if API is in section that has an owner.
      *
      * @return bool
      */
-    protected function hasOwner()
+    private function hasOwner(): bool
     {
         return in_array(strtolower($this->sectionName), ['account', 'char', 'corp'], true);
     }
@@ -204,7 +250,7 @@ class Creator
      *
      * @return string Returns the inferred type from the name.
      */
-    protected function inferTypeFromName($name, $forValue = false)
+    private function inferTypeFromName(string $name, bool $forValue = false): string
     {
         if ('ID' === substr($name, -2)) {
             return 'BIGINT(20) UNSIGNED NOT NULL';
@@ -236,109 +282,19 @@ class Creator
         return $forValue ? 'TEXT NOT NULL' : 'VARCHAR(255) DEFAULT \'\'';
     }
     /**
-     * @param \SimpleXMLIterator $sxi
-     * @param string             $apiName
-     * @param string             $xPath
-     */
-    protected function processRowset(\SimpleXMLIterator $sxi, $apiName, $xPath = '//result/rowset')
-    {
-        $items = $sxi->xpath($xPath);
-        if (0 === count($items)) {
-            return;
-        }
-        foreach ($items as $ele) {
-            $rsName = ucfirst((string)$ele['name']);
-            $colNames = explode(',', (string)$ele['columns']);
-            $keyNames = explode(',', (string)$ele['key']);
-            $columns = [];
-            foreach ($keyNames as $keyName) {
-                $columns[$keyName] = $this->inferTypeFromName($keyName);
-            }
-            foreach ($colNames as $colName) {
-                $columns[$colName] = $this->inferTypeFromName($colName);
-            }
-            if ($this->hasOwner()) {
-                $columns['ownerID'] = 'BIGINT(20) UNSIGNED NOT NULL';
-            }
-            uksort($columns,
-                function ($alpha, $beta) {
-                    $alpha = strtolower($alpha);
-                    $beta = strtolower($beta);
-                    if ($alpha < $beta) {
-                        return -1;
-                    } elseif ($alpha > $beta) {
-                        return 1;
-                    }
-                    return 0;
-                });
-            if (0 === count($this->tables)) {
-                $this->tables[$apiName] = ['columns' => $columns, 'keys' => $this->getSqlKeys($keyNames)];
-            } else {
-                $this->tables[$rsName] = ['columns' => $columns, 'keys' => $this->getSqlKeys($keyNames)];
-            }
-        }
-    }
-    /**
-     * @param \SimpleXMLIterator $sxi
-     * @param string             $tableName
-     * @param string             $xpath
-     */
-    protected function processValueOnly(
-        \SimpleXMLIterator $sxi,
-        $tableName,
-        $xpath = '//result/child::*[not(*|@*|self::dataTime)]'
-    ) {
-        $items = $sxi->xpath($xpath);
-        if (0 === count($items)) {
-            return;
-        }
-        $columns = [];
-        /**
-         * @var \SimpleXMLElement $ele
-         */
-        foreach ($items as $ele) {
-            $name = (string)$ele->getName();
-            $columns[$name] = $this->inferTypeFromName($name, true);
-        }
-        if ($this->hasOwner()) {
-            $columns['ownerID'] = 'BIGINT(20) UNSIGNED NOT NULL';
-        }
-        uksort($columns,
-            function ($alpha, $beta) {
-                $alpha = strtolower($alpha);
-                $beta = strtolower($beta);
-                if ($alpha < $beta) {
-                    return -1;
-                } elseif ($alpha > $beta) {
-                    return 1;
-                }
-                return 0;
-            });
-        $keys = $this->getSqlKeys();
-        if (0 !== count($keys)) {
-            $this->tables[$tableName] = ['columns' => $columns, 'keys' => $keys];
-        } else {
-            $this->tables[$tableName] = ['columns' => $columns];
-        }
-    }
-    /**
      * @var string $apiName
      */
-    protected $apiName;
+    private $apiName;
     /**
      * @var string $platform Sql connection platform being used.
      */
-    protected $platform;
+    private $platform;
     /**
      * @var string $sectionName
      */
-    protected $sectionName;
-    /**
-     * @var integer $tableCount
-     */
-    protected $tableCount = 0;
+    private $sectionName;
     /**
      * @var array $tables
      */
-    protected $tables;
+    private $tables;
 }
