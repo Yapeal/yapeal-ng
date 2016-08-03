@@ -26,7 +26,7 @@ declare(strict_types=1);
  * <http://spdx.org/licenses/LGPL-3.0.html>.
  *
  * You should be able to find a copy of this license in the COPYING-LESSER.md
- * file. A copy of the GNU GPL should also be available in the COPYING.md file. 
+ * file. A copy of the GNU GPL should also be available in the COPYING.md file.
  *
  * @copyright 2015-2016 Michael Cummings
  * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
@@ -51,9 +51,9 @@ trait RelativeFileSearchTrait
      *
      * @param string $value
      *
-     * @return self Fluent interface.
+     * @return RelativeFileSearchTrait Fluent interface.
      */
-    public function setRelativeBaseDir($value)
+    public function setRelativeBaseDir(string $value): self
     {
         $this->relativeBaseDir = $this->getFpn()
             ->normalizePath((string)$value);
@@ -71,7 +71,7 @@ trait RelativeFileSearchTrait
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
-    protected function findEveApiFile($sectionName, $apiName, $suffix)
+    protected function findEveApiFile(string $sectionName, string $apiName, string $suffix): string
     {
         $fileNames = sprintf(
             '%3$s%1$s/%2$s.%4$s,%3$s%2$s.%4$s,%3$s%1$s/%1$s.%4$s,%3$scommon.%4$s',
@@ -112,7 +112,7 @@ trait RelativeFileSearchTrait
      * @return string
      * @throws \LogicException
      */
-    protected function getRelativeBaseDir()
+    protected function getRelativeBaseDir(): string
     {
         if (null === $this->relativeBaseDir) {
             $mess = 'Tried to use relativeBaseDir before it was set';
