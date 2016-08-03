@@ -1,15 +1,15 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1);
 /**
- * Contains Transformer interface.
+ * Contains class TransformerSpec.
  *
- * PHP version 7.0+
+ * PHP version 7.0
  *
  * LICENSE:
  * This file is part of Yet Another Php Eve Api Library also know as Yapeal
  * which can be used to access the Eve Online API data and place it into a
  * database.
- * Copyright (C) 2015-2016 Michael Cummings
+ * Copyright (C) 2016 Michael Cummings
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by the
@@ -28,34 +28,32 @@ declare(strict_types=1);
  * You should be able to find a copy of this license in the COPYING-LESSER.md
  * file. A copy of the GNU GPL should also be available in the COPYING.md file.
  *
- * @copyright 2015-2016 Michael Cummings
- * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
  * @author    Michael Cummings <mgcummings@yahoo.com>
- * @since     20150727 14:20
+ * @copyright 2016 Michael Cummings
+ * @license   LGPL-3.0
  */
-namespace Yapeal\Xsl;
+namespace Spec\Yapeal\Xsl;
 
-use Yapeal\Event\EveApiEventInterface;
-use Yapeal\Event\MediatorInterface;
+use PhpSpec\ObjectBehavior;
 
 /**
- * Interface Transformer.
+ * Class TransformerSpec
+ *
+ * @mixin \Yapeal\Xsl\Transformer
+ *
+ * @method void during($method, array $params)
+ * @method void shouldBe($value)
+ * @method void shouldContain($value)
+ * @method void shouldHaveKey($key)
+ * @method void shouldHaveType($value)
+ * @method void shouldImplement($interface)
+ * @method void shouldNotEqual($value)
+ * @method void shouldReturn($result)
  */
-interface TransformerInterface
+class TransformerSpec extends ObjectBehavior
 {
-    /**
-     * @param EveApiEventInterface $event
-     * @param string               $eventName
-     * @param MediatorInterface    $yem
-     *
-     * @return EveApiEventInterface|\EventMediator\EventInterface
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
-     */
-    public function transformEveApi(
-        EveApiEventInterface $event,
-        string $eventName,
-        MediatorInterface $yem
-    ): EveApiEventInterface;
+    public function it_is_initializable()
+    {
+        $this->shouldHaveType('Yapeal\Xsl\Transformer');
+    }
 }

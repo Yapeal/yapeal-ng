@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1);
 /**
  * Contains Transformer class.
  *
@@ -26,7 +26,7 @@ declare(strict_types=1);
  * <http://spdx.org/licenses/LGPL-3.0.html>.
  *
  * You should be able to find a copy of this license in the COPYING-LESSER.md
- * file. A copy of the GNU GPL should also be available in the COPYING.md file. 
+ * file. A copy of the GNU GPL should also be available in the COPYING.md file.
  *
  * @copyright 2015-2016 Michael Cummings
  * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
@@ -52,7 +52,7 @@ class Transformer implements TransformerInterface
      *
      * @param string $dir Base directory where Eve API XSL files can be found.
      */
-    public function __construct($dir = __DIR__)
+    public function __construct(string $dir = __DIR__)
     {
         $this->setRelativeBaseDir($dir . '/');
     }
@@ -61,19 +61,22 @@ class Transformer implements TransformerInterface
      * @param string               $eventName
      * @param MediatorInterface    $yem
      *
-     * @return EveApiEventInterface
+     * @return EveApiEventInterface|\EventMediator\EventInterface
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
-    public function transformEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
+    public function transformEveApi(
+        EveApiEventInterface $event,
+        string $eventName,
+        MediatorInterface $yem
+    ): EveApiEventInterface
     {
         $this->setYem($yem);
         $data = $event->getData();
-        $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log',
-                Logger::DEBUG,
-                $this->getReceivedEventMessage($data, $eventName, __CLASS__));
+        $yem->triggerLogEvent('Yapeal.Log.log',
+            Logger::DEBUG,
+            $this->getReceivedEventMessage($data, $eventName, __CLASS__));
         $fileName = $this->findEveApiFile($data->getEveApiSectionName(), $data->getEveApiName(), 'xsl');
         if ('' === $fileName) {
             return $event;
@@ -89,7 +92,7 @@ class Transformer implements TransformerInterface
         }
         $xml = (new \tidy())->repairString($xml, $this->tidyConfig, 'utf8');
         return $event->setData($data->setEveApiXml($xml))
-            ->eventHandled();
+            ->setHandledSufficiently();
     }
     /**
      * Adds Processing Instruction to XML containing json encoding of any post used during retrieve.
@@ -99,11 +102,11 @@ class Transformer implements TransformerInterface
      *
      * @param EveApiReadWriteInterface $data
      *
-     * @return self Fluent interface.
-     * @throws \LogicException
+     * @return \Yapeal\Xsl\Transformer Fluent interface.
      * @throws \InvalidArgumentException
+     * @throws \LogicException
      */
-    protected function addYapealProcessingInstructionToXml(EveApiReadWriteInterface $data)
+    private function addYapealProcessingInstructionToXml(EveApiReadWriteInterface $data): self
     {
         $xml = $data->getEveApiXml();
         if (false === $xml) {
@@ -129,6 +132,26 @@ class Transformer implements TransformerInterface
         return $this;
     }
     /**
+     * @return \DOMDocument
+     */
+    private function getDom(): \DOMDocument
+    {
+        if (null === $this->dom) {
+            $this->dom = new \DOMDocument();
+        }
+        return $this->dom;
+    }
+    /**
+     * @return \XSLTProcessor
+     */
+    private function getXslt(): \XSLTProcessor
+    {
+        if (null === $this->xslt) {
+            $this->xslt = new \XSLTProcessor();
+        }
+        return $this->xslt;
+    }
+    /**
      * @param string                   $fileName
      * @param EveApiReadWriteInterface $data
      *
@@ -137,7 +160,7 @@ class Transformer implements TransformerInterface
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
-    protected function performTransform($fileName, EveApiReadWriteInterface $data)
+    private function performTransform(string $fileName, EveApiReadWriteInterface $data)
     {
         libxml_clear_errors();
         libxml_use_internal_errors(true);
@@ -178,26 +201,6 @@ class Transformer implements TransformerInterface
         libxml_use_internal_errors(false);
         libxml_clear_errors();
         return $result;
-    }
-    /**
-     * @return \DOMDocument
-     */
-    private function getDom()
-    {
-        if (null === $this->dom) {
-            $this->dom = new \DOMDocument();
-        }
-        return $this->dom;
-    }
-    /**
-     * @return \XSLTProcessor
-     */
-    private function getXslt()
-    {
-        if (null === $this->xslt) {
-            $this->xslt = new \XSLTProcessor();
-        }
-        return $this->xslt;
     }
     /**
      * @var \DOMDocument $dom
