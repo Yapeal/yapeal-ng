@@ -87,6 +87,7 @@ Yapeal:
     Wiring:
         Handlers:
             error: Yapeal\Configuration\ErrorWiring
+            eveapi: Yapeal\Configuration\EveApiWiring
             event: Yapeal\Configuration\EventWiring
             filesystem: Yapeal\Configuration\FileSystemWiring
             log: Yapeal\Configuration\LogWiring
