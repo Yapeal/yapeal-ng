@@ -1,10 +1,13 @@
+code_generation: false
+formatter.name: dot
+stop-on-failure: true
 suites:
     yapeal_suite:
         namespace: Yapeal
         psr4_prefix: Yapeal
-        spec_path: specs
+        spec_path: %paths.config%/specs
         spec_prefix: Spec
-        src_path: lib
+        src_path: %paths.config%/lib
 extensions:
     PhpSpecCodeCoverage\CodeCoverageExtension:
         whitelist:
@@ -31,4 +34,3 @@ extensions:
             - clover
         output:
             clover: build/clover.xml
-formatter.name: dot

@@ -11,7 +11,7 @@ php:
     - 7.1
 script:
     - mkdir -p build
-    - phpdbg -qrr -f vendor/phpspec/phpspec/bin/phpspec --no-interaction --config=phpspec_coverage.yml run
+    - phpdbg -qrr -f vendor/phpspec/phpspec/bin/phpspec --config=phpspec_coverage.yml run
 after_success:
     - composer require --dev satooshi/php-coveralls:dev-master
     - travis_retry php vendor/bin/coveralls -v

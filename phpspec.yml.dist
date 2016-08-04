@@ -1,10 +1,12 @@
+code_generation: false
+formatter.name: nyan.cat
+stop-on-failure: true
 suites:
     yapeal_suite:
         namespace: Yapeal
         psr4_prefix: Yapeal
-        spec_path: specs
+        spec_path: %paths.config%/specs
         spec_prefix: Spec
-        src_path: lib
+        src_path: %paths.config%/lib
 extensions:
     PhpSpec\NyanFormattersExtension\Extension: ~
-formatter.name: nyan.cat
