@@ -37,6 +37,7 @@ namespace Yapeal\Xsl;
 use Yapeal\Event\EveApiEventEmitterTrait;
 use Yapeal\Event\EveApiEventInterface;
 use Yapeal\Event\MediatorInterface;
+use Yapeal\Exception\YapealFileSystemException;
 use Yapeal\FileSystem\RelativeFileSearchTrait;
 use Yapeal\Log\Logger;
 use Yapeal\Xml\EveApiReadWriteInterface;
@@ -77,12 +78,22 @@ class Transformer implements TransformerInterface
         $yem->triggerLogEvent('Yapeal.Log.log',
             Logger::DEBUG,
             $this->getReceivedEventMessage($data, $eventName, __CLASS__));
-        $fileName = $this->findEveApiFile($data->getEveApiSectionName(), $data->getEveApiName(), 'xsl');
-        if ('' === $fileName) {
+        try {
+            $xslName = $this->findRelativeFileWithPath(ucfirst($data->getEveApiSectionName()),
+                $data->getEveApiName(),
+                'xsl');
+        } catch (YapealFileSystemException $exc) {
+            $mess = 'Failed to find accessible XSL transform file during';
+            $yem->triggerLogEvent('Yapeal.Log.log',
+                Logger::WARNING,
+                $this->createEventMessage($mess, $data, $eventName),
+                ['exception' => $exc]);
             return $event;
         }
+        $mess = sprintf('Using %1$s file to transform', $xslName);
+        $yem->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->createEveApiMessage($mess, $data));
         $xml = $this->addYapealProcessingInstructionToXml($data)
-            ->performTransform($fileName, $data);
+            ->performTransform($xslName, $data);
         if (false === $xml) {
             $mess = 'Failed to transform xml during';
             $yem->triggerLogEvent('Yapeal.Log.log',
@@ -152,7 +163,7 @@ class Transformer implements TransformerInterface
         return $this->xslt;
     }
     /**
-     * @param string                   $fileName
+     * @param string $xslName
      * @param EveApiReadWriteInterface $data
      *
      * @return false|string
@@ -160,14 +171,14 @@ class Transformer implements TransformerInterface
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
-    private function performTransform(string $fileName, EveApiReadWriteInterface $data)
+    private function performTransform(string $xslName, EveApiReadWriteInterface $data)
     {
         libxml_clear_errors();
         libxml_use_internal_errors(true);
         libxml_clear_errors();
         $xslt = $this->getXslt();
         $dom = $this->getDom();
-        $dom->load($fileName);
+        $dom->load($xslName);
         $xslt->importStylesheet($dom);
         $result = false;
         try {

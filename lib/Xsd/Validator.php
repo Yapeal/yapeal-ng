@@ -37,6 +37,7 @@ namespace Yapeal\Xsd;
 use Yapeal\Event\EveApiEventEmitterTrait;
 use Yapeal\Event\EveApiEventInterface;
 use Yapeal\Event\MediatorInterface;
+use Yapeal\Exception\YapealFileSystemException;
 use Yapeal\FileSystem\RelativeFileSearchTrait;
 use Yapeal\Log\Logger;
 
@@ -83,16 +84,26 @@ class Validator
             $data->setEveApiName($apiName);
             return $event->setData($data);
         }
-        $fileName = $this->findEveApiFile($data->getEveApiSectionName(), $data->getEveApiName(), 'xsd');
-        if ('' === $fileName) {
+        try {
+            $xsdName = $this->findRelativeFileWithPath(ucfirst($data->getEveApiSectionName()),
+                $data->getEveApiName(),
+                'xsd');
+        } catch (YapealFileSystemException $exc) {
+            $mess = 'Failed to find accessible XSD schema file during';
+            $yem->triggerLogEvent('Yapeal.Log.log',
+                Logger::WARNING,
+                $this->createEventMessage($mess, $data, $eventName),
+                ['exception' => $exc]);
             return $event;
         }
+        $mess = sprintf('Using %1$s file to validate', $xsdName);
+        $yem->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->createEveApiMessage($mess, $data));
         libxml_clear_errors();
         libxml_use_internal_errors(true);
         libxml_clear_errors();
         $dom = $this->getDom();
         $loaded = $dom->loadXML($data->getEveApiXml());
-        if (!$loaded || !$dom->schemaValidate($fileName)) {
+        if (!$loaded || !$dom->schemaValidate($xsdName)) {
             /**
              * @var array $errors
              */
