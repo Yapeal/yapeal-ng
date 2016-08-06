@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1);
 /**
  * Contains EveApiCreatorTrait trait.
  *
@@ -36,7 +36,10 @@ namespace Yapeal\Console\Command;
 
 use Twig_Environment;
 use Yapeal\Event\EveApiEventEmitterTrait;
+use Yapeal\Exception\YapealFileSystemException;
 use Yapeal\FileSystem\CommonFileHandlingTrait;
+use Yapeal\Log\Logger;
+use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
  * Trait EveApiCreatorTrait
@@ -52,16 +55,6 @@ trait EveApiCreatorTrait
     public function isOverwrite(): bool
     {
         return $this->overwrite;
-    }
-    /**
-     * @param string $value
-     *
-     * @return self Fluent interface.
-     */
-    public function setDir($value)
-    {
-        $this->dir = (string)$value;
-        return $this;
     }
     /**
      * Fluent interface setter for $overwrite.
@@ -86,56 +79,77 @@ trait EveApiCreatorTrait
         return $this;
     }
     /**
-     * @return string
-     */
-    protected function getDir(): string
-    {
-        return $this->dir;
-    }
-    /**
-     * @param string $for
-     * @param string $sectionName
-     * @param string $apiName
+     * @param string                               $eventName
+     * @param \Yapeal\Xml\EveApiReadWriteInterface $data
+     * @param array                                $context
      *
-     * @return false|string
+     * @return bool|string
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
-    protected function getTemplateName(string $for, string $sectionName, string $apiName)
+    protected function getContentsFromTwig(string $eventName, EveApiReadWriteInterface $data, array $context)
     {
-        // section/api.for.twig, api.for.twig, section.for.twig, for.twig
-        $templateNames = explode(
-            ',',
-            sprintf('%1$s/%2$s.%3$s.twig,%2$s.%3$s.twig,%1$s.%3$s.twig,%3$s.twig', $sectionName, $apiName, $for)
-        );
-        $dir = $this->getDir();
-        foreach ($templateNames as $templateName) {
-            if (is_file($dir . $templateName)) {
-                return $dir . $templateName;
-            }
+        $yem = $this->getYem();
+        try {
+            $templateName = $this->findRelativeFileWithPath(ucfirst($data->getEveApiSectionName()),
+                $data->getEveApiName(),
+                $this->getTwigExtension());
+        } catch (YapealFileSystemException $exc) {
+            $mess = 'Failed to find accessible twig template file during';
+            $yem->triggerLogEvent('Yapeal.Log.log',
+                Logger::WARNING,
+                $this->createEventMessage($mess, $data, $eventName),
+                ['exception' => $exc]);
+            return false;
         }
-        return false;
+        $mess = sprintf('Using %1$s template file in twig to create file of', $templateName);
+        $yem->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->createEveApiMessage($mess, $data));
+        try {
+            $contents = $this->getTwig()
+                ->render($templateName, $context);
+        } catch (\Twig_Error $exc) {
+            $mess = 'Creation of file failed because of twig exception during';
+            $yem->triggerLogEvent('Yapeal.Log.log',
+                Logger::WARNING,
+                $this->createEventMessage($mess, $data, $eventName),
+                ['exception' => $exc]);
+            return false;
+        }
+        return $contents;
     }
     /**
      * @return Twig_Environment
+     * @throws \LogicException
      */
     protected function getTwig(): Twig_Environment
     {
+        if (null === $this->twig) {
+            $mess = 'Tried to use Twig before it was set';
+            throw new \LogicException($mess);
+        }
         return $this->twig;
     }
     /**
-     * @var string $dir Directory path used when saving new files.
+     * @return string
+     * @throws \LogicException
      */
-    protected $dir;
+    protected function getTwigExtension(): string
+    {
+        if (null === $this->twigExtension) {
+            $mess = 'Tried to use twig file extension before it was set';
+            throw new \LogicException($mess);
+        }
+        return $this->twigExtension;
+    }
     /**
      * Used to decide if existing file should be overwritten.
      *
      * @var bool $overwrite
      */
-    protected $overwrite = false;
+    private $overwrite = false;
     /**
      * @var Twig_Environment $twig
      */
-    protected $twig;
+    private $twig;
 }
