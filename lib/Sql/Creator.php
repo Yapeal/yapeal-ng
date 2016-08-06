@@ -33,6 +33,7 @@ namespace Yapeal\Sql;
 use Yapeal\Console\Command\EveApiCreatorTrait;
 use Yapeal\Event\EveApiEventInterface;
 use Yapeal\Event\MediatorInterface;
+use Yapeal\FileSystem\RelativeFileSearchTrait;
 use Yapeal\Log\Logger;
 
 /**
@@ -40,7 +41,7 @@ use Yapeal\Log\Logger;
  */
 class Creator
 {
-    use EveApiCreatorTrait;
+    use EveApiCreatorTrait, RelativeFileSearchTrait;
     /**
      * Creator constructor.
      *
@@ -50,9 +51,10 @@ class Creator
      */
     public function __construct(\Twig_Environment $twig, string $dir = __DIR__, $platform = 'MySql')
     {
-        $this->setDir($dir);
+        $this->setRelativeBaseDir($dir);
         $this->setPlatform($platform);
         $this->setTwig($twig);
+        $this->twigExtension = strtolower($platform) . '.sql.twig';
     }
     /**
      * @param EveApiEventInterface $event
@@ -81,10 +83,12 @@ class Creator
         }
         $this->sectionName = $data->getEveApiSectionName();
         $this->apiName = $data->getEveApiName();
-        $outputFile = sprintf('%1$s%2$s/Create%3$s.sql',
-            $this->getDir(),
+        $outputFile = sprintf('%1$s%2$s/Create%3$s.%4$s.sql',
+            $this->getRelativeBaseDir(),
             ucfirst($this->sectionName),
-            ucfirst($this->apiName));
+            ucfirst($this->apiName),
+            $this->getPlatform()
+        );
         // Nothing to do if NOT overwriting and file exists.
         if (false === $this->isOverwrite() && is_file($outputFile)) {
             return $event->setHandledSufficiently();
@@ -101,36 +105,20 @@ class Creator
         }
         ksort($this->tables);
         list($mSec, $sec) = explode(' ', microtime());
-        $vars = [
+        $context = [
             'className' => lcfirst($this->apiName),
             'tables' => $this->tables,
             'sectionName' => lcfirst($this->sectionName),
             'version' => gmdate('YmdHis', $sec) . substr($mSec, 1, 4)
         ];
-        $templateName = $this->getTemplateName($this->getPlatform(),
-            ucfirst($this->sectionName),
-            $data->getEveApiName());
-        if (false === $templateName) {
-            $mess = sprintf('Failed to find usable %1$s template file during', $this->getPlatform());
-            $yem->triggerLogEvent('Yapeal.Log.log',
-                Logger::WARNING,
-                $this->createEventMessage($mess, $data, $eventName));
-            return $event;
-        }
-        try {
-            $contents = $this->getTwig()
-                ->render($templateName, $vars);
-        } catch (\Twig_Error $exp) {
-            $yem->triggerLogEvent('Yapeal.Log.log',
-                    Logger::WARNING,
-                    $this->getFailedToWriteFile($data, $eventName, $outputFile));
-            $yem->triggerLogEvent('Yapeal.Log.log', Logger::ERROR, 'Twig error', ['exception' => $exp]);
+        $contents = $this->getContentsFromTwig($eventName, $data, $context);
+        if (false === $contents) {
             return $event;
         }
         if (false === $this->safeFileWrite($contents, $outputFile, $this->getYem())) {
             $yem->triggerLogEvent($eventName,
                     Logger::WARNING,
-                    $this->getFailedToWriteFile($data, $eventName, $outputFile));
+                    $this->getFailedToWriteFileMessage($data, $eventName, $outputFile));
             return $event;
         }
         return $event->setHandledSufficiently();
@@ -297,4 +285,8 @@ class Creator
      * @var array $tables
      */
     private $tables;
+    /**
+     * @var string $twigExtension
+     */
+    protected $twigExtension = 'sql.twig';
 }

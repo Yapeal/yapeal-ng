@@ -33,6 +33,7 @@ namespace Yapeal\Xsd;
 use Yapeal\Console\Command\EveApiCreatorTrait;
 use Yapeal\Event\EveApiEventInterface;
 use Yapeal\Event\MediatorInterface;
+use Yapeal\FileSystem\RelativeFileSearchTrait;
 use Yapeal\Log\Logger;
 
 /**
@@ -40,7 +41,7 @@ use Yapeal\Log\Logger;
  */
 class Creator
 {
-    use EveApiCreatorTrait;
+    use EveApiCreatorTrait, RelativeFileSearchTrait;
     /**
      * Creator constructor.
      *
@@ -49,7 +50,7 @@ class Creator
      */
     public function __construct(\Twig_Environment $twig, string $dir = __DIR__)
     {
-        $this->setDir($dir);
+        $this->setRelativeBaseDir($dir);
         $this->setTwig($twig);
     }
     /**
@@ -71,98 +72,51 @@ class Creator
         $this->setYem($yem);
         $data = $event->getData();
         $yem->triggerLogEvent('Yapeal.Log.log',
-                Logger::DEBUG,
-                $this->getReceivedEventMessage($data, $eventName, __CLASS__));
+            Logger::DEBUG,
+            $this->getReceivedEventMessage($data, $eventName, __CLASS__));
         // Only work with raw unaltered XML data.
         if (false !== strpos($data->getEveApiXml(), '<?yapeal.parameters.json')) {
             return $event->setHandledSufficiently();
         }
+        $this->sectionName = $data->getEveApiSectionName();
+        $this->apiName = $data->getEveApiName();
         $outputFile = sprintf('%1$s%2$s/%3$s.xsd',
-            $this->getDir(),
-            $data->getEveApiSectionName(),
-            $data->getEveApiName());
+            $this->getRelativeBaseDir(),
+            ucfirst($this->sectionName),
+            ucfirst($this->apiName)
+        );
         // Nothing to do if NOT overwriting and file exists.
         if (false === $this->isOverwrite() && is_file($outputFile)) {
             return $event;
         }
-        $this->sectionName = $data->getEveApiSectionName();
         $xml = $data->getEveApiXml();
         if (false === $xml) {
             return $event->setHandledSufficiently();
         }
         $sxi = new \SimpleXMLIterator($xml);
         $this->tables = [];
-        $this->processValueOnly($sxi, lcfirst($data->getEveApiName()));
+        $this->processValueOnly($sxi, lcfirst($this->apiName));
         $this->processRowset($sxi);
         list($mSec, $sec) = explode(' ', microtime());
-        $vars = [
-            'className' => lcfirst($data->getEveApiName()),
+        $context = [
+            'className' => lcfirst($this->apiName),
             'tables' => $this->tables,
             'sectionName' => lcfirst($this->sectionName),
             'version' => gmdate('YmdHis', $sec) . sprintf('.%0-3s', floor($mSec * 1000))
         ];
-        $templateName = $this->getTemplateName('xsd',
-            ucfirst($this->sectionName),
-            $data->getEveApiName());
-        if (false === $templateName) {
-            $mess ='Failed to find usable xsd template file during';
-            $yem->triggerLogEvent('Yapeal.Log.log',
-                Logger::WARNING,
-                $this->createEventMessage($mess, $data, $eventName));
-            return $event;
-        }
-        try {
-            $contents = $this->getTwig()
-                ->render($templateName, $vars);
-        } catch (\Twig_Error $exc) {
-            $yem->triggerLogEvent('Yapeal.Log.log', Logger::ERROR, 'Twig error', ['exception' => $exc]);
-            $yem->triggerLogEvent('Yapeal.Log.log',
-                    Logger::WARNING,
-                    $this->getFailedToWriteFile($data, $eventName, $outputFile));
+        $contents = $this->getContentsFromTwig($eventName, $data, $context);
+        if (false === $contents) {
             return $event;
         }
         $contents = $this->getTidy()
             ->repairString($contents);
         if (false === $this->safeFileWrite($contents, $outputFile, $this->getYem())) {
             $yem->triggerLogEvent($eventName,
-                    Logger::WARNING,
-                    $this->getFailedToWriteFile($data, $eventName, $outputFile));
+                Logger::WARNING,
+                $this->getFailedToWriteFileMessage($data, $eventName, $outputFile));
             return $event;
         }
         return $event->setHandledSufficiently();
-    }
-    /**
-     * Used to infer(choose) type from element or attribute's name.
-     *
-     * @param string $name Name of the element or attribute.
-     * @param bool   $forValue Determines if returned type is going to be used for element or an attribute.
-     *
-     * @return string Returns the inferred type from the name.
-     */
-    private function inferTypeFromName(string $name, bool $forValue = false): string
-    {
-        if ('ID' === substr($name, -2)) {
-            return 'eveIDType';
-        }
-        $name = strtolower($name);
-        foreach ([
-                     'descr' => 'xs:string',
-                     'name' => 'eveNameType',
-                     'balance' => 'eveISKType',
-                     'isk' => 'eveISKType',
-                     'tax' => 'eveISKType',
-                     'timeefficiency' => 'xs:unsignedByte',
-                     'date' => 'eveNEDTType',
-                     'time' => 'eveNEDTType',
-                     'until' => 'eveNEDTType',
-                     'errorcode' => 'xs:unsignedShort',
-                     'level' => 'xs:unsignedShort'
-                 ] as $search => $replace) {
-            if (false !== strpos($name, $search)) {
-                return $replace;
-            }
-        }
-        return $forValue ? 'xs:string' : 'xs:token';
     }
     /**
      * @param \SimpleXMLIterator $sxi
@@ -234,6 +188,10 @@ class Creator
         $this->tables[$tableName] = ['values' => $columns];
     }
     /**
+     * @var string $twigExtension
+     */
+    protected $twigExtension = 'xsd.twig';
+    /**
      * @return \tidy
      */
     private function getTidy(): \tidy
@@ -251,6 +209,43 @@ class Creator
         }
         return $this->tidy;
     }
+    /**
+     * Used to infer(choose) type from element or attribute's name.
+     *
+     * @param string $name     Name of the element or attribute.
+     * @param bool   $forValue Determines if returned type is going to be used for element or an attribute.
+     *
+     * @return string Returns the inferred type from the name.
+     */
+    private function inferTypeFromName(string $name, bool $forValue = false): string
+    {
+        if ('ID' === substr($name, -2)) {
+            return 'eveIDType';
+        }
+        $name = strtolower($name);
+        foreach ([
+                     'descr' => 'xs:string',
+                     'name' => 'eveNameType',
+                     'balance' => 'eveISKType',
+                     'isk' => 'eveISKType',
+                     'tax' => 'eveISKType',
+                     'timeefficiency' => 'xs:unsignedByte',
+                     'date' => 'eveNEDTType',
+                     'time' => 'eveNEDTType',
+                     'until' => 'eveNEDTType',
+                     'errorcode' => 'xs:unsignedShort',
+                     'level' => 'xs:unsignedShort'
+                 ] as $search => $replace) {
+            if (false !== strpos($name, $search)) {
+                return $replace;
+            }
+        }
+        return $forValue ? 'xs:string' : 'xs:token';
+    }
+    /**
+     * @var string $apiName
+     */
+    private $apiName;
     /**
      * @var string $sectionName
      */

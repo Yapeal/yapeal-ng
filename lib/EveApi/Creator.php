@@ -37,6 +37,7 @@ namespace Yapeal\EveApi;
 use Yapeal\Console\Command\EveApiCreatorTrait;
 use Yapeal\Event\EveApiEventInterface;
 use Yapeal\Event\MediatorInterface;
+use Yapeal\FileSystem\RelativeFileSearchTrait;
 use Yapeal\Log\Logger;
 
 /**
@@ -44,7 +45,7 @@ use Yapeal\Log\Logger;
  */
 class Creator
 {
-    use EveApiCreatorTrait;
+    use EveApiCreatorTrait, RelativeFileSearchTrait;
     /**
      * Creator constructor.
      *
@@ -53,7 +54,7 @@ class Creator
      */
     public function __construct(\Twig_Environment $twig, string $dir = __DIR__)
     {
-        $this->setDir($dir);
+        $this->setRelativeBaseDir($dir);
         $this->setTwig($twig);
     }
     /**
@@ -81,27 +82,29 @@ class Creator
         if (false !== strpos($data->getEveApiXml(), '<?yapeal.parameters.json')) {
             return $event->setHandledSufficiently();
         }
+        $this->sectionName = $data->getEveApiSectionName();
+        $this->apiName = $data->getEveApiName();
         $outputFile = sprintf('%1$s%2$s/%3$s.php',
-            $this->getDir(),
-            $data->getEveApiSectionName(),
-            $data->getEveApiName());
+            $this->getRelativeBaseDir(),
+            ucfirst($this->sectionName),
+            ucfirst($this->apiName)
+        );
         // Nothing to do if NOT overwriting and file exists.
         if (false === $this->isOverwrite() && is_file($outputFile)) {
             return $event;
         }
-        $this->sectionName = $data->getEveApiSectionName();
         $sxi = new \SimpleXMLIterator($data->getEveApiXml());
         $this->tables = [];
-        $this->processValueOnly($sxi, $data->getEveApiName());
-        $this->processRowset($sxi, $data->getEveApiName());
+        $this->processValueOnly($sxi, $this->apiName);
+        $this->processRowset($sxi, $this->apiName);
         $tCount = count($this->tables);
         if (0 === $tCount) {
             $mess = 'No SQL tables to create for';
             $yem->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $this->createEveApiMessage($mess, $data));
         }
         ksort($this->tables);
-        $vars = [
-            'className' => ucfirst($data->getEveApiName()),
+        $context = [
+            'className' => ucfirst($this->apiName),
             'tables' => $this->tables,
             'hasOwner' => $this->hasOwner(),
             'mask' => $data->getEveApiArgument('mask'),
@@ -109,30 +112,14 @@ class Creator
             'sectionName' => $this->sectionName,
             'tableNames' => array_keys($this->tables)
         ];
-        $templateName = $this->getTemplateName('php',
-            ucfirst($this->sectionName),
-            $data->getEveApiName());
-        if (false === $templateName) {
-            $mess = 'Failed to find usable xsd template file during';
-            $yem->triggerLogEvent('Yapeal.Log.log',
-                Logger::WARNING,
-                $this->createEventMessage($mess, $data, $eventName));
+        $contents = $this->getContentsFromTwig($eventName, $data, $context);
+        if (false === $contents) {
             return $event;
         }
-        try {
-            $contents = $this->getTwig()
-                ->render($templateName, $vars);
-        } catch (\Twig_Error $exp) {
-            $yem->triggerLogEvent('Yapeal.Log.log', Logger::ERROR, 'Twig error', ['exception' => $exp]);
-            $yem->triggerLogEvent('Yapeal.Log.log',
-                Logger::WARNING,
-                $this->getFailedToWriteFile($data, $eventName, $outputFile));
-            return $event;
-        }
-        if (false === $this->safeFileWrite($contents, $outputFile, $this->getYem())) {
+        if (false === $this->safeFileWrite($contents, $outputFile, $yem)) {
             $yem->triggerLogEvent($eventName,
                 Logger::WARNING,
-                $this->getFailedToWriteFile($data, $eventName, $outputFile));
+                $this->getFailedToWriteFileMessage($data, $eventName, $outputFile));
             return $event;
         }
         return $event->setHandledSufficiently();
@@ -205,6 +192,10 @@ class Creator
         $this->tables[$tableName] = ['values' => $values];
     }
     /**
+     * @var string $twigExtension
+     */
+    protected $twigExtension = 'php.twig';
+    /**
      * @return string
      */
     private function getNamespace(): string
@@ -248,6 +239,10 @@ class Creator
         }
         return $column;
     }
+    /**
+     * @var string $apiName
+     */
+    private $apiName;
     /**
      * @var string $sectionName
      */
