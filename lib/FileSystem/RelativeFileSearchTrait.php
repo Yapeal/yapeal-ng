@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1);
 /**
  * Contains RelativeFileSearchTrait Trait.
  *
@@ -35,7 +35,7 @@ declare(strict_types=1);
 namespace Yapeal\FileSystem;
 
 use FilePathNormalizer\FilePathNormalizerTrait;
-use Yapeal\Log\Logger;
+use Yapeal\Exception\YapealFileSystemException;
 
 /** @noinspection PhpUnnecessaryFullyQualifiedNameInspection */
 /**
@@ -56,55 +56,49 @@ trait RelativeFileSearchTrait
     public function setRelativeBaseDir(string $value): self
     {
         $this->relativeBaseDir = $this->getFpn()
-            ->normalizePath((string)$value);
+            ->normalizePath($value);
         return $this;
     }
     /**
-     * Used to find a file relative to the base path using section and api names for path and/or file name.
+     * Used to find a file relative to the base path using prefix, name, and suffix parts in varies ways.
      *
-     * @param string $sectionName
-     * @param string $apiName
-     * @param string $suffix
+     * @param string $prefix Used as subdirectory or as part of file name.
+     * @param string $name   Used as part of file names only.
+     * @param string $suffix Used as last part of file name or by self as file name. Think file extension without
+     *                       leading dot.
      *
      * @return string
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
+     * @throws \Yapeal\Exception\YapealFileSystemException
      */
-    protected function findEveApiFile(string $sectionName, string $apiName, string $suffix): string
+    protected function findRelativeFileWithPath(string $prefix, string $name, string $suffix): string
     {
-        $fileNames = sprintf(
-            '%3$s%1$s/%2$s.%4$s,%3$s%2$s.%4$s,%3$s%1$s/%1$s.%4$s,%3$scommon.%4$s',
-            $sectionName,
-            $apiName,
-            $this->getRelativeBaseDir(),
-            $suffix
-        );
-        foreach ((array)explode(',', $fileNames) as $fileName) {
-            $fileName = $this->getFpn()
-                ->normalizeFile($fileName);
+        // $relDir$prefix/$name.$suffix, $relDir$prefix/$name_$suffix,
+        // $relDir$prefix.$name.$suffix, $relDir$prefix_$name.$suffix, $relDir$prefix_$name_$suffix,
+        // $relDir$name.$suffix, $relDir$name_$suffix,
+        // $relDir$prefix.$suffix, $relDir$prefix_$suffix,
+        // $relDir'common'.$suffix, $relDir'common'_$suffix, $relDir$suffix
+        $combinations = '%1$s%2$s/%3$s.%4$s,%1$s%2$s/%3$s_%4$s'
+            . ',%1$s%2$s.%3$s.%4$s,%1$s%2$s_%3$s.%4$s,%1$s%2$s_%3$s_%4$s'
+            . ',%1$s%3$s.%4$s,%1$s%3$s_%4$s'
+            . ',%1$s%2$s.%4$s,%1$s%2$s_%4$s'
+            . ',%1$scommon.%4$s,%1$scommon_%4$s,%1$s%4$s';
+        $fileNames = explode(',', sprintf($combinations, $this->getRelativeBaseDir(), $prefix, $name, $suffix));
+        $fpn = $this->getFpn();
+        foreach ($fileNames as $fileName) {
+            $fileName = $fpn->normalizeFile($fileName);
             if (is_readable($fileName) && is_file($fileName)) {
-                $mess = sprintf(
-                    'Using %4$s file %3$s for %1$s/%2$s',
-                    ucfirst($sectionName),
-                    $apiName,
-                    $fileName,
-                    strtoupper($suffix)
-                );
-                $this->getYem()
-                    ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $mess);
                 return $fileName;
             }
         }
-        $mess = sprintf(
-            'Failed to find accessible %3$s file for %1$s/%2$s, check file permissions',
-            $sectionName,
-            $apiName,
-            strtoupper($suffix)
-        );
-        $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $mess);
-        return '';
+        $mess =sprintf('Failed to find accessible file in %1$s using "%1$s", "%2$s", and "%3$s"',
+            $this->getRelativeBaseDir(),
+            $prefix,
+            $name,
+            $suffix);
+        throw new YapealFileSystemException($mess);
     }
     /**
      * Getter for $relativeBaseDir.
@@ -112,7 +106,7 @@ trait RelativeFileSearchTrait
      * @return string
      * @throws \LogicException
      */
-    protected function getRelativeBaseDir(): string
+    private function getRelativeBaseDir(): string
     {
         if (null === $this->relativeBaseDir) {
             $mess = 'Tried to use relativeBaseDir before it was set';
@@ -125,5 +119,5 @@ trait RelativeFileSearchTrait
      *
      * @var string $relativeBaseDir
      */
-    protected $relativeBaseDir;
+    private $relativeBaseDir;
 }
