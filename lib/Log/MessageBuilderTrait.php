@@ -26,7 +26,7 @@ declare(strict_types = 1);
  * <http://spdx.org/licenses/LGPL-3.0.html>.
  *
  * You should be able to find a copy of this license in the COPYING-LESSER.md
- * file. A copy of the GNU GPL should also be available in the COPYING.md file. 
+ * file. A copy of the GNU GPL should also be available in the COPYING.md file.
  *
  * @copyright 2015-2016 Michael Cummings
  * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
@@ -114,7 +114,7 @@ trait MessageBuilderTrait
      * @return string
      * @throws \LogicException
      */
-    protected function getFailedToWriteFile(EveApiReadWriteInterface $data, string $eventName, string $fileName): string
+    protected function getFailedToWriteFileMessage(EveApiReadWriteInterface $data, string $eventName, string $fileName): string
     {
         $messagePrefix = sprintf('Failed writing %s file during', $fileName);
         return $this->createEventMessage($messagePrefix, $data, $eventName);
