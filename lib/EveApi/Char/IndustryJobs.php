@@ -69,7 +69,7 @@ class IndustryJobs extends CharSection
      * @throws \LogicException
      * @throws \Yapeal\Exception\YapealDatabaseException
      */
-    public function startEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
+    public function startEveApi(EveApiEventInterface $event, string $eventName, MediatorInterface $yem)
     {
         if (!$this->hasYem()) {
             $this->setYem($yem);
