@@ -26,7 +26,7 @@ declare(strict_types = 1);
  * <http://spdx.org/licenses/LGPL-3.0.html>.
  *
  * You should be able to find a copy of this license in the COPYING-LESSER.md
- * file. A copy of the GNU GPL should also be available in the COPYING.md file. 
+ * file. A copy of the GNU GPL should also be available in the COPYING.md file.
  *
  * @copyright 2014-2016 Michael Cummings
  * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
@@ -169,15 +169,19 @@ trait PreserverTrait
             ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess);
         $sql = $this->getCsq()
             ->getUpsert($tableName, $columnNames, $rowCount);
-        $mess = preg_replace('/(,\(\?(?:,\?)*\))+/', ',...', $sql);
-        $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess);
-        $mess = implode(',', $columns);
-        if (512 < strlen($mess)) {
-            $mess = substr($mess, 0, 512) . '...';
+        $mess = preg_replace('%(,\([?,]*\))+%', ',...', $sql);
+        $lastError = preg_last_error();
+        if (PREG_NO_ERROR !== $lastError) {
+            $constants = array_flip(get_defined_constants(true)['pcre']);
+            $lastError = $constants[$lastError];
+            $mess = 'Received preg error ' . $lastError;
+            throw new \DomainException($mess);
         }
         $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $mess);
+            ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess);
+        $mess = substr(implode(',', $columns), 0, 512);
+        $this->getYem()
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, trim($mess, ','));
         $this->getPdo()
             ->prepare($sql)
             ->execute($columns);
