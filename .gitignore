@@ -1,7 +1,7 @@
 *.log
 .coveralls_local.yml
 .idea/
-CreateCustomTables.sql
+CreateCustomTables.*.sql
 build/
 cache/
 cachegrind*
