@@ -48,14 +48,17 @@ Yapeal:
             strategy: Yapeal\Log\ActivationStrategy
             stream: Monolog\Handler\StreamHandler
     Network:
-        appComment: ''
-        appName: ''
-        appVersion: ''
+        appComment: 'of the instructions'
+        appName: 'I did not follow'
+        appVersion: '1'
         baseUrl: 'https://api.eveonline.com'
         timeout: 10
         connect_timeout: 30
         verify: '{Yapeal.baseDir}config/eveonline.pem'
-        userAgent: '{appName}/{appVersion} {appComment} Yapeal-ng/{Yapeal.version} ({osName} {osRelease}; PHP {phpVersion}; Platform {machineType})'
+        userAgent: >
+            {Yapeal.Network.appName}/{Yapeal.Network.appVersion} {Yapeal.Network.appComment}
+            Yapeal-ng/{Yapeal.version}
+            ({osName} {osRelease}; PHP {phpVersion}; Platform {machineType})
         Cache:
             retrieve: true
         Handlers:
@@ -72,7 +75,7 @@ Yapeal:
             'Connection': 'Keep-Alive'
             'Keep-Alive': '300'
     Sql:
-        database: yapeal
+        database: yapeal-ng
         dir: '{Yapeal.libDir}Sql/'
         engine: InnoDB
         hostName: localhost
