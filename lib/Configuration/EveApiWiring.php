@@ -79,7 +79,7 @@ class EveApiWiring implements WiringInterface
                             /**
                              * @var \Yapeal\Event\EveApiPreserverInterface $callable
                              */
-                            $callable->setPreserve($dic['Yapeal.EveApi.Cache.preserve']);
+                            $callable->setPreserve((bool)$dic['Yapeal.EveApi.Cache.preserve']);
                         }
                         return $callable;
                     };

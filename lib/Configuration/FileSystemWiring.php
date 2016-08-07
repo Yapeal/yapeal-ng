@@ -51,7 +51,7 @@ class FileSystemWiring implements WiringInterface
         if (empty($dic['Yapeal.FileSystem.CachePreserver'])) {
             $dic['Yapeal.FileSystem.CachePreserver'] = function () use ($dic) {
                 return new $dic['Yapeal.FileSystem.Handlers.preserve']($dic['Yapeal.FileSystem.Cache.dir'],
-                    $dic['Yapeal.FileSystem.Cache.preserve']);
+                    (bool)$dic['Yapeal.FileSystem.Cache.preserve']);
             };
         }
         if (empty($dic['Yapeal.FileSystem.CacheRetriever'])) {

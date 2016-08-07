@@ -50,23 +50,13 @@ class NetworkWiring implements WiringInterface
     {
         if (empty($dic['Yapeal.Network.Client'])) {
             $dic['Yapeal.Network.Client'] = function ($dic) {
-                $appComment = $dic['Yapeal.Network.appComment'];
-                $appName = $dic['Yapeal.Network.appName'];
-                $appVersion = $dic['Yapeal.Network.appVersion'];
-                if ('' === $appName) {
-                    $appComment = '';
-                    $appVersion = '';
-                }
                 $userAgent = trim(str_replace([
                     '{machineType}',
                     '{osName}',
                     '{osRelease}',
-                    '{phpVersion}',
-                    '{appComment}',
-                    '{appName}',
-                    '{appVersion}'
+                    '{phpVersion}'
                 ],
-                    [php_uname('m'), php_uname('s'), php_uname('r'), PHP_VERSION, $appComment, $appName, $appVersion],
+                    [php_uname('m'), php_uname('s'), php_uname('r'), PHP_VERSION],
                     $dic['Yapeal.Network.userAgent']));
                 $userAgent = ltrim($userAgent, '/ ');
                 $headers = [
@@ -98,7 +88,7 @@ class NetworkWiring implements WiringInterface
         if (empty($dic['Yapeal.Network.Retriever'])) {
             $dic['Yapeal.Network.Retriever'] = function ($dic) {
                 return new $dic['Yapeal.Network.Handlers.retrieve']($dic['Yapeal.Network.Client'],
-                    $dic['Yapeal.Network.Cache.retrieve']);
+                    (bool)$dic['Yapeal.Network.Cache.retrieve']);
             };
         }
         if (!isset($dic['Yapeal.Event.Mediator'])) {
