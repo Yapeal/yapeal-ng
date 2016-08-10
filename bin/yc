@@ -38,6 +38,7 @@ require_once __DIR__ . '/bootstrap.php';
 use Symfony\Component\Console\Application;
 use Yapeal\Configuration\Wiring;
 use Yapeal\Console\Command\DatabaseInitializer;
+use Yapeal\Console\Command\DatabaseTimestamp;
 use Yapeal\Console\Command\DatabaseUpdater;
 use Yapeal\Console\Command\EveApiCreator;
 use Yapeal\Console\Command\NetworkCache;
@@ -58,6 +59,7 @@ if (0 === $status && '' !== $gitVersion && $gitVersion !== $version) {
 $application = new Application('Yapeal Console', $version);
 $application->addCommands([
     new DatabaseInitializer('Database:Init', $dic),
+    new DatabaseTimestamp('Database:TimeStamp'),
     new DatabaseUpdater('Database:Update', $dic),
     new EveApiCreator('EveApi:Creator', $dic),
     new NetworkCache('Network:Cache', $dic),
