@@ -1,6 +1,6 @@
 -- Sql/Char/CreateSkillQueue.sql
 -- version 20160629053444.663
-CREATE TABLE "{database}"."{table_prefix}charSkillQueue" (
+CREATE TABLE "{schema}"."{table_prefix}charSkillQueue" (
     "endSP"         BIGINT(20) UNSIGNED NOT NULL,
     "endTime"       DATETIME            NOT NULL DEFAULT '1970-01-01 00:00:01',
     "level"         TINYINT(1) UNSIGNED NOT NULL,
@@ -12,7 +12,7 @@ CREATE TABLE "{database}"."{table_prefix}charSkillQueue" (
     PRIMARY KEY ("ownerID", "queuePosition")
 );
 START TRANSACTION;
-INSERT INTO "{database}"."{table_prefix}utilDatabaseVersion" ("version")
+INSERT INTO "{schema}"."{table_prefix}utilDatabaseVersion" ("version")
 VALUES ('20160629053444.663')
 ON DUPLICATE KEY UPDATE "version" = VALUES("version");
 COMMIT;

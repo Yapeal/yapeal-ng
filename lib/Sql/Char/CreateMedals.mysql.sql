@@ -1,6 +1,6 @@
 -- Sql/Char/CreateMedals.sql
 -- version 20160629053438.509
-CREATE TABLE "{database}"."{table_prefix}charMedals" (
+CREATE TABLE "{schema}"."{table_prefix}charMedals" (
     "issued"   DATETIME            NOT NULL,
     "issuerID" BIGINT(20) UNSIGNED NOT NULL,
     "medalID"  BIGINT(20) UNSIGNED NOT NULL,
@@ -9,7 +9,7 @@ CREATE TABLE "{database}"."{table_prefix}charMedals" (
     "status"   CHAR(8)             NOT NULL,
     PRIMARY KEY ("ownerID", "medalID")
 );
-CREATE TABLE "{database}"."{table_prefix}charOtherCorporations" (
+CREATE TABLE "{schema}"."{table_prefix}charOtherCorporations" (
     "corporationID" BIGINT(20) UNSIGNED NOT NULL,
     "description"   TEXT                NOT NULL,
     "issued"        DATETIME            NOT NULL,
@@ -22,7 +22,7 @@ CREATE TABLE "{database}"."{table_prefix}charOtherCorporations" (
     PRIMARY KEY ("ownerID", "medalID")
 );
 START TRANSACTION;
-INSERT INTO "{database}"."{table_prefix}utilDatabaseVersion" ("version")
+INSERT INTO "{schema}"."{table_prefix}utilDatabaseVersion" ("version")
 VALUES ('20160629053438.509')
 ON DUPLICATE KEY UPDATE "version" = VALUES("version");
 COMMIT;

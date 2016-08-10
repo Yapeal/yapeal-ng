@@ -1,6 +1,6 @@
 -- Sql/Char/CreateWalletTransactions.sql
 -- version 20160629053501.276
-CREATE TABLE "{database}"."{table_prefix}charWalletTransactions" (
+CREATE TABLE "{schema}"."{table_prefix}charWalletTransactions" (
     "clientID"             BIGINT(20) UNSIGNED              NOT NULL,
     "clientName"           CHAR(100)                        NOT NULL,
     "clientTypeID"         BIGINT(20) UNSIGNED              NOT NULL,
@@ -19,7 +19,7 @@ CREATE TABLE "{database}"."{table_prefix}charWalletTransactions" (
     PRIMARY KEY ("ownerID", "transactionID")
 );
 START TRANSACTION;
-INSERT INTO "{database}"."{table_prefix}utilDatabaseVersion" ("version")
+INSERT INTO "{schema}"."{table_prefix}utilDatabaseVersion" ("version")
 VALUES ('20160629053501.276')
 ON DUPLICATE KEY UPDATE "version" = VALUES("version");
 COMMIT;

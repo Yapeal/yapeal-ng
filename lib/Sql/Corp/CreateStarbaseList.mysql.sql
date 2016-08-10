@@ -1,6 +1,6 @@
 -- Sql/Corp/CreateStarbaseList.sql
 -- version 20160629053459.024
-CREATE TABLE "{database}"."{table_prefix}corpStarbaseList" (
+CREATE TABLE "{schema}"."{table_prefix}corpStarbaseList" (
     "itemID"          BIGINT(20) UNSIGNED NOT NULL,
     "locationID"      BIGINT(20) UNSIGNED NOT NULL,
     "moonID"          BIGINT(20) UNSIGNED NOT NULL,
@@ -13,7 +13,7 @@ CREATE TABLE "{database}"."{table_prefix}corpStarbaseList" (
     PRIMARY KEY ("ownerID", "itemID")
 );
 START TRANSACTION;
-INSERT INTO "{database}"."{table_prefix}utilDatabaseVersion" ("version")
+INSERT INTO "{schema}"."{table_prefix}utilDatabaseVersion" ("version")
 VALUES ('20160629053459.024')
 ON DUPLICATE KEY UPDATE "version" = VALUES("version");
 COMMIT;

@@ -1,6 +1,6 @@
 -- Sql/Corp/CreateWalletJournal.sql
 -- version 20160629053500.715
-CREATE TABLE "{database}"."{table_prefix}corpWalletJournal" (
+CREATE TABLE "{schema}"."{table_prefix}corpWalletJournal" (
     "amount"       DECIMAL(17, 2)       NOT NULL,
     "argID1"       BIGINT(20) UNSIGNED  NOT NULL,
     "argName1"     CHAR(100)            NOT NULL,
@@ -19,7 +19,7 @@ CREATE TABLE "{database}"."{table_prefix}corpWalletJournal" (
     PRIMARY KEY ("ownerID", "refID")
 );
 START TRANSACTION;
-INSERT INTO "{database}"."{table_prefix}utilDatabaseVersion" ("version")
+INSERT INTO "{schema}"."{table_prefix}utilDatabaseVersion" ("version")
 VALUES ('20160629053500.715')
 ON DUPLICATE KEY UPDATE "version" = VALUES("version");
 COMMIT;

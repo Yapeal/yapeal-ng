@@ -1,6 +1,6 @@
 -- Sql/Map/CreateFacWarSystems.sql
 -- version 20160629053420.773
-CREATE TABLE "{database}"."{table_prefix}mapFacWarSystems" (
+CREATE TABLE "{schema}"."{table_prefix}mapFacWarSystems" (
     "contested"             ENUM ('False', 'True') NOT NULL,
     "occupyingFactionID"    BIGINT(20) UNSIGNED    NOT NULL,
     "occupyingFactionName"  CHAR(100)              NOT NULL,
@@ -13,7 +13,7 @@ CREATE TABLE "{database}"."{table_prefix}mapFacWarSystems" (
     PRIMARY KEY ("solarSystemID")
 );
 START TRANSACTION;
-INSERT INTO "{database}"."{table_prefix}utilDatabaseVersion" ("version")
+INSERT INTO "{schema}"."{table_prefix}utilDatabaseVersion" ("version")
 VALUES ('20160629053420.773')
 ON DUPLICATE KEY UPDATE "version" = VALUES("version");
 COMMIT;

@@ -1,6 +1,6 @@
 -- Sql/Util/CreateUploadDestination.sql
 -- version 20160131212500.007
-CREATE TABLE "{database}"."{table_prefix}utilXmlCache" (
+CREATE TABLE "{schema}"."{table_prefix}utilXmlCache" (
     "accountKey"  SMALLINT(5) UNSIGNED NOT NULL DEFAULT 0,
     "apiName"     CHAR(32)             NOT NULL,
     "hash"        CHAR(40)             NOT NULL,
@@ -9,7 +9,7 @@ CREATE TABLE "{database}"."{table_prefix}utilXmlCache" (
     "xml"         LONGTEXT,
     PRIMARY KEY ("hash")
 );
-ALTER TABLE "{database}"."{table_prefix}utilXmlCache"
+ALTER TABLE "{schema}"."{table_prefix}utilXmlCache"
     ADD INDEX "utilXmlCache1" ("sectionName");
-ALTER TABLE "{database}"."{table_prefix}utilXmlCache"
+ALTER TABLE "{schema}"."{table_prefix}utilXmlCache"
     ADD INDEX "utilXmlCache2" ("apiName");

@@ -1,6 +1,6 @@
 -- Sql/Char/CreateMarketOrders.sql
 -- version 20160629053437.490
-CREATE TABLE "{database}"."{table_prefix}charMarketOrders" (
+CREATE TABLE "{schema}"."{table_prefix}charMarketOrders" (
     "accountKey"   SMALLINT(5) UNSIGNED    NOT NULL,
     "bid"          TINYINT(1) UNSIGNED     NOT NULL,
     "charID"       BIGINT(20) UNSIGNED     NOT NULL,
@@ -20,7 +20,7 @@ CREATE TABLE "{database}"."{table_prefix}charMarketOrders" (
     PRIMARY KEY ("ownerID", "orderID")
 );
 START TRANSACTION;
-INSERT INTO "{database}"."{table_prefix}utilDatabaseVersion" ("version")
+INSERT INTO "{schema}"."{table_prefix}utilDatabaseVersion" ("version")
 VALUES ('20160629053437.490')
 ON DUPLICATE KEY UPDATE "version" = VALUES("version");
 COMMIT;

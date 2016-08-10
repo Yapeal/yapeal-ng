@@ -1,6 +1,6 @@
 -- Sql/Char/CreateIndustryJobs.sql
 -- version 20160629053421.318
-CREATE TABLE "{database}"."{table_prefix}charIndustryJobs" (
+CREATE TABLE "{schema}"."{table_prefix}charIndustryJobs" (
     "activityID"           TINYINT(2) UNSIGNED NOT NULL,
     "blueprintID"          BIGINT(20) UNSIGNED NOT NULL,
     "blueprintLocationID"  BIGINT(20) UNSIGNED NOT NULL,
@@ -33,7 +33,7 @@ CREATE TABLE "{database}"."{table_prefix}charIndustryJobs" (
     PRIMARY KEY ("ownerID", "jobID")
 );
 START TRANSACTION;
-INSERT INTO "{database}"."{table_prefix}utilDatabaseVersion" ("version")
+INSERT INTO "{schema}"."{table_prefix}utilDatabaseVersion" ("version")
 VALUES ('20160629053421.318')
 ON DUPLICATE KEY UPDATE "version" = VALUES("version");
 COMMIT;
