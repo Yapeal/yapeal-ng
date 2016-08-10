@@ -26,7 +26,7 @@ declare(strict_types = 1);
  * <http://spdx.org/licenses/LGPL-3.0.html>.
  *
  * You should be able to find a copy of this license in the COPYING-LESSER.md
- * file. A copy of the GNU GPL should also be available in the COPYING.md file. 
+ * file. A copy of the GNU GPL should also be available in the COPYING.md file.
  *
  * @copyright 2016 Michael Cummings
  * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
@@ -293,35 +293,6 @@ class ContainerSpec extends ObjectBehavior
         $mess = sprintf('Identifier "%s" is not defined.', $id);
         $this->shouldThrow(new \InvalidArgumentException($mess))
             ->during('raw', [$id]);
-    }
-    public function it_throws_exception_when_extend_is_given_non_invokable()
-    {
-        if (version_compare(PHP_VERSION, '7.0.0', '>=')) {
-            throw new SkippingException('Unneeded on PHP 7.x or higher caught by TypeError');
-        }
-        $this['foo'] = function () {
-            return 'foo';
-        };
-        $this->shouldThrow(new \InvalidArgumentException('Extension service definition is not a Closure or invokable object.'))
-            ->during('extend', ['foo', new NonInvokable()]);
-    }
-    public function it_throws_exception_when_factory_is_given_non_invokable()
-    {
-        if (version_compare(PHP_VERSION, '7.0.0', '>=')) {
-            throw new SkippingException('Unneeded on PHP 7.x or higher caught by TypeError');
-        }
-        $this['service'] = $this->shouldThrow(new \InvalidArgumentException('Service definition is not a Closure or invokable object.'))
-            ->during('factory', [123]);
-        $this['service'] = $this->shouldThrow(new \InvalidArgumentException('Service definition is not a Closure or invokable object.'))
-            ->during('factory', [new NonInvokable()]);
-    }
-    public function it_throws_exception_when_protect_is_given_non_invokable()
-    {
-        if (version_compare(PHP_VERSION, '7.0.0', '>=')) {
-            throw new SkippingException('Unneeded on PHP 7.x or higher caught by TypeError');
-        }
-        $this->shouldThrow(new \InvalidArgumentException('Callable is not a Closure or invokable object.'))
-            ->during('protect', [new NonInvokable()]);
     }
     public function it_throws_exception_when_trying_to_extend_non_invokable()
     {
