@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1);
 /**
  * Contains CommonSqlQueries class.
  *
@@ -26,7 +26,7 @@ declare(strict_types=1);
  * <http://spdx.org/licenses/LGPL-3.0.html>.
  *
  * You should be able to find a copy of this license in the COPYING-LESSER.md
- * file. A copy of the GNU GPL should also be available in the COPYING.md file. 
+ * file. A copy of the GNU GPL should also be available in the COPYING.md file.
  *
  * @copyright 2014-2016 Michael Cummings
  * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
@@ -34,11 +34,37 @@ declare(strict_types=1);
  */
 namespace Yapeal\Sql;
 
+use Yapeal\DicAwareInterface;
+use Yapeal\DicAwareTrait;
+use Yapeal\Event\YEMAwareInterface;
+use Yapeal\Event\YEMAwareTrait;
+use Yapeal\FileSystem\CommonFileHandlingTrait;
+
 /**
  * Class CommonSqlQueries
+ *
+ * @method string getAccountCorporationIDsExcludingCorporationKeys()
+ * @method string getActiveApis()
+ * @method string getActiveMailBodiesWithOwnerID($ownerID)
+ * @method string getActiveRegisteredAccountStatus($mask)
+ * @method string getActiveRegisteredCharacters($mask)
+ * @method string getActiveRegisteredCorporations($mask)
+ * @method string getActiveRegisteredKeys()
+ * @method string getActiveStarbaseTowers($mask, $ownerID)
+ * @method string getApiLock($hash)
+ * @method string getApiLockRelease($hash)
+ * @method string getCreateAddOrModifyColumnProcedure()
+ * @method string getDeleteFromTable($tableName)
+ * @method string getDeleteFromTableWithKeyID($tableName, $keyID)
+ * @method string getDeleteFromTableWithOwnerID($tableName, $ownerID)
+ * @method string getDropAddOrModifyColumnProcedure()
+ * @method string getMemberCorporationIDsExcludingAccountCorporations()
+ * @method string getUtilLatestDatabaseVersion()
+ * @method string initialization()
  */
-class CommonSqlQueries
+class CommonSqlQueries implements DicAwareInterface, YEMAwareInterface
 {
+    use CommonFileHandlingTrait, DicAwareTrait, SqlSubsTrait, YEMAwareTrait;
     /**
      * @param string $databaseName
      * @param string $tablePrefix
@@ -49,327 +75,37 @@ class CommonSqlQueries
         $this->tablePrefix = $tablePrefix;
     }
     /**
-     * Get account corporationIDs for corps without a corporation type key.
+     * @param string $name
+     * @param array  $arguments
      *
-     * @return string
+     * @return mixed
+     * @throws \InvalidArgumentException
+     * @throws \DomainException
+     * @throws \BadMethodCallException
+     * @throws \LogicException
      */
-    public function getAccountCorporationIDsExcludingCorporationKeys()
+    public function __call(string $name, array $arguments = [])
     {
-        /** @lang MySQL */
-        $sql = <<<'SQL'
-SELECT DISTINCT acc."corporationID"
- FROM "%1$s"."%2$saccountCharacters" AS acc
- WHERE
- acc."corporationID" NOT IN (
- SELECT ac."corporationID"
- FROM "%1$s"."%2$saccountCharacters" AS ac
- JOIN "%1$s"."%2$saccountKeyBridge" AS akb
- ON (ac."characterID"=akb."characterID")
- JOIN "%1$s"."%2$saccountAPIKeyInfo" AS aaki
- ON (akb."keyID"=aaki."keyID")
- WHERE
- aaki."type"='Corporation'
- AND acc."corporationID" = ac."corporationID"
-)
-SQL;
-        return sprintf(
-            str_replace(["\n", "\r\n"], '', $sql),
-            $this->databaseName,
-            $this->tablePrefix
-        );
-    }
-    /**
-     * @return string
-     */
-    public function getActiveApis()
-    {
-        /** @lang MySQL */
-        $sql = <<<'SQL'
-SELECT "apiName","interval","sectionName"
- FROM "%1$s"."%2$sutilEveApi"
- WHERE "active"=1
- ORDER BY RAND()
-SQL;
-        return sprintf(str_replace(["\n", "\r\n"], '', $sql), $this->databaseName, $this->tablePrefix);
-    }
-    /**
-     * @param string $ownerID
-     *
-     * @return string
-     */
-    public function getActiveMailBodiesWithOwnerID($ownerID)
-    {
-        /** @lang MySQL */
-        $sql = <<<'SQL'
-SELECT "messageID"
- FROM "%1$s"."%2$scharMailMessages" AS cmm
- WHERE "ownerID"=%3$s
-SQL;
-        return sprintf(str_replace(["\n", "\r\n"], '', $sql), $this->databaseName, $this->tablePrefix, $ownerID);
-    }
-    /**
-     * @param int $mask
-     *
-     * @return string
-     */
-    public function getActiveRegisteredAccountStatus($mask)
-    {
-        /** @lang MySQL */
-        $sql = <<<'SQL'
-SELECT urk."keyID",urk."vCode"
- FROM "%1$s"."%2$sutilRegisteredKey" AS urk
- JOIN "%1$s"."%2$saccountAPIKeyInfo" AS aaki
- ON (urk."keyID" = aaki."keyID")
- WHERE
- aaki."type" IN ('Account','Character')
- AND urk."active"=1
- AND (urk."activeAPIMask" & aaki."accessMask" & %3$s) <> 0
-SQL;
-        return sprintf(str_replace(["\n", "\r\n"], '', $sql), $this->databaseName, $this->tablePrefix, $mask);
-    }
-    /**
-     * @param int $mask
-     *
-     * @return string
-     */
-    public function getActiveRegisteredCharacters($mask)
-    {
-        /** @lang MySQL */
-        $sql = <<<'SQL'
-SELECT ac."characterID",urk."keyID",urk."vCode"
- FROM "%1$s"."%2$saccountKeyBridge" AS akb
- JOIN "%1$s"."%2$saccountAPIKeyInfo" AS aaki
- ON (akb."keyID" = aaki."keyID")
- JOIN "%1$s"."%2$sutilRegisteredKey" AS urk
- ON (akb."keyID" = urk."keyID")
- JOIN "%1$s"."%2$saccountCharacters" AS ac
- ON (akb."characterID" = ac."characterID")
- WHERE
- aaki."type" IN ('Account','Character')
- AND urk."active"=1
- AND (urk."activeAPIMask" & aaki."accessMask" & %3$s) <> 0
- AND aaki."expires" > now()
-SQL;
-        return sprintf(str_replace(["\n", "\r\n"], '', $sql), $this->databaseName, $this->tablePrefix, $mask);
-    }
-    /**
-     * @param int $mask
-     *
-     * @return string
-     */
-    public function getActiveRegisteredCorporations($mask)
-    {
-        /** @lang MySQL */
-        $sql = <<<'SQL'
-SELECT ac."corporationID",urk."keyID",urk."vCode"
- FROM "%1$s"."%2$saccountKeyBridge" AS akb
- JOIN "%1$s"."%2$saccountAPIKeyInfo" AS aaki
- ON (akb."keyID" = aaki."keyID")
- JOIN "%1$s"."%2$sutilRegisteredKey" AS urk
- ON (akb."keyID" = urk."keyID")
- JOIN "%1$s"."%2$saccountCharacters" AS ac
- ON (akb."characterID" = ac."characterID")
- WHERE
- aaki."type" = 'Corporation'
- AND urk."active"=1
- AND (urk."activeAPIMask" & aaki."accessMask" & %3$s) <> 0
- AND aaki."expires" > now()
-SQL;
-        return sprintf(
-            str_replace(["\n", "\r\n"], '', $sql),
-            $this->databaseName,
-            $this->tablePrefix,
-            $mask
-        );
-    }
-    /**
-     * @return string
-     */
-    public function getActiveRegisteredKeys()
-    {
-        return sprintf(
-            'SELECT "keyID","vCode" FROM "%1$s"."%2$sutilRegisteredKey" WHERE "active"=1',
-            $this->databaseName,
-            $this->tablePrefix
-        );
-    }
-    /**
-     * @param int    $mask
-     * @param string $ownerID
-     *
-     * @return string
-     */
-    public function getActiveStarbaseTowers($mask, $ownerID)
-    {
-        /** @lang MySQL */
-        $sql = <<<'SQL'
-SELECT sl."itemID",ac."corporationID",urk."keyID",urk."vCode"
- FROM "%1$s"."%2$saccountKeyBridge" AS akb
- JOIN "%1$s"."%2$saccountAPIKeyInfo" AS aaki
- ON (akb."keyID" = aaki."keyID")
- JOIN "%1$s"."%2$sutilRegisteredKey" AS urk
- ON (akb."keyID" = urk."keyID")
- JOIN "%1$s"."%2$saccountCharacters" AS ac
- ON (akb."characterID" = ac."characterID")
- JOIN "%1$s"."%2$scorpStarbaseList" AS sl
- ON (ac."corporationID" = sl."ownerID")
- WHERE
- aaki."type" = 'Corporation'
- AND urk."active"=1
- AND sl."ownerID"=%4$s
- AND (urk."activeAPIMask" & aaki."accessMask" & %3$s) <> 0
-SQL;
-        return sprintf(
-            str_replace(["\n", "\r\n"], '', $sql),
-            $this->databaseName,
-            $this->tablePrefix,
-            $mask,
-            $ownerID
-        );
-    }
-    /**
-     * @param string $hash
-     *
-     * @return string
-     */
-    public function getApiLock($hash)
-    {
-        return sprintf('SELECT GET_LOCK(\'%1$s\',5)', $hash);
-    }
-    /**
-     * @param string $hash
-     *
-     * @return string
-     */
-    public function getApiLockRelease($hash)
-    {
-        return sprintf('SELECT RELEASE_LOCK(\'%1$s\')', $hash);
-    }
-    /**
-     * Used by 'yc D:U'
-     *
-     * @return string
-     */
-    public function getCreateAddOrModifyColumnProcedure()
-    {
-        /** @lang MySQL */
-        $sql = <<<'SQL'
-CREATE PROCEDURE "{database}"."AddOrModifyColumn"(
-    IN param_database_name  VARCHAR(100) CHARACTER SET utf8 COLLATE utf8_unicode_ci,
-    IN param_table_name     VARCHAR(100) CHARACTER SET utf8 COLLATE utf8_unicode_ci,
-    IN param_column_name    VARCHAR(100) CHARACTER SET utf8 COLLATE utf8_unicode_ci,
-    IN param_column_details VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci)
-    BEGIN
-        IF NOT EXISTS(SELECT NULL
-                      FROM
-                          "information_schema"."COLUMNS"
-                      WHERE
-                          "COLUMN_NAME" COLLATE utf8_unicode_ci = param_column_name AND
-                          "TABLE_NAME" COLLATE utf8_unicode_ci = param_table_name AND
-                          "table_schema" COLLATE utf8_unicode_ci = param_database_name)
-        THEN
-/* Create the full statement to execute */
-            SET @StatementToExecute = concat('ALTER TABLE "',
-                                             param_database_name, '"."',
-                                             param_table_name,
-                                             '" ADD COLUMN "',
-                                             param_column_name, '" ',
-                                             param_column_details) $$
-/* Prepare and execute the statement that was built */
-            PREPARE DynamicStatement FROM @StatementToExecute$$
-            EXECUTE DynamicStatement$$
-/* Cleanup the prepared statement */
-            DEALLOCATE PREPARE DynamicStatement$$
-        ELSE
-/* Create the full statement to execute */
-            SET @StatementToExecute = concat('ALTER TABLE "',
-                                             param_database_name, '"."',
-                                             param_table_name,
-                                             '" MODIFY COLUMN "',
-                                             param_column_name, '" ',
-                                             param_column_details) $$
-/* Prepare and execute the statement that was built */
-            PREPARE DynamicStatement FROM @StatementToExecute$$
-            EXECUTE DynamicStatement$$
-/* Cleanup the prepared statement */
-            DEALLOCATE PREPARE DynamicStatement$$
-        END IF$$
-    END;
-SQL;
-        return $sql;
-    }
-    /**
-     * @param string $tableName
-     *
-     * @return string
-     */
-    public function getDeleteFromTable($tableName)
-    {
-        return sprintf('DELETE FROM "%1$s"."%2$s%3$s"', $this->databaseName, $this->tablePrefix, $tableName);
-    }
-    /**
-     * @param string $tableName
-     * @param string $keyID
-     *
-     * @return string
-     */
-    public function getDeleteFromTableWithKeyID($tableName, $keyID)
-    {
-        return sprintf(
-            'DELETE FROM "%1$s"."%2$s%3$s" WHERE "keyID"=\'%4$s\'',
-            $this->databaseName,
-            $this->tablePrefix,
-            $tableName,
-            $keyID
-        );
-    }
-    /**
-     * @param string $tableName
-     * @param string $ownerID
-     *
-     * @return string
-     */
-    public function getDeleteFromTableWithOwnerID($tableName, $ownerID)
-    {
-        return sprintf(
-            'DELETE FROM "%1$s"."%2$s%3$s" WHERE "ownerID"=\'%4$s\'',
-            $this->databaseName,
-            $this->tablePrefix,
-            $tableName,
-            $ownerID
-        );
-    }
-    /**
-     * @return string
-     */
-    public function getDropAddOrModifyColumnProcedure()
-    {
-        return 'DROP PROCEDURE IF EXISTS "{database}"."AddOrModifyColumn";';
-    }
-    /**
-     * Get alliance corporationIDs for corps excluding any in accountCharacters.
-     *
-     * @return string
-     */
-    public function getMemberCorporationIDsExcludingAccountCorporations()
-    {
-        /** @lang MySQL */
-        $sql = <<<'SQL'
-SELECT DISTINCT emc."corporationID"
- FROM "%1$s"."%2$seveMemberCorporations" AS emc
- WHERE
- emc."corporationID" NOT IN (
- SELECT ac."corporationID"
- FROM "%1$s"."%2$saccountCharacters" AS ac
- WHERE
- emc."corporationID" = ac."corporationID"
-)
-SQL;
-        return sprintf(
-            str_replace(["\n", "\r\n"], '', $sql),
-            $this->databaseName,
-            $this->tablePrefix
-        );
+        $fileNames = explode(',',
+            sprintf('%1$s%2$s.%3$s.sql,%1$s%2$s.sql',
+                $this->getDic()['Yapeal.Sql.dir'] . 'queries/',
+                $name,
+                $this->getDic()['Yapeal.Sql.platform']));
+        foreach ($fileNames as $fileName) {
+            if ($this->isCachedSql($fileName)) {
+                return $this->getCachedSql($fileName);
+            }
+            if (!is_readable($fileName) || !is_file($fileName)) {
+                continue;
+            }
+            $sql = $this->safeFileRead($fileName);
+            if (false === $sql) {
+                continue;
+            }
+            return $this->processSql($arguments, $sql, $fileName);
+        }
+        $mess = 'Unknown method ' . $name;
+        throw new \BadMethodCallException($mess);
     }
     /**
      * @param string $tableName
@@ -388,19 +124,17 @@ SQL;
             $updates[] = '"' . $column . '"=VALUES("' . $column . '")';
         }
         $updates = implode(',', $updates);
-        $sql = sprintf(
-            'INSERT INTO "%1$s"."%2$s%3$s" ("%4$s") VALUES %5$s ON DUPLICATE KEY UPDATE %6$s',
+        $sql = sprintf('INSERT INTO "%1$s"."%2$s%3$s" ("%4$s") VALUES %5$s ON DUPLICATE KEY UPDATE %6$s',
             $this->databaseName,
             $this->tablePrefix,
             $tableName,
             $columns,
             $rows,
-            $updates
-        );
+            $updates);
         return $sql;
     }
     /**
-     * @param array<string, string> $columns
+     * @param array <string, string> $columns
      *
      * @return array<string, string>
      */
@@ -418,23 +152,10 @@ SELECT "expires"
  FROM "%1$s"."%2$sutilCachedUntil"
  WHERE %3$s
 SQL;
-        return sprintf(
-            str_replace(["\n", "\r\n"], '', $sql),
+        return sprintf(str_replace(["\n", "\r\n"], '', $sql),
             $this->databaseName,
             $this->tablePrefix,
-            $where
-        );
-    }
-    /**
-     * @return string
-     */
-    public function getUtilLatestDatabaseVersion()
-    {
-        return sprintf(
-            'SELECT MAX("version") FROM "%1$s"."%2$sutilDatabaseVersion"',
-            $this->databaseName,
-            $this->tablePrefix
-        );
+            $where);
     }
     /**
      * @return string
@@ -451,4 +172,69 @@ SQL;
      * @var string $tablePrefix
      */
     protected $tablePrefix;
+    /**
+     * @param string $fileName
+     * @param string $sql
+     */
+    private function cacheSqlQuery(string $fileName, string $sql)
+    {
+        $this->sqlCache[$fileName] = $sql;
+    }
+    /**
+     * @param string $fileName
+     *
+     * @return string
+     */
+    private function getCachedSql(string $fileName): string
+    {
+        return $this->sqlCache[$fileName];
+    }
+    /**
+     * @return array
+     * @throws \LogicException
+     */
+    private function getReplacements()
+    {
+        if (null === $this->replacements) {
+            $this->replacements = $this->getSqlSubs($this->getDic());
+        }
+        return $this->replacements;
+    }
+    /**
+     * @param string $fileName
+     *
+     * @return bool
+     */
+    private function isCachedSql(string $fileName): bool
+    {
+        return array_key_exists($fileName, $this->sqlCache);
+    }
+    /**
+     * @param array  $arguments
+     * @param string $sql
+     * @param string $fileName
+     *
+     * @return string
+     * @throws \LogicException
+     */
+    private function processSql(array $arguments, string $sql, string $fileName)
+    {
+        $sql = str_replace(["\n ", "\r\n "], ' ', $sql);
+        $replacements = $this->getReplacements();
+        $sql = str_replace(array_keys($replacements), array_values($replacements), $sql);
+        if (0 !== count($arguments)) {
+            $sql = vsprintf($sql, $arguments);
+        } else {
+            $this->cacheSqlQuery($fileName, $sql);
+        }
+        return $sql;
+    }
+    /**
+     * @var array $replacements Holds a list of Sql section replacement pairs.
+     */
+    private $replacements;
+    /**
+     * @var array sqlCache
+     */
+    private $sqlCache = [];
 }
