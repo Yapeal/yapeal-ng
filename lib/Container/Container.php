@@ -116,7 +116,7 @@ class Container implements ContainerInterface
      */
     public function keys(): array
     {
-        return array_keys($this->values);
+        return array_keys($this->keys);
     }
     /**
      * Checks if a parameter or an object is set.
