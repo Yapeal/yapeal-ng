@@ -1,6 +1,6 @@
 -- Sql/Corp/CreateCustomsOffices.sql
 -- version 20160629053419.235
-CREATE TABLE "{schema}"."{table_prefix}corpCustomsOffices" (
+CREATE TABLE "{schema}"."{tablePrefix}corpCustomsOffices" (
     "allowAlliance"           TINYINT(1) UNSIGNED      NOT NULL,
     "allowStandings"          TINYINT(1) UNSIGNED      NOT NULL,
     "itemID"                  BIGINT(20) UNSIGNED      NOT NULL,
@@ -19,7 +19,7 @@ CREATE TABLE "{schema}"."{table_prefix}corpCustomsOffices" (
     PRIMARY KEY ("ownerID", "itemID")
 );
 START TRANSACTION;
-INSERT INTO "{schema}"."{table_prefix}utilDatabaseVersion" ("version")
+INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
 VALUES ('20160629053419.235')
 ON DUPLICATE KEY UPDATE "version" = VALUES("version");
 COMMIT;

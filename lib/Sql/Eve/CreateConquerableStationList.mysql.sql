@@ -1,6 +1,6 @@
 -- Sql/Eve/CreateConquerableStationList.sql
 -- version 20160629053415.526
-CREATE TABLE "{schema}"."{table_prefix}eveConquerableStationList" (
+CREATE TABLE "{schema}"."{tablePrefix}eveConquerableStationList" (
     "corporationID"   BIGINT(20) UNSIGNED NOT NULL,
     "corporationName" CHAR(100)           NOT NULL,
     "solarSystemID"   BIGINT(20) UNSIGNED NOT NULL,
@@ -13,7 +13,7 @@ CREATE TABLE "{schema}"."{table_prefix}eveConquerableStationList" (
     PRIMARY KEY ("stationID")
 );
 START TRANSACTION;
-INSERT INTO "{schema}"."{table_prefix}utilDatabaseVersion" ("version")
+INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
 VALUES ('20160629053415.526')
 ON DUPLICATE KEY UPDATE "version" = VALUES("version");
 COMMIT;

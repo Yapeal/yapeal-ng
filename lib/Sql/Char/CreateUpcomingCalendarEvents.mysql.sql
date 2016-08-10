@@ -1,6 +1,6 @@
 -- Sql/Char/CreateUpcomingCalendarEvents.sql
 -- version 20160629053459.556
-CREATE TABLE "{schema}"."{table_prefix}charUpcomingCalendarEvents" (
+CREATE TABLE "{schema}"."{tablePrefix}charUpcomingCalendarEvents" (
     "duration"    SMALLINT(4) UNSIGNED NOT NULL,
     "eventDate"   DATETIME             NOT NULL,
     "eventID"     BIGINT(20) UNSIGNED  NOT NULL,
@@ -14,7 +14,7 @@ CREATE TABLE "{schema}"."{table_prefix}charUpcomingCalendarEvents" (
     PRIMARY KEY ("ownerID", "eventID")
 );
 START TRANSACTION;
-INSERT INTO "{schema}"."{table_prefix}utilDatabaseVersion" ("version")
+INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
 VALUES ('20160629053459.556')
 ON DUPLICATE KEY UPDATE "version" = VALUES("version");
 COMMIT;

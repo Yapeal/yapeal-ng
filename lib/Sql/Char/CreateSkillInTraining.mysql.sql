@@ -1,6 +1,6 @@
 -- Sql/Char/CreateSkillInTraining.sql
 -- version 20160629053444.328
-CREATE TABLE "{schema}"."{table_prefix}charSkillInTraining" (
+CREATE TABLE "{schema}"."{tablePrefix}charSkillInTraining" (
     "currentTQTime"         DATETIME                      DEFAULT NULL,
     "offset"                TINYINT(2)           NOT NULL,
     "ownerID"               BIGINT(20) UNSIGNED  NOT NULL,
@@ -14,7 +14,7 @@ CREATE TABLE "{schema}"."{table_prefix}charSkillInTraining" (
     PRIMARY KEY ("ownerID")
 );
 START TRANSACTION;
-INSERT INTO "{schema}"."{table_prefix}utilDatabaseVersion" ("version")
+INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
 VALUES ('20160629053444.328')
 ON DUPLICATE KEY UPDATE "version" = VALUES("version");
 COMMIT;

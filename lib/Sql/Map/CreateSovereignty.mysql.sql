@@ -1,6 +1,6 @@
 -- Sql/Map/CreateSovereignty.sql
 -- version 20160629053447.001
-CREATE TABLE "{schema}"."{table_prefix}mapSovereignty" (
+CREATE TABLE "{schema}"."{tablePrefix}mapSovereignty" (
     "allianceID"      BIGINT(20) UNSIGNED NOT NULL,
     "corporationID"   BIGINT(20) UNSIGNED NOT NULL,
     "factionID"       BIGINT(20) UNSIGNED NOT NULL,
@@ -9,7 +9,7 @@ CREATE TABLE "{schema}"."{table_prefix}mapSovereignty" (
     PRIMARY KEY ("solarSystemID")
 );
 START TRANSACTION;
-INSERT INTO "{schema}"."{table_prefix}utilDatabaseVersion" ("version")
+INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
 VALUES ('20160629053447.001')
 ON DUPLICATE KEY UPDATE "version" = VALUES("version");
 COMMIT;

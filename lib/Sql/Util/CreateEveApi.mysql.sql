@@ -1,6 +1,6 @@
 -- Sql/Util/CreateEveApi.sql
 -- version 20160131212500.003
-CREATE TABLE "{schema}"."{table_prefix}utilEveApi" (
+CREATE TABLE "{schema}"."{tablePrefix}utilEveApi" (
     "active"      TINYINT(1) UNSIGNED NOT NULL,
     "apiName"     CHAR(32)            NOT NULL,
     "interval"    INT(10) UNSIGNED    NOT NULL,
@@ -9,7 +9,7 @@ CREATE TABLE "{schema}"."{table_prefix}utilEveApi" (
     PRIMARY KEY ("apiName", "sectionName")
 );
 START TRANSACTION;
-INSERT INTO "{schema}"."{table_prefix}utilEveApi" ("sectionName", "apiName", "mask", "interval", "active")
+INSERT INTO "{schema}"."{tablePrefix}utilEveApi" ("sectionName", "apiName", "mask", "interval", "active")
 VALUES ('account', 'AccountStatus', 33554432, 3600, 1), ('account', 'YapealCorporationSheet', 0, 21600, 1),
     ('api', 'CallList', 1, 86400, 1), ('char', 'AccountBalance', 1, 900, 1), ('char', 'AssetList', 2, 21600, 1),
     ('char', 'Blueprints', 2, 43200, 1), ('char', 'CalendarEventAttendees', 4, 3600, 1),

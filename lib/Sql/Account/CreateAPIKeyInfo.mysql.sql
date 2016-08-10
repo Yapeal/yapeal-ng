@@ -1,15 +1,15 @@
 -- Sql/Account/CreateAPIKeyInfo.sql
 -- version 20160627181619.973
-CREATE TABLE "{schema}"."{table_prefix}accountAPIKeyInfo" (
+CREATE TABLE "{schema}"."{tablePrefix}accountAPIKeyInfo" (
     "accessMask" BIGINT(20) UNSIGNED NOT NULL,
     "expires"    DATETIME            NOT NULL DEFAULT '2038-01-19 03:14:07',
     "keyID"      BIGINT(20) UNSIGNED NOT NULL,
     "type"       CHAR(11)            NOT NULL,
     PRIMARY KEY ("keyID")
 );
-ALTER TABLE "{schema}"."{table_prefix}accountAPIKeyInfo"
+ALTER TABLE "{schema}"."{tablePrefix}accountAPIKeyInfo"
     ADD INDEX "accountAPIKeyInfo1"  ("type");
-CREATE TABLE "{schema}"."{table_prefix}accountCharacters" (
+CREATE TABLE "{schema}"."{tablePrefix}accountCharacters" (
     "allianceID"      BIGINT(20) UNSIGNED NOT NULL,
     "allianceName"    CHAR(100)            NOT NULL,
     "characterID"     BIGINT(20) UNSIGNED NOT NULL,
@@ -20,17 +20,17 @@ CREATE TABLE "{schema}"."{table_prefix}accountCharacters" (
     "factionName"     CHAR(100)            NOT NULL DEFAULT '',
     PRIMARY KEY ("characterID")
 );
-ALTER TABLE "{schema}"."{table_prefix}accountCharacters"
+ALTER TABLE "{schema}"."{tablePrefix}accountCharacters"
     ADD INDEX "accountCharacters1"  ("corporationID");
-CREATE TABLE "{schema}"."{table_prefix}accountKeyBridge" (
+CREATE TABLE "{schema}"."{tablePrefix}accountKeyBridge" (
     "characterID" BIGINT(20) UNSIGNED NOT NULL,
     "keyID"       BIGINT(20) UNSIGNED NOT NULL,
     PRIMARY KEY ("keyID", "characterID")
 );
-ALTER TABLE "{schema}"."{table_prefix}accountKeyBridge"
+ALTER TABLE "{schema}"."{tablePrefix}accountKeyBridge"
     ADD UNIQUE INDEX "accountKeyBridge1"  ("characterID", "keyID");
 START TRANSACTION;
-INSERT INTO "{schema}"."{table_prefix}utilDatabaseVersion" ("version")
+INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
 VALUES ('20160627181619.973')
 ON DUPLICATE KEY UPDATE "version" = VALUES("version");
 COMMIT;

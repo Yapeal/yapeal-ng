@@ -1,6 +1,6 @@
 -- Sql/Char/CreateContracts.sql
 -- version 20160629053418.228
-CREATE TABLE "{schema}"."{table_prefix}charContracts" (
+CREATE TABLE "{schema}"."{tablePrefix}charContracts" (
     "acceptorID"     BIGINT(20) UNSIGNED     NOT NULL,
     "assigneeID"     BIGINT(20) UNSIGNED     NOT NULL,
     "availability"   CHAR(7)                 NOT NULL,
@@ -27,7 +27,7 @@ CREATE TABLE "{schema}"."{table_prefix}charContracts" (
     PRIMARY KEY ("ownerID", "contractID")
 );
 START TRANSACTION;
-INSERT INTO "{schema}"."{table_prefix}utilDatabaseVersion" ("version")
+INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
 VALUES ('20160629053418.228')
 ON DUPLICATE KEY UPDATE "version" = VALUES("version");
 COMMIT;

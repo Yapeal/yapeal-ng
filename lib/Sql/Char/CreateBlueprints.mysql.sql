@@ -1,6 +1,6 @@
 -- Sql/Char/CreateBlueprints.sql
 -- version 20160629053412.374
-CREATE TABLE "{schema}"."{table_prefix}charBlueprints" (
+CREATE TABLE "{schema}"."{tablePrefix}charBlueprints" (
     "flagID"             BIGINT(20) UNSIGNED NOT NULL,
     "itemID"             BIGINT(20) UNSIGNED NOT NULL,
     "locationID"         BIGINT(20) UNSIGNED NOT NULL,
@@ -14,7 +14,7 @@ CREATE TABLE "{schema}"."{table_prefix}charBlueprints" (
     PRIMARY KEY ("ownerID", "itemID")
 );
 START TRANSACTION;
-INSERT INTO "{schema}"."{table_prefix}utilDatabaseVersion" ("version")
+INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
 VALUES ('20160629053412.374')
 ON DUPLICATE KEY UPDATE "version" = VALUES("version");
 COMMIT;

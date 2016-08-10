@@ -1,6 +1,6 @@
 -- Sql/Corp/CreateOutpostList.sql
 -- version 20160629053441.369
-CREATE TABLE "{schema}"."{table_prefix}corpOutpostList" (
+CREATE TABLE "{schema}"."{tablePrefix}corpOutpostList" (
     "dockingCostPerShipVolume" DECIMAL(17, 2)           NOT NULL,
     "officeRentalCost"         DECIMAL(17, 2)           NOT NULL,
     "ownerID"                  BIGINT(20) UNSIGNED      NOT NULL,
@@ -17,7 +17,7 @@ CREATE TABLE "{schema}"."{table_prefix}corpOutpostList" (
     PRIMARY KEY ("ownerID", "stationID")
 );
 START TRANSACTION;
-INSERT INTO "{schema}"."{table_prefix}utilDatabaseVersion" ("version")
+INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
 VALUES ('20160629053441.369')
 ON DUPLICATE KEY UPDATE "version" = VALUES("version");
 COMMIT;

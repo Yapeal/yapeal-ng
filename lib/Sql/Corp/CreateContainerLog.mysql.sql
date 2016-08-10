@@ -1,6 +1,6 @@
 -- Sql/Corp/CreateContainerLog.sql
 -- version 20160629053417.748
-CREATE TABLE "{schema}"."{table_prefix}corpContainerLog" (
+CREATE TABLE "{schema}"."{tablePrefix}corpContainerLog" (
     "action"           CHAR(255)                    DEFAULT '',
     "actorID"          BIGINT(20) UNSIGNED NOT NULL,
     "actorName"        CHAR(100)           NOT NULL,
@@ -18,7 +18,7 @@ CREATE TABLE "{schema}"."{table_prefix}corpContainerLog" (
     PRIMARY KEY ("ownerID", "logTime")
 );
 START TRANSACTION;
-INSERT INTO "{schema}"."{table_prefix}utilDatabaseVersion" ("version")
+INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
 VALUES ('20160629053417.748')
 ON DUPLICATE KEY UPDATE "version" = VALUES("version");
 COMMIT;
