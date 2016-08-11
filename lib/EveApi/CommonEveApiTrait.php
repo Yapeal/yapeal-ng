@@ -143,7 +143,7 @@ trait CommonEveApiTrait
         $sql = $this->getCsq()
             ->getUtilCachedUntilExpires($columns);
         $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->getFilteredSqlMessage($sql));
         try {
             $expires = $this->getPdo()
                 ->query($sql)
@@ -212,7 +212,7 @@ trait CommonEveApiTrait
         $sql = $this->getCsq()
             ->getApiLock($data->getHash());
         $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->getFilteredSqlMessage($sql));
         $context = [];
         $success = false;
         try {
@@ -241,7 +241,7 @@ trait CommonEveApiTrait
         $sql = $this->getCsq()
             ->getApiLockRelease($data->getHash());
         $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->getFilteredSqlMessage($sql));
         $context = [];
         $success = false;
         try {
@@ -287,7 +287,7 @@ trait CommonEveApiTrait
         $sql = $this->getCsq()
             ->getUpsert('utilCachedUntil', array_keys($row), 1);
         $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->getFilteredSqlMessage($sql));
         $pdo = $this->getPdo();
         $pdo->beginTransaction();
         $context = [];

@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1);
 /**
  * Contains trait ActiveTrait.
  *
@@ -44,11 +44,12 @@ use Yapeal\Xml\EveApiReadWriteInterface;
 /**
  * Trait ActiveTrait.
  *
- * @method string createEveApiMessage($messagePrefix, EveApiReadWriteInterface $data)
  * @method CommonSqlQueries getCsq()
- * @method int getMask()
- * @method \PDO getPdo()
  * @method MediatorInterface getYem()
+ * @method \PDO getPdo()
+ * @method int getMask()
+ * @method string createEveApiMessage($messagePrefix, EveApiReadWriteInterface $data)
+ * @method string getFilteredSqlMessage($sql)
  */
 trait ActiveTrait
 {
@@ -82,7 +83,7 @@ trait ActiveTrait
                 return [];
         }
         $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->getFilteredSqlMessage($sql));
         try {
             return $this->getPdo()
                 ->query($sql)
@@ -90,12 +91,10 @@ trait ActiveTrait
         } catch (PDOException $exc) {
             $mess = 'Could NOT get a list of active owners for';
             $this->getYem()
-                ->triggerLogEvent(
-                    'Yapeal.Log.log',
+                ->triggerLogEvent('Yapeal.Log.log',
                     Logger::WARNING,
                     $this->createEveApiMessage($mess, $data),
-                    ['exception' => $exc]
-                );
+                    ['exception' => $exc]);
             return [];
         }
     }
