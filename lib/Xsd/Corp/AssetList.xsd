@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Xsd/Corp/AssetList.xsd
+version 20160811022230.629 -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified"
+    elementFormDefault="qualified">
+    <xs:include schemaLocation="../Char/AssetList.xsd"/>
+</xs:schema>

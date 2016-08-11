@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Xsd/Char/AssetList.xsd
+version 20160811022049.383 -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified"
+    elementFormDefault="qualified">
+    <xs:include schemaLocation="../common.xsd"/>
+    <xs:complexType name="resultType">
+        <xs:sequence>
+            <xs:element type="rowType" name="row" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="rowType" mixed="true">
+        <xs:sequence>
+            <xs:element type="rowType" name="row" maxOccurs="unbounded" minOccurs="0"/>
+        </xs:sequence>
+        <xs:attribute type="eveIDType" name="itemID" use="required"/>
+        <xs:attribute type="eveIDType" name="locationID" use="required"/>
+        <xs:attribute type="eveIDType" name="typeID" use="required"/>
+        <xs:attribute type="xs:unsignedLong" name="quantity" use="required"/>
+        <xs:attribute type="xs:unsignedShort" name="flag" use="required"/>
+        <xs:attribute type="eveBooleanType" name="singleton" use="required"/>
+        <xs:attribute type="xs:long" name="rawQuantity" use="optional"/>
+        <xs:attribute type="eveIDType" name="lft" use="optional"/>
+        <xs:attribute type="eveIDType" name="lvl" use="optional"/>
+    </xs:complexType>
+</xs:schema>
