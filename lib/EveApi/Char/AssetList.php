@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1);
 /**
  * Contains class AssetList.
  *
@@ -34,6 +34,7 @@ declare(strict_types=1);
  */
 namespace Yapeal\EveApi\Char;
 
+use Yapeal\CommonToolsInterface;
 use Yapeal\EveApi\NestedSetTrait;
 use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
@@ -42,9 +43,10 @@ use Yapeal\Xml\EveApiReadWriteInterface;
 /**
  * Class AssetList.
  */
-class AssetList extends CharSection
+class AssetList extends CharSection implements CommonToolsInterface
 {
     use PreserverTrait, NestedSetTrait;
+
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -83,9 +85,7 @@ class AssetList extends CharSection
             'singleton' => '0',
             'typeID' => null
         ];
-        $xPath = '//assets/row';
-        $elements = (new \SimpleXMLElement($data->getEveApiXml()))->xpath($xPath);
-        $this->attributePreserveData($elements, $columnDefaults, $tableName);
+        $xPath = '//row';
         $simple = new \SimpleXMLElement($data->getEveApiXml());
         /** @noinspection PhpUndefinedFieldInspection */
         if (0 !== $simple->result[0]->count()) {
@@ -94,6 +94,8 @@ class AssetList extends CharSection
             /** @noinspection PhpUndefinedFieldInspection */
             $this->addNesting($simple->result[0]->row[0]);
         }
-        return $this->attributePreserveData($simple->asXML(), $columnDefaults, $tableName);
+        $data->setEveApiXml($simple->asXML());
+        $this->attributePreserveData($simple->xpath($xPath), $columnDefaults, $tableName);
+        return $this;
     }
 }

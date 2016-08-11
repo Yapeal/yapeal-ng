@@ -84,9 +84,7 @@ class AssetList extends CorpSection
             'singleton' => '0',
             'typeID' => null
         ];
-        $xPath = '//assets/row';
-        $elements = (new \SimpleXMLElement($data->getEveApiXml()))->xpath($xPath);
-        $this->attributePreserveData($elements, $columnDefaults, $tableName);
+        $xPath = '//row';
         $simple = new \SimpleXMLElement($data->getEveApiXml());
         /** @noinspection PhpUndefinedFieldInspection */
         if (0 !== $simple->result[0]->count()) {
@@ -95,6 +93,8 @@ class AssetList extends CorpSection
             /** @noinspection PhpUndefinedFieldInspection */
             $this->addNesting($simple->result[0]->row[0]);
         }
-        return $this->attributePreserveData($simple->asXML(), $columnDefaults, $tableName);
+        $data->setEveApiXml($simple->asXML());
+        $this->attributePreserveData($simple->xpath($xPath), $columnDefaults, $tableName);
+        return $this;
     }
 }
