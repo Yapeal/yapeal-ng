@@ -1,5 +1,6 @@
 -- Sql/Corp/CreateAccountBalance.sql
 -- version 20160629053411.529
+-- noinspection SqlResolveForFile
 CREATE TABLE "{schema}"."{tablePrefix}corpAccountBalance" LIKE "{schema}"."{tablePrefix}charAccountBalance";
 START TRANSACTION;
 INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
