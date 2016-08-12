@@ -34,16 +34,16 @@ declare(strict_types=1);
  */
 namespace Yapeal\Console\Command;
 
-use FilePathNormalizer\FilePathNormalizerInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Yapeal\Configuration\Wiring;
 use Yapeal\Container\ContainerInterface;
 
+/** @noinspection PhpUnnecessaryFullyQualifiedNameInspection */
 /**
  * Trait ConfigFileTrait.
  *
- * @method FilePathNormalizerInterface getFpn()
- * @method $this addOption($name, $shortcut = null, $mode = null, $description = '', $default = null)
+ * @method \FilePathNormalizer\FilePathNormalizerInterface getFpn()
+ * @method $this addOption(string $name, $shortcut = null, int $mode = null, string $description = '', $default = null)
  */
 trait ConfigFileTrait
 {
@@ -57,7 +57,7 @@ trait ConfigFileTrait
         $this->addOption('configFile', 'c', InputOption::VALUE_REQUIRED, $mess);
     }
     /**
-     * Process the configuration file get on the CLI.
+     * Process the configuration file gotten on the CLI.
      *
      * NOTE: All settings from this configuration file overwrite any existing values.
      *
@@ -67,7 +67,7 @@ trait ConfigFileTrait
      * @throws \DomainException
      * @throws \Yapeal\Exception\YapealException
      */
-    protected function processConfigFile($fileName, ContainerInterface $dic)
+    protected function processConfigFile(string $fileName, ContainerInterface $dic)
     {
         $fileName = trim($fileName);
         if ('' === $fileName) {

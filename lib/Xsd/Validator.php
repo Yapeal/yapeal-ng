@@ -73,6 +73,9 @@ class Validator
         $yem->triggerLogEvent('Yapeal.Log.log',
             Logger::DEBUG,
             $this->getReceivedEventMessage($data, $eventName, __CLASS__));
+        if (false === $data->getEveApiXml()) {
+            return $event;
+        }
         $htmlError = strpos($data->getEveApiXml(), '<!DOCTYPE html');
         if (false !== $htmlError) {
             $mess = 'Received HTML result from ';
@@ -101,16 +104,18 @@ class Validator
         libxml_clear_errors();
         libxml_use_internal_errors(true);
         libxml_clear_errors();
-        $dom = $this->getDom();
+        $dom = new \DOMDocument();
         $loaded = $dom->loadXML($data->getEveApiXml());
         if (!$loaded || !$dom->schemaValidate($xsdName)) {
             /**
-             * @var array $errors
+             * @var \libXMLError[] $errors
              */
             $errors = libxml_get_errors();
             if (0 !== count($errors)) {
                 foreach ($errors as $error) {
-                    $yem->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $error->message);
+                    if (null !== $error->message) {
+                        $yem->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $error->message);
+                    }
                 }
             }
             libxml_clear_errors();
@@ -121,7 +126,8 @@ class Validator
             // Cache error causing XML.
             $this->emitEvents($data, 'preserve', 'Yapeal.Xml.Error');
             $data->setEveApiName($apiName);
-            return $event->setData($data);
+            $event->setData($data);
+            return $event->setHandledSufficiently(false);
         }
         libxml_clear_errors();
         libxml_use_internal_errors(false);
@@ -129,22 +135,9 @@ class Validator
         // Check for XML error element.
         if (false !== strpos($data->getEveApiXml(), '<error ')) {
             $this->emitEvents($data, 'start', 'Yapeal.Xml.Error');
-            return $event->setData($data);
+            $event->setData($data);
+            return $event->setHandledSufficiently(false);
         }
         return $event->setHandledSufficiently();
     }
-    /**
-     * @return \DOMDocument
-     */
-    private function getDom(): \DOMDocument
-    {
-        if (null === $this->dom) {
-            $this->dom = new \DOMDocument();
-        }
-        return $this->dom;
-    }
-    /**
-     * @var \DOMDocument $dom
-     */
-    private $dom;
 }

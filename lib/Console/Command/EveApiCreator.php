@@ -42,22 +42,23 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Yapeal\CommonToolsTrait;
 use Yapeal\Container\ContainerInterface;
 use Yapeal\Event\EveApiEventEmitterTrait;
+use Yapeal\Event\YEMAwareInterface;
 use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
  * Class EveApiCreator
  */
-class EveApiCreator extends Command
+class EveApiCreator extends Command implements YEMAwareInterface
 {
     use CommonToolsTrait, ConfigFileTrait, EveApiEventEmitterTrait;
     /**
-     * @param string|null        $name
+     * @param string        $name
      * @param ContainerInterface $dic
      *
      * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
      * @throws \Symfony\Component\Console\Exception\LogicException
      */
-    public function __construct($name, ContainerInterface $dic)
+    public function __construct( string $name, ContainerInterface $dic)
     {
         $desc = 'Retrieves Eve Api XML from CCP servers and creates database class, XSD, and SQL files based on the XML'
             . ' structure received';
@@ -76,7 +77,7 @@ class EveApiCreator extends Command
      * @throws \LogicException
      *
      */
-    public function createEveApi($apiName, $sectionName, $posts)
+    public function createEveApi(string $apiName, string $sectionName, array $posts): int
     {
         /**
          * Get new Data instance from factory.
@@ -145,14 +146,15 @@ EOF;
      * @param InputInterface  $input  An InputInterface instance
      * @param OutputInterface $output An OutputInterface instance
      *
-     * @return null|int null or 0 if everything went fine, or an error code
+     * @return int null or 0 if everything went fine, or an error code
      * @throws \DomainException
      * @throws \LogicException
+     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
      * @throws \Yapeal\Exception\YapealException
      *
      * @see    setCode()
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $posts = $this->processPost($input);
         $posts['mask'] = $input->getArgument('mask');
@@ -168,8 +170,9 @@ EOF;
      * @param InputInterface $input
      *
      * @return array
+     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
      */
-    protected function processPost(InputInterface $input)
+    protected function processPost(InputInterface $input): array
     {
         $posts = (array)$input->getArgument('post');
         if (0 === count($posts)) {

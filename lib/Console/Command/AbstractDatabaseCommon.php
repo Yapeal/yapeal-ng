@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1);
 /**
  * Contains AbstractDatabaseCommon class.
  *
@@ -34,35 +34,43 @@ declare(strict_types=1);
  */
 namespace Yapeal\Console\Command;
 
-use FilePathNormalizer\FilePathNormalizerTrait;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Yapeal\CommonToolsTrait;
+use Yapeal\Event\YEMAwareInterface;
+use Yapeal\Event\YEMAwareTrait;
 use Yapeal\Exception\YapealDatabaseException;
+use Yapeal\FileSystem\CommonFileHandlingTrait;
+use Yapeal\Log\Logger;
+use Yapeal\Sql\SqlSubsTrait;
 
 /**
  * Class AbstractDatabaseCommon
  */
-abstract class AbstractDatabaseCommon extends Command
+abstract class AbstractDatabaseCommon extends Command implements YEMAwareInterface
 {
-    use CommonToolsTrait, ConfigFileTrait, FilePathNormalizerTrait;
+    use CommonFileHandlingTrait, CommonToolsTrait, ConfigFileTrait, SqlSubsTrait, VerbosityToStrategyTrait, YEMAwareTrait;
     /**
      * Sets the help message and all the common options used by the Database:* commands.
      *
      * @param string $help Command help text.
      */
-    protected function addOptions($help)
+    protected function addOptions(string $help)
     {
         $this->addConfigFileOption();
         $this->addOption('database', 'd', InputOption::VALUE_REQUIRED, 'Name of the database.')
             ->addOption('hostName', 'o', InputOption::VALUE_REQUIRED, 'Host name for database server.')
             ->addOption('password', 'p', InputOption::VALUE_REQUIRED, 'Password used to access database.')
-            ->addOption('platform', null, InputOption::VALUE_REQUIRED,
+            ->addOption('platform',
+                null,
+                InputOption::VALUE_REQUIRED,
                 'Platform of database driver. Currently only "mysql" can be used.')
-            ->addOption('port', null, InputOption::VALUE_REQUIRED,
+            ->addOption('port',
+                null,
+                InputOption::VALUE_REQUIRED,
                 'Port number for remote server. Only needed if using http connection.')
             ->addOption('tablePrefix', 't', InputOption::VALUE_REQUIRED, 'Prefix for database table names.')
             ->addOption('userName', 'u', InputOption::VALUE_REQUIRED, 'User name used to access database.')
@@ -87,50 +95,53 @@ abstract class AbstractDatabaseCommon extends Command
      *
      * @see    setCode()
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        if (!$this->hasYem()) {
+            $this->setYem($this->getDic()['Yapeal.Event.Mediator']);
+        }
+        $this->setLogThresholdFromVerbosity($output);
         $this->processCliOptions($input);
-        return $this->processSql($output);
+        $this->processSql($output);
+        return 0;
     }
     /**
      * @param string          $sqlStatements
      * @param string          $fileName
      * @param OutputInterface $output
      *
+     * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
      * @throws \Symfony\Component\Console\Exception\LogicException
      * @throws \Yapeal\Exception\YapealDatabaseException
      */
-    protected function executeSqlStatements($sqlStatements, $fileName, OutputInterface $output)
+    protected function executeSqlStatements(string $sqlStatements, string $fileName, OutputInterface $output)
     {
-        $replacements = [
-            ';' => '',
-            '{database}' => $this->getDic()['Yapeal.Sql.database'],
-            '{engine}' => $this->getDic()['Yapeal.Sql.engine'],
-            '{ engine}' => $this->getDic()['Yapeal.Sql.engine'],
-            '{table_prefix}' => $this->getDic()['Yapeal.Sql.tablePrefix'],
-            '$$' => ';'
-        ];
         $pdo = $this->getPdo();
+        $yem = $this->getYem();
         // Split up SQL into statements on ';'.
-        // Replace {database}, {table_prefix}, {engine}, ';', and '$$' in statements.
+        // Replace ';', and '$$', {database}, {table_prefix}, etc in statements.
+        $replacements = $this->getSqlSubs($this->getDic());
         /**
          * @var string[] $statements
          */
         $statements = str_replace(array_keys($replacements), array_values($replacements), explode(';', $sqlStatements));
         // 5 is a 'magic' number that I think is shorter than any legal SQL statement.
-        $statements = array_filter($statements, function ($value) {
-            return 5 <= strlen(trim($value));
-        });
+        $statements = array_filter($statements,
+            function ($value) {
+                return 5 <= strlen(trim($value));
+            });
         $progress = null;
         if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
             if (false === strpos($fileName, '::')) {
-                $mess = sprintf('<info>Execute %1$s/%2$s</info>', basename(dirname($fileName)),
-                    basename($fileName, '.sql'));
+                $mess = sprintf('<info>Execute %1$s/%2$s</info>',
+                    basename(dirname($fileName)),
+                    basename($fileName));
             } else {
                 $mess = sprintf('<info>Execute %s</info>', $fileName);
             }
+            $yem->triggerLogEvent('Yapeal.Log.log', Logger::INFO, strip_tags($mess));
             $output->writeln($mess);
             $progress = $this->createProgressBar($output, count($statements));
         }
@@ -149,13 +160,11 @@ abstract class AbstractDatabaseCommon extends Command
                     $output->writeln('');
                 }
                 $mess = $sql . PHP_EOL;
-                $mess .= sprintf(
-                    'Sql failed in %1$s on statement %2$s with (%3$s) %4$s',
+                $mess .= sprintf('Sql failed in %1$s on statement %2$s with (%3$s) %4$s',
                     $fileName,
                     $statement,
                     $exc->getCode(),
-                    $exc->getMessage()
-                );
+                    $exc->getMessage());
                 throw new YapealDatabaseException($mess, 2);
             }
         }
@@ -182,7 +191,7 @@ abstract class AbstractDatabaseCommon extends Command
         }
         $base = 'Yapeal.Sql.';
         foreach (['class', 'database', 'hostName', 'password', 'platform', 'tablePrefix', 'userName'] as $option) {
-            if (!empty($options[$option])) {
+            if (array_key_exists($option, $options) && null !== $options[$option]) {
                 $dic[$base . $option] = $options[$option];
             }
         }
@@ -198,7 +207,7 @@ abstract class AbstractDatabaseCommon extends Command
      *
      * @return ProgressBar
      */
-    private function createProgressBar(OutputInterface $output, $statementCount)
+    private function createProgressBar(OutputInterface $output, int $statementCount): ProgressBar
     {
         $progress = new ProgressBar($output);
         $progress->setRedrawFrequency(1);

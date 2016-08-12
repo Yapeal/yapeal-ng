@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1);
 /**
  * Contains NetworkCache class.
  *
@@ -106,15 +106,13 @@ EOF;
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
+     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
      * @throws \Yapeal\Exception\YapealException
      *
      * @see    setCode()
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        /**
-         * @var \Symfony\Component\Console\Output\Output $output
-         */
         $posts = $this->processPost($input);
         $dic = $this->getDic();
         $options = $input->getOptions();
@@ -136,23 +134,23 @@ EOF;
         $data->setEveApiName($apiName)
             ->setEveApiSectionName($sectionName)
             ->setEveApiArguments($posts);
-        $mess = 'Starting ' . $this->getName() . ' of';
-        $mess = $this->createEveApiMessage($mess, $data);
-        $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess);
         if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
-            $output->writeln('<info>' . $mess . '</info>');
+            $mess = sprintf('<info>Starting %1$s of', $this->getName());
+            $mess = $this->createEveApiMessage($mess, $data) . '</info>';
+            $this->getYem()
+                ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, strip_tags($mess));
+            $output->writeln($mess);
         }
         foreach (['retrieve', 'preserve'] as $eventName) {
             $this->emitEvents($data, $eventName, 'Yapeal.EveApi.Raw');
         }
         if (false === $data->getEveApiXml()) {
-            $mess = 'Could NOT retrieve Eve Api data of';
-            $mess = $this->createEveApiMessage($mess, $data);
-            $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess);
             if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
-                $output->writeln('<error>' . $mess . '</error>');
+                $mess = '<error>Could NOT retrieve Eve Api data of';
+                $mess = $this->createEveApiMessage($mess, $data) . '</error>';
+                $this->getYem()
+                    ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, strip_tags($mess));
+                $output->writeln($mess);
             }
             return 2;
         }
@@ -162,6 +160,7 @@ EOF;
      * @param InputInterface $input
      *
      * @return array
+     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
      */
     protected function processPost(InputInterface $input)
     {

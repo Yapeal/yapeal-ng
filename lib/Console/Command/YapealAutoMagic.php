@@ -40,13 +40,14 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Yapeal\CommonToolsTrait;
 use Yapeal\Container\ContainerInterface;
 use Yapeal\Event\EveApiEventEmitterTrait;
+use Yapeal\Event\YEMAwareInterface;
 use Yapeal\Log\Logger;
 use Yapeal\Yapeal;
 
 /**
  * Class YapealAutoMagic.
  */
-class YapealAutoMagic extends Command
+class YapealAutoMagic extends Command implements YEMAwareInterface
 {
     use CommonToolsTrait, ConfigFileTrait, EveApiEventEmitterTrait, VerbosityToStrategyTrait;
     /**

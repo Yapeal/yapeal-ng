@@ -26,7 +26,7 @@ declare(strict_types=1);
  * <http://spdx.org/licenses/LGPL-3.0.html>.
  *
  * You should be able to find a copy of this license in the COPYING-LESSER.md
- * file. A copy of the GNU GPL should also be available in the COPYING.md file. 
+ * file. A copy of the GNU GPL should also be available in the COPYING.md file.
  *
  * @copyright 2014-2016 Michael Cummings
  * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
@@ -56,7 +56,7 @@ class GuzzleNetworkRetriever implements EveApiRetrieverInterface
      * @param Client $client
      * @param bool   $preserve
      */
-    public function __construct(Client $client, $preserve = true)
+    public function __construct(Client $client, bool $preserve = true)
     {
         $this->setClient($client)
             ->setRetrieve($preserve);
@@ -72,7 +72,7 @@ class GuzzleNetworkRetriever implements EveApiRetrieverInterface
      * @throws \LogicException
      * @throws \GuzzleHttp\Exception\ClientException
      */
-    public function retrieveEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
+    public function retrieveEveApi(EveApiEventInterface $event, string $eventName, MediatorInterface $yem)
     {
         if (!$this->shouldRetrieve()) {
             return $event;
@@ -135,7 +135,7 @@ class GuzzleNetworkRetriever implements EveApiRetrieverInterface
      *
      * @return $this Fluent interface
      */
-    public function setRetrieve($value = true)
+    public function setRetrieve(bool $value = true)
     {
         $this->retrieve = (boolean)$value;
         return $this;

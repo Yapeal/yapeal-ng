@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1);
 /**
  * Contains Yapeal class.
  *
@@ -26,7 +26,7 @@ declare(strict_types=1);
  * <http://spdx.org/licenses/LGPL-3.0.html>.
  *
  * You should be able to find a copy of this license in the COPYING-LESSER.md
- * file. A copy of the GNU GPL should also be available in the COPYING.md file. 
+ * file. A copy of the GNU GPL should also be available in the COPYING.md file.
  *
  * @copyright 2014-2016 Michael Cummings
  * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
@@ -85,7 +85,7 @@ class Yapeal
         $csq = $dic['Yapeal.Sql.CommonQueries'];
         $sql = $csq->getActiveApis();
         $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $sql);
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->getFilteredSqlMessage($sql));
         try {
             /**
              * @var PDO $pdo
