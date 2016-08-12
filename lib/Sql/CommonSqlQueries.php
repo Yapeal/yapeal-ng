@@ -60,6 +60,7 @@ use Yapeal\FileSystem\CommonFileHandlingTrait;
  * @method string getDropAddOrModifyColumnProcedure()
  * @method string getMemberCorporationIDsExcludingAccountCorporations()
  * @method string getUtilLatestDatabaseVersion()
+ * @method string getUtilLatestDatabaseVersionUpdate()
  * @method string initialization()
  */
 class CommonSqlQueries implements DicAwareInterface, YEMAwareInterface
@@ -102,67 +103,53 @@ class CommonSqlQueries implements DicAwareInterface, YEMAwareInterface
             if (false === $sql) {
                 continue;
             }
-            return $this->processSql($arguments, $sql, $fileName);
+            return $this->processSql($fileName, $sql, $arguments);
         }
         $mess = 'Unknown method ' . $name;
         throw new \BadMethodCallException($mess);
     }
     /**
-     * @param string $tableName
-     * @param array  $columnNameList
-     * @param string $rowCount
+     * @param string   $tableName
+     * @param string[] $columnNameList
+     * @param int      $rowCount
      *
      * @return string
+     * @throws \LogicException
      */
-    public function getUpsert($tableName, array $columnNameList, $rowCount)
+    public function getUpsert(string $tableName, array $columnNameList, int $rowCount): string
     {
-        $columns = implode('","', $columnNameList);
+        $replacements = $this->getReplacements();
+        $replacements['{tableName}'] = $tableName;
+        $replacements['{columnNames}'] = implode('","', $columnNameList);
         $rowPrototype = '(' . implode(',', array_fill(0, count($columnNameList), '?')) . ')';
-        $rows = implode(',', array_fill(0, $rowCount, $rowPrototype));
+        $replacements['{rows}'] = implode(',', array_fill(0, $rowCount, $rowPrototype));
         $updates = [];
         foreach ($columnNameList as $column) {
-            $updates[] = '"' . $column . '"=VALUES("' . $column . '")';
+            $updates[] = sprintf('"%1$s"=VALUES("%1$s")', $column);
         }
-        $updates = implode(',', $updates);
-        $sql = sprintf('INSERT INTO "%1$s"."%2$s%3$s" ("%4$s") VALUES %5$s ON DUPLICATE KEY UPDATE %6$s',
-            $this->databaseName,
-            $this->tablePrefix,
-            $tableName,
-            $columns,
-            $rows,
-            $updates);
-        return $sql;
+        $replacements['{updates}'] = implode(',', $updates);
+        /** @noinspection SqlResolve */
+        $sql = 'INSERT INTO "{schema}"."{tablePrefix}{tableName}" ("{columnNames}") VALUES {rows} ON DUPLICATE KEY UPDATE {updates}';
+        return str_replace(array_keys($replacements), array_values($replacements), $sql);
     }
     /**
-     * @param array <string, string> $columns
+     * @param array<string, string> $columns
      *
-     * @return array<string, string>
+     * @return string
+     * @throws \LogicException
      */
-    public function getUtilCachedUntilExpires(array $columns)
+    public function getUtilCachedUntilExpires(array $columns): string
     {
+        $replacements = $this->getReplacements();
         $where = [];
         // I.E. "apiName" = 'accountBalance'
         foreach ($columns as $key => $value) {
             $where[] = sprintf('"%1$s" = \'%2$s\'', $key, $value);
         }
-        $where = implode(' AND ', $where);
-        /** @lang MySQL */
-        $sql = <<<'SQL'
-SELECT "expires"
- FROM "%1$s"."%2$sutilCachedUntil"
- WHERE %3$s
-SQL;
-        return sprintf(str_replace(["\n", "\r\n"], '', $sql),
-            $this->databaseName,
-            $this->tablePrefix,
-            $where);
-    }
-    /**
-     * @return string
-     */
-    public function getUtilLatestDatabaseVersionUpdate()
-    {
-        return $this->getUpsert('utilDatabaseVersion', ['version'], 1);
+        $replacements['{where}'] = implode(' AND ', $where);
+        /** @noinspection SqlResolve */
+        $sql = 'SELECT "expires" FROM "{schema}"."{tablePrefix}sutilCachedUntil" WHERE {where};';
+        return str_replace(array_keys($replacements), array_values($replacements), $sql);
     }
     /**
      * @var string $databaseName
@@ -210,14 +197,15 @@ SQL;
         return array_key_exists($fileName, $this->sqlCache);
     }
     /**
-     * @param array  $arguments
-     * @param string $sql
      * @param string $fileName
+     *
+     * @param string $sql
+     * @param array  $arguments
      *
      * @return string
      * @throws \LogicException
      */
-    private function processSql(array $arguments, string $sql, string $fileName)
+    private function processSql(string $fileName, string $sql, array $arguments)
     {
         $sql = str_replace(["\n ", "\r\n "], ' ', $sql);
         $replacements = $this->getReplacements();
