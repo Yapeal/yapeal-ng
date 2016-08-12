@@ -26,7 +26,7 @@ declare(strict_types=1);
  * <http://spdx.org/licenses/LGPL-3.0.html>.
  *
  * You should be able to find a copy of this license in the COPYING-LESSER.md
- * file. A copy of the GNU GPL should also be available in the COPYING.md file. 
+ * file. A copy of the GNU GPL should also be available in the COPYING.md file.
  *
  * @copyright 2016 Michael Cummings
  * @license   LGPL-3.0+
@@ -48,7 +48,7 @@ class LineFormatter extends MLineFormatter
     protected function normalize($data)
     {
         if ($data instanceof \DateTime) {
-            return substr($data->format($this->dateFormat), 0, 19);
+            return substr($data->format($this->dateFormat), 0, 14);
         }
         return parent::normalize($data);
     }

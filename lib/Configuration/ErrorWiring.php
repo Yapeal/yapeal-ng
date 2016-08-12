@@ -60,7 +60,7 @@ class ErrorWiring implements WiringInterface
                  */
                 $logger = new $dic['Yapeal.Error.Handlers.class']($dic['Yapeal.Error.channel']);
                 $group = [];
-                $lineFormatter = new LineFormatter(null, 'Ymd His.u', true, true);
+                $lineFormatter = new LineFormatter(null, 'U.u', true, true);
                 $lineFormatter->includeStacktraces();
                 /**
                  * @var \Monolog\Handler\StreamHandler $handler
