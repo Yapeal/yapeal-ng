@@ -26,7 +26,7 @@ declare(strict_types=1);
  * <http://spdx.org/licenses/LGPL-3.0.html>.
  *
  * You should be able to find a copy of this license in the COPYING-LESSER.md
- * file. A copy of the GNU GPL should also be available in the COPYING.md file. 
+ * file. A copy of the GNU GPL should also be available in the COPYING.md file.
  *
  * @copyright 2014-2016 Michael Cummings
  * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
@@ -34,7 +34,6 @@ declare(strict_types=1);
  */
 namespace Yapeal\FileSystem;
 
-use FilePathNormalizer\FilePathNormalizerTrait;
 use Yapeal\Event\EveApiEventEmitterTrait;
 use Yapeal\Event\EveApiEventInterface;
 use Yapeal\Event\EveApiRetrieverInterface;
@@ -47,7 +46,7 @@ use Yapeal\Xml\EveApiReadWriteInterface;
  */
 class CacheRetriever implements EveApiRetrieverInterface
 {
-    use CommonFileHandlingTrait, EveApiEventEmitterTrait, FilePathNormalizerTrait;
+    use CommonFileHandlingTrait, EveApiEventEmitterTrait;
     /**
      * @param string|null $cachePath
      *
@@ -65,7 +64,7 @@ class CacheRetriever implements EveApiRetrieverInterface
      * @return EveApiEventInterface
      * @throws \LogicException
      */
-    public function retrieveEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
+    public function retrieveEveApi(EveApiEventInterface $event, string $eventName, MediatorInterface $yem)
     {
         if (!$this->shouldRetrieve()) {
             return $event;
@@ -81,13 +80,13 @@ class CacheRetriever implements EveApiRetrieverInterface
             ucfirst($data->getEveApiSectionName()),
             ucfirst($data->getEveApiName()),
             $data->getHash());
-        $result = $this->safeFileRead($cacheFile, $yem);
+        $result = $this->safeFileRead($cacheFile);
         if (false === $result) {
             return $event;
         }
         $data->setEveApiXml($result);
         if ($this->isExpired($data)) {
-            $this->deleteWithRetry($cacheFile, $yem);
+            $this->deleteWithRetry($cacheFile);
             return $event;
         }
         $mess = sprintf('Found usable cache file %1$s', $cacheFile);
@@ -123,7 +122,7 @@ class CacheRetriever implements EveApiRetrieverInterface
      *
      * @return $this Fluent interface
      */
-    public function setRetrieve($value = true)
+    public function setRetrieve(bool $value = true)
     {
         $this->retrieve = (boolean)$value;
         return $this;

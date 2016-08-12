@@ -26,7 +26,7 @@ declare(strict_types=1);
  * <http://spdx.org/licenses/LGPL-3.0.html>.
  *
  * You should be able to find a copy of this license in the COPYING-LESSER.md
- * file. A copy of the GNU GPL should also be available in the COPYING.md file. 
+ * file. A copy of the GNU GPL should also be available in the COPYING.md file.
  *
  * @copyright 2014-2016 Michael Cummings
  * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
@@ -34,7 +34,6 @@ declare(strict_types=1);
  */
 namespace Yapeal\FileSystem;
 
-use FilePathNormalizer\FilePathNormalizerTrait;
 use Yapeal\Event\EveApiEventEmitterTrait;
 use Yapeal\Event\EveApiEventInterface;
 use Yapeal\Event\EveApiPreserverInterface;
@@ -46,7 +45,7 @@ use Yapeal\Log\Logger;
  */
 class CachePreserver implements EveApiPreserverInterface
 {
-    use CommonFileHandlingTrait, EveApiEventEmitterTrait, FilePathNormalizerTrait;
+    use CommonFileHandlingTrait, EveApiEventEmitterTrait;
     /**
      * @param string|null $cachePath
      * @param bool        $preserve
@@ -54,7 +53,7 @@ class CachePreserver implements EveApiPreserverInterface
      * @throws \DomainException
      * @throws \InvalidArgumentException
      */
-    public function __construct($cachePath = null, $preserve = false)
+    public function __construct(string $cachePath = null, bool $preserve = false)
     {
         $this->setCachePath($cachePath)
             ->setPreserve($preserve);
@@ -67,7 +66,7 @@ class CachePreserver implements EveApiPreserverInterface
      * @return EveApiEventInterface
      * @throws \LogicException
      */
-    public function preserveEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
+    public function preserveEveApi(EveApiEventInterface $event, string $eventName, MediatorInterface $yem)
     {
         if (!$this->shouldPreserve()) {
             return $event;
@@ -88,7 +87,7 @@ class CachePreserver implements EveApiPreserverInterface
             return $event->setHandledSufficiently();
         }
         // Insures retriever never see partly written file by deleting old file and using temp file for writing.
-        if (false === $this->safeFileWrite($xml, $cacheFile, $yem)) {
+        if (false === $this->safeFileWrite($xml, $cacheFile)) {
             return $event;
         }
         return $event->setHandledSufficiently();
@@ -124,9 +123,9 @@ class CachePreserver implements EveApiPreserverInterface
      *
      * @param boolean $value
      *
-     * @return $this Fluent interface
+     * @return EveApiPreserverInterface|CachePreserver Fluent interface.
      */
-    public function setPreserve($value = true)
+    public function setPreserve(bool $value = true): self
     {
         $this->preserve = (boolean)$value;
         return $this;
