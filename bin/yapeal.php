@@ -28,9 +28,9 @@
  * You should be able to find a copy of this license in the COPYING-LESSER.md
  * file. A copy of the GNU GPL should also be available in the COPYING.md file.
  *
- * @copyright 2014-2016 Michael Cummings
- * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
- * @author    Michael Cummings <mgcummings@yahoo.com>
+ * @copyright  2014-2016 Michael Cummings
+ * @license    http://www.gnu.org/copyleft/lesser.html GNU LGPL
+ * @author     Michael Cummings <mgcummings@yahoo.com>
  * @deprecated 0.3.2  Being removed in favor of commands being added to yc instead.
  */
 namespace Yapeal;
