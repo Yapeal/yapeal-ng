@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1);
 /**
  * Contains EveApiXmlData class.
  *
@@ -26,17 +26,13 @@ declare(strict_types=1);
  * <http://spdx.org/licenses/LGPL-3.0.html>.
  *
  * You should be able to find a copy of this license in the COPYING-LESSER.md
- * file. A copy of the GNU GPL should also be available in the COPYING.md file. 
+ * file. A copy of the GNU GPL should also be available in the COPYING.md file.
  *
  * @copyright 2014-2016 Michael Cummings
  * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
  * @author    Michael Cummings <mgcummings@yahoo.com>
  */
 namespace Yapeal\Xml;
-
-use DomainException;
-use InvalidArgumentException;
-use LogicException;
 
 /**
  * Class EveApiXmlData
@@ -49,17 +45,13 @@ class EveApiXmlData implements EveApiReadWriteInterface
      * @param string $name
      * @param mixed  $value
      *
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      * @return self Fluent interface.
      */
-    public function addEveApiArgument($name, $value)
+    public function addEveApiArgument(string $name, $value)
     {
         if (null === $value) {
             return $this;
-        }
-        if (!is_string($name)) {
-            $mess = 'Name MUST be string but was given ' . gettype($name);
-            throw new InvalidArgumentException($mess);
         }
         $this->eveApiArguments[$name] = (string)$value;
         return $this;
@@ -70,12 +62,8 @@ class EveApiXmlData implements EveApiReadWriteInterface
      * @return int
      * @throws \LogicException
      */
-    public function getCacheInterval()
+    public function getCacheInterval(): int
     {
-        if (!is_int($this->cacheInterval)) {
-            $mess = 'Tried to access cache interval before it was set';
-            throw new LogicException($mess);
-        }
         return $this->cacheInterval;
     }
     /**
@@ -84,14 +72,13 @@ class EveApiXmlData implements EveApiReadWriteInterface
      * @param string $name
      *
      * @return null|string
-     * @throws DomainException
+     * @throws \DomainException
      */
-    public function getEveApiArgument($name)
+    public function getEveApiArgument(string $name): string
     {
-        $name = (string)$name;
         if (!array_key_exists($name, $this->eveApiArguments)) {
             $mess = 'Unknown argument ' . $name;
-            throw new DomainException($mess);
+            throw new \DomainException($mess);
         }
         return $this->eveApiArguments[$name];
     }
@@ -100,7 +87,7 @@ class EveApiXmlData implements EveApiReadWriteInterface
      *
      * @return string[]
      */
-    public function getEveApiArguments()
+    public function getEveApiArguments(): array
     {
         return $this->eveApiArguments;
     }
@@ -108,13 +95,13 @@ class EveApiXmlData implements EveApiReadWriteInterface
      * Getter for name of Eve API.
      *
      * @return string
-     * @throws LogicException Throws exception if accessed before being set.
+     * @throws \LogicException Throws exception if accessed before being set.
      */
-    public function getEveApiName()
+    public function getEveApiName(): string
     {
-        if ('' === (string)$this->eveApiName) {
+        if (null === $this->eveApiName) {
             $mess = 'Tried to access Eve Api name before it was set';
-            throw new LogicException($mess);
+            throw new \LogicException($mess);
         }
         return $this->eveApiName;
     }
@@ -122,13 +109,13 @@ class EveApiXmlData implements EveApiReadWriteInterface
      * Getter for name of Eve API section.
      *
      * @return string
-     * @throws LogicException Throws exception if accessed before being set.
+     * @throws \LogicException Throws exception if accessed before being set.
      */
-    public function getEveApiSectionName()
+    public function getEveApiSectionName(): string
     {
-        if ('' === (string)$this->eveApiSectionName) {
+        if (null === $this->eveApiSectionName) {
             $mess = 'Tried to access Eve Api section name before it was set';
-            throw new LogicException($mess);
+            throw new \LogicException($mess);
         }
         return $this->eveApiSectionName;
     }
@@ -148,9 +135,9 @@ class EveApiXmlData implements EveApiReadWriteInterface
      * Used to get a repeatable unique hash for any combination API name, section, and arguments.
      *
      * @return string
-     * @throws LogicException
+     * @throws \LogicException
      */
-    public function getHash()
+    public function getHash(): string
     {
         $hash = $this->getEveApiName() . $this->getEveApiSectionName();
         $arguments = $this->getEveApiArguments();
@@ -171,7 +158,7 @@ class EveApiXmlData implements EveApiReadWriteInterface
      *
      * @return bool
      */
-    public function hasEveApiArgument($name)
+    public function hasEveApiArgument(string $name): bool
     {
         return array_key_exists($name, $this->eveApiArguments);
     }
@@ -182,7 +169,7 @@ class EveApiXmlData implements EveApiReadWriteInterface
      *
      * @return self Fluent interface.
      */
-    public function setCacheInterval($value)
+    public function setCacheInterval(int $value)
     {
         $this->cacheInterval = (int)$value;
         return $this;
@@ -205,7 +192,7 @@ class EveApiXmlData implements EveApiReadWriteInterface
      * @param string[] $values
      *
      * @return self Fluent interface.
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      * @uses EveApiXmlData::addEveApiArgument()
      */
     public function setEveApiArguments(array $values)
@@ -225,13 +212,13 @@ class EveApiXmlData implements EveApiReadWriteInterface
      * @param string $value
      *
      * @return self Fluent interface.
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
-    public function setEveApiName($value)
+    public function setEveApiName(string $value)
     {
         if (!is_string($value)) {
             $mess = 'Name MUST be string but was given ' . gettype($value);
-            throw new InvalidArgumentException($mess);
+            throw new \InvalidArgumentException($mess);
         }
         $this->eveApiName = $value;
         return $this;
@@ -242,13 +229,13 @@ class EveApiXmlData implements EveApiReadWriteInterface
      * @param string $value
      *
      * @return self Fluent interface.
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
-    public function setEveApiSectionName($value)
+    public function setEveApiSectionName(string $value)
     {
         if (!is_string($value)) {
             $mess = 'Section name MUST be string but was given ' . gettype($value);
-            throw new InvalidArgumentException($mess);
+            throw new \InvalidArgumentException($mess);
         }
         $this->eveApiSectionName = $value;
         return $this;
@@ -259,7 +246,7 @@ class EveApiXmlData implements EveApiReadWriteInterface
      * @param string|bool $xml Only allows string or false NOT true.
      *
      * @return self Fluent interface.
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public function setEveApiXml($xml = false)
     {
@@ -268,7 +255,7 @@ class EveApiXmlData implements EveApiReadWriteInterface
         }
         if (!is_string($xml)) {
             $mess = 'Xml MUST be string but was given ' . gettype($xml);
-            throw new InvalidArgumentException($mess);
+            throw new \InvalidArgumentException($mess);
         }
         $this->eveApiXml = $xml;
         return $this;

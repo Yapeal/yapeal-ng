@@ -55,7 +55,7 @@ class ErrorCacheIntervalSubscriber
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
-    public function processXmlError(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
+    public function processXmlError(EveApiEventInterface $event, string $eventName, MediatorInterface $yem)
     {
         $this->setYem($yem);
         $data = $event->getData();
@@ -69,9 +69,9 @@ class ErrorCacheIntervalSubscriber
         if (isset($simple->error[0]['code'])) {
             /** @noinspection PhpUndefinedFieldInspection */
             $code = (int)$simple->error[0]['code'];
-            $mess = sprintf('Received XML error (%1$s) - %2$s during', $code, $errorText);
+            $mess = sprintf('Received XML error: (%1$s) "%2$s" during', $code, $errorText);
         } else {
-            $mess = sprintf('Received XML error with no code attribute - %1$s during', $errorText);
+            $mess = sprintf('Received XML error with no code attribute: "%1$s" during', $errorText);
             $yem->triggerLogEvent('Yapeal.Log.log',
                 Logger::WARNING,
                 $this->createEventMessage($mess, $data, $eventName));

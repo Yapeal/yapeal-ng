@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1);
 /**
  * Contains EveApiReadWriteInterface Interface.
  *
@@ -26,7 +26,7 @@ declare(strict_types=1);
  * <http://spdx.org/licenses/LGPL-3.0.html>.
  *
  * You should be able to find a copy of this license in the COPYING-LESSER.md
- * file. A copy of the GNU GPL should also be available in the COPYING.md file. 
+ * file. A copy of the GNU GPL should also be available in the COPYING.md file.
  *
  * @copyright 2014-2016 Michael Cummings
  * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
@@ -47,14 +47,14 @@ interface EveApiReadWriteInterface
      *
      * @return self Fluent interface.
      */
-    public function addEveApiArgument($name, $value);
+    public function addEveApiArgument(string $name, $value);
     /**
      * Getter for cache interval.
      *
      * @return int
      * @throws \LogicException
      */
-    public function getCacheInterval();
+    public function getCacheInterval(): int;
     /**
      * Getter for an existing Eve API argument.
      *
@@ -63,27 +63,27 @@ interface EveApiReadWriteInterface
      * @return string
      * @throws \DomainException Throws exception for unknown arguments.
      */
-    public function getEveApiArgument($name);
+    public function getEveApiArgument(string $name): string;
     /**
      * Getter for Eve API argument list.
      *
      * @return string[]
      */
-    public function getEveApiArguments();
+    public function getEveApiArguments(): array;
     /**
      * Getter for name of Eve API.
      *
      * @return string
      * @throws \LogicException Throws exception if accessed before being set.
      */
-    public function getEveApiName();
+    public function getEveApiName(): string;
     /**
      * Getter for name of Eve API section.
      *
      * @return string
      * @throws \LogicException Throws exception if accessed before being set.
      */
-    public function getEveApiSectionName();
+    public function getEveApiSectionName(): string;
     /**
      * Getter for the actual Eve API XML received.
      *
@@ -95,7 +95,7 @@ interface EveApiReadWriteInterface
      *
      * @return string
      */
-    public function getHash();
+    public function getHash(): string;
     /**
      * Used to check if an argument exists.
      *
@@ -103,7 +103,7 @@ interface EveApiReadWriteInterface
      *
      * @return bool
      */
-    public function hasEveApiArgument($name);
+    public function hasEveApiArgument(string $name): bool;
     /**
      * Cache interval setter.
      *
@@ -111,7 +111,7 @@ interface EveApiReadWriteInterface
      *
      * @return self Fluent interface.
      */
-    public function setCacheInterval($value);
+    public function setCacheInterval(int $value);
     /**
      * Used to set a list of arguments used when forming request to Eve Api
      * server.
@@ -142,7 +142,7 @@ interface EveApiReadWriteInterface
      * @return self Fluent interface.
      * @throws \InvalidArgumentException
      */
-    public function setEveApiName($value);
+    public function setEveApiName(string $value);
     /**
      * Eve API section name setter.
      *
@@ -151,7 +151,7 @@ interface EveApiReadWriteInterface
      * @return self Fluent interface.
      * @throws \InvalidArgumentException
      */
-    public function setEveApiSectionName($value);
+    public function setEveApiSectionName(string $value);
     /**
      * Sets the actual Eve API XML data received.
      *
