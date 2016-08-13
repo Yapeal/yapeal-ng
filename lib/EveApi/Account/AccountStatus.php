@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1);
 /**
  * Contains class AccountStatus.
  *
@@ -72,7 +72,7 @@ class AccountStatus extends AccountSection implements EveApiPreserverInterface
         $sql = $this->getCsq()
             ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
         $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->getFilteredSqlMessage($sql));
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
@@ -100,7 +100,7 @@ class AccountStatus extends AccountSection implements EveApiPreserverInterface
         $sql = $this->getCsq()
             ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
         $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->getFilteredSqlMessage($sql));
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
@@ -125,7 +125,7 @@ class AccountStatus extends AccountSection implements EveApiPreserverInterface
         $sql = $this->getCsq()
             ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
         $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->getFilteredSqlMessage($sql));
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [

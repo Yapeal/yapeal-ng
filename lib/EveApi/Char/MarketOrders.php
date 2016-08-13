@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1);
 /**
  * Contains class MarketOrders.
  *
@@ -44,6 +44,7 @@ use Yapeal\Xml\EveApiReadWriteInterface;
 class MarketOrders extends CharSection
 {
     use PreserverTrait;
+
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -68,7 +69,7 @@ class MarketOrders extends CharSection
         $sql = $this->getCsq()
             ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
         $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->getFilteredSqlMessage($sql));
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [

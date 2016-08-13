@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1);
 /**
  * Contains class CertificateTree.
  *
@@ -44,6 +44,7 @@ use Yapeal\Xml\EveApiReadWriteInterface;
 class CertificateTree extends EveSection
 {
     use PreserverTrait;
+
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -67,7 +68,7 @@ class CertificateTree extends EveSection
         $sql = $this->getCsq()
             ->getDeleteFromTable($tableName);
         $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->getFilteredSqlMessage($sql));
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [

@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1);
 /**
  * Contains class FacWarSystems.
  *
@@ -44,6 +44,7 @@ use Yapeal\Xml\EveApiReadWriteInterface;
 class FacWarSystems extends MapSection
 {
     use PreserverTrait;
+
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
@@ -67,7 +68,7 @@ class FacWarSystems extends MapSection
         $sql = $this->getCsq()
             ->getDeleteFromTable($tableName);
         $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->getFilteredSqlMessage($sql));
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [

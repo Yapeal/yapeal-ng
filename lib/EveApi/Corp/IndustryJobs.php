@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1);
 /**
  * Contains class IndustryJobs.
  *
@@ -46,6 +46,7 @@ use Yapeal\Xml\EveApiReadWriteInterface;
 class IndustryJobs extends CorpSection
 {
     use PreserverTrait;
+
     /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
