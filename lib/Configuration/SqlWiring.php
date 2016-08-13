@@ -35,13 +35,15 @@ declare(strict_types = 1);
 namespace Yapeal\Configuration;
 
 use Yapeal\Container\ContainerInterface;
-use Yapeal\Exception\YapealDatabaseException;
+use Yapeal\Sql\CommonSqlQueries;
+use Yapeal\Sql\SqlSubsTrait;
 
 /**
  * Class SqlWiring.
  */
 class SqlWiring implements WiringInterface
 {
+    use SqlSubsTrait;
     /**
      * @param ContainerInterface $dic
      *
@@ -53,39 +55,45 @@ class SqlWiring implements WiringInterface
     {
         if (empty($dic['Yapeal.Sql.CommonQueries'])) {
             $dic['Yapeal.Sql.CommonQueries'] = function ($dic) {
-                return new $dic['Yapeal.Sql.Handlers.queries']($dic['Yapeal.Sql.database'],
+                /**
+                 * @var CommonSqlQueries $csq
+                 */
+                $csq = new $dic['Yapeal.Sql.Handlers.queries']($dic['Yapeal.Sql.database'],
                     $dic['Yapeal.Sql.tablePrefix']);
+                $csq->setDic($dic)
+                    ->setYem($dic['Yapeal.Event.Mediator']);
+                return $csq;
             };
         }
+        $this->wireConnection($dic);
+        $this->wireCreator($dic);
+    }
+    /**
+     * @param \Yapeal\Container\ContainerInterface $dic
+     *
+     * @throws \Yapeal\Exception\YapealDatabaseException
+     */
+    private function wireConnection(ContainerInterface $dic)
+    {
         if (empty($dic['Yapeal.Sql.Connection'])) {
-            if ('mysql' !== $dic['Yapeal.Sql.platform']) {
-                $mess = 'Unknown platform, was given ' . $dic['Yapeal.Sql.platform'];
-                throw new YapealDatabaseException($mess);
-            }
-            $dic['Yapeal.Sql.Connection'] = function ($dic) {
-                $dsn = '%1$s:host=%2$s;charset=utf8mb4';
-                $subs = [$dic['Yapeal.Sql.platform'], $dic['Yapeal.Sql.hostName']];
-                if (!empty($dic['Yapeal.Sql.port'])) {
-                    $dsn .= ';port=%3$s';
-                    $subs[] = $dic['Yapeal.Sql.port'];
-                }
+            $replacements = $this->getSqlSubs($dic);
+            $dic['Yapeal.Sql.Connection'] = function () use ($dic, $replacements) {
+                $dsn = $replacements['{dsn}'];
+                $dsn = str_replace(array_keys($replacements), array_values($replacements), $dsn);
                 /**
-                 * @var \PDO $database
+                 * @var \PDO             $database
+                 * @var CommonSqlQueries $csq
                  */
-                $database = new $dic['Yapeal.Sql.Handlers.connection'](vsprintf($dsn, $subs),
-                    $dic['Yapeal.Sql.userName'],
-                    $dic['Yapeal.Sql.password']);
+                $database = new $dic['Yapeal.Sql.Handlers.connection']($dsn,
+                    $replacements['{userName}'],
+                    $replacements['{password}']);
                 $database->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-                $database->exec('SET SESSION SQL_MODE=\'ANSI,TRADITIONAL\'');
-                $database->exec('SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE');
-                $database->exec('SET SESSION TIME_ZONE=\'+00:00\'');
-                $database->exec('SET NAMES utf8mb4 COLLATE utf8mb4_unicode_520_ci');
-                $database->exec('SET COLLATION_CONNECTION=utf8mb4_unicode_520_ci');
-                $database->exec('SET DEFAULT_STORAGE_ENGINE=' . $dic['Yapeal.Sql.engine']);
+                $csq = $dic['Yapeal.Sql.CommonQueries'];
+                $sql = $csq->initialization();
+                $database->exec($sql);
                 return $database;
             };
         }
-        $this->wireCreator($dic);
     }
     /**
      * @param \Yapeal\Container\ContainerInterface $dic

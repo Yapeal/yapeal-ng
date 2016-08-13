@@ -77,12 +77,22 @@ Yapeal:
     Sql:
         database: yapeal-ng
         dir: '{Yapeal.libDir}Sql/'
-        engine: InnoDB
         hostName: localhost
         password: secret
         platform: mysql
-        tablePrefix: ''
+        table_prefix: ''
         userName: YapealUser
+        Platforms:
+            mysql:
+                characterCollate: utf8mb4_unicode_520_ci
+                characterSet: utf8mb4
+                dsn: '{platform}:host={hostName};charset={characterSet}'
+                engine: InnoDB
+                hostName: '{Yapeal.Sql.hostName}'
+                password: '{Yapeal.Sql.password}'
+                schema: '{Yapeal.Sql.database}'
+                tablePrefix: '{Yapeal.Sql.table_prefix}'
+                userName: '{Yapeal.Sql.userName}'
         Handlers:
             create: Yapeal\Sql\Creator
             connection: \PDO
