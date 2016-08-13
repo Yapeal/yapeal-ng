@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1);
 /**
  * Contains class IndustryJobs.
  *
@@ -75,10 +75,13 @@ class IndustryJobs extends CharSection
             $this->setYem($yem);
         }
         $data = $event->getData();
-        $data->setEveApiName($data->getEveApiName() . 'History');
+        $apiName = $data->getEveApiName();
+        $data->setEveApiName($apiName . 'History');
         // Insure history has already been updated first so current data overwrites old data.
         $this->emitEvents($data, 'start');
-        return parent::startEveApi($event, $eventName, $yem);
+        $data->setEveApiName($apiName)
+            ->setEveApiXml('');
+        return parent::startEveApi($event->setData($data), $eventName, $yem);
     }
     /**
      * @param EveApiReadWriteInterface $data
@@ -93,7 +96,7 @@ class IndustryJobs extends CharSection
         $sql = $this->getCsq()
             ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
         $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->getFilteredSqlMessage($sql));
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [

@@ -74,10 +74,13 @@ class IndustryJobs extends CorpSection
             $this->setYem($yem);
         }
         $data = $event->getData();
-        $data->setEveApiName($data->getEveApiName() . 'History');
+        $apiName = $data->getEveApiName();
+        $data->setEveApiName($apiName . 'History');
         // Insure history has already been updated first so current data overwrites old data.
         $this->emitEvents($data, 'start');
-        return parent::startEveApi($event, $eventName, $yem);
+        $data->setEveApiName($apiName)
+            ->setEveApiXml('');
+        return parent::startEveApi($event->setData($data), $eventName, $yem);
     }
     /**
      * @param EveApiReadWriteInterface $data
@@ -92,7 +95,7 @@ class IndustryJobs extends CorpSection
         $sql = $this->getCsq()
             ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
         $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->getFilteredSqlMessage($sql));
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
