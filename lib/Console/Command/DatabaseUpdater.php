@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1);
 /**
  * Contains DatabaseUpdater class.
  *
@@ -36,21 +36,24 @@ namespace Yapeal\Console\Command;
 
 use Symfony\Component\Console\Output\OutputInterface;
 use Yapeal\Container\ContainerInterface;
+use Yapeal\Event\YEMAwareTrait;
 use Yapeal\Exception\YapealDatabaseException;
+use Yapeal\Log\Logger;
 
 /**
  * Class DatabaseUpdater
  */
 class DatabaseUpdater extends AbstractDatabaseCommon
 {
+    use YEMAwareTrait;
     /**
-     * @param string|null        $name
+     * @param string             $name
      * @param ContainerInterface $dic
      *
      * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
      * @throws \Symfony\Component\Console\Exception\LogicException
      */
-    public function __construct($name, ContainerInterface $dic)
+    public function __construct(string $name, ContainerInterface $dic)
     {
         $this->setDescription('Retrieves SQL from files and updates database');
         $this->setName($name);
@@ -60,6 +63,7 @@ class DatabaseUpdater extends AbstractDatabaseCommon
     /**
      * @param OutputInterface $output
      *
+     * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
      * @throws \Symfony\Component\Console\Exception\LogicException
@@ -104,6 +108,7 @@ HELP;
     /**
      * @param OutputInterface $output
      *
+     * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
      * @throws \Symfony\Component\Console\Exception\LogicException
@@ -124,7 +129,7 @@ HELP;
      * @throws \LogicException
      * @throws \Yapeal\Exception\YapealDatabaseException
      */
-    protected function getLatestDatabaseVersion(OutputInterface $output)
+    protected function getLatestDatabaseVersion(OutputInterface $output): string
     {
         $sql = $this->getCsq()
             ->getUtilLatestDatabaseVersion();
@@ -144,12 +149,22 @@ HELP;
         return $version;
     }
     /**
+     * @return array
+     * @throws \LogicException
+     */
+    protected function getReplacements()
+    {
+        $replacements = parent::getReplacements();
+        $replacements['$$'] = ';';
+        return $replacements;
+    }
+    /**
      * @param OutputInterface $output
      *
      * @return string[]
      * @throws \LogicException
      */
-    protected function getUpdateFileList(OutputInterface $output)
+    protected function getUpdateFileList(OutputInterface $output): array
     {
         $fileNames = [];
         $path = $this->getDic()['Yapeal.Sql.dir'] . 'updates/';
@@ -175,6 +190,7 @@ HELP;
     /**
      * @param OutputInterface $output
      *
+     * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
      * @throws \Symfony\Component\Console\Exception\LogicException
@@ -182,6 +198,10 @@ HELP;
      */
     protected function processSql(OutputInterface $output)
     {
+        if (!$this->hasYem()) {
+            $this->setYem($this->getDic()['Yapeal.Event.Mediator']);
+        }
+        $yem = $this->getYem();
         $this->addDatabaseProcedure($output);
         foreach ($this->getUpdateFileList($output) as $fileName) {
             /** @noinspection DisconnectedForeachInstructionInspection */
@@ -189,6 +209,7 @@ HELP;
             if (!is_file($fileName)) {
                 if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
                     $mess = sprintf('<info>Could NOT find SQL file %1$s</info>', $fileName);
+                    $yem->triggerLogEvent('Yapeal.Log.log', Logger::INFO, strip_tags($mess));
                     $output->writeln($mess);
                 }
                 continue;
@@ -199,6 +220,7 @@ HELP;
                     $mess = sprintf('<info>Skipping SQL file %1$s since its <= the latest database version %2$s</info>',
                         basename($fileName),
                         $latestVersion);
+                    $yem->triggerLogEvent('Yapeal.Log.log', Logger::INFO, strip_tags($mess));
                     $output->writeln($mess);
                 }
                 continue;
@@ -208,6 +230,7 @@ HELP;
                 if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
                     $mess = sprintf('<error>Could NOT get contents of SQL file %1$s</error>',
                         $fileName);
+                    $yem->triggerLogEvent('Yapeal.Log.log', Logger::INFO, strip_tags($mess));
                     $output->writeln($mess);
                 }
                 continue;
@@ -224,7 +247,7 @@ HELP;
      * @throws \LogicException
      * @throws \Yapeal\Exception\YapealDatabaseException
      */
-    protected function updateDatabaseVersion($updateVersion)
+    protected function updateDatabaseVersion(string $updateVersion)
     {
         $pdo = $this->getPdo();
         $sql = $this->getCsq()

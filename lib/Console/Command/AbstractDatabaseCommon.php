@@ -65,9 +65,9 @@ abstract class AbstractDatabaseCommon extends Command implements YEMAwareInterfa
             ->addOption('hostName', 'o', InputOption::VALUE_REQUIRED, 'Host name for database server.')
             ->addOption('password', 'p', InputOption::VALUE_REQUIRED, 'Password used to access database.')
             ->addOption('platform',
-                null,
+                'l',
                 InputOption::VALUE_REQUIRED,
-                'Platform of database driver. Currently only "mysql" can be used.')
+                'Platform of database driver. Currently only "mysql" can be used.', 'mysql')
             ->addOption('port',
                 null,
                 InputOption::VALUE_REQUIRED,
@@ -115,22 +115,16 @@ abstract class AbstractDatabaseCommon extends Command implements YEMAwareInterfa
      * @throws \LogicException
      * @throws \Symfony\Component\Console\Exception\LogicException
      * @throws \Yapeal\Exception\YapealDatabaseException
+     * @internal param string $sqlStatements
      */
     protected function executeSqlStatements(string $sqlStatements, string $fileName, OutputInterface $output)
     {
         $pdo = $this->getPdo();
         $yem = $this->getYem();
-        // Split up SQL into statements on ';'.
-        // Replace ';', and '$$', {database}, {table_prefix}, etc in statements.
-        $replacements = $this->getSqlSubs($this->getDic());
-        /**
-         * @var string[] $statements
-         */
-        $statements = str_replace(array_keys($replacements), array_values($replacements), explode(';', $sqlStatements));
-        // 5 is a 'magic' number that I think is shorter than any legal SQL statement.
+        $statements = explode(';', $this->getCleanedUpSql($sqlStatements, $this->getReplacements()));
         $statements = array_filter($statements,
-            function ($value) {
-                return 5 <= strlen(trim($value));
+            function ($statement) {
+                return '' !== trim($statement);
             });
         $progress = null;
         if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
@@ -146,7 +140,6 @@ abstract class AbstractDatabaseCommon extends Command implements YEMAwareInterfa
             $progress = $this->createProgressBar($output, count($statements));
         }
         foreach ($statements as $statement => $sql) {
-            $sql = trim($sql);
             try {
                 $pdo->exec($sql);
                 if (null !== $progress) {
@@ -175,6 +168,17 @@ abstract class AbstractDatabaseCommon extends Command implements YEMAwareInterfa
         }
     }
     /**
+     * @return array
+     * @throws \LogicException
+     */
+    protected function getReplacements()
+    {
+        if (null === $this->replacements) {
+            $this->replacements = $this->getSqlSubs($this->getDic());
+        }
+        return $this->replacements;
+    }
+    /**
      * @param InputInterface $input
      *
      * @return AbstractDatabaseCommon
@@ -201,6 +205,10 @@ abstract class AbstractDatabaseCommon extends Command implements YEMAwareInterfa
      * @param OutputInterface $output
      */
     abstract protected function processSql(OutputInterface $output);
+    /**
+     * @var array $replacements Holds a list of Sql section replacement pairs.
+     */
+    protected $replacements;
     /**
      * @param OutputInterface $output
      * @param int             $statementCount

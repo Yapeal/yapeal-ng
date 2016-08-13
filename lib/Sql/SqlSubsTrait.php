@@ -42,6 +42,47 @@ use Yapeal\Container\ContainerInterface;
 trait SqlSubsTrait
 {
     /**
+     * Takes one or more SQL statements with comments and normalizes EOLs and also removes most comments.
+     *
+     * NOTE: Any comment 'code' like used by MySQL are also removed.
+     *
+     * @param string $sql
+     * @param array  $replacements Expects associative array like from getSqlSubs().
+     *
+     * @return string
+     */
+    protected function getCleanedUpSql(string $sql, array $replacements): string
+    {
+        while (false !== strpos($sql, "\n  ")) {
+            $sql = str_replace("\n  ", "\n ", $sql);
+        }
+        $replacements = array_reverse($replacements);
+        $replacements["\n)"] = ')';
+        $replacements["\n "] = ' ';
+        $replacements["\r\n"] = "\n";
+        $replacements = array_reverse($replacements);
+        // Normalize line ends and change pretty multiple lines sql and comments into single line ones
+        // and do replacements.
+        $sql = str_replace(array_keys($replacements), array_values($replacements), $sql);
+        /**
+         * @var string[] $statements
+         */
+        $statements = explode("\n", $sql);
+        // Filter out non-sql lines like comments and blank lines.
+        $statements = array_filter($statements,
+            function ($statement) {
+                /** @noinspection IfReturnReturnSimplificationInspection */
+                if (0 === strpos($statement, '-- ')
+                    || '' === trim($statement)
+                    || (0 === strpos($statement, '/* ') && 0 === strpos(strrev($statement), '/*'))
+                ) {
+                    return false;
+                }
+                return true;
+            });
+        return implode("\n", $statements);
+    }
+    /**
      * Uses Sql section settings to make a filtered list of replacement pairs for SQL statements.
      *
      * @param ContainerInterface $dic
@@ -63,14 +104,10 @@ trait SqlSubsTrait
                 }
                 return !(false === strpos($key, 'Yapeal.Sql.') || in_array($key, $classes, true));
             });
-        $replacements = [
-            ';' => '',
-            '$$' => ';'
-        ];
+        $replacements = [];
         foreach ($filteredKeys as $key) {
-            $lastDot = strrpos($key, '.');
-            $subName = substr($key, $lastDot + 1);
-            $replacements['{' . $subName . '}'] = $dic[$key];
+            $subName = '{' . substr($key, strrpos($key, '.') + 1) . '}';
+            $replacements[$subName] = $dic[$key];
         }
         return $replacements;
     }

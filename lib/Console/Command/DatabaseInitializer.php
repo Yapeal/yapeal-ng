@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1);
 /**
  * Contains DatabaseInitializer class.
  *
@@ -40,20 +40,23 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Yapeal\Container\ContainerInterface;
+use Yapeal\Event\YEMAwareTrait;
+use Yapeal\Log\Logger;
 
 /**
  * Class DatabaseInitializer
  */
 class DatabaseInitializer extends AbstractDatabaseCommon
 {
+    use YEMAwareTrait;
     /**
-     * @param string|null        $name
+     * @param string             $name
      * @param ContainerInterface $dic
      *
      * @throws \Symfony\Component\Console\Exception\LogicException
      * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
      */
-    public function __construct($name, ContainerInterface $dic)
+    public function __construct(string $name, ContainerInterface $dic)
     {
         $this->setDescription('Retrieves SQL from files and initializes database');
         $this->setName($name);
@@ -63,6 +66,8 @@ class DatabaseInitializer extends AbstractDatabaseCommon
     /** @noinspection PhpMissingParentCallCommonInspection */
     /**
      * Configures the current command.
+     *
+     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
      */
     protected function configure()
     {
@@ -85,8 +90,8 @@ You can also use the command before setting up a configuration file like so:
 
 HELP;
         $this->addOptions($help);
-        $desc = 'Drop existing database before re-creating. <comment>Warning all the tables will be dropped as well!</comment>';
-        $this->addOption('dropDatabase', null, InputOption::VALUE_NONE, $desc);
+        $desc = 'Drop existing schema(database) before re-creating. <comment>Warning all the tables will be dropped as well!</comment>';
+        $this->addOption('dropSchema', null, InputOption::VALUE_NONE, $desc);
     }
     /**
      * Executes the current command.
@@ -99,7 +104,7 @@ HELP;
      * @param InputInterface  $input  An InputInterface instance
      * @param OutputInterface $output An OutputInterface instance
      *
-     * @return int|null null or 0 if everything went fine, or an error code
+     * @return int null or 0 if everything went fine, or an error code
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
@@ -111,18 +116,21 @@ HELP;
      *
      * @see    setCode()
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        if ($input->getOption('dropDatabase')) {
+        if (!$this->hasYem()) {
+            $this->setYem($this->getDic()['Yapeal.Event.Mediator']);
+        }
+        if ($input->getOption('dropSchema')) {
             /**
              * @var QuestionHelper $question
              */
             $question = $this->getHelper('question');
-            $mess = '<comment>Are you sure you want to drop the database and it\'s tables with their data?(no)</comment>';
+            $mess = '<comment>Are you sure you want to drop the schema(database) and it\'s tables with their data?(no)</comment>';
             $confirm = new ConfirmationQuestion($mess, false);
-            $this->dropDatabase = $question->ask($input, $output, $confirm);
-            if (!$this->dropDatabase) {
-                $output->writeln('<info>Ignoring drop database</info>');
+            $this->dropSchema = $question->ask($input, $output, $confirm);
+            if (!$this->dropSchema) {
+                $output->writeln('<info>Ignoring drop schema(database)</info>');
             }
         }
         return parent::execute($input, $output);
@@ -130,81 +138,173 @@ HELP;
     /**
      * @param OutputInterface $output
      *
-     * @return string[]
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
      * @throws \LogicException
+     * @throws \Symfony\Component\Console\Exception\LogicException
+     * @throws \Yapeal\Exception\YapealDatabaseException
+     * @throws \Yapeal\Exception\YapealFileSystemException
      */
-    protected function getCreateFileList(OutputInterface $output)
+    protected function processSql(OutputInterface $output)
     {
-        $dic = $this->getDic();
-        $sections = ['Database', 'Util', 'Account', 'Api', 'Char', 'Corp', 'Eve', 'Map', 'Server'];
-        $path = $dic['Yapeal.Sql.dir'];
-        if (!is_readable($path)) {
-            if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
-                $mess = sprintf('<comment>Could NOT access Sql directory %1$s</comment>', $path);
-                $output->writeln($mess);
+        $yem = $this->getYem();
+        /**
+         * @var array        $section
+         * @var string|false $sqlStatements
+         */
+        foreach ($this->getCreateFileList($output) as $section) {
+            foreach ($section as $keyName => $sqlStatements) {
+                if (false === $sqlStatements) {
+                    if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
+                        $mess = sprintf('<error>Could NOT get contents of SQL file for %1$s</error>', $keyName);
+                        $output->writeln($mess);
+                        $yem->triggerLogEvent('Yapeal.Log.log', Logger::INFO, strip_tags($mess));
+                    }
+                    continue;
+                }
+                $this->executeSqlStatements($sqlStatements, $keyName, $output);
             }
-            return [];
         }
-        $fileList = [];
-        foreach ($sections as $dir) {
-            if ('Database' === $dir && $this->dropDatabase) {
-                // Add drop database file if requested.
-                $fileList[] = $this->getFpn()
-                    ->normalizeFile($path . $dir . '/DropDatabase.sql');
-            }
-            foreach (new \DirectoryIterator($path . $dir . '/') as $fileInfo) {
-                // Add file path if it's a sql create file.
-                if ($fileInfo->isFile()
-                    && 'sql' === $fileInfo->getExtension()
-                    && 0 === strpos($fileInfo->getBasename(), 'Create')
-                ) {
-                    $fileList[] = $this->getFpn()
-                        ->normalizeFile($fileInfo->getPathname());
+    }
+    /**
+     * First custom tables sql file found is returned.
+     *
+     * @param string $path
+     * @param string $platformExt
+     * @param array  $fileList
+     *
+     * @return array
+     * @throws \LogicException
+     * @throws \Yapeal\Exception\YapealFileSystemException
+     */
+    private function addCustomFile(string $path, string $platformExt, array $fileList): array
+    {
+        $fileNames = '%1$sCreateCustomTables,%2$sconfig/CreateCustomTables';
+        $subs = [$path, $this->getDic()['Yapeal.baseDir']];
+        if (!empty($dic['Yapeal.vendorParentDir'])) {
+            $fileNames .= ',%3$sconfig/CreateCustomTables';
+            $subs[] = $this->getDic()['Yapeal.vendorParentDir'];
+        }
+        $customFiles = array_reverse(explode(',', vsprintf($fileNames, $subs)));
+        // First one found wins.
+        foreach ([$platformExt, '.sql'] as $ext) {
+            foreach ($customFiles as $keyName) {
+                if (is_readable($keyName . $ext) && is_file($keyName . $ext)) {
+                    $contents = $this->safeFileRead($keyName . $ext);
+                    if (false === $contents) {
+                        continue;
+                    }
+                    $fileList['Custom'][$keyName] = $contents;
+                    break 2;
                 }
             }
-        }
-        $fileNames = '%1$sCreateCustomTables.sql,%2$sconfig/CreateCustomTables.sql';
-        $vendorPath = '';
-        if (!empty($dic['Yapeal.vendorParentDir'])) {
-            $fileNames .= ',%3$sconfig/CreateCustomTables.sql';
-            $vendorPath = $dic['Yapeal.vendorParentDir'];
-        }
-        /**
-         * @var array $customFiles
-         */
-        $customFiles = explode(',', sprintf($fileNames, $path, $dic['Yapeal.baseDir'], $vendorPath));
-        foreach ($customFiles as $fileName) {
-            if (!is_readable($fileName) || !is_file($fileName)) {
-                continue;
-            }
-            $fileList[] = $fileName;
         }
         return $fileList;
     }
     /**
      * @param OutputInterface $output
      *
+     * @return array
+     * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
-     * @throws \Symfony\Component\Console\Exception\LogicException
-     * @throws \Yapeal\Exception\YapealDatabaseException
+     * @throws \Yapeal\Exception\YapealFileSystemException
      */
-    protected function processSql(OutputInterface $output)
+    private function getCreateFileList(OutputInterface $output): array
     {
-        foreach ($this->getCreateFileList($output) as $fileName) {
-            $sqlStatements = file_get_contents($fileName);
-            if (false === $sqlStatements) {
-                if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
-                    $mess = sprintf('<error>Could NOT get contents of SQL file %1$s</error>', $fileName);
-                    $output->writeln($mess);
-                }
-                continue;
+        $dic = $this->getDic();
+        $path = $dic['Yapeal.Sql.dir'];
+        if (!is_readable($path)) {
+            if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
+                $mess = sprintf('<comment>Could NOT access Sql directory %1$s</comment>', $path);
+                $this->getYem()
+                    ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, strip_tags($mess));
+                $output->writeln($mess);
             }
-            $this->executeSqlStatements($sqlStatements, $fileName, $output);
+            return [];
         }
+        $fileList = [];
+        $platformExt = sprintf('.%1$s.sql', $dic['Yapeal.Sql.platform']);
+        // First find any sql files with platform extension.
+        $fileList = $this->getSectionsFileList($path, $fileList, $platformExt);
+        $fileList = $this->prependDropSchema($path, $fileList, $platformExt);
+        $fileList = $this->addCustomFile($path, $platformExt, $fileList);
+        return $fileList;
     }
     /**
-     * @var bool $dropDatabase
+     * @param string $path
+     * @param array  $fileList
+     * @param string $ext
+     *
+     * @return array
+     * @throws \Yapeal\Exception\YapealFileSystemException
      */
-    private $dropDatabase = false;
+    private function getSectionsFileList(string $path, array $fileList, string $ext = '.sql'): array
+    {
+        $fpn = $this->getFpn();
+        $sections = ['Schema', 'Util', 'Account', 'Api', 'Char', 'Corp', 'Eve', 'Map', 'Server'];
+        foreach ($sections as $section) {
+            foreach (new \DirectoryIterator($path . $section . '/') as $fileInfo) {
+                // Add file path if it's a sql create file for the correct platform.
+                if ($fileInfo->isFile() && 0 === strpos($fileInfo->getBasename(), 'Create')) {
+                    $baseName = $fileInfo->getBasename();
+                    $firstDot = strpos($baseName, '.');
+                    $isSql = $firstDot === strpos($baseName, '.sql');
+                    $isPlatform = $firstDot === strpos($baseName, $ext);
+                    $baseName = substr($baseName, 0, $firstDot);
+                    $keyName = $fpn->normalizePath($fileInfo->getPath()) . $baseName;
+                    $notSet = !array_key_exists($section, $fileList)
+                        || !array_key_exists($keyName, $fileList[$section])
+                        || false === $fileList[$section][$keyName];
+                    if ($isPlatform) {
+                        $fileList[$section][$keyName] = $this->safeFileRead($keyName . $ext);
+                    } elseif ($isSql && $notSet) {
+                        $fileList[$section][$keyName] = $this->safeFileRead($keyName . '.sql');
+                    }
+                }
+            }
+        }
+        return $fileList;
+    }
+    /**
+     * Prepends drop schema if it is requested and exists.
+     *
+     * @param string $path
+     * @param array  $fileList
+     * @param string $platformExt
+     *
+     * @return array
+     * @throws \Yapeal\Exception\YapealFileSystemException
+     */
+    private function prependDropSchema(string $path, array $fileList, string $platformExt)
+    {
+        if (true !== $this->dropSchema) {
+            return $fileList;
+        }
+        // Add drop database file if requested and exists.
+        $keyName = $path . 'Schema/DropSchema';
+        foreach ([$platformExt, '.sql'] as $ext) {
+            if (is_readable($keyName . $ext) && is_file($keyName . $ext)) {
+                $contents = $this->safeFileRead($keyName . $ext);
+                if (false === $contents) {
+                    continue;
+                }
+                if (array_key_exists('Schema', $fileList)) {
+                    $schema = array_reverse($fileList['Schema'], true);
+                    $schema[$keyName] = $contents;
+                    $fileList['Schema'] = array_reverse($schema, true);
+                    break;
+                } else {
+                    $fileList = array_reverse($fileList, true);
+                    $fileList['Schema'][$keyName] = $contents;
+                    $fileList = array_reverse($fileList, true);
+                }
+            }
+        }
+        return $fileList;
+    }
+    /**
+     * @var bool $dropSchema
+     */
+    private $dropSchema = false;
 }

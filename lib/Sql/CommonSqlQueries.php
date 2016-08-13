@@ -122,18 +122,18 @@ class CommonSqlQueries implements DicAwareInterface, YEMAwareInterface
         $replacements['{tableName}'] = $tableName;
         $replacements['{columnNames}'] = implode('","', $columnNameList);
         $rowPrototype = '(' . implode(',', array_fill(0, count($columnNameList), '?')) . ')';
-        $replacements['{rows}'] = implode(',', array_fill(0, $rowCount, $rowPrototype));
+        $replacements['{rowset}'] = implode(',', array_fill(0, $rowCount, $rowPrototype));
         $updates = [];
         foreach ($columnNameList as $column) {
             $updates[] = sprintf('"%1$s"=VALUES("%1$s")', $column);
         }
         $replacements['{updates}'] = implode(',', $updates);
         /** @noinspection SqlResolve */
-        $sql = 'INSERT INTO "{schema}"."{tablePrefix}{tableName}" ("{columnNames}") VALUES {rows} ON DUPLICATE KEY UPDATE {updates}';
+        $sql = 'INSERT INTO "{schema}"."{tablePrefix}{tableName}" ("{columnNames}") VALUES {rowset} ON DUPLICATE KEY UPDATE {updates}';
         return str_replace(array_keys($replacements), array_values($replacements), $sql);
     }
     /**
-     * @param array<string, string> $columns
+     * @param array <string, string> $columns
      *
      * @return string
      * @throws \LogicException
@@ -148,7 +148,7 @@ class CommonSqlQueries implements DicAwareInterface, YEMAwareInterface
         }
         $replacements['{where}'] = implode(' AND ', $where);
         /** @noinspection SqlResolve */
-        $sql = 'SELECT "expires" FROM "{schema}"."{tablePrefix}sutilCachedUntil" WHERE {where};';
+        $sql = 'SELECT "expires" FROM "{schema}"."{tablePrefix}utilCachedUntil" WHERE {WHERE};';
         return str_replace(array_keys($replacements), array_values($replacements), $sql);
     }
     /**
@@ -207,9 +207,7 @@ class CommonSqlQueries implements DicAwareInterface, YEMAwareInterface
      */
     private function processSql(string $fileName, string $sql, array $arguments)
     {
-        $sql = str_replace(["\n ", "\r\n "], ' ', $sql);
-        $replacements = $this->getReplacements();
-        $sql = str_replace(array_keys($replacements), array_values($replacements), $sql);
+        $sql = $this->getCleanedUpSql($sql, $this->getReplacements());
         if (0 !== count($arguments)) {
             $sql = vsprintf($sql, $arguments);
         } else {
