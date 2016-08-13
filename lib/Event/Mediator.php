@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1);
 /**
  * Contains Mediator class.
  *
@@ -59,6 +59,22 @@ class Mediator extends AbstractContainerMediator implements MediatorInterface
         $this->setServiceContainer($serviceContainer);
     }
     /**
+     * This method is used any time the mediator need to get the actual instance
+     * of the class for an event.
+     *
+     * Normal will only be called during actual trigger of an event since lazy
+     * loading is used.
+     *
+     * @param string $serviceName
+     *
+     * @return object
+     * @throws \LogicException
+     */
+    public function getServiceByName(string $serviceName)
+    {
+        return $this->getServiceContainer()[$serviceName];
+    }
+    /**
      * This is used to bring in the service container that will be used.
      *
      * Though not required it would be considered best practice for this method
@@ -87,6 +103,7 @@ class Mediator extends AbstractContainerMediator implements MediatorInterface
         $this->serviceContainer = $value;
         return $this;
     }
+    /** @noinspection MoreThanThreeArgumentsInspection */
     /**
      * @param string                   $eventName
      * @param EveApiReadWriteInterface $data
@@ -100,14 +117,15 @@ class Mediator extends AbstractContainerMediator implements MediatorInterface
         $eventName,
         EveApiReadWriteInterface $data,
         EveApiEventInterface $event = null
-    ): EventInterface {
+    ): EventInterface
+    {
         if (null === $event) {
             $event = new EveApiEvent();
         }
         $event->setData($data);
         return $this->trigger($eventName, $event);
     }
-    /** @noinspection MoreThanThreeArgumentsInspection */
+    /** @noinspection GenericObjectTypeUsageInspection */
     /**
      * @param string            $eventName
      * @param mixed             $level
@@ -125,7 +143,8 @@ class Mediator extends AbstractContainerMediator implements MediatorInterface
         $message = '',
         array $context = [],
         LogEventInterface $event = null
-    ): EventInterface {
+    ): EventInterface
+    {
         if (null === $event) {
             $event = new LogEvent();
         }
@@ -133,23 +152,6 @@ class Mediator extends AbstractContainerMediator implements MediatorInterface
             ->setMessage($message)
             ->setContext($context);
         return $this->trigger($eventName, $event);
-    }
-    /** @noinspection GenericObjectTypeUsageInspection */
-    /**
-     * This method is used any time the mediator need to get the actual instance
-     * of the class for an event.
-     *
-     * Normal will only be called during actual trigger of an event since lazy
-     * loading is used.
-     *
-     * @param string $serviceName
-     *
-     * @return object
-     * @throws \LogicException
-     */
-    public function getServiceByName(string $serviceName)
-    {
-        return $this->getServiceContainer()[$serviceName];
     }
     /**
      * Used to get the service container.

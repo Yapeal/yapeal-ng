@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1);
 /**
  * Contains EveApiCreator class.
  *
@@ -52,13 +52,13 @@ class EveApiCreator extends Command implements YEMAwareInterface
 {
     use CommonToolsTrait, ConfigFileTrait, EveApiEventEmitterTrait;
     /**
-     * @param string        $name
+     * @param string             $name
      * @param ContainerInterface $dic
      *
      * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
      * @throws \Symfony\Component\Console\Exception\LogicException
      */
-    public function __construct( string $name, ContainerInterface $dic)
+    public function __construct(string $name, ContainerInterface $dic)
     {
         $desc = 'Retrieves Eve Api XML from CCP servers and creates database class, XSD, and SQL files based on the XML'
             . ' structure received';

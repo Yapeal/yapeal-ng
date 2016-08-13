@@ -176,7 +176,7 @@ trait PreserverTrait
         if ($isNotPrepared) {
             $sql = $this->getCsq()
                 ->getUpsert($tableName, $columnNames, $rowCount);
-            $mess = preg_replace('%(,\([?,]*\))+%', ',...', $this->getFilteredSqlMessage($sql));
+            $mess = preg_replace('%(,\([?,]*\))+%', ',...', $sql);
             $lastError = preg_last_error();
             if (PREG_NO_ERROR !== $lastError) {
                 $constants = array_flip(get_defined_constants(true)['pcre']);

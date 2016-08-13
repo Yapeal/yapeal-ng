@@ -83,8 +83,7 @@ class Creator
         $outputFile = sprintf('%1$s%2$s/%3$s.xsd',
             $this->getRelativeBaseDir(),
             ucfirst($this->sectionName),
-            ucfirst($this->apiName)
-        );
+            ucfirst($this->apiName));
         // Nothing to do if NOT overwriting and file exists.
         if (false === $this->isOverwrite() && is_file($outputFile)) {
             return $event;

@@ -93,7 +93,7 @@ trait RelativeFileSearchTrait
                 return $fileName;
             }
         }
-        $mess =sprintf('Failed to find accessible file in %1$s using "%1$s", "%2$s", and "%3$s"',
+        $mess = sprintf('Failed to find accessible file in %1$s using "%1$s", "%2$s", and "%3$s"',
             $this->getRelativeBaseDir(),
             $prefix,
             $name,

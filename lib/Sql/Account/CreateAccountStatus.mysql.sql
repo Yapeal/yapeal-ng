@@ -1,5 +1,6 @@
 -- Sql/Account/CreateAccountStatus.sql
 -- version 20160629012109.102
+-- noinspection SqlResolveForFile
 CREATE TABLE "{schema}"."{tablePrefix}accountAccountStatus" (
     "createDate"   DATETIME            NOT NULL,
     "logonCount"   BIGINT(20) UNSIGNED NOT NULL,
@@ -23,7 +24,8 @@ CREATE TABLE "{schema}"."{tablePrefix}accountOffers" (
     PRIMARY KEY ("ownerID", "offerID")
 );
 START TRANSACTION;
+-- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
-VALUES ('20160629012109.102')
-ON DUPLICATE KEY UPDATE "version" = VALUES("version");
+ VALUES ('20160629012109.102')
+ ON DUPLICATE KEY UPDATE "version" = VALUES("version");
 COMMIT;

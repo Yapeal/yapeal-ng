@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1);
 /**
  * Contains interface YEMAwareInterface.
  *
@@ -40,6 +40,11 @@ namespace Yapeal\Event;
 interface YEMAwareInterface
 {
     /**
+     * @return MediatorInterface
+     * @throws \LogicException
+     */
+    public function getYem(): MediatorInterface;
+    /**
      * @return bool
      */
     public function hasYem(): bool;
@@ -48,5 +53,5 @@ interface YEMAwareInterface
      *
      * @return YEMAwareInterface Fluent interface.
      */
-    public function setYem(MediatorInterface $value): YEMAwareInterface;
+    public function setYem(MediatorInterface $value);
 }

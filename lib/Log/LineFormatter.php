@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1);
 /**
  * Contains class LineFormatter.
  *
@@ -35,6 +35,7 @@ declare(strict_types=1);
 namespace Yapeal\Log;
 
 use Monolog\Formatter\LineFormatter as MLineFormatter;
+
 /**
  * Class LineFormatter.
  */

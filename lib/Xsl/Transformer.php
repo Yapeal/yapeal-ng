@@ -163,7 +163,7 @@ class Transformer implements TransformerInterface
         return $this->xslt;
     }
     /**
-     * @param string $xslName
+     * @param string                   $xslName
      * @param EveApiReadWriteInterface $data
      *
      * @return false|string

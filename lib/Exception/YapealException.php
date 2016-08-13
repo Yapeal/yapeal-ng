@@ -26,7 +26,7 @@ declare(strict_types = 1);
  * <http://spdx.org/licenses/LGPL-3.0.html>.
  *
  * You should be able to find a copy of this license in the COPYING-LESSER.md
- * file. A copy of the GNU GPL should also be available in the COPYING.md file. 
+ * file. A copy of the GNU GPL should also be available in the COPYING.md file.
  *
  * @copyright  2008-2016 Michael Cummings
  * @license    http://www.gnu.org/copyleft/lesser.html GNU LGPL

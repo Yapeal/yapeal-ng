@@ -114,7 +114,11 @@ trait MessageBuilderTrait
      * @return string
      * @throws \LogicException
      */
-    protected function getFailedToWriteFileMessage(EveApiReadWriteInterface $data, string $eventName, string $fileName): string
+    protected function getFailedToWriteFileMessage(
+        EveApiReadWriteInterface $data,
+        string $eventName,
+        string $fileName
+    ): string
     {
         $messagePrefix = sprintf('Failed writing %s file during', $fileName);
         return $this->createEventMessage($messagePrefix, $data, $eventName);
@@ -183,23 +187,5 @@ trait MessageBuilderTrait
     {
         $messagePrefix = 'Handled';
         return $this->createEventMessage($messagePrefix, $data, $eventName);
-    }
-    /**
-     * @param string $sql
-     *
-     * @return string
-     */
-    protected function getFilteredSqlMessage(string $sql): string
-    {
-        $statements = explode("\n", str_replace(["\r\n"], "\n", $sql));
-        $statements = array_filter($statements, function ($statement) {
-            print $statement . PHP_EOL;
-            /** @noinspection IfReturnReturnSimplificationInspection */
-            if (0 === strpos($statement, '-- ') || 5 > strlen(trim($statement))) {
-                return false;
-            }
-            return true;
-        });
-        return implode("\n", $statements);
     }
 }

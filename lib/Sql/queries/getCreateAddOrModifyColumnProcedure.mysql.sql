@@ -17,7 +17,7 @@ CREATE PROCEDURE "{schema}"."AddOrModifyColumn"(
  THEN
  /* Create the full statement to execute */
  SET @StatementToExecute = concat('ALTER TABLE "', param_database_name, '"."', param_table_name,
- '" ADD COLUMN "', param_column_name, '" ', param_column_details) $$
+ '" ADD COLUMN "', param_column_name, '" ', param_column_details)$$
  /* Prepare and execute the statement that was built */
  PREPARE DynamicStatement FROM @StatementToExecute$$
  EXECUTE DynamicStatement$$
@@ -26,7 +26,7 @@ CREATE PROCEDURE "{schema}"."AddOrModifyColumn"(
  ELSE
  /* Create the full statement to execute */
  SET @StatementToExecute = concat('ALTER TABLE "', param_database_name, '"."', param_table_name,
- '" MODIFY COLUMN "', param_column_name, '" ', param_column_details) $$
+ '" MODIFY COLUMN "', param_column_name, '" ', param_column_details)$$
  /* Prepare and execute the statement that was built */
  PREPARE DynamicStatement FROM @StatementToExecute$$
  EXECUTE DynamicStatement$$

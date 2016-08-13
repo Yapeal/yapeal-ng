@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1);
 /**
  * Contains trait VerbosityToStrategyTrait.
  *
@@ -35,13 +35,13 @@ declare(strict_types=1);
 namespace Yapeal\Console\Command;
 
 use Symfony\Component\Console\Output\OutputInterface;
-use Yapeal\Container\ContainerInterface;
 use Yapeal\Log\Logger;
 
+/** @noinspection PhpUnnecessaryFullyQualifiedNameInspection */
 /**
  * Trait VerbosityToStrategyTrait.
  *
- * @method ContainerInterface getDic()
+ * @method \Yapeal\Container\ContainerInterface getDic()
  */
 trait VerbosityToStrategyTrait
 {

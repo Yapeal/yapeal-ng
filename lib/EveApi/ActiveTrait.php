@@ -36,20 +36,18 @@ namespace Yapeal\EveApi;
 
 use PDO;
 use PDOException;
-use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
-use Yapeal\Sql\CommonSqlQueries;
 use Yapeal\Xml\EveApiReadWriteInterface;
 
+/** @noinspection PhpUnnecessaryFullyQualifiedNameInspection */
 /**
  * Trait ActiveTrait.
  *
- * @method CommonSqlQueries getCsq()
- * @method MediatorInterface getYem()
+ * @method \Yapeal\Sql\CommonSqlQueries getCsq()
+ * @method \Yapeal\Event\MediatorInterface getYem()
  * @method \PDO getPdo()
  * @method int getMask()
  * @method string createEveApiMessage($messagePrefix, EveApiReadWriteInterface $data)
- * @method string getFilteredSqlMessage($sql)
  */
 trait ActiveTrait
 {
@@ -83,7 +81,7 @@ trait ActiveTrait
                 return [];
         }
         $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->getFilteredSqlMessage($sql));
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
         try {
             return $this->getPdo()
                 ->query($sql)

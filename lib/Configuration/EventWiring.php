@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1);
 /**
  * Contains class EventWiring.
  *
@@ -49,18 +49,14 @@ class EventWiring implements WiringInterface
     public function wire(ContainerInterface $dic)
     {
         if (empty($dic['Yapeal.Event.EveApiEvent'])) {
-            $dic['Yapeal.Event.EveApi'] = $dic->factory(
-                function ($dic) {
-                    return new $dic['Yapeal.Event.Factories.eveApi']();
-                }
-            );
+            $dic['Yapeal.Event.EveApi'] = $dic->factory(function ($dic) {
+                return new $dic['Yapeal.Event.Factories.eveApi']();
+            });
         }
         if (empty($dic['Yapeal.Event.LogEvent'])) {
-            $dic['Yapeal.Event.LogEvent'] = $dic->factory(
-                function ($dic) {
-                    return new $dic['Yapeal.Event.Factories.log'];
-                }
-            );
+            $dic['Yapeal.Event.LogEvent'] = $dic->factory(function ($dic) {
+                return new $dic['Yapeal.Event.Factories.log'];
+            });
         }
         if (empty($dic['Yapeal.Event.Mediator'])) {
             $dic['Yapeal.Event.Mediator'] = function ($dic) {

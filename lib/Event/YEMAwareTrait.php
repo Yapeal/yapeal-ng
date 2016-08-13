@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1);
 /**
  * Contains trait YEMAwareTrait.
  *
@@ -34,11 +34,32 @@ declare(strict_types=1);
  */
 namespace Yapeal\Event;
 
+use Yapeal\DicAwareInterface;
+
 /**
  * Trait YEMAwareTrait.
  */
 trait YEMAwareTrait
 {
+    /**
+     * @return MediatorInterface
+     * @throws \LogicException
+     */
+    public function getYem(): MediatorInterface
+    {
+        if (null === $this->yem) {
+            $parent = get_parent_class($this);
+            if ($parent instanceof YEMAwareInterface) {
+                $this->yem = $parent->getYem();
+            } elseif ($this instanceof DicAwareInterface) {
+                $this->yem = $this->getDic()['Yapeal.Event.Mediator'];
+            } else {
+                $mess = 'Tried to use yem before it was set';
+                throw new \LogicException($mess);
+            }
+        }
+        return $this->yem;
+    }
     /**
      * @return bool
      */
@@ -51,22 +72,10 @@ trait YEMAwareTrait
      *
      * @return YEMAwareInterface|YEMAwareTrait Fluent interface.
      */
-    public function setYem(MediatorInterface $value): YEMAwareInterface
+    public function setYem(MediatorInterface $value)
     {
         $this->yem = $value;
         return $this;
-    }
-    /**
-     * @return MediatorInterface
-     * @throws \LogicException
-     */
-    private function getYem(): MediatorInterface
-    {
-        if (null === $this->yem || !$this->yem instanceof MediatorInterface) {
-            $mess = 'Tried to use yem before it was set';
-            throw new \LogicException($mess);
-        }
-        return $this->yem;
     }
     /**
      * @var MediatorInterface $yem

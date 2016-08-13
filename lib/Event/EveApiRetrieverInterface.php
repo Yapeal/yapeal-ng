@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1);
 /**
  * Contains EveApiRetrieverInterface Interface.
  *
@@ -50,7 +50,7 @@ interface EveApiRetrieverInterface
      * @return EveApiEventInterface
      * @throws \LogicException
      */
-    public function retrieveEveApi(EveApiEventInterface $event, string $eventName, MediatorInterface $yem): EveApiEventInterface;
+    public function retrieveEveApi(EveApiEventInterface $event, string $eventName, MediatorInterface $yem);
     /**
      * Turn on or off retrieving of Eve API data by this retriever.
      *
@@ -60,5 +60,5 @@ interface EveApiRetrieverInterface
      *
      * @return EveApiRetrieverInterface Fluent interface
      */
-    public function setRetrieve($value = true): EveApiRetrieverInterface;
+    public function setRetrieve(bool $value = true);
 }

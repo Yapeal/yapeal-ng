@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1);
 /**
  * Contains EveApiEventInterface Interface.
  *
@@ -70,7 +70,9 @@ interface EveApiEventInterface extends EventInterface
      * Set to indicate event was handled sufficiently while still allows additional listener(s) to have a chance to
      * handle the event as well.
      *
+     * @param bool $value
+     *
      * @return EveApiEventInterface Fluent interface.
      */
-    public function setHandledSufficiently(): EveApiEventInterface;
+    public function setHandledSufficiently(bool $value = true): EveApiEventInterface;
 }

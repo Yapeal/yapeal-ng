@@ -34,8 +34,6 @@ declare(strict_types = 1);
  */
 namespace Yapeal;
 
-use PDO;
-use PDOException;
 use Yapeal\Container\ContainerInterface;
 use Yapeal\Event\EveApiEventEmitterTrait;
 use Yapeal\Exception\YapealDatabaseException;
@@ -85,15 +83,15 @@ class Yapeal
         $csq = $dic['Yapeal.Sql.CommonQueries'];
         $sql = $csq->getActiveApis();
         $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->getFilteredSqlMessage($sql));
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
         try {
             /**
-             * @var PDO $pdo
+             * @var \PDO $pdo
              */
             $pdo = $dic['Yapeal.Sql.Connection'];
             $records = $pdo->query($sql)
-                ->fetchAll(PDO::FETCH_ASSOC);
-        } catch (PDOException $exc) {
+                ->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $exc) {
             $mess = 'Could not access utilEveApi table';
             $this->getYem()
                 ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess, ['exception' => $exc]);

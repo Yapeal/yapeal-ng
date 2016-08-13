@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1);
 /**
  * Contains GuzzleNetworkRetriever class.
  *
@@ -144,7 +144,7 @@ class GuzzleNetworkRetriever implements EveApiRetrieverInterface
      * @return Client
      * @throws \LogicException
      */
-    protected function getClient()
+    protected function getClient(): Client
     {
         if (null === $this->client) {
             $mess = 'Tried to use client before it was set';

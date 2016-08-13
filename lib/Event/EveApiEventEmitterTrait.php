@@ -60,7 +60,11 @@ trait EveApiEventEmitterTrait
      * @return bool
      * @throws \LogicException
      */
-    protected function emitEvents(EveApiReadWriteInterface $data, string $eventSuffix, string $eventPrefix = 'Yapeal.EveApi'): bool
+    protected function emitEvents(
+        EveApiReadWriteInterface $data,
+        string $eventSuffix,
+        string $eventPrefix = 'Yapeal.EveApi'
+    ): bool
     {
         $yem = $this->getYem();
         $eventNames = $this->getEmitterEvents($data, $eventSuffix, $eventPrefix);

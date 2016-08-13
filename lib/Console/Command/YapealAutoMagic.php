@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1);
 /**
  * Contains class YapealAutoMagic.
  *
@@ -116,7 +116,8 @@ EOF;
         if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
             $mess = sprintf('<info>Starting %1$s</info>', $this->getName());
             $output->writeln($mess);
-            $this->getYem()->triggerLogEvent('Yapeal.Log.log', Logger::INFO, strip_tags($mess));
+            $this->getYem()
+                ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, strip_tags($mess));
         }
         $options = $input->getOptions();
         if (!empty($options['configFile'])) {

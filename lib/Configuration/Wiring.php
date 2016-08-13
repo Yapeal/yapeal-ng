@@ -54,17 +54,24 @@ class Wiring
         $this->dic = $dic;
     }
     /**
+     * @return ContainerInterface
+     */
+    public function getDic(): ContainerInterface
+    {
+        return $this->dic;
+    }
+    /**
      * @param string $configFile
-     * @param array  $settings
+     * @param array  $existing
      *
      * @return array
      * @throws \DomainException
      * @throws \Yapeal\Exception\YapealException
      */
-    public function parserConfigFile(string $configFile, array $settings = []): array
+    public function parserConfigFile(string $configFile, array $existing = []): array
     {
         if (!is_readable($configFile) || !is_file($configFile)) {
-            return $settings;
+            return $existing;
         }
         try {
             /**
@@ -87,7 +94,8 @@ class Wiring
             }
             $settings[implode('.', $keys)] = $leafValue;
         }
-        return $this->doSubs($settings);
+        return array_replace($existing, $settings);
+//        return $this->doSubs($settings);
     }
     /**
      * @return self Fluent interface.
@@ -133,12 +141,12 @@ class Wiring
         }
         $depth = 0;
         $maxDepth = 10;
-        $regEx = '/(?<all>\{(?<name>Yapeal(?:\.\w+)+)\})/';
+        $regEx = '%(?<all>\{(?<name>Yapeal(?:\.\w+)+)\})%';
         $dic = $this->dic;
         do {
             $settings = preg_replace_callback($regEx,
                 function ($match) use ($settings, $dic) {
-                    if (!empty($settings[$match['name']])) {
+                    if (array_key_exists($match['name'], $settings)) {
                         return $settings[$match['name']];
                     }
                     if (!empty($dic[$match['name']])) {
@@ -168,7 +176,7 @@ class Wiring
      * @throws \DomainException
      * @throws \Yapeal\Exception\YapealException
      */
-    protected function wireConfig(): Wiring
+    protected function wireConfig(): self
     {
         $dic = $this->dic;
         $fpn = $this->getFpn();
@@ -194,8 +202,9 @@ class Wiring
         foreach ($configFiles as $configFile) {
             $settings = $this->parserConfigFile($configFile, $settings);
         }
+        $settings = $this->doSubs($settings);
         if (0 !== count($settings)) {
-            // Assure NOT overwriting already existing settings from previously processed CLI or application settings.
+            // Assure NOT overwriting already existing settings given by application.
             foreach ($settings as $key => $value) {
                 $dic[$key] = $dic[$key] ?? $value;
             }

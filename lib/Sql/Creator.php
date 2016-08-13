@@ -87,8 +87,7 @@ class Creator
             $this->getRelativeBaseDir(),
             ucfirst($this->sectionName),
             ucfirst($this->apiName),
-            $this->getPlatform()
-        );
+            $this->getPlatform());
         // Nothing to do if NOT overwriting and file exists.
         if (false === $this->isOverwrite() && is_file($outputFile)) {
             return $event->setHandledSufficiently();
@@ -117,8 +116,8 @@ class Creator
         }
         if (false === $this->safeFileWrite($contents, $outputFile)) {
             $yem->triggerLogEvent($eventName,
-                    Logger::WARNING,
-                    $this->getFailedToWriteFileMessage($data, $eventName, $outputFile));
+                Logger::WARNING,
+                $this->getFailedToWriteFileMessage($data, $eventName, $outputFile));
             return $event;
         }
         return $event->setHandledSufficiently();
@@ -203,6 +202,10 @@ class Creator
         }
     }
     /**
+     * @var string $twigExtension
+     */
+    protected $twigExtension = 'sql.twig';
+    /**
      * @return string
      */
     private function getPlatform(): string
@@ -233,7 +236,7 @@ class Creator
     /**
      * Used to infer(choose) type from element or attribute's name.
      *
-     * @param string $name Name of the element or attribute.
+     * @param string $name     Name of the element or attribute.
      * @param bool   $forValue Determines if returned type is going to be used for element or an attribute.
      *
      * @return string Returns the inferred type from the name.
@@ -285,8 +288,4 @@ class Creator
      * @var array $tables
      */
     private $tables;
-    /**
-     * @var string $twigExtension
-     */
-    protected $twigExtension = 'sql.twig';
 }
