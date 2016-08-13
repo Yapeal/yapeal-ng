@@ -34,13 +34,13 @@
  */
 require_once __DIR__ . '/bootstrap.php';
 use Symfony\Component\Console\Application;
+use Yapeal\Cli\EveApi\EveApiCreator;
+use Yapeal\Cli\Network\NetworkCache;
+use Yapeal\Cli\Schema\SchemaInitializer;
+use Yapeal\Cli\Schema\SchemaTimestamp;
+use Yapeal\Cli\Schema\SchemaUpdater;
+use Yapeal\Cli\Yapeal\YapealAutoMagic;
 use Yapeal\Configuration\Wiring;
-use Yapeal\Console\Command\DatabaseInitializer;
-use Yapeal\Console\Command\DatabaseTimestamp;
-use Yapeal\Console\Command\DatabaseUpdater;
-use Yapeal\Console\Command\EveApiCreator;
-use Yapeal\Console\Command\NetworkCache;
-use Yapeal\Console\Command\YapealAutoMagic;
 use Yapeal\Container\Container;
 
 /**
@@ -62,11 +62,11 @@ if (0 === $status && '' !== $gitVersion && $gitVersion !== $version) {
 }
 $application = new Application('Yapeal Console', $version);
 $application->addCommands([
-    new DatabaseInitializer('Database:Init', $dic),
-    new DatabaseTimestamp('Database:TimeStamp'),
-    new DatabaseUpdater('Database:Update', $dic),
     new EveApiCreator('EveApi:Creator', $dic),
     new NetworkCache('Network:Cache', $dic),
+    new SchemaInitializer('Schema:Init', $dic),
+    new SchemaTimestamp('Schema:TimeStamp'),
+    new SchemaUpdater('Schema:Update', $dic),
     new YapealAutoMagic('Yapeal:AutoMagic', $dic)
 ]);
 unset($dic, $gitVersion, $junk, $status, $version);

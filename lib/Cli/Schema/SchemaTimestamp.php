@@ -1,7 +1,7 @@
 <?php
 declare(strict_types = 1);
 /**
- * Contains class DatabaseTimestamp.
+ * Contains class SchemaTimestamp.
  *
  * PHP version 7.0+
  *
@@ -32,16 +32,16 @@ declare(strict_types = 1);
  * @copyright 2016 Michael Cummings
  * @license   LGPL-3.0+
  */
-namespace Yapeal\Console\Command;
+namespace Yapeal\Cli\Schema;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * Class DatabaseTimestamp.
+ * Class SchemaTimestamp.
  */
-class DatabaseTimestamp extends Command
+class SchemaTimestamp extends Command
 {
     /**
      * Constructor.

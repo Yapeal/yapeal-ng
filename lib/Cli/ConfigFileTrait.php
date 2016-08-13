@@ -32,7 +32,7 @@ declare(strict_types = 1);
  * @license   LGPL-3.0+
  * @author    Michael Cummings <mgcummings@yahoo.com>
  */
-namespace Yapeal\Console\Command;
+namespace Yapeal\Cli;
 
 use Symfony\Component\Console\Input\InputOption;
 use Yapeal\Configuration\Wiring;

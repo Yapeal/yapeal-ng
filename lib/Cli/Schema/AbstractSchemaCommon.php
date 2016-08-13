@@ -1,7 +1,7 @@
 <?php
 declare(strict_types = 1);
 /**
- * Contains AbstractDatabaseCommon class.
+ * Contains AbstractSchemaCommon class.
  *
  * PHP version 7.0+
  *
@@ -32,13 +32,15 @@ declare(strict_types = 1);
  * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
  * @author    Michael Cummings <mgcummings@yahoo.com>
  */
-namespace Yapeal\Console\Command;
+namespace Yapeal\Cli\Schema;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Yapeal\Cli\ConfigFileTrait;
+use Yapeal\Cli\VerbosityToStrategyTrait;
 use Yapeal\CommonToolsTrait;
 use Yapeal\Event\YEMAwareInterface;
 use Yapeal\Event\YEMAwareTrait;
@@ -48,9 +50,9 @@ use Yapeal\Log\Logger;
 use Yapeal\Sql\SqlSubsTrait;
 
 /**
- * Class AbstractDatabaseCommon
+ * Class AbstractSchemaCommon
  */
-abstract class AbstractDatabaseCommon extends Command implements YEMAwareInterface
+abstract class AbstractSchemaCommon extends Command implements YEMAwareInterface
 {
     use CommonFileHandlingTrait, CommonToolsTrait, ConfigFileTrait, SqlSubsTrait, VerbosityToStrategyTrait, YEMAwareTrait;
     /**
@@ -67,7 +69,8 @@ abstract class AbstractDatabaseCommon extends Command implements YEMAwareInterfa
             ->addOption('platform',
                 'l',
                 InputOption::VALUE_REQUIRED,
-                'Platform of database driver. Currently only "mysql" can be used.', 'mysql')
+                'Platform of database driver. Currently only "mysql" can be used.',
+                'mysql')
             ->addOption('port',
                 null,
                 InputOption::VALUE_REQUIRED,
@@ -181,7 +184,7 @@ abstract class AbstractDatabaseCommon extends Command implements YEMAwareInterfa
     /**
      * @param InputInterface $input
      *
-     * @return AbstractDatabaseCommon
+     * @return AbstractSchemaCommon
      * @throws \DomainException
      * @throws \LogicException
      * @throws \Yapeal\Exception\YapealException

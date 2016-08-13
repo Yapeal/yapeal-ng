@@ -32,12 +32,13 @@ declare(strict_types = 1);
  * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
  * @author    Michael Cummings <mgcummings@yahoo.com>
  */
-namespace Yapeal\Console\Command;
+namespace Yapeal\Cli\EveApi;
 
 use Twig_Environment;
 use Yapeal\Event\EveApiEventEmitterTrait;
 use Yapeal\Exception\YapealFileSystemException;
 use Yapeal\FileSystem\CommonFileHandlingTrait;
+use Yapeal\FileSystem\RelativeFileSearchTrait;
 use Yapeal\Log\Logger;
 use Yapeal\Xml\EveApiReadWriteInterface;
 
@@ -46,7 +47,7 @@ use Yapeal\Xml\EveApiReadWriteInterface;
  */
 trait EveApiCreatorTrait
 {
-    use CommonFileHandlingTrait, EveApiEventEmitterTrait;
+    use CommonFileHandlingTrait, EveApiEventEmitterTrait, RelativeFileSearchTrait;
     /**
      * Getter for $overwrite.
      *
@@ -152,4 +153,8 @@ trait EveApiCreatorTrait
      * @var Twig_Environment $twig
      */
     private $twig;
+    /**
+     * @var string twigExtension
+     */
+    private $twigExtension;
 }

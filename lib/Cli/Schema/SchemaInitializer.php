@@ -1,7 +1,7 @@
 <?php
 declare(strict_types = 1);
 /**
- * Contains DatabaseInitializer class.
+ * Contains SchemaInitializer class.
  *
  * PHP version 7.0+
  *
@@ -32,7 +32,7 @@ declare(strict_types = 1);
  * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
  * @author    Michael Cummings <mgcummings@yahoo.com>
  */
-namespace Yapeal\Console\Command;
+namespace Yapeal\Cli\Schema;
 
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputInterface;
@@ -44,9 +44,9 @@ use Yapeal\Event\YEMAwareTrait;
 use Yapeal\Log\Logger;
 
 /**
- * Class DatabaseInitializer
+ * Class SchemaInitializer
  */
-class DatabaseInitializer extends AbstractDatabaseCommon
+class SchemaInitializer extends AbstractSchemaCommon
 {
     use YEMAwareTrait;
     /**
@@ -58,7 +58,7 @@ class DatabaseInitializer extends AbstractDatabaseCommon
      */
     public function __construct(string $name, ContainerInterface $dic)
     {
-        $this->setDescription('Retrieves SQL from files and initializes database');
+        $this->setDescription('Retrieves SQL from files and initializes schema');
         $this->setName($name);
         $this->setDic($dic);
         parent::__construct($name);
@@ -73,7 +73,7 @@ class DatabaseInitializer extends AbstractDatabaseCommon
     {
         $help = <<<'HELP'
 The <info>%command.full_name%</info> command is used to initialize (create) a new
- database and tables to be used by Yapeal. If you already have a
+ schema and tables to be used by Yapeal-ng. If you already have a
  config/yapeal.yaml file setup you can use the following:
 
     <info>php %command.full_name%</info>
@@ -83,7 +83,7 @@ To use a configuration file in a different location:
     <info>%command.name% -c /my/very/special/config.yaml</info>
 
 <info>NOTE:</info>
-Only the Database section of the configuration file will be used.
+Only the Sql section of the configuration file will be used.
 
 You can also use the command before setting up a configuration file like so:
     <info>%command.name% -o "localhost" -d "yapeal" -u "YapealUser" -p "secret"
@@ -92,6 +92,7 @@ HELP;
         $this->addOptions($help);
         $desc = 'Drop existing schema(database) before re-creating. <comment>Warning all the tables will be dropped as well!</comment>';
         $this->addOption('dropSchema', null, InputOption::VALUE_NONE, $desc);
+        $this->setAliases(['Database:Init']);
     }
     /**
      * Executes the current command.

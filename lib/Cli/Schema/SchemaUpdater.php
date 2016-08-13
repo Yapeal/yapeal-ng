@@ -1,7 +1,7 @@
 <?php
 declare(strict_types = 1);
 /**
- * Contains DatabaseUpdater class.
+ * Contains SchemaUpdater class.
  *
  * PHP version 7.0+
  *
@@ -32,7 +32,7 @@ declare(strict_types = 1);
  * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
  * @author    Michael Cummings <mgcummings@yahoo.com>
  */
-namespace Yapeal\Console\Command;
+namespace Yapeal\Cli\Schema;
 
 use Symfony\Component\Console\Output\OutputInterface;
 use Yapeal\Container\ContainerInterface;
@@ -41,9 +41,9 @@ use Yapeal\Exception\YapealDatabaseException;
 use Yapeal\Log\Logger;
 
 /**
- * Class DatabaseUpdater
+ * Class SchemaUpdater
  */
-class DatabaseUpdater extends AbstractDatabaseCommon
+class SchemaUpdater extends AbstractSchemaCommon
 {
     use YEMAwareTrait;
     /**
@@ -55,7 +55,7 @@ class DatabaseUpdater extends AbstractDatabaseCommon
      */
     public function __construct(string $name, ContainerInterface $dic)
     {
-        $this->setDescription('Retrieves SQL from files and updates database');
+        $this->setDescription('Retrieves SQL from files and updates schema');
         $this->setName($name);
         $this->setDic($dic);
         parent::__construct($name);
@@ -82,12 +82,14 @@ class DatabaseUpdater extends AbstractDatabaseCommon
     }
     /**
      * Configures the current command.
+     *
+     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
      */
     protected function configure()
     {
         $help = <<<'HELP'
 The <info>%command.full_name%</info> command is used to initialize (create) a new
- database and tables to be used by Yapeal. If you already have a
+ schema and tables to be used by Yapeal-ng. If you already have a
  config/yapeal.yaml file setup you can use the following:
 
     <info>php %command.full_name%</info>
@@ -97,13 +99,14 @@ To use a configuration file in a different location:
     <info>%command.name% -c /my/very/special/config.yaml</info>
 
 <info>NOTE:</info>
-Only the Database section of the configuration file will be used.
+Only the Sql section of the configuration file will be used.
 
 You can also use the command before setting up a configuration file like so:
     <info>%command.name% -o "localhost" -d "yapeal" -u "YapealUser" -p "secret"
 
 HELP;
         $this->addOptions($help);
+        $this->setAliases(['Database:Update']);
     }
     /**
      * @param OutputInterface $output
@@ -243,7 +246,7 @@ HELP;
     /**
      * @param string $updateVersion
      *
-     * @return DatabaseUpdater
+     * @return SchemaUpdater
      * @throws \LogicException
      * @throws \Yapeal\Exception\YapealDatabaseException
      */
