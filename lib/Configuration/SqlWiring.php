@@ -58,11 +58,7 @@ class SqlWiring implements WiringInterface
                 /**
                  * @var CommonSqlQueries $csq
                  */
-                $csq = new $dic['Yapeal.Sql.Handlers.queries']($dic['Yapeal.Sql.database'],
-                    $dic['Yapeal.Sql.tablePrefix']);
-                $csq->setDic($dic)
-                    ->setYem($dic['Yapeal.Event.Mediator']);
-                return $csq;
+                return new $dic['Yapeal.Sql.Handlers.queries']($dic);
             };
         }
         $this->wireConnection($dic);

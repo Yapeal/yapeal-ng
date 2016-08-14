@@ -34,10 +34,9 @@ declare(strict_types = 1);
  */
 namespace Yapeal\Sql;
 
+use Yapeal\Container\ContainerInterface;
 use Yapeal\DicAwareInterface;
 use Yapeal\DicAwareTrait;
-use Yapeal\Event\YEMAwareInterface;
-use Yapeal\Event\YEMAwareTrait;
 use Yapeal\FileSystem\CommonFileHandlingTrait;
 
 /**
@@ -63,17 +62,20 @@ use Yapeal\FileSystem\CommonFileHandlingTrait;
  * @method string getUtilLatestDatabaseVersionUpdate()
  * @method string initialization()
  */
-class CommonSqlQueries implements DicAwareInterface, YEMAwareInterface
+class CommonSqlQueries implements DicAwareInterface
 {
-    use CommonFileHandlingTrait, DicAwareTrait, SqlSubsTrait, YEMAwareTrait;
+    use CommonFileHandlingTrait, DicAwareTrait, SqlSubsTrait;
     /**
-     * @param string $databaseName
-     * @param string $tablePrefix
+     * @param ContainerInterface $dic
+     *
+     * @internal param string $databaseName
+     * @internal param string $tablePrefix
      */
-    public function __construct($databaseName, $tablePrefix)
+    public function __construct(ContainerInterface $dic)
     {
-        $this->databaseName = $databaseName;
-        $this->tablePrefix = $tablePrefix;
+        $this->setDic($dic);
+        $this->platform = $dic['Yapeal.Sql.platform'];
+        $this->queriesDir = $dic['Yapeal.Sql.dir'] . 'queries/';
     }
     /**
      * @param string $name
@@ -88,10 +90,7 @@ class CommonSqlQueries implements DicAwareInterface, YEMAwareInterface
     public function __call(string $name, array $arguments = [])
     {
         $fileNames = explode(',',
-            sprintf('%1$s%2$s.%3$s.sql,%1$s%2$s.sql',
-                $this->getDic()['Yapeal.Sql.dir'] . 'queries/',
-                $name,
-                $this->getDic()['Yapeal.Sql.platform']));
+            sprintf('%1$s%2$s.%3$s.sql,%1$s%2$s.sql', $this->queriesDir, $name, $this->platform));
         foreach ($fileNames as $fileName) {
             if ($this->isCachedSql($fileName)) {
                 return $this->getCachedSql($fileName);
@@ -152,14 +151,6 @@ class CommonSqlQueries implements DicAwareInterface, YEMAwareInterface
         return str_replace(array_keys($replacements), array_values($replacements), $sql);
     }
     /**
-     * @var string $databaseName
-     */
-    protected $databaseName;
-    /**
-     * @var string $tablePrefix
-     */
-    protected $tablePrefix;
-    /**
      * @param string $fileName
      * @param string $sql
      */
@@ -215,6 +206,14 @@ class CommonSqlQueries implements DicAwareInterface, YEMAwareInterface
         }
         return $sql;
     }
+    /**
+     * @var string $platform
+     */
+    private $platform;
+    /**
+     * @var string $queriesDir
+     */
+    private $queriesDir;
     /**
      * @var array $replacements Holds a list of Sql section replacement pairs.
      */
