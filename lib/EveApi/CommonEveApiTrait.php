@@ -210,7 +210,7 @@ trait CommonEveApiTrait
     protected function gotApiLock(EveApiReadWriteInterface $data): bool
     {
         $sql = $this->getCsq()
-            ->getApiLock($data->getHash());
+            ->getApiLock(crc32($data->getHash()));
         $this->getYem()
             ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
         $context = [];
@@ -239,7 +239,7 @@ trait CommonEveApiTrait
     protected function releaseApiLock(EveApiReadWriteInterface $data): bool
     {
         $sql = $this->getCsq()
-            ->getApiLockRelease($data->getHash());
+            ->getApiLockRelease(crc32($data->getHash()));
         $this->getYem()
             ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
         $context = [];
