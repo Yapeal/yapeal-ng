@@ -30,7 +30,7 @@ declare(strict_types = 1);
  */
 namespace Yapeal\Sql;
 
-use Yapeal\Console\Command\EveApiCreatorTrait;
+use Yapeal\Cli\EveApi\EveApiCreatorTrait;
 use Yapeal\Event\EveApiEventInterface;
 use Yapeal\Event\MediatorInterface;
 use Yapeal\FileSystem\RelativeFileSearchTrait;
@@ -179,9 +179,12 @@ class Creator
         string $xpath = '//result/child::*[not(*|@*|self::dataTime)]'
     ) {
         $items = $sxi->xpath($xpath);
-        if (0 === count($items)) {
+        if (false === $items || 0 === count($items)) {
             return;
         }
+        /**
+         * @var \SimpleXMLElement[] $items
+         */
         $columns = [];
         foreach ($items as $ele) {
             $name = (string)$ele->getName();
@@ -201,10 +204,6 @@ class Creator
             $this->tables[$tableName] = ['columns' => $columns];
         }
     }
-    /**
-     * @var string $twigExtension
-     */
-    protected $twigExtension = 'sql.twig';
     /**
      * @return string
      */

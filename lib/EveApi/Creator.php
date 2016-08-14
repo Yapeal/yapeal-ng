@@ -34,7 +34,7 @@ declare(strict_types = 1);
  */
 namespace Yapeal\EveApi;
 
-use Yapeal\Console\Command\EveApiCreatorTrait;
+use Yapeal\Cli\EveApi\EveApiCreatorTrait;
 use Yapeal\Event\EveApiEventInterface;
 use Yapeal\Event\MediatorInterface;
 use Yapeal\FileSystem\RelativeFileSearchTrait;
@@ -56,6 +56,7 @@ class Creator
     {
         $this->setRelativeBaseDir($dir);
         $this->setTwig($twig);
+        $this->twigExtension = 'php.twig';
     }
     /**
      * @param EveApiEventInterface $event
@@ -170,13 +171,13 @@ class Creator
         string $xpath = '//result/child::*[not(*|@*|self::dataTime)]'
     ) {
         $items = $sxi->xpath($xpath);
-        if (0 === count($items)) {
+        if (false === $items || 0 === count($items)) {
             return;
         }
-        $values = [];
         /**
-         * @var \SimpleXMLElement $ele
+         * @var \SimpleXMLElement[] $items
          */
+        $values = [];
         foreach ($items as $ele) {
             $name = (string)$ele->getName();
             $values[$name] = $this->inferDefaultFromName($name);
@@ -190,10 +191,6 @@ class Creator
             });
         $this->tables[$tableName] = ['values' => $values];
     }
-    /**
-     * @var string $twigExtension
-     */
-    protected $twigExtension = 'php.twig';
     /**
      * @return string
      */
