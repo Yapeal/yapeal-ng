@@ -19,8 +19,8 @@ as any modifications by application developers is not supported.
 
 Yapeal-ng does NOT process this file it is provided as a commented
 reference file for application developers use. One common way to use it
-is to copy it to one of the following locations that Yapeal-ng looks for
-settings and then edit them as needed.
+is to copy and rename it into one of the following file locations that
+Yapeal-ng does looks for its settings and then edit them as needed.
 
 ## config/yapeal.yaml
 
@@ -36,7 +36,7 @@ supported.
 ## .../config/yapeal.yaml
 
 The file Yapeal-ng looks for next is consider optional internally just
-as all all configuration files are. Unlike the last two files where the
+as are all configuration files. Unlike the last two files where the
 actual location is known because of the direct relative path this one is
 not. Yapeal-ng decide to look for this file based on if it finds itself
 some where under a vendor/ directory. Normally when you add Yapeal-ng to
@@ -51,17 +51,17 @@ your application you can put any Yapeal-ng settings here and it will
 automatically find them. This is the recommended way for an application
 to provide any custom settings need for Yapeal-ng.
 
-## --configFile
+## -c/--configFile
 
 If you are using any of the commands from `bin/yc` including
-'Yapeal:AutoMagic' you can use the --configFile option to have it
-process any accessible file on the local system.
+'Yapeal:AutoMagic' you can use the `-c`/`--configFile` option to have it
+process any accessible Yaml file on the local system.
 
 ## Summary
 
-So just to make it clear how they all look in a directory list here a
-simplified one for you using a typical directory structure for composer
-projects:
+Just to make it clear how all of the config files would look in a
+directory list here a simplified one for you using a typical directory
+structure for composer projects:
 
 ```
 amazingApp/
