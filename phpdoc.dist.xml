@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <phpdoc>
-    <title>Yapeal (Yet Another PHP Eve Api Library)</title>
+    <title>Yapeal-ng (Yet Another PHP Eve Api Library - Next Generation)</title>
     <logging>
         <level>warn</level>
         <paths>
@@ -20,7 +20,10 @@
         <directory>bin</directory>
         <directory>lib</directory>
         <file>bin/yc</file>
+        <ignore>build/*</ignore>
         <ignore>Database/*</ignore>
+        <ignore>cache/*</ignore>
+        <ignore>config/*</ignore>
         <ignore>specs/*</ignore>
         <ignore>vendor/*</ignore>
     </files>
