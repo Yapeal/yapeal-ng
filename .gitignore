@@ -9,7 +9,7 @@ composer.lock
 composer.phar
 config/yapeal.ini
 config/yapeal.yaml
-docs/
+docs/phpdoc/
 export/
 ext/
 junk*.*
