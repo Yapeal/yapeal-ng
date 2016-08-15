@@ -80,7 +80,7 @@ Yapeal:
         hostName: localhost
         password: secret
         platform: mysql
-        table_prefix: ''
+        tablePrefix: ''
         userName: YapealUser
         Platforms:
             mysql:
@@ -91,7 +91,7 @@ Yapeal:
                 hostName: '{Yapeal.Sql.hostName}'
                 password: '{Yapeal.Sql.password}'
                 schema: '{Yapeal.Sql.database}'
-                tablePrefix: '{Yapeal.Sql.table_prefix}'
+                tablePrefix: '{Yapeal.Sql.tablePrefix}'
                 userName: '{Yapeal.Sql.userName}'
         Handlers:
             create: Yapeal\Sql\Creator
