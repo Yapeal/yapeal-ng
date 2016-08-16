@@ -90,7 +90,8 @@ You can also use the command before setting up a configuration file like so:
 
 HELP;
         $this->addOptions($help);
-        $desc = 'Drop existing schema(database) before re-creating. <comment>Warning all the tables will be dropped as well!</comment>';
+        $desc = 'Drop existing schema(database) before re-creating.'
+            . ' <comment>Warning all the tables will be dropped as well!</comment>';
         $this->addOption('dropSchema', null, InputOption::VALUE_NONE, $desc);
         $this->setAliases(['Database:Init']);
     }
@@ -127,9 +128,10 @@ HELP;
              * @var QuestionHelper $question
              */
             $question = $this->getHelper('question');
-            $mess = '<comment>Are you sure you want to drop the schema(database) and it\'s tables with their data?(no)</comment>';
+            $mess = '<comment>Are you sure you want to drop the schema(database)'
+                . ' and it\'s tables with their data?(no)</comment>';
             $confirm = new ConfirmationQuestion($mess, false);
-            $this->dropSchema = $question->ask($input, $output, $confirm);
+            $this->dropSchema = (bool)$question->ask($input, $output, $confirm);
             if (!$this->dropSchema) {
                 $output->writeln('<info>Ignoring drop schema(database)</info>');
             }
@@ -180,11 +182,12 @@ HELP;
      */
     private function addCustomFile(string $path, string $platformExt, array $fileList): array
     {
+        $dic = $this->getDic();
         $fileNames = '%1$sCreateCustomTables,%2$sconfig/CreateCustomTables';
-        $subs = [$path, $this->getDic()['Yapeal.baseDir']];
+        $subs = [$path, $dic['Yapeal.baseDir']];
         if (!empty($dic['Yapeal.vendorParentDir'])) {
             $fileNames .= ',%3$sconfig/CreateCustomTables';
-            $subs[] = $this->getDic()['Yapeal.vendorParentDir'];
+            $subs[] = $dic['Yapeal.vendorParentDir'];
         }
         $customFiles = array_reverse(explode(',', vsprintf($fileNames, $subs)));
         // First one found wins.

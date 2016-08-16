@@ -42,6 +42,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Yapeal\Cli\ConfigFileTrait;
 use Yapeal\Cli\VerbosityToStrategyTrait;
 use Yapeal\CommonToolsTrait;
+use Yapeal\DicAwareInterface;
+use Yapeal\DicAwareTrait;
 use Yapeal\Event\YEMAwareInterface;
 use Yapeal\Event\YEMAwareTrait;
 use Yapeal\Exception\YapealDatabaseException;
@@ -52,7 +54,7 @@ use Yapeal\Sql\SqlSubsTrait;
 /**
  * Class AbstractSchemaCommon
  */
-abstract class AbstractSchemaCommon extends Command implements YEMAwareInterface
+abstract class AbstractSchemaCommon extends Command implements YEMAwareInterface, DicAwareInterface
 {
     use CommonFileHandlingTrait, CommonToolsTrait, ConfigFileTrait, SqlSubsTrait, VerbosityToStrategyTrait, YEMAwareTrait;
     /**
