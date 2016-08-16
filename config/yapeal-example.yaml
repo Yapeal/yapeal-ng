@@ -3,7 +3,7 @@ Yapeal:
 # NOTE: All of the settings that MUST BE changed for production or testing when
 # Yapeal-ng is installed in vendor/ are not commented out to make it easier to
 # find them once you, as an application developer, copy it to your
-# application's config/ directory. See CONFIG.md and INSTALL.md for more info.
+# application's config/ directory. See ConfiguringYapeal.md and InstallingYapeal.md for more info.
 
     Cache:
     # DEPRECATED (see new FileSystem settings) these settings are no longer used and will be removing in future.

@@ -93,7 +93,7 @@ class EveApiCreator extends Command implements YEMAwareInterface
          * Create can't use pre-processed Eve Api XML, it needs to be unaltered version directly from the servers.
          * For now use Raw preserve since DB tables are not added automatically which would cause normal preservers to
          * fail and add junk to the logs.
-         * TODO: Need to decide if implementing a hybrid SQL update/init system is worth doing.
+         * NOTE: Need to decide if implementing a hybrid SQL update/init system is worth doing.
          */
         $events = [
             'retrieve' => 'Yapeal.EveApi.Raw',

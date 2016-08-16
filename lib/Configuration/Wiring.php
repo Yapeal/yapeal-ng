@@ -95,7 +95,6 @@ class Wiring
             $settings[implode('.', $keys)] = $leafValue;
         }
         return array_replace($existing, $settings);
-//        return $this->doSubs($settings);
     }
     /**
      * @return self Fluent interface.

@@ -39,6 +39,6 @@ namespace %namespace%;
  */
 class %name%
 {
-    // TODO: Fill in methods here.
+    // Put code here!
 }
 
