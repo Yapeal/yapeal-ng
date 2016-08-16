@@ -6,7 +6,7 @@ declare(strict_types = 1);
  * PHP version 7.0+
  *
  * LICENSE:
- * This file is part of Yet Another Php Eve Api Library also know as Yapeal
+ * This file is part of Yet Another Php Eve Api Library also know as Spec
  * which can be used to access the Eve Online API data and place it into a
  * database.
  * Copyright (C) 2016 Michael Cummings

@@ -6,7 +6,7 @@ declare(strict_types = 1);
  * PHP version 7.0
  *
  * LICENSE:
- * This file is part of Yet Another Php Eve Api Library also know as Yapeal
+ * This file is part of Yet Another Php Eve Api Library also know as Spec
  * which can be used to access the Eve Online API data and place it into a
  * database.
  * Copyright (C) 2016 Michael Cummings
@@ -34,7 +34,6 @@ declare(strict_types = 1);
  */
 namespace Spec\Yapeal\Container;
 
-use PhpSpec\Exception\Example\SkippingException;
 use PhpSpec\ObjectBehavior;
 use Spec\Yapeal\Invokable;
 use Spec\Yapeal\MockService;
@@ -223,7 +222,7 @@ class ContainerSpec extends ObjectBehavior
         $this['service'] = function () {
             return new MockService();
         };
-        $serviceOne = $this['service']->shouldHaveType('Spec\Yapeal\MockService');
+        $serviceOne = $this['service']->shouldHaveType('Spec\yapeal\MockService');
         $this['service']->shouldEqual($serviceOne);
     }
     public function it_should_return_same_type_and_value_for_simple_values()
