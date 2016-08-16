@@ -34,8 +34,6 @@ declare(strict_types = 1);
  */
 namespace Yapeal\Event;
 
-use Yapeal\DicAwareInterface;
-
 /**
  * Trait YEMAwareTrait.
  */
@@ -51,7 +49,7 @@ trait YEMAwareTrait
             $parent = get_parent_class($this);
             if ($parent instanceof YEMAwareInterface) {
                 $this->yem = $parent->getYem();
-            } elseif ($this instanceof DicAwareInterface) {
+            } elseif (method_exists($this, 'getDic')) {
                 $this->yem = $this->getDic()['Yapeal.Event.Mediator'];
             } else {
                 $mess = 'Tried to use yem before it was set';

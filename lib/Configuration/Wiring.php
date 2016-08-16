@@ -86,6 +86,7 @@ class Wiring
                 $configFile);
             throw new YapealException($mess, 0, $exc);
         }
+        $settings = [];
         foreach ($rItIt as $leafValue) {
             $keys = [];
             foreach (range(0, $rItIt->getDepth()) as $depth) {
