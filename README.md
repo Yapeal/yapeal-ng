@@ -11,11 +11,15 @@ Coveralls: [![Coverage Status](https://coveralls.io/repos/github/Yapeal/yapeal-n
 
 ## Installing
 
-Installation instructions can be found in [INSTALL.md](INSTALL.md) and
-configuration instructions in [CONFIG.md](CONFIG.md).
+Installation instructions can be found in
+[Installing Yapeal](docs/InstallingYapeal.md)
+and configuration instructions in
+[Configuring Yapeal](docs/ConfiguringYapeal.md). Both can be found in
+the `docs/` directory.
 
-For additional information about any changes see the commit messages in
-the repository.
+For additional information about any changes there are in Yapeal-ng see
+the commit messages in the
+[repository on GitHub](https://github.com/Yapeal/yapeal-ng).
 
 ## Licensing
 
