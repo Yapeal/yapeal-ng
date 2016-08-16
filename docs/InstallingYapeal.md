@@ -1,6 +1,5 @@
 # Installing Yapeal
 
-
 There are several ways to install Yapeal but in all cases you'll need to
 have a copy of
 [Composer](https://getcomposer.org/)

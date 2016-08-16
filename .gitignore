@@ -10,6 +10,7 @@ composer.phar
 config/yapeal.ini
 config/yapeal.yaml
 docs/phpdoc/
+docs/*.html
 export/
 ext/
 junk*.*
