@@ -34,7 +34,6 @@ declare(strict_types = 1);
  */
 namespace Yapeal;
 
-use Yapeal\Container\ContainerInterface;
 use Yapeal\Exception\YapealDatabaseException;
 use Yapeal\Sql\CommonSqlQueries;
 
@@ -43,18 +42,7 @@ use Yapeal\Sql\CommonSqlQueries;
  */
 trait CommonToolsTrait
 {
-    /**
-     * @return ContainerInterface
-     * @throws \LogicException
-     */
-    public function getDic(): ContainerInterface
-    {
-        if (!$this->dic instanceof ContainerInterface) {
-            $mess = 'Tried to use dic before it was set';
-            throw new \LogicException($mess, 1);
-        }
-        return $this->dic;
-    }
+    use DicAwareTrait;
     /**
      * @param CommonSqlQueries $value
      *
@@ -63,16 +51,6 @@ trait CommonToolsTrait
     public function setCsq(CommonSqlQueries $value)
     {
         $this->csq = $value;
-        return $this;
-    }
-    /**
-     * @param ContainerInterface $value
-     *
-     * @return self Fluent interface.
-     */
-    public function setDic(ContainerInterface $value)
-    {
-        $this->dic = $value;
         return $this;
     }
     /**
@@ -123,10 +101,6 @@ trait CommonToolsTrait
      * @var CommonSqlQueries $csq
      */
     protected $csq;
-    /**
-     * @var ContainerInterface $dic
-     */
-    protected $dic;
     /**
      * @var \PDO $pdo
      */

@@ -55,7 +55,7 @@ trait DicAwareTrait
                 $this->dic = $parent->getDic();
             } else {
                 $mess = 'Trying to access $dic before it was set';
-                throw new \LogicException($mess);
+                throw new \LogicException($mess, 1);
             }
         }
         return $this->dic;
