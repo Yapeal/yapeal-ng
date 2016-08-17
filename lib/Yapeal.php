@@ -98,7 +98,7 @@ class Yapeal
             return 1;
         }
         // Always check APIKeyInfo.
-        array_unshift($records, ['apiName' => 'APIKeyInfo', 'interval' => '300', 'sectionName' => 'account']);
+        array_unshift($records, ['apiName' => 'APIKeyInfo', 'interval' => 300, 'sectionName' => 'account']);
         foreach ($records as $record) {
             /** @noinspection DisconnectedForeachInstructionInspection */
             /**
@@ -109,7 +109,7 @@ class Yapeal
             $data = $dic['Yapeal.Xml.Data'];
             $data->setEveApiName($record['apiName'])
                 ->setEveApiSectionName($record['sectionName'])
-                ->setCacheInterval($record['interval']);
+                ->setCacheInterval((int)$record['interval']);
             $this->emitEvents($data, 'start');
         }
         return 0;

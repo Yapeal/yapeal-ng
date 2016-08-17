@@ -90,7 +90,16 @@ trait CommonEveApiTrait
             Logger::DEBUG,
             $this->getReceivedEventMessage($data, $eventName, __CLASS__));
         // If method doesn't exist still needs array with member for count but return '0' from extractOwnerID().
-        $active = method_exists($this, 'getActive') ? $this->getActive($data) : [[null]];
+        if (method_exists($this, 'getActive')) {
+            $active = $this->getActive($data);
+            if (0 === count($active)) {
+                $mess = 'No active owners found for';
+                $yem->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $this->createEveApiMessage($mess, $data));
+                $this->emitEvents($data, 'end');
+                return $event->setHandledSufficiently();
+            }
+        }
+        $active = method_exists($this, 'getActive') ? $this->getActive($data) : [false];
         if (0 === count($active)) {
             $mess = 'No active owners found for';
             $yem->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $this->createEveApiMessage($mess, $data));
@@ -99,21 +108,24 @@ trait CommonEveApiTrait
         }
         $untilInterval = $data->getCacheInterval();
         foreach ($active as $arguments) {
-            // Set arguments, reset interval, and clear xml data.
-            $data->setEveApiArguments($arguments)
-                ->setCacheInterval($untilInterval)
+            if (false !== $arguments) {
+                $data->setEveApiArguments($arguments);
+            }
+            // Reset interval, and clear xml data.
+            /** @noinspection DisconnectedForeachInstructionInspection */
+            $data->setCacheInterval($untilInterval)
                 ->setEveApiXml();
             /** @noinspection DisconnectedForeachInstructionInspection */
             foreach ($this->accountKeys as $accountKey) {
                 $data->addEveApiArgument('accountKey', $accountKey);
                 /** @noinspection DisconnectedForeachInstructionInspection */
-                if (0 === strpos(strtolower($data->getEveApiName()), 'wallet')) {
-                    $data->addEveApiArgument('rowCount', '2560');
-                }
-                /** @noinspection DisconnectedForeachInstructionInspection */
                 if ($this->cachedUntilIsNotExpired($data)) {
                     $event->setHandledSufficiently();
                     continue;
+                }
+                /** @noinspection DisconnectedForeachInstructionInspection */
+                if (0 === strpos(strtolower($data->getEveApiName()), 'wallet')) {
+                    $data->addEveApiArgument('rowCount', '2560');
                 }
                 /** @noinspection DisconnectedForeachInstructionInspection */
                 if ($this->oneShot($data)) {

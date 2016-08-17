@@ -43,6 +43,8 @@ interface EventAwareLoggerInterface
 {
     /**
      * @param LogEventInterface $event
+     *
+     * @return void
      */
     public function logEvent(LogEventInterface $event);
 }

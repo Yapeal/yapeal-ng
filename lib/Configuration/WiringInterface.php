@@ -43,6 +43,8 @@ interface WiringInterface
 {
     /**
      * @param ContainerInterface $container
+     *
+     * @return void
      */
     public function wire(ContainerInterface $container);
 }

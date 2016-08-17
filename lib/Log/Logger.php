@@ -44,6 +44,8 @@ class Logger extends MLogger implements EventAwareLoggerInterface
 {
     /**
      * @param LogEventInterface $event
+     *
+     * @return void
      */
     public function logEvent(LogEventInterface $event)
     {

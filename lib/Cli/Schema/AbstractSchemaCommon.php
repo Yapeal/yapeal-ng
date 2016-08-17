@@ -43,7 +43,6 @@ use Yapeal\Cli\ConfigFileTrait;
 use Yapeal\Cli\VerbosityToStrategyTrait;
 use Yapeal\CommonToolsTrait;
 use Yapeal\DicAwareInterface;
-use Yapeal\DicAwareTrait;
 use Yapeal\Event\YEMAwareInterface;
 use Yapeal\Event\YEMAwareTrait;
 use Yapeal\Exception\YapealDatabaseException;
@@ -208,6 +207,8 @@ abstract class AbstractSchemaCommon extends Command implements YEMAwareInterface
     }
     /**
      * @param OutputInterface $output
+     *
+     * @return void
      */
     abstract protected function processSql(OutputInterface $output);
     /**

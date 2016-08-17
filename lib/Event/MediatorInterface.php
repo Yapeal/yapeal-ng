@@ -45,35 +45,35 @@ use Yapeal\Xml\EveApiReadWriteInterface;
 interface MediatorInterface extends ContainerMediatorInterface
 {
     /**
-     * @param string                   $eventName
-     * @param EveApiReadWriteInterface $data
-     * @param EveApiEventInterface     $event
+     * @param string                    $eventName
+     * @param EveApiReadWriteInterface  $data
+     * @param null|EveApiEventInterface $event
      *
      * @return EventInterface|EveApiEventInterface
      * @throws \DomainException
      * @throws \InvalidArgumentException
      */
     public function triggerEveApiEvent(
-        $eventName,
+        string $eventName,
         EveApiReadWriteInterface $data,
         EveApiEventInterface $event = null
     ): EventInterface;
     /** @noinspection MoreThanThreeArgumentsInspection */
     /**
-     * @param string            $eventName
-     * @param mixed             $level
-     * @param string            $message
-     * @param array             $context
-     * @param LogEventInterface $event
+     * @param string                 $eventName
+     * @param int                    $level
+     * @param string                 $message
+     * @param array                  $context
+     * @param null|LogEventInterface $event
      *
      * @return EventInterface|LogEventInterface
      * @throws \DomainException
      * @throws \InvalidArgumentException
      */
     public function triggerLogEvent(
-        $eventName,
-        $level = Logger::DEBUG,
-        $message = '',
+        string $eventName,
+        int $level = Logger::DEBUG,
+        string $message = '',
         array $context = [],
         LogEventInterface $event = null
     ): EventInterface;

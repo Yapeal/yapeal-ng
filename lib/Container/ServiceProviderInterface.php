@@ -46,6 +46,8 @@ interface ServiceProviderInterface
      * It should not get services.
      *
      * @param ContainerInterface $container A container instance
+     *
+     * @return void
      */
     public function register(ContainerInterface $container);
 }

@@ -95,11 +95,11 @@ class CachePreserver implements EveApiPreserverInterface
     /**
      * @param string|null $value
      *
-     * @return self Fluent interface.
+     * @return CachePreserver Fluent interface.
      * @throws \DomainException
      * @throws \InvalidArgumentException
      */
-    public function setCachePath($value = null)
+    public function setCachePath($value = null): self
     {
         if ($value === null) {
             $value = dirname(dirname(__DIR__)) . '/cache/';
@@ -121,14 +121,13 @@ class CachePreserver implements EveApiPreserverInterface
      *
      * Allows class to stay registered for events but be enabled or disabled during runtime.
      *
-     * @param boolean $value
+     * @param bool $value
      *
-     * @return EveApiPreserverInterface|CachePreserver Fluent interface.
+     * @return void
      */
-    public function setPreserve(bool $value = true): self
+    public function setPreserve(bool $value = true)
     {
-        $this->preserve = (boolean)$value;
-        return $this;
+        $this->preserve = $value;
     }
     /**
      * @return string
@@ -143,7 +142,7 @@ class CachePreserver implements EveApiPreserverInterface
         return $this->cachePath;
     }
     /**
-     * @return boolean
+     * @return bool
      */
     private function shouldPreserve()
     {

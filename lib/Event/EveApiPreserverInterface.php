@@ -56,7 +56,7 @@ interface EveApiPreserverInterface
      *
      * @param boolean $value
      *
-     * @return EveApiPreserverInterface Fluent interface.
+     * @return void
      */
     public function setPreserve(bool $value = true);
 }

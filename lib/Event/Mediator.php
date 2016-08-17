@@ -58,6 +58,7 @@ class Mediator extends AbstractContainerMediator implements MediatorInterface
     {
         $this->setServiceContainer($serviceContainer);
     }
+    /** @noinspection GenericObjectTypeUsageInspection */
     /**
      * This method is used any time the mediator need to get the actual instance
      * of the class for an event.
@@ -105,16 +106,16 @@ class Mediator extends AbstractContainerMediator implements MediatorInterface
     }
     /** @noinspection MoreThanThreeArgumentsInspection */
     /**
-     * @param string                   $eventName
-     * @param EveApiReadWriteInterface $data
-     * @param EveApiEventInterface     $event
+     * @param string                    $eventName
+     * @param EveApiReadWriteInterface  $data
+     * @param null|EveApiEventInterface $event
      *
      * @return EventInterface|EveApiEventInterface
      * @throws \DomainException
      * @throws \InvalidArgumentException
      */
     public function triggerEveApiEvent(
-        $eventName,
+        string $eventName,
         EveApiReadWriteInterface $data,
         EveApiEventInterface $event = null
     ): EventInterface
@@ -125,22 +126,22 @@ class Mediator extends AbstractContainerMediator implements MediatorInterface
         $event->setData($data);
         return $this->trigger($eventName, $event);
     }
-    /** @noinspection GenericObjectTypeUsageInspection */
+    /** @noinspection MoreThanThreeArgumentsInspection */
     /**
-     * @param string            $eventName
-     * @param mixed             $level
-     * @param string            $message
-     * @param array             $context
-     * @param LogEventInterface $event
+     * @param string                 $eventName
+     * @param int                    $level
+     * @param string                 $message
+     * @param array                  $context
+     * @param null|LogEventInterface $event
      *
      * @return EventInterface
      * @throws \DomainException
      * @throws \InvalidArgumentException
      */
     public function triggerLogEvent(
-        $eventName,
-        $level = Logger::DEBUG,
-        $message = '',
+        string $eventName,
+        int $level = Logger::DEBUG,
+        string $message = '',
         array $context = [],
         LogEventInterface $event = null
     ): EventInterface
