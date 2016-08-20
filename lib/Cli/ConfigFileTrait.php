@@ -74,7 +74,7 @@ trait ConfigFileTrait
             return;
         }
         $fpn = $this->getFpn();
-        $fileName = $fpn->normalizeFile($fileName, $fpn::ABSOLUTE_ALLOWED | $fpn::VFS_ALLOWED | $fpn::WRAPPER_ALLOWED);
+        $fileName = $fpn->normalizeFile($fileName, $fpn::ABSOLUTE_ALLOWED | $fpn::WRAPPER_DISABLED);
         // Silently ignore the file if can't find it.
         if (!is_file($fileName) || !is_readable($fileName)) {
             return;
