@@ -172,11 +172,11 @@ class Wiring
         return $settings;
     }
     /**
-     * @return Wiring Fluent interface.
+     * @return void
      * @throws \DomainException
      * @throws \Yapeal\Exception\YapealException
      */
-    protected function wireConfig(): self
+    protected function wireConfig()
     {
         $dic = $this->dic;
         $fpn = $this->getFpn();
@@ -209,7 +209,6 @@ class Wiring
                 $dic[$key] = $dic[$key] ?? $value;
             }
         }
-        return $this;
     }
     /**
      * @var ContainerInterface $dic
