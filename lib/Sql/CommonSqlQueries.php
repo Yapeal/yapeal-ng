@@ -58,6 +58,7 @@ use Yapeal\FileSystem\SafeFileHandlingTrait;
  * @method string getDeleteFromTableWithOwnerID($tableName, $ownerID)
  * @method string getDropAddOrModifyColumnProcedure()
  * @method string getMemberCorporationIDsExcludingAccountCorporations()
+ * @method string getUtilCachedUntilExpires($accountKey, $apiName, $ownerID)
  * @method string getUtilLatestDatabaseVersion()
  * @method string getUtilLatestDatabaseVersionUpdate()
  * @method string initialization()
@@ -89,6 +90,16 @@ class CommonSqlQueries implements DicAwareInterface
      */
     public function __call(string $name, array $arguments = [])
     {
+        $methodNames = explode(',', sprintf('%1$s%2$s,%1$s', $name, $this->platform));
+        foreach ($methodNames as $methodName) {
+            if (method_exists($this, $methodName)) {
+                $sql = call_user_func_array([$this, $methodName], $arguments);
+                if (false === $sql) {
+                    continue;
+                }
+                return $this->processSql($methodName, $sql, $arguments);
+            }
+        }
         $fileNames = explode(',',
             sprintf('%1$s%2$s.%3$s.sql,%1$s%2$s.sql', $this->queriesDir, $name, $this->platform));
         foreach ($fileNames as $fileName) {
@@ -128,26 +139,8 @@ class CommonSqlQueries implements DicAwareInterface
         }
         $replacements['{updates}'] = implode(',', $updates);
         /** @noinspection SqlResolve */
-        $sql = 'INSERT INTO "{schema}"."{tablePrefix}{tableName}" ("{columnNames}") VALUES {rowset} ON DUPLICATE KEY UPDATE {updates}';
-        return str_replace(array_keys($replacements), array_values($replacements), $sql);
-    }
-    /**
-     * @param array <string, string> $columns
-     *
-     * @return string
-     * @throws \LogicException
-     */
-    public function getUtilCachedUntilExpires(array $columns): string
-    {
-        $replacements = $this->getReplacements();
-        $where = [];
-        // I.E. "apiName" = 'accountBalance'
-        foreach ($columns as $key => $value) {
-            $where[] = sprintf('"%1$s" = \'%2$s\'', $key, $value);
-        }
-        $replacements['{whereClause}'] = implode(' AND ', $where);
-        /** @noinspection SqlResolve */
-        $sql = 'SELECT "expires" FROM "{schema}"."{tablePrefix}utilCachedUntil" WHERE {whereClause};';
+        $sql = /** @lang text */
+            'INSERT INTO "{schema}"."{tablePrefix}{tableName}" ("{columnNames}") VALUES {rowset} ON DUPLICATE KEY UPDATE {updates}';
         return str_replace(array_keys($replacements), array_values($replacements), $sql);
     }
     /**

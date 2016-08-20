@@ -146,14 +146,10 @@ trait CommonEveApiTrait
      */
     protected function cachedUntilIsNotExpired(EveApiReadWriteInterface $data): bool
     {
-        $columns = [
-            'accountKey' => $data->hasEveApiArgument('accountKey') ? $data->getEveApiArgument('accountKey') : '0',
-            'apiName' => $data->getEveApiName(),
-            'ownerID' => $this->extractOwnerID($data->getEveApiArguments()),
-            'sectionName' => $data->getEveApiSectionName()
-        ];
         $sql = $this->getCsq()
-            ->getUtilCachedUntilExpires($columns);
+            ->getUtilCachedUntilExpires($data->hasEveApiArgument('accountKey') ? $data->getEveApiArgument('accountKey') : '0',
+                $data->getEveApiName(),
+                $this->extractOwnerID($data->getEveApiArguments()));
         $this->getYem()
             ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
         try {
