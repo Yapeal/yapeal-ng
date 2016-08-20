@@ -35,20 +35,20 @@ declare(strict_types = 1);
 namespace Yapeal\Cli;
 
 use Symfony\Component\Console\Input\InputOption;
-use Yapeal\Configuration\Wiring;
+use Yapeal\Configuration\ConfigFileProcessingTrait;
 use Yapeal\Container\ContainerInterface;
 
 /** @noinspection PhpUnnecessaryFullyQualifiedNameInspection */
 /**
  * Trait ConfigFileTrait.
  *
- * @method \FilePathNormalizer\FilePathNormalizerInterface getFpn()
  * @method $this addOption(string $name, $shortcut = null, int $mode = null, string $description = '', $default = null)
  */
 trait ConfigFileTrait
 {
+    use ConfigFileProcessingTrait;
     /**
-     *
+     * @return void
      */
     protected function addConfigFileOption()
     {
@@ -61,28 +61,25 @@ trait ConfigFileTrait
      *
      * NOTE: All settings from this configuration file overwrite any existing values.
      *
-     * @param string             $fileName
-     * @param ContainerInterface $dic
+     * @param string             $pathFile Path and file name of config file to
+     *                                     be processed.
+     * @param ContainerInterface $dic      Instance of Container that will be
+     *                                     updated.
      *
+     * @return void
      * @throws \DomainException
      * @throws \Yapeal\Exception\YapealException
      */
-    protected function processConfigFile(string $fileName, ContainerInterface $dic)
+    protected function processConfigFile(string $pathFile, ContainerInterface $dic)
     {
-        $fileName = trim($fileName);
-        if ('' === $fileName) {
+        $pathFile = trim($pathFile);
+        if ('' === $pathFile) {
             return;
         }
-        $fpn = $this->getFpn();
-        $fileName = $fpn->normalizeFile($fileName, $fpn::ABSOLUTE_ALLOWED | $fpn::WRAPPER_DISABLED);
-        // Silently ignore the file if can't find it.
-        if (!is_file($fileName) || !is_readable($fileName)) {
-            return;
-        }
-        $settings = (new Wiring($dic))->parserConfigFile($fileName);
+        $settings = $this->doSubstitutions($this->parserConfigFile($pathFile), $dic);
         if (0 !== count($settings)) {
-            foreach ($settings as $key => $setting) {
-                $dic[$key] = $setting;
+            foreach ($settings as $key => $value) {
+                $dic[$key] = $value;
             }
         }
     }
