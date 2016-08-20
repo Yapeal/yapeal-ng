@@ -46,7 +46,7 @@ use Yapeal\DicAwareInterface;
 use Yapeal\Event\YEMAwareInterface;
 use Yapeal\Event\YEMAwareTrait;
 use Yapeal\Exception\YapealDatabaseException;
-use Yapeal\FileSystem\CommonFileHandlingTrait;
+use Yapeal\FileSystem\SafeFileHandlingTrait;
 use Yapeal\Log\Logger;
 use Yapeal\Sql\SqlSubsTrait;
 
@@ -55,7 +55,7 @@ use Yapeal\Sql\SqlSubsTrait;
  */
 abstract class AbstractSchemaCommon extends Command implements YEMAwareInterface, DicAwareInterface
 {
-    use CommonFileHandlingTrait, CommonToolsTrait, ConfigFileTrait, SqlSubsTrait, VerbosityToStrategyTrait, YEMAwareTrait;
+    use SafeFileHandlingTrait, CommonToolsTrait, ConfigFileTrait, SqlSubsTrait, VerbosityToStrategyTrait, YEMAwareTrait;
     /**
      * Sets the help message and all the common options used by the Database:* commands.
      *

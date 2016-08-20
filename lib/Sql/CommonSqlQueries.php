@@ -37,7 +37,7 @@ namespace Yapeal\Sql;
 use Yapeal\Container\ContainerInterface;
 use Yapeal\DicAwareInterface;
 use Yapeal\DicAwareTrait;
-use Yapeal\FileSystem\CommonFileHandlingTrait;
+use Yapeal\FileSystem\SafeFileHandlingTrait;
 
 /**
  * Class CommonSqlQueries
@@ -64,7 +64,7 @@ use Yapeal\FileSystem\CommonFileHandlingTrait;
  */
 class CommonSqlQueries implements DicAwareInterface
 {
-    use CommonFileHandlingTrait, DicAwareTrait, SqlSubsTrait;
+    use SafeFileHandlingTrait, DicAwareTrait, SqlSubsTrait;
     /**
      * @param ContainerInterface $dic
      *
@@ -145,9 +145,9 @@ class CommonSqlQueries implements DicAwareInterface
         foreach ($columns as $key => $value) {
             $where[] = sprintf('"%1$s" = \'%2$s\'', $key, $value);
         }
-        $replacements['{where}'] = implode(' AND ', $where);
+        $replacements['{whereClause}'] = implode(' AND ', $where);
         /** @noinspection SqlResolve */
-        $sql = 'SELECT "expires" FROM "{schema}"."{tablePrefix}utilCachedUntil" WHERE {WHERE};';
+        $sql = 'SELECT "expires" FROM "{schema}"."{tablePrefix}utilCachedUntil" WHERE {whereClause};';
         return str_replace(array_keys($replacements), array_values($replacements), $sql);
     }
     /**

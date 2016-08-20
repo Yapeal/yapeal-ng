@@ -45,7 +45,7 @@ use Yapeal\Log\Logger;
  */
 class CachePreserver implements EveApiPreserverInterface
 {
-    use CommonFileHandlingTrait, EveApiEventEmitterTrait;
+    use SafeFileHandlingTrait, EveApiEventEmitterTrait;
     /**
      * @param string|null $cachePath
      * @param bool        $preserve
@@ -87,7 +87,7 @@ class CachePreserver implements EveApiPreserverInterface
             return $event->setHandledSufficiently();
         }
         // Insures retriever never see partly written file by deleting old file and using temp file for writing.
-        if (false === $this->safeFileWrite($xml, $cacheFile)) {
+        if (false === $this->safeFileWrite($cacheFile, $xml)) {
             return $event;
         }
         return $event->setHandledSufficiently();

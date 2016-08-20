@@ -46,7 +46,7 @@ use Yapeal\Xml\EveApiReadWriteInterface;
  */
 class CacheRetriever implements EveApiRetrieverInterface
 {
-    use CommonFileHandlingTrait, EveApiEventEmitterTrait;
+    use SafeFileHandlingTrait, EveApiEventEmitterTrait;
     /**
      * @param string|null $cachePath
      *

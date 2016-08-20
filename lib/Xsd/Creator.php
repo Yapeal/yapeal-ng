@@ -110,7 +110,7 @@ class Creator
         }
         $contents = $this->getTidy()
             ->repairString($contents);
-        if (false === $this->safeFileWrite($contents, $outputFile)) {
+        if (false === $this->safeFileWrite($outputFile, $contents)) {
             $yem->triggerLogEvent($eventName,
                 Logger::WARNING,
                 $this->getFailedToWriteFileMessage($data, $eventName, $outputFile));

@@ -37,7 +37,7 @@ namespace Yapeal\Cli\EveApi;
 use Twig_Environment;
 use Yapeal\Event\EveApiEventEmitterTrait;
 use Yapeal\Exception\YapealFileSystemException;
-use Yapeal\FileSystem\CommonFileHandlingTrait;
+use Yapeal\FileSystem\SafeFileHandlingTrait;
 use Yapeal\FileSystem\RelativeFileSearchTrait;
 use Yapeal\Log\Logger;
 use Yapeal\Xml\EveApiReadWriteInterface;
@@ -47,7 +47,7 @@ use Yapeal\Xml\EveApiReadWriteInterface;
  */
 trait EveApiCreatorTrait
 {
-    use CommonFileHandlingTrait, EveApiEventEmitterTrait, RelativeFileSearchTrait;
+    use SafeFileHandlingTrait, EveApiEventEmitterTrait, RelativeFileSearchTrait;
     /**
      * Getter for $overwrite.
      *
