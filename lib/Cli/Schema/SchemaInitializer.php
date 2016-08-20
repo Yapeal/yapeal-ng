@@ -173,14 +173,12 @@ HELP;
      * First custom tables sql file found is returned.
      *
      * @param string $path
-     * @param string $platformExt
      * @param array  $fileList
+     * @param string $platformExt
      *
      * @return array
-     * @throws \LogicException
-     * @throws \Yapeal\Exception\YapealFileSystemException
      */
-    private function addCustomFile(string $path, string $platformExt, array $fileList): array
+    private function addCustomFile(string $path, array $fileList, string $platformExt): array
     {
         $dic = $this->getDic();
         $fileNames = '%1$sCreateCustomTables,%2$sconfig/CreateCustomTables';
@@ -193,11 +191,8 @@ HELP;
         // First one found wins.
         foreach ([$platformExt, '.sql'] as $ext) {
             foreach ($customFiles as $keyName) {
-                if (is_readable($keyName . $ext) && is_file($keyName . $ext)) {
-                    $contents = $this->safeFileRead($keyName . $ext);
-                    if (false === $contents) {
-                        continue;
-                    }
+                $contents = $this->safeFileRead($keyName . $ext);
+                if (false !== $contents) {
                     $fileList['Custom'][$keyName] = $contents;
                     break 2;
                 }
@@ -232,7 +227,7 @@ HELP;
         // First find any sql files with platform extension.
         $fileList = $this->getSectionsFileList($path, $fileList, $platformExt);
         $fileList = $this->prependDropSchema($path, $fileList, $platformExt);
-        $fileList = $this->addCustomFile($path, $platformExt, $fileList);
+        $fileList = $this->addCustomFile($path, $fileList, $platformExt);
         return $fileList;
     }
     /**
@@ -288,11 +283,8 @@ HELP;
         // Add drop database file if requested and exists.
         $keyName = $path . 'Schema/DropSchema';
         foreach ([$platformExt, '.sql'] as $ext) {
-            if (is_readable($keyName . $ext) && is_file($keyName . $ext)) {
                 $contents = $this->safeFileRead($keyName . $ext);
-                if (false === $contents) {
-                    continue;
-                }
+            if (false !== $contents) {
                 if (array_key_exists('Schema', $fileList)) {
                     $schema = array_reverse($fileList['Schema'], true);
                     $schema[$keyName] = $contents;
@@ -303,8 +295,8 @@ HELP;
                     $fileList['Schema'][$keyName] = $contents;
                     $fileList = array_reverse($fileList, true);
                 }
+                }
             }
-        }
         return $fileList;
     }
     /**
