@@ -59,6 +59,7 @@ trait SqlSubsTrait
         $replacements = array_reverse($replacements);
         $replacements["\n)"] = ')';
         $replacements["\n "] = ' ';
+        $replacements["\n    "] = ' ';
         $replacements["\r\n"] = "\n";
         $replacements = array_reverse($replacements);
         // Normalize line ends and change pretty multiple lines sql and comments into single line ones
