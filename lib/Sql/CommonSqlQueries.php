@@ -58,6 +58,7 @@ use Yapeal\FileSystem\SafeFileHandlingTrait;
  * @method string getDeleteFromTableWithOwnerID($tableName, $ownerID)
  * @method string getDropAddOrModifyColumnProcedure()
  * @method string getMemberCorporationIDsExcludingAccountCorporations()
+ * @method string getUpsert($tableName, $columnNameList, $rowCount)
  * @method string getUtilCachedUntilExpires($accountKey, $apiName, $ownerID)
  * @method string getUtilLatestDatabaseVersion()
  * @method string getUtilLatestDatabaseVersionUpdate()
@@ -90,13 +91,10 @@ class CommonSqlQueries implements DicAwareInterface
      */
     public function __call(string $name, array $arguments = [])
     {
-        $methodNames = explode(',', sprintf('%1$s%2$s,%1$s', $name, $this->platform));
-        foreach ($methodNames as $methodName) {
-            if (method_exists($this, $methodName)) {
-                $sql = call_user_func_array([$this, $methodName], $arguments);
-                if (false === $sql) {
-                    continue;
-                }
+        $methodName = $name . ucfirst($this->platform);
+        if (method_exists($this, $methodName)) {
+            $sql = call_user_func_array([$this, $methodName], $arguments);
+            if (false !== $sql) {
                 return $this->processSql($methodName, $sql, $arguments);
             }
         }
@@ -105,9 +103,6 @@ class CommonSqlQueries implements DicAwareInterface
         foreach ($fileNames as $fileName) {
             if ($this->isCachedSql($fileName)) {
                 return $this->getCachedSql($fileName);
-            }
-            if (!is_readable($fileName) || !is_file($fileName)) {
-                continue;
             }
             $sql = $this->safeFileRead($fileName);
             if (false === $sql) {
@@ -126,7 +121,7 @@ class CommonSqlQueries implements DicAwareInterface
      * @return string
      * @throws \LogicException
      */
-    public function getUpsert(string $tableName, array $columnNameList, int $rowCount): string
+    public function getUpsertMysql(string $tableName, array $columnNameList, int $rowCount): string
     {
         $replacements = $this->getReplacements();
         $replacements['{tableName}'] = $tableName;
