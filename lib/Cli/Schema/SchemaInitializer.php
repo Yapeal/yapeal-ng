@@ -177,6 +177,7 @@ HELP;
      * @param string $platformExt
      *
      * @return array
+     * @throws \LogicException
      */
     private function addCustomFile(string $path, array $fileList, string $platformExt): array
     {
@@ -233,12 +234,11 @@ HELP;
     /**
      * @param string $path
      * @param array  $fileList
-     * @param string $ext
+     * @param string $platformExt
      *
      * @return array
-     * @throws \Yapeal\Exception\YapealFileSystemException
      */
-    private function getSectionsFileList(string $path, array $fileList, string $ext = '.sql'): array
+    private function getSectionsFileList(string $path, array $fileList, string $platformExt): array
     {
         $fpn = $this->getFpn();
         $sections = ['Schema', 'Util', 'Account', 'Api', 'Char', 'Corp', 'Eve', 'Map', 'Server'];
@@ -249,14 +249,14 @@ HELP;
                     $baseName = $fileInfo->getBasename();
                     $firstDot = strpos($baseName, '.');
                     $isSql = $firstDot === strpos($baseName, '.sql');
-                    $isPlatform = $firstDot === strpos($baseName, $ext);
+                    $isPlatform = $firstDot === strpos($baseName, $platformExt);
                     $baseName = substr($baseName, 0, $firstDot);
                     $keyName = $fpn->normalizePath($fileInfo->getPath()) . $baseName;
                     $notSet = !array_key_exists($section, $fileList)
                         || !array_key_exists($keyName, $fileList[$section])
                         || false === $fileList[$section][$keyName];
                     if ($isPlatform) {
-                        $fileList[$section][$keyName] = $this->safeFileRead($keyName . $ext);
+                        $fileList[$section][$keyName] = $this->safeFileRead($keyName . $platformExt);
                     } elseif ($isSql && $notSet) {
                         $fileList[$section][$keyName] = $this->safeFileRead($keyName . '.sql');
                     }
@@ -283,7 +283,7 @@ HELP;
         // Add drop database file if requested and exists.
         $keyName = $path . 'Schema/DropSchema';
         foreach ([$platformExt, '.sql'] as $ext) {
-                $contents = $this->safeFileRead($keyName . $ext);
+            $contents = $this->safeFileRead($keyName . $ext);
             if (false !== $contents) {
                 if (array_key_exists('Schema', $fileList)) {
                     $schema = array_reverse($fileList['Schema'], true);
@@ -295,8 +295,8 @@ HELP;
                     $fileList['Schema'][$keyName] = $contents;
                     $fileList = array_reverse($fileList, true);
                 }
-                }
             }
+        }
         return $fileList;
     }
     /**
