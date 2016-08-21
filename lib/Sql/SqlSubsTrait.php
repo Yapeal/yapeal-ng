@@ -53,13 +53,13 @@ trait SqlSubsTrait
      */
     protected function getCleanedUpSql(string $sql, array $replacements): string
     {
+        // Remove multi-space indents.
         while (false !== strpos($sql, "\n  ")) {
             $sql = str_replace("\n  ", "\n ", $sql);
         }
         $replacements = array_reverse($replacements);
         $replacements["\n)"] = ')';
         $replacements["\n "] = ' ';
-        $replacements["\n    "] = ' ';
         $replacements["\r\n"] = "\n";
         $replacements = array_reverse($replacements);
         // Normalize line ends and change pretty multiple lines sql and comments into single line ones
@@ -94,6 +94,9 @@ trait SqlSubsTrait
     {
         $keys = $dic->keys();
         $platform = '.' . $dic['Yapeal.Sql.platform'];
+        /**
+         * @var array $filteredKeys
+         */
         $filteredKeys = array_filter($keys,
             function ($key) use ($platform) {
                 $classes = ['Yapeal.Sql.CommonQueries', 'Yapeal.Sql.Connection', 'Yapeal.Sql.Creator'];
