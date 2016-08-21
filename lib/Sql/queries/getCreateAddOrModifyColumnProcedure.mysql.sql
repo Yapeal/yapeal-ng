@@ -15,22 +15,16 @@ CREATE PROCEDURE "{schema}"."AddOrModifyColumn"(
  AND "TABLE_NAME" COLLATE utf8_unicode_ci = param_table_name
  AND "table_schema" COLLATE utf8_unicode_ci = param_database_name)
  THEN
- /* Create the full statement to execute */
  SET @StatementToExecute = concat('ALTER TABLE "', param_database_name, '"."', param_table_name,
- '" ADD COLUMN "', param_column_name, '" ', param_column_details)$$
- /* Prepare and execute the statement that was built */
- PREPARE DynamicStatement FROM @StatementToExecute$$
- EXECUTE DynamicStatement$$
- /* Cleanup the prepared statement */
- DEALLOCATE PREPARE DynamicStatement$$
+ '" ADD COLUMN "', param_column_name, '" ', param_column_details){semiColon}
+ PREPARE DynamicStatement FROM @StatementToExecute{semiColon}
+ EXECUTE DynamicStatement{semiColon}
+ DEALLOCATE PREPARE DynamicStatement{semiColon}
  ELSE
- /* Create the full statement to execute */
  SET @StatementToExecute = concat('ALTER TABLE "', param_database_name, '"."', param_table_name,
- '" MODIFY COLUMN "', param_column_name, '" ', param_column_details)$$
- /* Prepare and execute the statement that was built */
- PREPARE DynamicStatement FROM @StatementToExecute$$
- EXECUTE DynamicStatement$$
- /* Cleanup the prepared statement */
- DEALLOCATE PREPARE DynamicStatement$$
- END IF$$
+ '" MODIFY COLUMN "', param_column_name, '" ', param_column_details){semiColon}
+ PREPARE DynamicStatement FROM @StatementToExecute{semiColon}
+ EXECUTE DynamicStatement{semiColon}
+ DEALLOCATE PREPARE DynamicStatement{semiColon}
+ END IF{semiColon}
  END;
