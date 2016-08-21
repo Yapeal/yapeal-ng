@@ -34,6 +34,8 @@ declare(strict_types = 1);
  */
 namespace Yapeal\EveApi\Corp;
 
+use Yapeal\EveApi\ActiveTrait;
+use Yapeal\EveApi\CommonEveApiTrait;
 use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
 use Yapeal\Xml\EveApiReadWriteInterface;
@@ -41,9 +43,9 @@ use Yapeal\Xml\EveApiReadWriteInterface;
 /**
  * Class CorporationSheet.
  */
-class CorporationSheet extends CorpSection
+class CorporationSheet
 {
-    use PreserverTrait;
+    use ActiveTrait, CommonEveApiTrait, PreserverTrait;
 
     /** @noinspection MagicMethodsValidityInspection */
     /**
@@ -66,6 +68,7 @@ class CorporationSheet extends CorpSection
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
+     * @throws \Yapeal\Exception\YapealDatabaseException
      */
     protected function preserverToCorporationSheet(EveApiReadWriteInterface $data)
     {
@@ -107,6 +110,7 @@ class CorporationSheet extends CorpSection
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
+     * @throws \Yapeal\Exception\YapealDatabaseException
      */
     protected function preserverToDivisions(EveApiReadWriteInterface $data)
     {
@@ -134,6 +138,7 @@ class CorporationSheet extends CorpSection
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
+     * @throws \Yapeal\Exception\YapealDatabaseException
      */
     protected function preserverToLogo(EveApiReadWriteInterface $data)
     {
@@ -166,6 +171,7 @@ class CorporationSheet extends CorpSection
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
+     * @throws \Yapeal\Exception\YapealDatabaseException
      */
     protected function preserverToWalletDivisions(EveApiReadWriteInterface $data)
     {
@@ -185,5 +191,53 @@ class CorporationSheet extends CorpSection
         $xPath = '//walletDivisions/row';
         $elements = (new \SimpleXMLElement($data->getEveApiXml()))->xpath($xPath);
         $this->attributePreserveData($elements, $columnDefaults, $tableName);
+    }
+    /**
+     * Special override to work around bug in Eve API server when including both KeyID and corporationID.
+     *
+     * @param EveApiReadWriteInterface $data
+     *
+     * @return bool
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
+     */
+    protected function processEvents(EveApiReadWriteInterface $data): bool
+    {
+        $corpID = 0;
+        $eventSuffixes = ['retrieve', 'transform', 'validate', 'preserve'];
+        foreach ($eventSuffixes as $eventSuffix) {
+            if ('retrieve' === $eventSuffix) {
+                $corp = $data->getEveApiArguments();
+                $corpID = $corp['corporationID'];
+                // Can NOT include corporationID or only get public info.
+                if (array_key_exists('keyID', $corp)) {
+                    unset($corp['corporationID']);
+                    $data->setEveApiArguments($corp);
+                }
+            }
+            if (false === $this->emitEvents($data, $eventSuffix)) {
+                return false;
+            }
+            if ('retrieve' === $eventSuffix) {
+                $data->addEveApiArgument('corporationID', $corpID);
+            }
+            if (false === $data->getEveApiXml()) {
+                if ($data->hasEveApiArgument('accountKey') && '10000' === $data->getEveApiArgument('accountKey')
+                    && 'corp' === strtolower($data->getEveApiSectionName())
+                ) {
+                    $mess = 'No faction warfare account data in';
+                    $this->getYem()
+                        ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $this->createEveApiMessage($mess, $data));
+                    return false;
+                }
+                $this->getYem()
+                    ->triggerLogEvent('Yapeal.Log.log',
+                        Logger::INFO,
+                        $this->getEmptyXmlDataMessage($data, $eventSuffix));
+                return false;
+            }
+        }
+        return true;
     }
 }
