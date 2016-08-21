@@ -46,7 +46,6 @@ use Yapeal\DicAwareInterface;
 use Yapeal\Event\YEMAwareInterface;
 use Yapeal\Event\YEMAwareTrait;
 use Yapeal\Exception\YapealDatabaseException;
-use Yapeal\FileSystem\SafeFileHandlingTrait;
 use Yapeal\Log\Logger;
 use Yapeal\Sql\SqlSubsTrait;
 
@@ -55,7 +54,7 @@ use Yapeal\Sql\SqlSubsTrait;
  */
 abstract class AbstractSchemaCommon extends Command implements YEMAwareInterface, DicAwareInterface
 {
-    use SafeFileHandlingTrait, CommonToolsTrait, ConfigFileTrait, SqlSubsTrait, VerbosityToStrategyTrait, YEMAwareTrait;
+    use CommonToolsTrait, ConfigFileTrait, SqlSubsTrait, VerbosityToStrategyTrait, YEMAwareTrait;
     /**
      * Sets the help message and all the common options used by the Database:* commands.
      *
@@ -145,6 +144,9 @@ abstract class AbstractSchemaCommon extends Command implements YEMAwareInterface
         }
         foreach ($statements as $statement => $sql) {
             try {
+                // Last minute replacement for procedures that has to be done
+                // here so as not to break statements.
+                $sql = str_replace('{semiColon}', ';', $sql);
                 $pdo->exec($sql);
                 if (null !== $progress) {
                     $progress->setMessage('<comment>executing</comment>');
@@ -156,12 +158,15 @@ abstract class AbstractSchemaCommon extends Command implements YEMAwareInterface
                     $progress->finish();
                     $output->writeln('');
                 }
-                $mess = $sql . PHP_EOL;
-                $mess .= sprintf('Sql failed in %1$s on statement %2$s with (%3$s) %4$s',
+                $mess = '<comment>' . $sql . '</comment>>';
+                $yem->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, strip_tags($mess));
+                $output->writeln($mess);
+                $mess = sprintf('Sql failed in %1$s on statement %2$s with (%3$s) %4$s',
                     $fileName,
                     $statement,
                     $exc->getCode(),
                     $exc->getMessage());
+                $yem->triggerLogEvent('Yapeal.Log.log', Logger::CRITICAL, $mess);
                 throw new YapealDatabaseException($mess, 2);
             }
         }
