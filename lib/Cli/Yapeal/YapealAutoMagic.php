@@ -34,7 +34,6 @@ declare(strict_types = 1);
  */
 namespace Yapeal\Cli\Yapeal;
 
-use FilePathNormalizer\FilePathNormalizerTrait;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -52,7 +51,7 @@ use Yapeal\Yapeal;
  */
 class YapealAutoMagic extends Command implements YEMAwareInterface
 {
-    use CommonToolsTrait, ConfigFileTrait, EveApiEventEmitterTrait, FilePathNormalizerTrait, VerbosityToStrategyTrait;
+    use CommonToolsTrait, ConfigFileTrait, EveApiEventEmitterTrait, VerbosityToStrategyTrait;
     /**
      * @param string|null        $name
      * @param ContainerInterface $dic
