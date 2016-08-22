@@ -74,6 +74,11 @@ trait ActiveTrait
                     ->getActiveRegisteredCharacters($this->getMask());
                 break;
             case 'corp':
+                if ('StarbaseDetails' === $data->getEveApiName()) {
+                    $sql = $this->getCsq()
+                        ->getActiveStarbaseTowers($this->getMask(), $data->getEveApiArgument('corporationID'));
+                    break;
+                }
                 $sql = $this->getCsq()
                     ->getActiveRegisteredCorporations($this->getMask());
                 break;
