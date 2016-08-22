@@ -53,6 +53,7 @@ use Yapeal\FileSystem\SafeFileHandlingTrait;
  * @method string getApiLock($hash)
  * @method string getApiLockRelease($hash)
  * @method string getCreateAddOrModifyColumnProcedure()
+ * @method string getDeleteFromStarbaseDetailTables($tableName, $ownerID, $starbaseID)
  * @method string getDeleteFromTable($tableName)
  * @method string getDeleteFromTableWithKeyID($tableName, $keyID)
  * @method string getDeleteFromTableWithOwnerID($tableName, $ownerID)
