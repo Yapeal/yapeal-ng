@@ -55,7 +55,7 @@ interface DicAwareInterface
     /**
      * @param ContainerInterface $value
      *
-     * @return DicAwareInterface Fluent Interface.
+     * @return void
      */
     public function setDic(ContainerInterface $value);
 }

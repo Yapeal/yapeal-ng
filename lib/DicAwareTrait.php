@@ -70,12 +70,11 @@ trait DicAwareTrait
     /**
      * @param ContainerInterface $value
      *
-     * @return DicAwareInterface|self Fluent Interface.
+     * @return void
      */
     public function setDic(ContainerInterface $value)
     {
         $this->dic = $value;
-        return $this;
     }
     /**
      * @var ContainerInterface $dic
