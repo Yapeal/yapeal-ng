@@ -90,15 +90,6 @@ trait CommonEveApiTrait
             Logger::DEBUG,
             $this->getReceivedEventMessage($data, $eventName, __CLASS__));
         // If method doesn't exist still needs array with member for count but return '0' from extractOwnerID().
-        if (method_exists($this, 'getActive')) {
-            $active = $this->getActive($data);
-            if (0 === count($active)) {
-                $mess = 'No active owners found for';
-                $yem->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $this->createEveApiMessage($mess, $data));
-                $this->emitEvents($data, 'end');
-                return $event->setHandledSufficiently();
-            }
-        }
         $active = method_exists($this, 'getActive') ? $this->getActive($data) : [false];
         if (0 === count($active)) {
             $mess = 'No active owners found for';
@@ -330,7 +321,7 @@ trait CommonEveApiTrait
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
-    private function processEvents(EveApiReadWriteInterface $data): bool
+    protected function processEvents(EveApiReadWriteInterface $data): bool
     {
         $eventSuffixes = ['retrieve', 'transform', 'validate', 'preserve'];
         foreach ($eventSuffixes as $eventSuffix) {
