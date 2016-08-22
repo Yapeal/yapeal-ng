@@ -233,6 +233,39 @@ trait CommonEveApiTrait
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
+     */
+    protected function processEvents(EveApiReadWriteInterface $data): bool
+    {
+        $eventSuffixes = ['retrieve', 'transform', 'validate', 'preserve'];
+        foreach ($eventSuffixes as $eventSuffix) {
+            if (false === $this->emitEvents($data, $eventSuffix)) {
+                return false;
+            }
+            if (false === $data->getEveApiXml()) {
+                if ($data->hasEveApiArgument('accountKey') && '10000' === $data->getEveApiArgument('accountKey')
+                    && 'corp' === strtolower($data->getEveApiSectionName())
+                ) {
+                    $mess = 'No faction warfare account data in';
+                    $this->getYem()
+                        ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $this->createEveApiMessage($mess, $data));
+                    return false;
+                }
+                $this->getYem()
+                    ->triggerLogEvent('Yapeal.Log.log',
+                        Logger::INFO,
+                        $this->getEmptyXmlDataMessage($data, $eventSuffix));
+                return false;
+            }
+        }
+        return true;
+    }
+    /**
+     * @param EveApiReadWriteInterface $data
+     *
+     * @return bool
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
      * @throws \Yapeal\Exception\YapealDatabaseException
      */
     protected function releaseApiLock(EveApiReadWriteInterface $data): bool
@@ -313,37 +346,4 @@ trait CommonEveApiTrait
      * @var int $mask
      */
     protected $mask;
-    /**
-     * @param EveApiReadWriteInterface $data
-     *
-     * @return bool
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
-     */
-    protected function processEvents(EveApiReadWriteInterface $data): bool
-    {
-        $eventSuffixes = ['retrieve', 'transform', 'validate', 'preserve'];
-        foreach ($eventSuffixes as $eventSuffix) {
-            if (false === $this->emitEvents($data, $eventSuffix)) {
-                return false;
-            }
-            if (false === $data->getEveApiXml()) {
-                if ($data->hasEveApiArgument('accountKey') && '10000' === $data->getEveApiArgument('accountKey')
-                    && 'corp' === strtolower($data->getEveApiSectionName())
-                ) {
-                    $mess = 'No faction warfare account data in';
-                    $this->getYem()
-                        ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $this->createEveApiMessage($mess, $data));
-                    return false;
-                }
-                $this->getYem()
-                    ->triggerLogEvent('Yapeal.Log.log',
-                        Logger::INFO,
-                        $this->getEmptyXmlDataMessage($data, $eventSuffix));
-                return false;
-            }
-        }
-        return true;
-    }
 }
