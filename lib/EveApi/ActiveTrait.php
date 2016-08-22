@@ -70,6 +70,11 @@ trait ActiveTrait
                     ->getActiveRegisteredAccountStatus($this->getMask());
                 break;
             case 'char':
+                if ('MailBodies' === $data->getEveApiName()) {
+                    $sql = $this->getCsq()
+                        ->getActiveMailBodiesWithOwnerID($data->getEveApiArgument('characterID'));
+                    break;
+                }
                 $sql = $this->getCsq()
                     ->getActiveRegisteredCharacters($this->getMask());
                 break;
