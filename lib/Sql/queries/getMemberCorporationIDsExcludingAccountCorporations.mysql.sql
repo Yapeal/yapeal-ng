@@ -1,6 +1,5 @@
 -- Sql/queries/getMemberCorporationIDsExcludingAccountCorporations.mysql.sql
 -- version 20160810095509.555
--- noinspection SqlResolveForFile
 -- @formatter:off
 SELECT DISTINCT emc."corporationID"
  FROM "{schema}"."{tablePrefix}eveMemberCorporations" AS emc

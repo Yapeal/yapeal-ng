@@ -1,6 +1,5 @@
 -- Sql/Account/CreateAPIKeyInfo.sql
 -- version 20160627181619.973
--- noinspection SqlResolveForFile
 CREATE TABLE "{schema}"."{tablePrefix}accountAPIKeyInfo" (
     "accessMask" BIGINT(20) UNSIGNED NOT NULL,
     "expires"    DATETIME            NOT NULL DEFAULT '2038-01-19 03:14:07',
@@ -33,6 +32,6 @@ ALTER TABLE "{schema}"."{tablePrefix}accountKeyBridge"
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
- VALUES ('20160627181619.973')
- ON DUPLICATE KEY UPDATE "version" = VALUES("version");
+    VALUES ('20160627181619.973')
+    ON DUPLICATE KEY UPDATE "version" = VALUES("version");
 COMMIT;

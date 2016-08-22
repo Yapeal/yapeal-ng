@@ -19,7 +19,8 @@ CREATE TABLE "{schema}"."{tablePrefix}charWalletTransactions" (
     PRIMARY KEY ("ownerID", "transactionID")
 );
 START TRANSACTION;
+-- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
-VALUES ('20160629053501.276')
-ON DUPLICATE KEY UPDATE "version" = VALUES("version");
+    VALUES ('20160629053501.276')
+    ON DUPLICATE KEY UPDATE "version" = VALUES("version");
 COMMIT;

@@ -2,7 +2,8 @@
 -- version 20160629053437.987
 CREATE TABLE "{schema}"."{tablePrefix}corpMarketOrders" LIKE "{schema}"."{tablePrefix}charMarketOrders";
 START TRANSACTION;
+-- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
-VALUES ('20160629053437.987')
-ON DUPLICATE KEY UPDATE "version" = VALUES("version");
+    VALUES ('20160629053437.987')
+    ON DUPLICATE KEY UPDATE "version" = VALUES("version");
 COMMIT;

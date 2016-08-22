@@ -1,6 +1,5 @@
 -- Sql/queries/getActiveRegisteredAccountStatus.nysql.sql
 -- version 20160810093708.526
--- noinspection SqlResolveForFile
 -- @formatter:off
 SELECT urk."keyID",urk."vCode"
  FROM "{schema}"."{tablePrefix}utilRegisteredKey" AS urk

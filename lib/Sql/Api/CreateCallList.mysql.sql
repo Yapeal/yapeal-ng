@@ -15,7 +15,8 @@ CREATE TABLE "{schema}"."{tablePrefix}apiCalls" (
     PRIMARY KEY ("accessMask", "type")
 );
 START TRANSACTION;
+-- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
-VALUES ('20160629012109.659')
-ON DUPLICATE KEY UPDATE "version" = VALUES("version");
+    VALUES ('20160629012109.659')
+    ON DUPLICATE KEY UPDATE "version" = VALUES("version");
 COMMIT;

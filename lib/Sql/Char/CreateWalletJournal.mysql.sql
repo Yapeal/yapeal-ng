@@ -21,7 +21,8 @@ CREATE TABLE "{schema}"."{tablePrefix}charWalletJournal" (
     PRIMARY KEY ("ownerID", "refID")
 );
 START TRANSACTION;
+-- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
-VALUES ('20160629053500.153')
-ON DUPLICATE KEY UPDATE "version" = VALUES("version");
+    VALUES ('20160629053500.153')
+    ON DUPLICATE KEY UPDATE "version" = VALUES("version");
 COMMIT;

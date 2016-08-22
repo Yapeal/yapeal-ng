@@ -1,6 +1,5 @@
 -- Sql/Corp/CreateCorporationSheet.mysql.sql
 -- version 20160821184013.625
--- noinspection SqlResolveForFile
 CREATE TABLE "{database}"."{tablePrefix}corpCorporationSheet" (
     "allianceID"      BIGINT(20) UNSIGNED    NOT NULL,
     "allianceName"    CHAR(100)              NOT NULL,
@@ -47,6 +46,6 @@ CREATE TABLE "{database}"."{tablePrefix}corpWalletDivisions" (
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
- VALUES ('20160821184013.625')
- ON DUPLICATE KEY UPDATE "version" = VALUES("version");
+    VALUES ('20160821184013.625')
+    ON DUPLICATE KEY UPDATE "version" = VALUES("version");
 COMMIT;

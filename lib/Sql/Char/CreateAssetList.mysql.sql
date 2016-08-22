@@ -1,6 +1,5 @@
 -- Sql/Char/CreateAssetList.mysql.sql
 -- version 20160811033922.567
--- noinspection SqlResolveForFile
 CREATE TABLE "{schema}"."{tablePrefix}charAssetList" (
     "ownerID"     BIGINT(20) UNSIGNED  NOT NULL,
     "flag"        SMALLINT(5) UNSIGNED NOT NULL,
@@ -16,7 +15,8 @@ CREATE TABLE "{schema}"."{tablePrefix}charAssetList" (
     PRIMARY KEY ("ownerID", "itemID")
 );
 START TRANSACTION;
+-- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
-VALUES ('20160811033922.567')
-ON DUPLICATE KEY UPDATE "version" = VALUES("version");
+    VALUES ('20160811033922.567')
+    ON DUPLICATE KEY UPDATE "version" = VALUES("version");
 COMMIT;

@@ -5,6 +5,7 @@ CREATE TABLE "{schema}"."{tablePrefix}utilDatabaseVersion" (
     PRIMARY KEY ("version")
 );
 START TRANSACTION;
+-- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
-VALUES ('20160131212501.000');
+    VALUES ('20160131212501.000');
 COMMIT;

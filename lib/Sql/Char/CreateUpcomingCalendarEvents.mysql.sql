@@ -14,7 +14,8 @@ CREATE TABLE "{schema}"."{tablePrefix}charUpcomingCalendarEvents" (
     PRIMARY KEY ("ownerID", "eventID")
 );
 START TRANSACTION;
+-- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
-VALUES ('20160629053459.556')
-ON DUPLICATE KEY UPDATE "version" = VALUES("version");
+    VALUES ('20160629053459.556')
+    ON DUPLICATE KEY UPDATE "version" = VALUES("version");
 COMMIT;

@@ -1,6 +1,5 @@
 -- Sql/queries/getUtilCachedUntilExpires.mysql.sql
 -- version 20160820103727.377
--- noinspection SqlResolveForFile
 -- @formatter:off
 SELECT "expires"
  FROM "{schema}"."{tablePrefix}utilCachedUntil"

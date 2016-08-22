@@ -6,7 +6,8 @@ CREATE TABLE "{schema}"."{tablePrefix}eveErrorList" (
     PRIMARY KEY ("errorCode")
 );
 START TRANSACTION;
+-- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
-VALUES ('20160629053419.498')
-ON DUPLICATE KEY UPDATE "version" = VALUES("version");
+    VALUES ('20160629053419.498')
+    ON DUPLICATE KEY UPDATE "version" = VALUES("version");
 COMMIT;

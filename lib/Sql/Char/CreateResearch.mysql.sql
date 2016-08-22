@@ -10,7 +10,8 @@ CREATE TABLE "{schema}"."{tablePrefix}charResearch" (
     PRIMARY KEY ("ownerID", "agentID")
 );
 START TRANSACTION;
+-- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
-VALUES ('20160629053442.767')
-ON DUPLICATE KEY UPDATE "version" = VALUES("version");
+    VALUES ('20160629053442.767')
+    ON DUPLICATE KEY UPDATE "version" = VALUES("version");
 COMMIT;

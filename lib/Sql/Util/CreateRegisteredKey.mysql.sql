@@ -8,6 +8,7 @@ CREATE TABLE "{schema}"."{tablePrefix}utilRegisteredKey" (
     PRIMARY KEY ("keyID")
 );
 START TRANSACTION;
+-- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}utilRegisteredKey" ("activeAPIMask", "active", "keyID", "vCode")
-VALUES (8388608, 1, 1156, 'abc123');
+    VALUES (8388608, 1, 1156, 'abc123');
 COMMIT;

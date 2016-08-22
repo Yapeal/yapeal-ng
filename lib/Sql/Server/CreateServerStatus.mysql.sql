@@ -5,7 +5,8 @@ CREATE TABLE "{schema}"."{tablePrefix}serverServerStatus" (
     "serverOpen"    ENUM ('False', 'True') NOT NULL
 );
 START TRANSACTION;
+-- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
-VALUES ('20160629053443.301')
-ON DUPLICATE KEY UPDATE "version" = VALUES("version");
+    VALUES ('20160629053443.301')
+    ON DUPLICATE KEY UPDATE "version" = VALUES("version");
 COMMIT;

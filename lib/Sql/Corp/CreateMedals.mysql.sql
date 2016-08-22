@@ -10,7 +10,8 @@ CREATE TABLE "{schema}"."{tablePrefix}corpMedals" (
     PRIMARY KEY ("ownerID", "medalID")
 );
 START TRANSACTION;
+-- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
-VALUES ('20160629053439.047')
-ON DUPLICATE KEY UPDATE "version" = VALUES("version");
+    VALUES ('20160629053439.047')
+    ON DUPLICATE KEY UPDATE "version" = VALUES("version");
 COMMIT;

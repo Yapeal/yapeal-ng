@@ -1,6 +1,5 @@
 -- Sql/queries/getActiveRegisteredCharacters.mysql.sql
 -- version 20160810074302.901
--- noinspection SqlResolveForFile
 -- @formatter:off
 SELECT ac."characterID", urk."keyID", urk."vCode"
  FROM "{schema}"."{tablePrefix}accountKeyBridge" AS akb

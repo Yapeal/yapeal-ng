@@ -1,6 +1,5 @@
 -- Sql/queries/getCreateAddOrModifyColumnProcedure.mysql.sql
 -- version 20160810085257.100
--- noinspection SqlResolveForFile
 -- @formatter:off
 CREATE PROCEDURE "{schema}"."AddOrModifyColumn"(
  IN param_database_name  VARCHAR(100) CHARACTER SET utf8 COLLATE utf8_unicode_ci,

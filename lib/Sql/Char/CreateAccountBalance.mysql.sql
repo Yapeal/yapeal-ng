@@ -10,7 +10,8 @@ CREATE TABLE "{schema}"."{tablePrefix}charAccountBalance" (
 ALTER TABLE "{schema}"."{tablePrefix}charAccountBalance"
     ADD UNIQUE INDEX "{tablePrefix}AccountBalance1"  ("ownerID", "accountKey");
 START TRANSACTION;
+-- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
-VALUES ('20160629053410.987')
-ON DUPLICATE KEY UPDATE "version" = VALUES("version");
+    VALUES ('20160629053410.987')
+    ON DUPLICATE KEY UPDATE "version" = VALUES("version");
 COMMIT;

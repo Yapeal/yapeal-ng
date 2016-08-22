@@ -92,7 +92,8 @@ CREATE TABLE "{schema}"."{tablePrefix}charSkills" (
     PRIMARY KEY ("ownerID", "typeID")
 );
 START TRANSACTION;
+-- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
-VALUES ('20160629013856.361')
-ON DUPLICATE KEY UPDATE "version" = VALUES("version");
+    VALUES ('20160629013856.361')
+    ON DUPLICATE KEY UPDATE "version" = VALUES("version");
 COMMIT;

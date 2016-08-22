@@ -7,7 +7,8 @@ CREATE TABLE "{schema}"."{tablePrefix}charMailingLists" (
     PRIMARY KEY ("ownerID", "listID")
 );
 START TRANSACTION;
+-- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
-VALUES ('20160629053436.736')
-ON DUPLICATE KEY UPDATE "version" = VALUES("version");
+    VALUES ('20160629053436.736')
+    ON DUPLICATE KEY UPDATE "version" = VALUES("version");
 COMMIT;

@@ -13,7 +13,8 @@ CREATE TABLE "{schema}"."{tablePrefix}corpStarbaseList" (
     PRIMARY KEY ("ownerID", "itemID")
 );
 START TRANSACTION;
+-- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
-VALUES ('20160629053459.024')
-ON DUPLICATE KEY UPDATE "version" = VALUES("version");
+    VALUES ('20160629053459.024')
+    ON DUPLICATE KEY UPDATE "version" = VALUES("version");
 COMMIT;

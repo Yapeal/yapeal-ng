@@ -18,7 +18,8 @@ CREATE TABLE "{schema}"."{tablePrefix}corpContainerLog" (
     PRIMARY KEY ("ownerID", "logTime")
 );
 START TRANSACTION;
+-- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
-VALUES ('20160629053417.748')
-ON DUPLICATE KEY UPDATE "version" = VALUES("version");
+    VALUES ('20160629053417.748')
+    ON DUPLICATE KEY UPDATE "version" = VALUES("version");
 COMMIT;

@@ -1,6 +1,5 @@
 -- Sql/queries/getActiveStarbaseTowers.mysql.sql
 -- version 20160810094104.325
--- noinspection SqlResolveForFile
 -- @formatter:off
 SELECT sl."itemID",ac."corporationID",urk."keyID",urk."vCode"
  FROM "{schema}"."{tablePrefix}accountKeyBridge" AS akb

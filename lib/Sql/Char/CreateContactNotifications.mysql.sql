@@ -10,7 +10,8 @@ CREATE TABLE "{schema}"."{tablePrefix}charContactNotifications" (
     PRIMARY KEY ("ownerID", "notificationID")
 );
 START TRANSACTION;
+-- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
-VALUES ('20160629053417.257')
-ON DUPLICATE KEY UPDATE "version" = VALUES("version");
+    VALUES ('20160629053417.257')
+    ON DUPLICATE KEY UPDATE "version" = VALUES("version");
 COMMIT;
