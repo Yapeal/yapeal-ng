@@ -35,9 +35,9 @@ declare(strict_types = 1);
  */
 require_once __DIR__ . '/bootstrap.php';
 use Symfony\Component\Console\Application;
-use Yapeal\Cli\EveApi\EveApiCreator;
+use Yapeal\Cli\Developer\EveApi\EveApiCreator;
 use Yapeal\Cli\Network\NetworkCache;
-use Yapeal\Cli\Schema\SchemaInitializer;
+use Yapeal\Cli\Schema\SchemaCreator;
 use Yapeal\Cli\Schema\SchemaTimestamp;
 use Yapeal\Cli\Schema\SchemaUpdater;
 use Yapeal\Cli\Yapeal\YapealAutoMagic;
@@ -63,9 +63,9 @@ if (0 === $status && '' !== $gitVersion && $gitVersion !== $version) {
 }
 $application = new Application('Yapeal Console', $version);
 $application->addCommands([
-    new EveApiCreator('EveApi:Creator', $dic),
+    new EveApiCreator('Developer:EveApi:Creator', $dic),
     new NetworkCache('Network:Cache', $dic),
-    new SchemaInitializer('Schema:Init', $dic),
+    new SchemaCreator('Schema:Creator', $dic),
     new SchemaTimestamp('Schema:TimeStamp'),
     new SchemaUpdater('Schema:Update', $dic),
     new YapealAutoMagic('Yapeal:AutoMagic', $dic)

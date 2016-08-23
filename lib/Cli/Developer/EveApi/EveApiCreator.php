@@ -32,7 +32,7 @@ declare(strict_types = 1);
  * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
  * @author    Michael Cummings <mgcummings@yahoo.com>
  */
-namespace Yapeal\Cli\EveApi;
+namespace Yapeal\Cli\Developer\EveApi;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -115,15 +115,17 @@ class EveApiCreator extends Command implements YEMAwareInterface
     protected function configure()
     {
         $help = <<<'EOF'
-The <info>%command.full_name%</info> command retrieves the XML data from the Eve Api
-server and creates Yapeal Eve API Database class, xsd, and sql files for most API types.
+The <info>%command.name%</info> command is  used by Yapeal--ng developers to retrieve
+the XML data from the Eve Api server and creates Yapeal Eve API Database class,
+xsd, and sql files for most API types. Application developers will not
+generally find it useful.
 
-    <info>php %command.full_name% section_name api_name mask [<post>]...</info>
+    <info>php bin/yc %command.name% section_name api_name mask [<post>]...</info>
 
 EXAMPLES:
 Create Char/AccountBalance class, xsd, and sql files in their respective
 lib/{EveApi, Xsd, Sql}/Char/ directories.
-    <info>%command.name% char AccountBalance 1 "keyID=1156" "vCode=abc123"</info>
+    <info>bin/yc %command.name% char AccountBalance 1 "keyID=1156" "vCode=abc123"</info>
 
 EOF;
         $this->addConfigFileOption();

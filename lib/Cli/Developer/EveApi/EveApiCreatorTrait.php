@@ -32,7 +32,7 @@ declare(strict_types = 1);
  * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
  * @author    Michael Cummings <mgcummings@yahoo.com>
  */
-namespace Yapeal\Cli\EveApi;
+namespace Yapeal\Cli\Developer\EveApi;
 
 use Twig_Environment;
 use Yapeal\Event\EveApiEventEmitterTrait;

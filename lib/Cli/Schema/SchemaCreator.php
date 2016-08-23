@@ -1,7 +1,7 @@
 <?php
 declare(strict_types = 1);
 /**
- * Contains SchemaInitializer class.
+ * Contains SchemaCreator class.
  *
  * PHP version 7.0+
  *
@@ -44,9 +44,9 @@ use Yapeal\Event\YEMAwareTrait;
 use Yapeal\Log\Logger;
 
 /**
- * Class SchemaInitializer
+ * Class SchemaCreator
  */
-class SchemaInitializer extends AbstractSchemaCommon
+class SchemaCreator extends AbstractSchemaCommon
 {
     use YEMAwareTrait;
     /**
@@ -72,22 +72,28 @@ class SchemaInitializer extends AbstractSchemaCommon
     protected function configure()
     {
         $help = <<<'HELP'
-The <info>%command.full_name%</info> command is used to initialize (create) a new
- schema and tables to be used by Yapeal-ng. If you already have a
- config/yapeal.yaml file setup you can use the following:
-
-    <info>php %command.full_name%</info>
+The <info>%command.name%</info> command is used to create (initialize) a
+new schema and tables to be used by Yapeal-ng. If you already have a
+config/yapeal.yaml file setup you should be able to use the following:
+    <info>php bin/yc %command.name%</info>
+from the directory where it is installed. If you have required Yapeal-ng in
+your application with Composer you'll find it in the vendor/bin/yc directory.
 
 EXAMPLES:
+These examples assume you are in the base directory of your application where
+your composer.json file is found.
+
 To use a configuration file in a different location:
-    <info>%command.name% -c /my/very/special/config.yaml</info>
-
-<info>NOTE:</info>
-Only the Sql section of the configuration file will be used.
-
+    <info>./vendor/bin/yc %command.name% -c /my/very/special/config.yaml</info>
 You can also use the command before setting up a configuration file like so:
-    <info>%command.name% -o "localhost" -d "yapeal" -u "YapealUser" -p "secret"
+    <info>./vendor/bin/yc %command.name% -o "localhost" -d "yapeal-ng" -u "YapealUser" -p "secret" -l "mysql"</info>
 
+Windows users can use ./vendor/bin/yc.bat in place of ./vendor/bin/yc above.
+
+Finally you can use the <comment>VERY DANGEROUS</comment> '--dropSchema' option to also drop an
+exist schema and all it's tables and their data before re-creating everything.
+Make sure you have a good backup of your schema(database) before using this
+option.
 HELP;
         $this->addOptions($help);
         $desc = 'Drop existing schema(database) before re-creating.'

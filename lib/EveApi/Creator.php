@@ -34,7 +34,7 @@ declare(strict_types = 1);
  */
 namespace Yapeal\EveApi;
 
-use Yapeal\Cli\EveApi\EveApiCreatorTrait;
+use Yapeal\Cli\Developer\EveApi\EveApiCreatorTrait;
 use Yapeal\Event\EveApiEventInterface;
 use Yapeal\Event\MediatorInterface;
 use Yapeal\FileSystem\RelativeFileSearchTrait;
