@@ -71,7 +71,7 @@ class YapealAutoMagic extends Command implements YEMAwareInterface
      */
     protected function configure()
     {
-        $help = <<<'EOF'
+        $help = <<<'HELP'
 The <info>%command.full_name%</info> command executes the main autoMagic method
 of the Yapeal class. This is meant as a replace for the now deprecated
 bin/yapeal.php script used to start Yapeal from earlier versions.
@@ -83,7 +83,7 @@ Using with optional --configFile option to override matching existing settings
 from other normally processed configuration files.
     <info>%command.name% -c "path/to/my/special/config.yaml"</info>
 
-EOF;
+HELP;
         $this->addConfigFileOption();
         $this->setHelp($help);
     }
