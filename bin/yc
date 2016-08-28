@@ -41,6 +41,7 @@ use Yapeal\Cli\Schema\SchemaCreator;
 use Yapeal\Cli\Schema\SchemaTimestamp;
 use Yapeal\Cli\Schema\SchemaUpdater;
 use Yapeal\Cli\Yapeal\YapealAutoMagic;
+use Yapeal\Cli\Yapeal\YapealSetup;
 use Yapeal\Configuration\Wiring;
 use Yapeal\Container\Container;
 
@@ -68,7 +69,8 @@ $application->addCommands([
     new SchemaCreator('Schema:Creator', $dic),
     new SchemaTimestamp('Schema:TimeStamp'),
     new SchemaUpdater('Schema:Update', $dic),
-    new YapealAutoMagic('Yapeal:AutoMagic', $dic)
+    new YapealAutoMagic('Yapeal:AutoMagic', $dic),
+    new YapealSetup('Yapeal:Setup', $dic)
 ]);
 unset($dic, $gitVersion, $junk, $status, $version);
 return $application->run();
