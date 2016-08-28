@@ -34,6 +34,7 @@ declare(strict_types = 1);
  */
 namespace Yapeal\Configuration;
 
+use Yapeal\Cli\Yapeal\YamlConfigFile;
 use Yapeal\Container\ContainerInterface;
 use Yapeal\DicAwareInterface;
 use Yapeal\DicAwareTrait;
@@ -85,8 +86,8 @@ class Wiring implements DicAwareInterface
     /**
      * @return void
      * @throws \DomainException
+     * @throws \InvalidArgumentException
      * @throws \LogicException
-     * @throws \Yapeal\Exception\YapealException
      */
     protected function wireConfig()
     {
@@ -95,6 +96,11 @@ class Wiring implements DicAwareInterface
         // These two paths are critical to Yapeal-ng working and can't be overridden here.
         $dic['Yapeal.baseDir'] = $path;
         $dic['Yapeal.libDir'] = $path . 'lib/';
+        if (empty($dic['Yapeal.Config.Yaml'])) {
+            $dic['Yapeal.Config.Yaml'] = $dic->factory(function () use($dic) {
+                return new YamlConfigFile();
+            });
+        }
         $configFiles = [
             __DIR__ . '/yapeal_defaults.yaml',
             $path . 'config/yapeal.yaml'

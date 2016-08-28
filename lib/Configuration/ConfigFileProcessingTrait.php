@@ -34,10 +34,8 @@ declare(strict_types = 1);
  */
 namespace Yapeal\Configuration;
 
-use Symfony\Component\Yaml\Exception\ParseException;
-use Symfony\Component\Yaml\Parser;
+use Yapeal\Cli\Yapeal\YamlConfigFile;
 use Yapeal\Container\ContainerInterface;
-use Yapeal\Exception\YapealException;
 use Yapeal\FileSystem\SafeFileHandlingTrait;
 
 /**
@@ -124,36 +122,18 @@ trait ConfigFileProcessingTrait
      * @param array  $existing
      *
      * @return array
+     * @throws \LogicException
      * @throws \DomainException
-     * @throws \Yapeal\Exception\YapealException
      */
     protected function parserConfigFile(string $configFile, array $existing = []): array
     {
-        $yaml = $this->safeFileRead($configFile);
-        if (false === $yaml) {
+        /**
+         * @var YamlConfigFile $yaml
+         */
+        $yaml = $this->getDic()['Yapeal.Config.Yaml'];
+        $settings = $yaml->setPathFile($configFile)->read()->getSettings();
+        if (0 === count($settings)) {
             return $existing;
-        }
-        try {
-            /**
-             * @var \RecursiveIteratorIterator|\Traversable $rItIt
-             */
-            $rItIt = new \RecursiveIteratorIterator(new \RecursiveArrayIterator((new Parser())->parse($yaml,
-                true,
-                false)));
-        } catch (ParseException $exc) {
-            $mess = sprintf('Unable to parse the YAML configuration file %2$s. The error message was %1$s',
-                $exc->getMessage(),
-                $configFile);
-            throw new YapealException($mess, 0, $exc);
-        }
-        $settings = [];
-        foreach ($rItIt as $leafValue) {
-            $keys = [];
-            foreach (range(0, $rItIt->getDepth()) as $depth) {
-                $keys[] = $rItIt->getSubIterator($depth)
-                    ->key();
-            }
-            $settings[implode('.', $keys)] = $leafValue;
         }
         return array_replace($existing, $settings);
     }
