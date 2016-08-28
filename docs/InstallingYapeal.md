@@ -17,7 +17,7 @@ Make sure you are in the base directory of your project where your
 `composer.json` is and do:
 
 ```bash
-$ composer install -o yapeal/yapeal-ng
+$ composer require -o yapeal/yapeal-ng
 ```
 
 After composer finishes Yapeal-ng should be in
