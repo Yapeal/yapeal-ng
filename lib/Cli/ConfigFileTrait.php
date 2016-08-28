@@ -41,8 +41,6 @@ use Yapeal\Container\ContainerInterface;
 /** @noinspection PhpUnnecessaryFullyQualifiedNameInspection */
 /**
  * Trait ConfigFileTrait.
- *
- * @method $this addOption(string $name, $shortcut = null, int $mode = null, string $description = '', $default = null)
  */
 trait ConfigFileTrait
 {
