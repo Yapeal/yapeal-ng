@@ -44,7 +44,7 @@ trait DicAwareTrait
     /**
      * Smart getter that tries to get instance from parent first before failing.
      *
-     * @return ContainerInterface
+     * @return ContainerInterface|\ArrayAccess
      * @throws \LogicException
      */
     public function getDic(): ContainerInterface
