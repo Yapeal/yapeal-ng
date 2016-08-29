@@ -6,8 +6,8 @@ elementFormDefault="qualified">
     <xs:include schemaLocation="../common.xsd" />
     <xs:complexType name="resultType">
         <xs:sequence>
-            <xs:element type="eveIDType" name="allianceID" />
-            <xs:element type="eveNameType" name="allianceName" />
+            <xs:element type="eveIDType" name="allianceID" minOccurs="0"/>
+            <xs:element type="eveNameType" name="allianceName" minOccurs="0"/>
             <xs:element type="eveNameType" name="ancestry" />
             <xs:element type="eveIDType" name="ancestryID" />
             <xs:element type="eveISKType" name="balance" />
