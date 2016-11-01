@@ -8,7 +8,7 @@ CREATE TABLE "{schema}"."{tablePrefix}corpMemberMedals" (
     "ownerID"     BIGINT(20) UNSIGNED NOT NULL,
     "reason"      TEXT,
     "status"      CHAR(8)             NOT NULL,
-    PRIMARY KEY ("ownerID", "medalID")
+    PRIMARY KEY ("ownerID", "medalID", "characterID")
 );
 START TRANSACTION;
 -- @formatter:off

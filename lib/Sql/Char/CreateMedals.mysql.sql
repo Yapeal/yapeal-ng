@@ -19,7 +19,7 @@ CREATE TABLE "{schema}"."{tablePrefix}charOtherCorporations" (
     "reason"        TEXT,
     "status"        CHAR(8)             NOT NULL,
     "title"         CHAR(255) DEFAULT '',
-    PRIMARY KEY ("ownerID", "medalID")
+    PRIMARY KEY ("ownerID", "medalID", "corporationID")
 );
 START TRANSACTION;
 -- @formatter:off
