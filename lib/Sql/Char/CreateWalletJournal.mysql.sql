@@ -20,6 +20,11 @@ CREATE TABLE "{schema}"."{tablePrefix}charWalletJournal" (
     "taxReceiverID" BIGINT(20) UNSIGNED DEFAULT '0',
     PRIMARY KEY ("ownerID", "refID")
 );
+-- Used altered index name(s) since they get copied to corp table during create ... like ...
+ALTER TABLE "{schema}"."{tablePrefix}charWalletJournal"
+    ADD INDEX "WalletJournal1" ("ownerID", "argID1", "refID");
+ALTER TABLE "{schema}"."{tablePrefix}charWalletJournal"
+    ADD INDEX "WalletJournal2" ("ownerID", "refTypeID", "refID");
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")

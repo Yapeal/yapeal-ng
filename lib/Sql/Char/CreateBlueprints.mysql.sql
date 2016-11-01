@@ -13,6 +13,9 @@ CREATE TABLE "{schema}"."{tablePrefix}charBlueprints" (
     "typeName"           CHAR(100)           NOT NULL,
     PRIMARY KEY ("ownerID", "itemID")
 );
+-- Used altered index name(s) since they get copied to corp table during create ... like ...
+ALTER TABLE "{schema}"."{tablePrefix}charBlueprints"
+    ADD INDEX "Blueprints1" ("ownerID", "locationID");
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")

@@ -8,6 +8,12 @@ CREATE TABLE "{schema}"."{tablePrefix}mapSovereignty" (
     "solarSystemName" CHAR(100)           NOT NULL,
     PRIMARY KEY ("solarSystemID")
 );
+ALTER TABLE "{schema}"."{tablePrefix}mapSovereignty"
+    ADD INDEX "mapSovereignty1" ("corporationID", "solarSystemID");
+ALTER TABLE "{schema}"."{tablePrefix}mapSovereignty"
+    ADD INDEX "mapSovereignty2" ("allianceID", "corporationID");
+ALTER TABLE "{schema}"."{tablePrefix}mapSovereignty"
+    ADD INDEX "mapSovereignty3" ("allianceID", "solarSystemID", "corporationID");
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")

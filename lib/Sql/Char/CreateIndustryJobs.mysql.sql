@@ -32,6 +32,9 @@ CREATE TABLE "{schema}"."{tablePrefix}charIndustryJobs" (
     "timeInSeconds"        BIGINT(20) UNSIGNED NOT NULL,
     PRIMARY KEY ("ownerID", "jobID")
 );
+-- Used altered index name(s) since they get copied to corp table during create ... like ...
+ALTER TABLE "{schema}"."{tablePrefix}charIndustryJobs"
+    ADD INDEX "IndustryJobs1" ("ownerID", "stationID", "jobID");
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")

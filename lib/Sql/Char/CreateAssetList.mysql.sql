@@ -14,6 +14,11 @@ CREATE TABLE "{schema}"."{tablePrefix}charAssetList" (
     "typeID"      BIGINT(20) UNSIGNED  NOT NULL,
     PRIMARY KEY ("ownerID", "itemID")
 );
+-- Used altered index name(s) since they get copied to corp table during create ... like ...
+ALTER TABLE "{schema}"."{tablePrefix}charAssetList"
+    ADD INDEX "AssetList1" ("ownerID", "locationID", "itemID");
+ALTER TABLE "{schema}"."{tablePrefix}charAssetList"
+    ADD INDEX "AssetList2" ("ownerID", "typeID", "itemID");
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")

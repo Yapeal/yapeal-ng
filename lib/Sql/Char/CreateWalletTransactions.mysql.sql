@@ -18,6 +18,11 @@ CREATE TABLE "{schema}"."{tablePrefix}charWalletTransactions" (
     "typeName"             CHAR(100)                        NOT NULL,
     PRIMARY KEY ("ownerID", "transactionID")
 );
+-- Used altered index name(s) since they get copied to corp table during create ... like ...
+ALTER TABLE "{schema}"."{tablePrefix}charWalletTransactions"
+    ADD INDEX "WalletTransactions1" ("ownerID", "stationID", "transactionID");
+ALTER TABLE "{schema}"."{tablePrefix}charWalletTransactions"
+    ADD INDEX "WalletTransactions2" ("ownerID", "typeID", "transactionID");
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")

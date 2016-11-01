@@ -19,6 +19,11 @@ CREATE TABLE "{schema}"."{tablePrefix}charMarketOrders" (
     "volRemaining" BIGINT(20) UNSIGNED     NOT NULL,
     PRIMARY KEY ("ownerID", "orderID")
 );
+-- Used altered index name(s) since they get copied to corp table during create ... like ...
+ALTER TABLE "{schema}"."{tablePrefix}charMarketOrders"
+    ADD INDEX "MarketOrders1" ("ownerID", "stationID", "orderID");
+ALTER TABLE "{schema}"."{tablePrefix}charMarketOrders"
+    ADD INDEX "MarketOrders2" ("ownerID", "typeID", "orderID");
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")

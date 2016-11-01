@@ -16,16 +16,9 @@ CREATE TABLE "{schema}"."{tablePrefix}charAllianceContactList" (
     PRIMARY KEY ("ownerID", "contactID")
 );
 CREATE TABLE "{schema}"."{tablePrefix}charContactLabels" LIKE "{schema}"."{tablePrefix}charAllianceContactLabels";
-CREATE TABLE "{schema}"."{tablePrefix}charContactList" (
-    "contactID"     BIGINT(20) UNSIGNED NOT NULL,
-    "contactName"   CHAR(100)           NOT NULL,
-    "contactTypeID" BIGINT(20) UNSIGNED NOT NULL,
-    "inWatchlist"   CHAR(5)             NOT NULL,
-    "labelMask"     BIGINT(20) UNSIGNED NOT NULL,
-    "ownerID"       BIGINT(20) UNSIGNED NOT NULL,
-    "standing"      DECIMAL(5, 2)       NOT NULL,
-    PRIMARY KEY ("ownerID", "contactID")
-);
+CREATE TABLE "{schema}"."{tablePrefix}charContactList" LIKE "{schema}"."{tablePrefix}charAllianceContactList";
+ALTER TABLE "{schema}"."{tablePrefix}charContactList"
+    ADD COLUMN "inWatchlist" CHAR(5) NOT NULL AFTER "contactTypeID";
 CREATE TABLE "{schema}"."{tablePrefix}charCorporateContactLabels" LIKE "{schema}"."{tablePrefix}charAllianceContactLabels";
 CREATE TABLE "{schema}"."{tablePrefix}charCorporateContactList" LIKE "{schema}"."{tablePrefix}charAllianceContactList";
 START TRANSACTION;
