@@ -52,6 +52,7 @@ class SchemaTimestamp extends Command
      */
     public function __construct(string $name = null)
     {
+        $this->setDescription('Prints Yapeal style timestamp for the current time');
         parent::__construct($name);
     }
     /** @noinspection PhpMissingParentCallCommonInspection */
