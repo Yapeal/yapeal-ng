@@ -45,9 +45,6 @@ use Prophecy\Argument;
  * @method void during($method, array $params)
  * @method void shouldBe($value)
  * @method void shouldContain($value)
- * @method void shouldHaveKey($key)
- * @method void shouldHaveType($value)
- * @method void shouldImplement($interface)
  * @method void shouldNotEqual($value)
  * @method void shouldReturn($result)
  */
