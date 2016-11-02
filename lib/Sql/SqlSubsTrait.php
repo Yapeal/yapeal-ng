@@ -66,22 +66,20 @@ trait SqlSubsTrait
         // and do replacements.
         $sql = str_replace(array_keys($replacements), array_values($replacements), $sql);
         /**
-         * @var string[] $statements
+         * @var string[] $lines
          */
-        $statements = explode("\n", $sql);
+        $lines = explode("\n", $sql);
         // Filter out non-sql lines like comments and blank lines.
-        $statements = array_filter($statements,
-            function ($statement) {
-                /** @noinspection IfReturnReturnSimplificationInspection */
-                if (0 === strpos($statement, '-- ')
-                    || '' === trim($statement)
-                    || (0 === strpos($statement, '/* ') && 0 === strpos(strrev($statement), '/*'))
-                ) {
-                    return false;
-                }
-                return true;
+        $lines = array_filter($lines,
+            function ($line) {
+                $line = trim($line);
+                $nonSql = '' === $line
+                    || 0 === strpos($line, '--')
+                    || (0 === strpos($line, '/* ') && 0 === strpos(strrev($line), '/*'))
+                    || (0 === strpos($line, '/** ') && 0 === strpos(strrev($line), '/*'));
+                return !$nonSql;
             });
-        return implode("\n", $statements);
+        return implode("\n", $lines);
     }
     /**
      * Uses Sql section settings to make a filtered list of replacement pairs for SQL statements.
@@ -99,14 +97,13 @@ trait SqlSubsTrait
          */
         $filteredKeys = array_filter($keys,
             function ($key) use ($platform) {
-                $classes = ['Yapeal.Sql.CommonQueries', 'Yapeal.Sql.Connection', 'Yapeal.Sql.Creator'];
-                $isPlatform = false !== strpos($key, $platform);
-                $hasPlatforms = false !== strpos($key, 'Platforms.');
-                $isHandlers = false !== strpos($key, 'Handlers.');
-                if ($isHandlers || ($hasPlatforms && !$isPlatform)) {
+                if (0 !== strpos($key, 'Yapeal.Sql.')) {
                     return false;
                 }
-                return !(false === strpos($key, 'Yapeal.Sql.') || in_array($key, $classes, true));
+                $filtered = in_array($key, ['Yapeal.Sql.CommonQueries', 'Yapeal.Sql.Connection', 'Yapeal.Sql.Creator'], true)
+                    || false !== strpos($key, 'Handlers.')
+                    || (false !== strpos($key, 'Platforms.') && false === strpos($key, $platform));
+                return !$filtered;
             });
         $replacements = [];
         foreach ($filteredKeys as $key) {
