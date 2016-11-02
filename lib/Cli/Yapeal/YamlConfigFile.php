@@ -124,10 +124,13 @@ class YamlConfigFile
     }
     /**
      * @param array $value
+     *
+     * @return self
      */
-    public function setSettings(array $value)
+    public function setSettings(array $value): self
     {
         $this->settings = $value;
+        return $this;
     }
     /**
      * @param array      $array
