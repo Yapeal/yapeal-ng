@@ -140,7 +140,7 @@ trait PreserverTrait
         $maxRowCount = 1000;
         $this->lastColumnCount = 0;
         $this->lastRowCount = 0;
-        unset($this->PDOStatement);
+        unset($this->pdoStatement);
         if (0 === count($rows)) {
             return $this;
         }
@@ -172,7 +172,7 @@ trait PreserverTrait
             ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess);
         $isNotPrepared = $this->lastColumnCount !== count($columnNames)
             || $this->lastRowCount !== $rowCount
-            || null === $this->PDOStatement;
+            || null === $this->pdoStatement;
         if ($isNotPrepared) {
             $sql = $this->getCsq()
                 ->getUpsert($tableName, $columnNames, $rowCount);
@@ -186,7 +186,7 @@ trait PreserverTrait
             }
             $this->getYem()
                 ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess);
-            $this->PDOStatement = $this->getPdo()
+            $this->pdoStatement = $this->getPdo()
                 ->prepare($sql);
             $this->lastColumnCount = count($columnNames);
             $this->lastRowCount = $rowCount;
@@ -194,7 +194,7 @@ trait PreserverTrait
         $mess = substr(implode(',', $columns), 0, 256);
         $this->getYem()
             ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $mess);
-        $this->PDOStatement->execute($columns);
+        $this->pdoStatement->execute($columns);
         return $this;
     }
     /**
@@ -270,9 +270,9 @@ trait PreserverTrait
         return $this->preserve;
     }
     /**
-     * @var \PDOStatement $PDOStatement
+     * @var \PDOStatement $pdoStatement
      */
-    private $PDOStatement;
+    private $pdoStatement;
     /**
      * @var int $lastColumnCount
      */
