@@ -1,7 +1,7 @@
 <?php
 declare(strict_types = 1);
 /**
- * Contains class MockCommonToolsTrait.
+ * Contains class MockCommonTools.
  *
  * PHP version 7.0+
  *
@@ -38,9 +38,16 @@ use Yapeal\CommonToolsInterface;
 use Yapeal\CommonToolsTrait;
 
 /**
- * Class MockCommonToolsTrait.
+ * Class MockCommonTools.
  */
-class MockCommonToolsTrait implements CommonToolsInterface
+class MockCommonTools implements CommonToolsInterface
 {
     use CommonToolsTrait;
+    /**
+     * MockCommonTools constructor.
+     */
+    public function __construct()
+    {
+        // Dummy
+    }
 }

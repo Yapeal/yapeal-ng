@@ -39,6 +39,11 @@ namespace Spec\Yapeal;
  */
 class Invokable
 {
+    /**
+     * @param null $value
+     *
+     * @return \Spec\Yapeal\MockService
+     */
     public function __invoke($value = null)
     {
         $service = new MockService();

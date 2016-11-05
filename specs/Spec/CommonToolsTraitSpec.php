@@ -51,16 +51,27 @@ use Yapeal\Sql\CommonSqlQueries;
  */
 class CommonToolsTraitSpec extends ObjectBehavior
 {
+    /**
+     * @param \PhpSpec\Wrapper\Collaborator|\Yapeal\Container\ContainerInterface $dic
+     *
+     * @throws \LogicException
+     */
     public function it_should_let_you_get_back_same_dic_you_give_it(ContainerInterface $dic)
     {
         $this->setDic($dic);
         $this->getDic()
             ->shouldReturn($dic);
     }
+    /**
+     * @param \PhpSpec\Wrapper\Collaborator|\Yapeal\Sql\CommonSqlQueries $csq
+     */
     public function it_should_let_you_set_csq(CommonSqlQueries $csq)
     {
         $this->setCsq($csq);
     }
+    /**
+     * @param \PDO|\PhpSpec\Wrapper\Collaborator $pdo
+     */
     public function it_should_let_you_set_pdo(\PDO $pdo)
     {
         $this->setPdo($pdo);
@@ -73,6 +84,6 @@ class CommonToolsTraitSpec extends ObjectBehavior
     }
     public function let()
     {
-        $this->beAnInstanceOf('Spec\Yapeal\MockCommonToolsTrait');
+        $this->beAnInstanceOf('Spec\Yapeal\MockCommonTools');
     }
 }

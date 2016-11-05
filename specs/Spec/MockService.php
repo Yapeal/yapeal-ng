@@ -40,5 +40,8 @@ namespace Spec\Yapeal;
  */
 class MockService
 {
+    /**
+     * @var  $value
+     */
     public $value;
 }

@@ -39,6 +39,10 @@ namespace Spec\Yapeal;
  */
 class NonInvokable
 {
+    /**
+     * @param $a
+     * @param $b
+     */
     public function __call($a, $b)
     {
     }
