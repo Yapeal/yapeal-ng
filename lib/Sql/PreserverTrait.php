@@ -73,8 +73,7 @@ trait PreserverTrait
         EveApiEventInterface $event,
         string $eventName,
         MediatorInterface $yem
-    ): EveApiEventInterface
-    {
+    ): EveApiEventInterface {
         if (!$this->shouldPreserve()) {
             return $event;
         }
@@ -126,6 +125,15 @@ trait PreserverTrait
         return $this;
     }
     /**
+     * Used to process the most common attribute rowset style of API data.
+     *
+     * Most Eve APIs use a set of rowset tags containing row tags. Some of them nest additional rowsets inside of the
+     * rows like with the AssetList APIs where contents of hangers, ships, and other containers are done this way. A few
+     * of the APIs are made up of a collection of rowset elements instead. The top level rowset tags have columns, key,
+     * and name attributes. Each row tag inside of the rowset will have attributes with the same names as listed in the
+     * columns attribute from the rowset. Depending on the API some of the row attributes may be missing and have known
+     * default values that are used instead or are considered optional in the database table and can be NULL.
+     *
      * @param \SimpleXMLElement[] $rows
      * @param array               $columnDefaults
      * @param string              $tableName
@@ -137,14 +145,14 @@ trait PreserverTrait
      */
     protected function attributePreserveData(array $rows, array $columnDefaults, string $tableName)
     {
-        $maxRowCount = 1000;
         $this->lastColumnCount = 0;
         $this->lastRowCount = 0;
         unset($this->pdoStatement);
         if (0 === count($rows)) {
             return $this;
         }
-        $rows = array_chunk($rows, $maxRowCount, true);
+        // 1000 is a 'magic' number that seems to work well.
+        $rows = array_chunk($rows, 1000, true);
         $columnNames = array_keys($columnDefaults);
         foreach ($rows as $chunk) {
             $this->flush($this->processXmlRows($columnDefaults, $chunk), $columnNames, $tableName);
@@ -152,6 +160,15 @@ trait PreserverTrait
         return $this;
     }
     /**
+     * Used by all styles of Eve APIs to prepare and execute their SQL 'upsert' queries.
+     *
+     * 'Upsert' is a commonly used term for updating any existing rows in a table and inserting all the ones that don't
+     * already exist together at one time.
+     *
+     * The method also tracks if the prepared query can be re-used or not to take fuller advantage of them in cases
+     * where all queries have the same number of database rows as is common with some of the larger APIs and a few that
+     * always have a fixed number of rows.
+     *
      * @param string[] $columns
      * @param string[] $columnNames
      * @param string   $tableName
@@ -191,13 +208,22 @@ trait PreserverTrait
             $this->lastColumnCount = count($columnNames);
             $this->lastRowCount = $rowCount;
         }
-        $mess = substr(implode(',', $columns), 0, 256);
+        $mess = '';
+        foreach ($columns as $column) {
+            $mess .= $column . ',';
+            if (256 <= strlen($mess)) {
+                break;
+            }
+        }
+        $mess = substr($mess, 0, 256) . '...';
         $this->getYem()
             ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $mess);
         $this->pdoStatement->execute($columns);
         return $this;
     }
     /**
+     * Combines the column defaults with a set of rows.
+     *
      * @param array               $columnDefaults
      * @param \SimpleXMLElement[] $rows
      *
@@ -207,18 +233,18 @@ trait PreserverTrait
     {
         $columns = [];
         foreach ($rows as $row) {
-            // Replace empty values with any existing defaults.
             foreach ($columnDefaults as $key => $value) {
-                if (null === $value || '' !== (string)$row[$key]) {
-                    $columns[] = (string)$row[$key];
-                    continue;
-                }
-                $columns[] = (string)$value;
+                $columns[] = (null === $value || '' !== (string)$row[$key]) ? (string)$row[$key] : (string)$value;
             }
         }
         return $columns;
     }
     /**
+     * Used to process the second most common style of API data.
+     *
+     * Transforms a list of XML tags and their values into column names and values. $columnDefaults is used to both set
+     * default values for required columns and to act as a set of known column names.
+     *
      * @param \SimpleXMLElement[] $elements
      * @param array               $columnDefaults
      * @param string              $tableName
@@ -233,30 +259,15 @@ trait PreserverTrait
         if (0 === count($elements)) {
             return $this;
         }
-        $eleCount = 0;
+        $row = [];
         foreach ($elements as $element) {
-            $columnName = $element->getName();
-            if (!array_key_exists($columnName, $columnDefaults)) {
-                continue;
-            }
-            ++$eleCount;
-            if ('' !== (string)$element || null === $columnDefaults[$columnName]) {
-                $columnDefaults[$columnName] = (string)$element;
-            }
+            $row[$element->getName()] = (string)$element;
         }
-        $required = array_reduce($columnDefaults,
-            function ($carry, $item) {
-                return $carry + (int)(null === $item);
-            },
-            0);
-        if ($required > $eleCount) {
-            return $this;
+        $columns = [];
+        foreach ($columnDefaults as $key => $value) {
+            $columns[] = array_key_exists($key, $row) ? $row[$key] : (string)$value;
         }
-        uksort($columnDefaults,
-            function ($alpha, $beta) {
-                return strtolower($alpha) <=> strtolower($beta);
-            });
-        return $this->flush(array_values($columnDefaults), array_keys($columnDefaults), $tableName);
+        return $this->flush($columns, array_keys($columnDefaults), $tableName);
     }
     /**
      * @var string[] preserveTos
@@ -270,10 +281,6 @@ trait PreserverTrait
         return $this->preserve;
     }
     /**
-     * @var \PDOStatement $pdoStatement
-     */
-    private $pdoStatement;
-    /**
      * @var int $lastColumnCount
      */
     private $lastColumnCount;
@@ -281,6 +288,10 @@ trait PreserverTrait
      * @var int lastRowCount
      */
     private $lastRowCount;
+    /**
+     * @var \PDOStatement $pdoStatement
+     */
+    private $pdoStatement;
     /**
      * @var bool $preserve
      */
