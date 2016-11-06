@@ -35,6 +35,7 @@ declare(strict_types = 1);
 namespace Yapeal\EveApi;
 
 use Monolog\Logger;
+use PDO;
 use Yapeal\CommonToolsTrait;
 use Yapeal\Event\EveApiEventEmitterTrait;
 use Yapeal\Event\EveApiEventInterface;
@@ -89,39 +90,40 @@ trait CommonEveApiTrait
         $yem->triggerLogEvent('Yapeal.Log.log',
             Logger::DEBUG,
             $this->getReceivedEventMessage($data, $eventName, __CLASS__));
-        // If method doesn't exist still needs array with member for count but return '0' from extractOwnerID().
-        $active = method_exists($this, 'getActive') ? $this->getActive($data) : [false];
-        if (0 === count($active)) {
+        try {
+            $records = $this->getActive($data);
+        } catch (\PDOException $exc) {
+            $mess = 'Could NOT get a list of active owners for';
+            $this->getYem()
+                ->triggerLogEvent('Yapeal.Log.log',
+                    Logger::WARNING,
+                    $this->createEveApiMessage($mess, $data),
+                    ['exception' => $exc]);
+            return $event;
+        }
+        if (0 === count($records)) {
             $mess = 'No active owners found for';
             $yem->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $this->createEveApiMessage($mess, $data));
             $this->emitEvents($data, 'end');
             return $event->setHandledSufficiently();
         }
-        $untilInterval = $data->getCacheInterval();
-        foreach ($active as $arguments) {
+        if (0 !== count($this->accountKeys)) {
+            $records = $this->processAccountKeys($records);
+        }
+        foreach ($records as $arguments) {
+            $aClone = clone $data;
             if (false !== $arguments) {
-                $data->setEveApiArguments($arguments);
+                $aClone->setEveApiArguments($arguments);
+                if (0 === strpos($data->getEveApiName(), 'Wallet')) {
+                    $aClone->addEveApiArgument('rowCount', '2560');
+                }
             }
-            // Reset interval, and clear xml data.
-            /** @noinspection DisconnectedForeachInstructionInspection */
-            $data->setCacheInterval($untilInterval)
-                ->setEveApiXml();
-            /** @noinspection DisconnectedForeachInstructionInspection */
-            foreach ($this->accountKeys as $accountKey) {
-                $data->addEveApiArgument('accountKey', $accountKey);
-                /** @noinspection DisconnectedForeachInstructionInspection */
-                if ($this->cachedUntilIsNotExpired($data)) {
-                    $event->setHandledSufficiently();
-                    continue;
-                }
-                /** @noinspection DisconnectedForeachInstructionInspection */
-                if (0 === strpos(strtolower($data->getEveApiName()), 'wallet')) {
-                    $data->addEveApiArgument('rowCount', '2560');
-                }
-                /** @noinspection DisconnectedForeachInstructionInspection */
-                if ($this->oneShot($data)) {
-                    $event->setHandledSufficiently();
-                }
+            if ($this->cachedUntilIsNotExpired($aClone)) {
+                $event->setHandledSufficiently();
+                continue;
+            }
+            if ($this->oneShot($aClone)) {
+                $event->setHandledSufficiently();
             }
         }
         return $event;
@@ -189,6 +191,55 @@ trait CommonEveApiTrait
             }
         }
         return '0';
+    }
+    /**
+     * @param EveApiReadWriteInterface $data
+     *
+     * @return array
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
+     * @throws \PDOException
+     * @throws \Yapeal\Exception\YapealDatabaseException
+     */
+    protected function getActive(EveApiReadWriteInterface $data)
+    {
+        switch (strtolower($data->getEveApiSectionName())) {
+            case 'account':
+                if ('APIKeyInfo' === $data->getEveApiName()) {
+                    $sql = $this->getCsq()
+                        ->getActiveRegisteredKeys();
+                    break;
+                }
+                $sql = $this->getCsq()
+                    ->getActiveRegisteredAccountStatus($this->getMask());
+                break;
+            case 'char':
+                if ('MailBodies' === $data->getEveApiName()) {
+                    $sql = $this->getCsq()
+                        ->getActiveMailBodiesWithOwnerID($data->getEveApiArgument('characterID'));
+                    break;
+                }
+                $sql = $this->getCsq()
+                    ->getActiveRegisteredCharacters($this->getMask());
+                break;
+            case 'corp':
+                if ('StarbaseDetails' === $data->getEveApiName()) {
+                    $sql = $this->getCsq()
+                        ->getActiveStarbaseTowers($this->getMask(), $data->getEveApiArgument('corporationID'));
+                    break;
+                }
+                $sql = $this->getCsq()
+                    ->getActiveRegisteredCorporations($this->getMask());
+                break;
+            default:
+                return [false];
+        }
+        $this->getYem()
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
+        return $this->getPdo()
+            ->query($sql)
+            ->fetchAll(PDO::FETCH_ASSOC);
     }
     /**
      * @return int
@@ -339,11 +390,37 @@ trait CommonEveApiTrait
         return $this;
     }
     /**
-     * @var int[] $accountKey
+     * @var array $accountKey
      */
-    protected $accountKeys = [0];
+    protected $accountKeys = [];
     /**
      * @var int $mask
      */
     protected $mask;
+    /**
+     * Used to make duplicate records for each accountKey.
+     *
+     * Eve APIs like the corp accountBalance, walletJournal, and walletTransactions are all per wallet as seen in game
+     * so they have to be processed for each of the 'accountKey' to the Eve API servers. Currently that means 8 plus the
+     * faction warfare/console game wallet for those corps involved with that part of the game.
+     *
+     * The same APIs for chars allow accountKey as well but they currently only have the one wallet 1000 so it could be
+     * considered optional for them but CCP may decide to change that in the future so Yapeal uses it with them as well.
+     *
+     * @param array $records
+     *
+     * @return array
+     */
+    protected function processAccountKeys(array $records): array
+    {
+        $replacements = [];
+        foreach ($records as $arguments) {
+            foreach ($this->accountKeys as $accountKey) {
+                $newArgs = $arguments;
+                $newArgs['accountKey'] = $accountKey;
+                $replacements[] = $newArgs;
+            }
+        }
+        return $replacements;
+    }
 }
