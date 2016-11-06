@@ -68,7 +68,9 @@ use Yapeal\FileSystem\SafeFileHandlingTrait;
  */
 class CommonSqlQueries implements DicAwareInterface
 {
-    use SafeFileHandlingTrait, DicAwareTrait, SqlSubsTrait;
+    use SafeFileHandlingTrait;
+    use DicAwareTrait;
+    use SqlSubsTrait;
     /**
      * @param ContainerInterface $dic
      *
@@ -86,9 +88,9 @@ class CommonSqlQueries implements DicAwareInterface
      * @param array  $arguments
      *
      * @return mixed
-     * @throws \InvalidArgumentException
-     * @throws \DomainException
      * @throws \BadMethodCallException
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
      * @throws \LogicException
      */
     public function __call(string $name, array $arguments = [])
@@ -116,31 +118,6 @@ class CommonSqlQueries implements DicAwareInterface
         throw new \BadMethodCallException($mess);
     }
     /**
-     * @param string   $tableName
-     * @param string[] $columnNameList
-     * @param int      $rowCount
-     *
-     * @return string
-     * @throws \LogicException
-     */
-    public function getUpsertMysql(string $tableName, array $columnNameList, int $rowCount): string
-    {
-        $replacements = $this->getReplacements();
-        $replacements['{tableName}'] = $tableName;
-        $replacements['{columnNames}'] = implode('","', $columnNameList);
-        $rowPrototype = '(' . implode(',', array_fill(0, count($columnNameList), '?')) . ')';
-        $replacements['{rowset}'] = implode(',', array_fill(0, $rowCount, $rowPrototype));
-        $updates = [];
-        foreach ($columnNameList as $column) {
-            $updates[] = sprintf('"%1$s"=VALUES("%1$s")', $column);
-        }
-        $replacements['{updates}'] = implode(',', $updates);
-        /** @noinspection SqlResolve */
-        $sql = /** @lang text */
-            'INSERT INTO "{schema}"."{tablePrefix}{tableName}" ("{columnNames}") VALUES {rowset} ON DUPLICATE KEY UPDATE {updates}';
-        return str_replace(array_keys($replacements), array_values($replacements), $sql);
-    }
-    /**
      * @param string $fileName
      * @param string $sql
      */
@@ -161,12 +138,40 @@ class CommonSqlQueries implements DicAwareInterface
      * @return array
      * @throws \LogicException
      */
-    private function getReplacements()
+    private function getReplacements(): array
     {
         if (null === $this->replacements) {
             $this->replacements = $this->getSqlSubs($this->getDic());
         }
         return $this->replacements;
+    }
+    /** @noinspection PhpUnusedPrivateMethodInspection */
+    /**
+     * Returns a MySql version of an upsert query.
+     *
+     * @param string   $tableName
+     * @param string[] $columnNameList
+     * @param int      $rowCount
+     *
+     * @return string
+     * @throws \LogicException
+     */
+    private function getUpsertMysql(string $tableName, array $columnNameList, int $rowCount): string
+    {
+        $replacements = $this->getReplacements();
+        $replacements['{tableName}'] = $tableName;
+        $replacements['{columnNames}'] = implode('","', $columnNameList);
+        $rowPrototype = '(' . implode(',', array_fill(0, count($columnNameList), '?')) . ')';
+        $replacements['{rowset}'] = implode(',', array_fill(0, $rowCount, $rowPrototype));
+        $updates = [];
+        foreach ($columnNameList as $column) {
+            $updates[] = sprintf('"%1$s"=VALUES("%1$s")', $column);
+        }
+        $replacements['{updates}'] = implode(',', $updates);
+        /** @noinspection SqlResolve */
+        $sql = /** @lang text */
+            'INSERT INTO "{schema}"."{tablePrefix}{tableName}" ("{columnNames}") VALUES {rowset} ON DUPLICATE KEY UPDATE {updates}';
+        return str_replace(array_keys($replacements), array_values($replacements), $sql);
     }
     /**
      * @param string $fileName
@@ -186,7 +191,7 @@ class CommonSqlQueries implements DicAwareInterface
      * @return string
      * @throws \LogicException
      */
-    private function processSql(string $fileName, string $sql, array $arguments)
+    private function processSql(string $fileName, string $sql, array $arguments): string
     {
         $sql = $this->getCleanedUpSql($sql, $this->getReplacements());
         if (0 !== count($arguments)) {
