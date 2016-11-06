@@ -97,7 +97,7 @@ class Wiring implements DicAwareInterface
         $dic['Yapeal.baseDir'] = $path;
         $dic['Yapeal.libDir'] = $path . 'lib/';
         if (empty($dic['Yapeal.Config.Yaml'])) {
-            $dic['Yapeal.Config.Yaml'] = $dic->factory(function () use($dic) {
+            $dic['Yapeal.Config.Yaml'] = $dic->factory(function () {
                 return new YamlConfigFile();
             });
         }
