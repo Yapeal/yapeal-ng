@@ -44,12 +44,13 @@ use Yapeal\Cli\Yapeal\YapealAutoMagic;
 use Yapeal\Cli\Yapeal\YapealSetup;
 use Yapeal\Configuration\Wiring;
 use Yapeal\Container\Container;
+use Yapeal\Container\ContainerInterface;
 
 /**
  * @var \Yapeal\Container\ContainerInterface $dic
  */
 /** @noinspection UnSafeIsSetOverArrayInspection */
-if (!isset($dic) || !$dic instanceof \Yapeal\Container\ContainerInterface) {
+if (!isset($dic) || !$dic instanceof ContainerInterface) {
     $dic = new Container();
 }
 (new Wiring($dic))->wireAll();
