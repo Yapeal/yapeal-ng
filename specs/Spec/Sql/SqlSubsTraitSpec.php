@@ -52,7 +52,9 @@ use Yapeal\Container\ContainerInterface;
 class SqlSubsTraitSpec extends ObjectBehavior
 {
     /**
-     * @param \Yapeal\Container\ContainerInterface $dic
+     * @param \PhpSpec\Wrapper\Collaborator|\Yapeal\Container\ContainerInterface $dic
+     *
+     * @throws \Prophecy\Exception\InvalidArgumentException
      */
     public function it_should_not_return_handler_from_get_sql_subs_when_given_handler_in_sql_section(
         ContainerInterface $dic
@@ -67,7 +69,9 @@ class SqlSubsTraitSpec extends ObjectBehavior
             ->shouldReturn(['{platform}' => 'mysql']);
     }
     /**
-     * @param \Yapeal\Container\ContainerInterface $dic
+     * @param \PhpSpec\Wrapper\Collaborator|\Yapeal\Container\ContainerInterface $dic
+     *
+     * @throws \Prophecy\Exception\InvalidArgumentException
      */
     public function it_should_not_return_known_classes_from_get_sql_subs_when_given_one_in_sql_section(
         ContainerInterface $dic
@@ -82,7 +86,9 @@ class SqlSubsTraitSpec extends ObjectBehavior
             ->shouldReturn(['{platform}' => 'mysql']);
     }
     /**
-     * @param \Yapeal\Container\ContainerInterface $dic
+     * @param \PhpSpec\Wrapper\Collaborator|\Yapeal\Container\ContainerInterface $dic
+     *
+     * @throws \Prophecy\Exception\InvalidArgumentException
      */
     public function it_should_not_return_wrong_platform_settings_from_get_sql_subs_when_given_multiple_platforms_settings(
         ContainerInterface $dic
@@ -112,7 +118,9 @@ class SqlSubsTraitSpec extends ObjectBehavior
             ->shouldReturn($expect);
     }
     /**
-     * @param \Yapeal\Container\ContainerInterface $dic
+     * @param \PhpSpec\Wrapper\Collaborator|\Yapeal\Container\ContainerInterface $dic
+     *
+     * @throws \Prophecy\Exception\InvalidArgumentException
      */
     public function it_should_return_only_sql_section_from_get_sql_subs_when_given_dic_with_sql_and_other_sections(
         ContainerInterface $dic
@@ -149,10 +157,11 @@ SQL;
             ->shouldReturn($expect);
     }
     /**
-     * @param \Yapeal\Container\ContainerInterface $dic
+     * @param \PhpSpec\Wrapper\Collaborator|\Yapeal\Container\ContainerInterface $dic
      */
     public function let(ContainerInterface $dic)
     {
+        $dic->keys();
         $this->beAnInstanceOf('\Spec\Yapeal\Sql\MockSqlSubs');
     }
 }
