@@ -42,7 +42,7 @@ use Yapeal\EveApi\CommonEveApiTrait;
  */
 class AccountSection
 {
-    use ActiveTrait, CommonEveApiTrait;
+    use CommonEveApiTrait;
     /**
      * AccountSection constructor.
      */

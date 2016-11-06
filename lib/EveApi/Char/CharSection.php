@@ -38,7 +38,7 @@ use Yapeal\EveApi\CommonEveApiTrait;
  */
 class CharSection
 {
-    use ActiveTrait, CommonEveApiTrait;
+    use CommonEveApiTrait;
     /**
      * CorpSection constructor.
      */

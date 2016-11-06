@@ -34,7 +34,6 @@ declare(strict_types = 1);
  */
 namespace Yapeal\EveApi\Corp;
 
-use Yapeal\EveApi\ActiveTrait;
 use Yapeal\EveApi\CommonEveApiTrait;
 use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
@@ -45,7 +44,7 @@ use Yapeal\Xml\EveApiReadWriteInterface;
  */
 class CorporationSheet
 {
-    use ActiveTrait, CommonEveApiTrait, PreserverTrait;
+    use CommonEveApiTrait, PreserverTrait;
 
     /** @noinspection MagicMethodsValidityInspection */
     /**
@@ -210,7 +209,7 @@ class CorporationSheet
             if ('retrieve' === $eventSuffix) {
                 $corp = $data->getEveApiArguments();
                 $corpID = $corp['corporationID'];
-                // Can NOT include corporationID or only get public info.
+                // Can NOT include corporationID or will only get public info.
                 if (array_key_exists('keyID', $corp)) {
                     unset($corp['corporationID']);
                     $data->setEveApiArguments($corp);

@@ -30,7 +30,6 @@ declare(strict_types = 1);
  */
 namespace Yapeal\EveApi\Corp;
 
-use Yapeal\EveApi\ActiveTrait;
 use Yapeal\EveApi\CommonEveApiTrait;
 
 /**
@@ -38,7 +37,7 @@ use Yapeal\EveApi\CommonEveApiTrait;
  */
 class CorpSection
 {
-    use ActiveTrait, CommonEveApiTrait;
+    use CommonEveApiTrait;
     /**
      * CorpSection constructor.
      */
