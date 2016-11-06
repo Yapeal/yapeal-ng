@@ -59,6 +59,8 @@ abstract class AbstractSchemaCommon extends Command implements YEMAwareInterface
      * Sets the help message and all the common options used by the Database:* commands.
      *
      * @param string $help Command help text.
+     *
+     * @throws \Symfony\Component\Console\Exception\LogicException
      */
     protected function addOptions(string $help)
     {
@@ -158,7 +160,7 @@ abstract class AbstractSchemaCommon extends Command implements YEMAwareInterface
                     $progress->finish();
                     $output->writeln('');
                 }
-                $mess = '<comment>' . $sql . '</comment>>';
+                $mess = '<comment>' . $sql . '</comment>';
                 $yem->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, strip_tags($mess));
                 $output->writeln($mess);
                 $mess = sprintf('Sql failed in %1$s on statement %2$s with (%3$s) %4$s',
