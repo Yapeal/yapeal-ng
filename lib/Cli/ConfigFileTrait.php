@@ -38,7 +38,6 @@ use Symfony\Component\Console\Input\InputOption;
 use Yapeal\Configuration\ConfigFileProcessingTrait;
 use Yapeal\Container\ContainerInterface;
 
-/** @noinspection PhpUnnecessaryFullyQualifiedNameInspection */
 /**
  * Trait ConfigFileTrait.
  */
@@ -46,7 +45,7 @@ trait ConfigFileTrait
 {
     use ConfigFileProcessingTrait;
     /**
-     * @return void
+     * @throws \Symfony\Component\Console\Exception\LogicException
      */
     protected function addConfigFileOption()
     {
@@ -64,9 +63,8 @@ trait ConfigFileTrait
      * @param ContainerInterface $dic      Instance of Container that will be
      *                                     updated.
      *
-     * @return void
      * @throws \DomainException
-     * @throws \Yapeal\Exception\YapealException
+     * @throws \LogicException
      */
     protected function processConfigFile(string $pathFile, ContainerInterface $dic)
     {
