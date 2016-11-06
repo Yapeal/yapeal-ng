@@ -68,7 +68,7 @@ trait YEMAwareTrait
     /**
      * @param MediatorInterface $value
      *
-     * @return YEMAwareInterface|YEMAwareTrait Fluent interface.
+     * @return static Fluent interface.
      */
     public function setYem(MediatorInterface $value)
     {
