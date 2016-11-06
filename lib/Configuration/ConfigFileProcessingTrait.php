@@ -87,20 +87,17 @@ trait ConfigFileProcessingTrait
         $depth = 0;
         $maxDepth = 10;
         $regEx = '%(?<all>\{(?<name>Yapeal(?:\.\w+)+)\})%';
+        $callback = function ($match) use ($settings, $dic) {
+            if (array_key_exists($match['name'], $settings)) {
+                return $settings[$match['name']];
+            }
+            if (!empty($dic[$match['name']])) {
+                return $dic[$match['name']];
+            }
+            return $match['all'];
+        };
         do {
-            $settings = preg_replace_callback($regEx,
-                function ($match) use ($settings, $dic) {
-                    if (array_key_exists($match['name'], $settings)) {
-                        return $settings[$match['name']];
-                    }
-                    if (!empty($dic[$match['name']])) {
-                        return $dic[$match['name']];
-                    }
-                    return $match['all'];
-                },
-                $settings,
-                -1,
-                $count);
+            $settings = preg_replace_callback($regEx, $callback, $settings, -1, $count);
             if (++$depth > $maxDepth) {
                 $mess = 'Exceeded maximum depth, check for possible circular reference(s)';
                 throw new \DomainException($mess);
@@ -131,7 +128,9 @@ trait ConfigFileProcessingTrait
          * @var YamlConfigFile $yaml
          */
         $yaml = $this->getDic()['Yapeal.Config.Yaml'];
-        $settings = $yaml->setPathFile($configFile)->read()->getSettings();
+        $settings = $yaml->setPathFile($configFile)
+            ->read()
+            ->getSettings();
         if (0 === count($settings)) {
             return $existing;
         }
