@@ -55,9 +55,6 @@ class SqlWiring implements WiringInterface
     {
         if (empty($dic['Yapeal.Sql.CommonQueries'])) {
             $dic['Yapeal.Sql.CommonQueries'] = function ($dic) {
-                /**
-                 * @var CommonSqlQueries $csq
-                 */
                 return new $dic['Yapeal.Sql.Handlers.queries']($dic);
             };
         }
@@ -77,17 +74,16 @@ class SqlWiring implements WiringInterface
                 $dsn = $replacements['{dsn}'];
                 $dsn = str_replace(array_keys($replacements), array_values($replacements), $dsn);
                 /**
-                 * @var \PDO             $database
+                 * @var \PDO             $pdo
                  * @var CommonSqlQueries $csq
                  */
-                $database = new $dic['Yapeal.Sql.Handlers.connection']($dsn,
+                $pdo = new $dic['Yapeal.Sql.Handlers.connection']($dsn,
                     $replacements['{userName}'],
                     $replacements['{password}']);
-                $database->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+                $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
                 $csq = $dic['Yapeal.Sql.CommonQueries'];
-                $sql = $csq->initialization();
-                $database->exec($sql);
-                return $database;
+                $pdo->exec($csq->initialization());
+                return $pdo;
             };
         }
     }
