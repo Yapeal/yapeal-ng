@@ -47,10 +47,9 @@ use Yapeal\Container\Container;
 use Yapeal\Container\ContainerInterface;
 
 /**
- * @var \Yapeal\Container\ContainerInterface $dic
+ * @var ContainerInterface $dic
  */
-/** @noinspection UnSafeIsSetOverArrayInspection */
-if (!isset($dic) || !$dic instanceof ContainerInterface) {
+if (null === $dic || !$dic instanceof ContainerInterface) {
     $dic = new Container();
 }
 (new Wiring($dic))->wireAll();
