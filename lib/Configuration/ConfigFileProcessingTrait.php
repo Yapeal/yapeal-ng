@@ -88,13 +88,8 @@ trait ConfigFileProcessingTrait
         $maxDepth = 10;
         $regEx = '%(?<all>\{(?<name>Yapeal(?:\.\w+)+)\})%';
         $callback = function ($match) use ($settings, $dic) {
-            if (array_key_exists($match['name'], $settings)) {
-                return $settings[$match['name']];
-            }
-            if (!empty($dic[$match['name']])) {
-                return $dic[$match['name']];
-            }
-            return $match['all'];
+            $name = $match['name'];
+            return $settings[$name] ?? $dic[$name] ?? $match['all'];
         };
         do {
             $settings = preg_replace_callback($regEx, $callback, $settings, -1, $count);
