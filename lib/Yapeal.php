@@ -34,12 +34,13 @@ declare(strict_types = 1);
  */
 namespace Yapeal;
 
-use Yapeal\Container\ContainerInterface;
 use Yapeal\Event\EveApiEventEmitterTrait;
-use Yapeal\Exception\YapealDatabaseException;
-use Yapeal\Exception\YapealException;
+use Yapeal\Event\MediatorInterface;
+use Yapeal\Event\YEMAwareTrait;
 use Yapeal\Log\Logger;
 use Yapeal\Sql\CommonSqlQueries;
+use Yapeal\Sql\CSQAwareTrait;
+use Yapeal\Sql\PDOAwareTrait;
 use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
@@ -47,19 +48,26 @@ use Yapeal\Xml\EveApiReadWriteInterface;
  */
 class Yapeal
 {
-    use CommonToolsTrait, EveApiEventEmitterTrait;
+    use CSQAwareTrait;
+    use PDOAwareTrait;
+    use YEMAwareTrait;
+    use EveApiEventEmitterTrait;
     /**
-     * @param ContainerInterface $dic
-     *
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws YapealException
-     * @throws YapealDatabaseException
-     * @throws \LogicException
+     * @param CommonSqlQueries         $csq
+     * @param EveApiReadWriteInterface $data
+     * @param \PDO                     $pdo
+     * @param MediatorInterface        $yem
      */
-    public function __construct(ContainerInterface $dic)
-    {
-        $this->setDic($dic);
+    public function __construct(
+        CommonSqlQueries $csq,
+        EveApiReadWriteInterface $data,
+        \PDO $pdo,
+        MediatorInterface $yem
+    ) {
+        $this->setCsq($csq);
+        $this->data = $data;
+        $this->setPdo($pdo);
+        $this->setYem($yem);
     }
     /**
      * Starts Eve API processing
@@ -72,24 +80,16 @@ class Yapeal
      */
     public function autoMagic()
     {
-        $dic = $this->getDic();
-        $this->setYem($dic['Yapeal.Event.Mediator']);
         $mess = 'Let the magic begin!';
         $this->getYem()
             ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess);
-        /**
-         * @var CommonSqlQueries $csq
-         */
-        $csq = $dic['Yapeal.Sql.CommonQueries'];
-        $sql = $csq->getActiveApis();
+        $sql = $this->getCsq()
+            ->getActiveApis();
         $this->getYem()
             ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
         try {
-            /**
-             * @var \PDO $pdo
-             */
-            $pdo = $dic['Yapeal.Sql.Connection'];
-            $records = $pdo->query($sql)
+            $records = $this->getPdo()
+                ->query($sql)
                 ->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\PDOException $exc) {
             $mess = 'Could not access utilEveApi table';
@@ -100,13 +100,7 @@ class Yapeal
         // Always check APIKeyInfo.
         array_unshift($records, ['apiName' => 'APIKeyInfo', 'interval' => 300, 'sectionName' => 'account']);
         foreach ($records as $record) {
-            /** @noinspection DisconnectedForeachInstructionInspection */
-            /**
-             * Get new Data instance from factory.
-             *
-             * @var EveApiReadWriteInterface $data
-             */
-            $data = $dic['Yapeal.Xml.Data'];
+            $data = clone $this->data;
             $data->setEveApiName($record['apiName'])
                 ->setEveApiSectionName($record['sectionName'])
                 ->setCacheInterval((int)$record['interval']);
@@ -114,4 +108,8 @@ class Yapeal
         }
         return 0;
     }
+    /**
+     * @var EveApiReadWriteInterface $data
+     */
+    private $data;
 }

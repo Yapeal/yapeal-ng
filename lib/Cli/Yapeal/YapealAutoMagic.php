@@ -125,6 +125,9 @@ HELP;
         if (!empty($options['configFile'])) {
             $this->processConfigFile($options['configFile'], $dic);
         }
-        return (new Yapeal($dic))->autoMagic();
+        return (new Yapeal($dic['Yapeal.Sql.CommonQueries'],
+            $dic['Yapeal.Xml.Data'],
+            $dic['Yapeal.Sql.Connection'],
+            $this->getYem()))->autoMagic();
     }
 }
