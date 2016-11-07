@@ -46,12 +46,13 @@ use Yapeal\Configuration\Wiring;
 use Yapeal\Container\Container;
 use Yapeal\Container\ContainerInterface;
 
+$dic = $dic ?? new Container();
+if (!$dic instanceof ContainerInterface) {
+    $dic = new Container();
+}
 /**
  * @var ContainerInterface $dic
  */
-if (null === $dic || !$dic instanceof ContainerInterface) {
-    $dic = new Container();
-}
 (new Wiring($dic))->wireAll();
 try {
     $version = $dic['Yapeal.version'];
