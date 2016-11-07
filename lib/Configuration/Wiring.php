@@ -67,7 +67,7 @@ class Wiring implements DicAwareInterface
         foreach ($names as $name) {
             $setting = $base . strtolower($name);
             if (!empty($dic[$setting])
-                && is_subclass_of($dic[$setting], '\\Yapeal\\Configuration\\WiringInterface', true)
+                && is_subclass_of($dic[$setting], '\Yapeal\Configuration\WiringInterface', true)
             ) {
                 $class = new $dic[$setting];
                 $class->wire($dic);

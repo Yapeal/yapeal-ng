@@ -35,7 +35,7 @@ declare(strict_types = 1);
 /*
  * Nothing to do if Composer auto loader already exists.
  */
-if (class_exists('\\Composer\\Autoload\\ClassLoader', false)) {
+if (class_exists('\Composer\Autoload\ClassLoader', false)) {
     return;
 }
 /*
@@ -53,7 +53,7 @@ $errorReporting = error_reporting(E_ALL & ~E_WARNING);
 include_once $path . '/vendor/autoload.php';
 error_reporting($errorReporting);
 unset($errorReporting, $path, $vendorPos);
-if (!class_exists('\\Composer\\Autoload\\ClassLoader', false)) {
+if (!class_exists('\Composer\Autoload\ClassLoader', false)) {
     $mess = 'Could NOT find required Composer class auto loader. Aborting ...';
     if ('cli' === PHP_SAPI) {
         fwrite(STDERR, $mess);
