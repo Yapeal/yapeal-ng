@@ -46,11 +46,13 @@ $vendorPos = strpos($path, 'vendor/');
 if (false !== $vendorPos) {
     $path = substr($path, 0, $vendorPos);
 }
+$path .= '/vendor/autoload.php';
 /*
  * Turn off warning messages for the following include.
  */
 $errorReporting = error_reporting(E_ALL & ~E_WARNING);
-include_once $path . '/vendor/autoload.php';
+/** @noinspection PhpIncludeInspection */
+include_once $path;
 error_reporting($errorReporting);
 unset($errorReporting, $path, $vendorPos);
 if (!class_exists('\Composer\Autoload\ClassLoader', false)) {
