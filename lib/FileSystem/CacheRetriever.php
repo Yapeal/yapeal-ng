@@ -168,23 +168,28 @@ class CacheRetriever implements EveApiRetrieverInterface
                 ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $this->createEveApiMessage($mess, $data));
             return true;
         }
-        $now = time();
-        $current = strtotime($current . '+00:00');
-        $until = strtotime($until . '+00:00');
-        // At minimum use cached XML for 5 minutes (300 secs).
-        if (($now - $current) <= 300) {
+        $eveFormat = 'Y-m-d H:i:sP';
+        $now = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+        $current = \DateTimeImmutable::createFromFormat($eveFormat, $current . '+00:00');
+        $until = \DateTimeImmutable::createFromFormat($eveFormat, $until . '+00:00');
+        // At minimum use cached XML for 5 minutes.
+        if ($now <= $current->add(new \DateInterval('PT5M'))) {
             return false;
         }
         // Catch and log APIs with bad CachedUntil times so CCP can be told and get them fixed.
         if ($until <= $current) {
-            $mess = sprintf('CachedUntil is invalid was given %1$s and currentTime is %2$s in', $until, $current);
+            $mess = sprintf('CachedUntil is invalid was given %s and currentTime is %s in',
+                $until->format($eveFormat),
+                $current->format($eveFormat));
             $this->getYem()
                 ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $this->createEveApiMessage($mess, $data));
             return true;
         }
         // Now plus a day.
-        if ($until > ($now + 86400)) {
-            $mess = sprintf('CachedUntil is excessively long was given %1$s and currentTime is %2$s', $until, $current);
+        if ($until > $now->add(new \DateInterval('P1D'))) {
+            $mess = sprintf('CachedUntil is excessively long was given %s and it is currently %s',
+                $until->format($eveFormat),
+                $now->format($eveFormat));
             $this->getYem()
                 ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
             return true;
