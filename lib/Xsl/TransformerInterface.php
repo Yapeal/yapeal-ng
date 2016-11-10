@@ -48,14 +48,10 @@ interface TransformerInterface
      * @param string               $eventName
      * @param MediatorInterface    $yem
      *
-     * @return EveApiEventInterface|\EventMediator\EventInterface
+     * @return EveApiEventInterface
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
-    public function transformEveApi(
-        EveApiEventInterface $event,
-        string $eventName,
-        MediatorInterface $yem
-    ): EveApiEventInterface;
+    public function transformEveApi(EveApiEventInterface $event, string $eventName, MediatorInterface $yem);
 }
