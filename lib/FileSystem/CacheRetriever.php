@@ -52,11 +52,13 @@ class CacheRetriever implements EveApiRetrieverInterface
      *
      * @throws \InvalidArgumentException
      */
-    public function __construct($cachePath = null)
+    public function __construct(string $cachePath = null)
     {
         $this->setCachePath($cachePath);
     }
     /**
+     * Method that is called for retrieve event.
+     *
      * @param EveApiEventInterface $event
      * @param string               $eventName
      * @param MediatorInterface    $yem
@@ -89,21 +91,24 @@ class CacheRetriever implements EveApiRetrieverInterface
             $this->deleteWithRetry($cacheFile);
             return $event;
         }
-        $mess = sprintf('Found usable cache file %1$s', $cacheFile);
+        $mess = sprintf('Found usable cache file %s', $cacheFile);
         $yem->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->createEventMessage($mess, $data, $eventName));
         return $event->setData($data)
             ->eventHandled();
     }
     /**
-     * @param string|null $value
+     * Set cache path for Eve API XML.
      *
-     * @return self
+     * @param string|null $value Absolute path to cache/ directory. If null it will use cache/ directory relative to
+     *                           Yapeal-ng's root.
+     *
+     * @return self Fluent interface.
      * @throws \InvalidArgumentException
      */
-    public function setCachePath($value = null)
+    public function setCachePath(string $value = null): self
     {
-        if ($value === null) {
-            $value = dirname(dirname(__DIR__)) . '/cache/';
+        if (null === $value) {
+            $value = dirname(__DIR__, 2) . '/cache/';
         }
         if (!is_string($value)) {
             $mess = 'Cache path MUST be string, but was given ' . gettype($value);
@@ -118,20 +123,22 @@ class CacheRetriever implements EveApiRetrieverInterface
      *
      * Allows class to stay registered for events but be enabled or disabled during runtime.
      *
-     * @param boolean $value
+     * @param bool $value
      *
-     * @return $this Fluent interface
+     * @return self Fluent interface.
      */
-    public function setRetrieve(bool $value = true)
+    public function setRetrieve(bool $value = true): self
     {
-        $this->retrieve = (boolean)$value;
+        $this->retrieve = $value;
         return $this;
     }
     /**
+     * Returns current cache path.
+     *
      * @return string
      * @throws \LogicException
      */
-    protected function getCachePath()
+    protected function getCachePath(): string
     {
         if ('' === $this->cachePath) {
             $mess = 'Tried to access $cachePath before it was set';
@@ -141,6 +148,8 @@ class CacheRetriever implements EveApiRetrieverInterface
             ->normalizePath($this->cachePath);
     }
     /**
+     * Enforces minimum 5 minute cache time and does some basic checks to see if XML DateTimes are valid.
+     *
      * @param EveApiReadWriteInterface $data
      *
      * @return bool
@@ -148,7 +157,7 @@ class CacheRetriever implements EveApiRetrieverInterface
      * @throws \LogicException
      * @throws \InvalidArgumentException
      */
-    protected function isExpired(EveApiReadWriteInterface $data)
+    protected function isExpired(EveApiReadWriteInterface $data): bool
     {
         $xml = $data->getEveApiXml();
         $simple = new \SimpleXMLElement($xml);
@@ -201,9 +210,9 @@ class CacheRetriever implements EveApiRetrieverInterface
      */
     protected $cachePath;
     /**
-     * @return boolean
+     * @return bool
      */
-    private function shouldRetrieve()
+    private function shouldRetrieve(): bool
     {
         return $this->retrieve;
     }

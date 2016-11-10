@@ -62,6 +62,8 @@ class GuzzleNetworkRetriever implements EveApiRetrieverInterface
             ->setRetrieve($preserve);
     }
     /**
+     * Method that is called for retrieve event.
+     *
      * @param EveApiEventInterface $event
      * @param string               $eventName
      * @param MediatorInterface    $yem
@@ -119,9 +121,9 @@ class GuzzleNetworkRetriever implements EveApiRetrieverInterface
     /**
      * @param Client $value
      *
-     * @return $this Fluent interface.
+     * @return self Fluent interface.
      */
-    public function setClient(Client $value)
+    public function setClient(Client $value): self
     {
         $this->client = $value;
         return $this;
@@ -131,16 +133,18 @@ class GuzzleNetworkRetriever implements EveApiRetrieverInterface
      *
      * Allows class to stay registered for events but be enabled or disabled during runtime.
      *
-     * @param boolean $value
+     * @param bool $value
      *
-     * @return $this Fluent interface
+     * @return self Fluent interface.
      */
-    public function setRetrieve(bool $value = true)
+    public function setRetrieve(bool $value = true): self
     {
         $this->retrieve = (boolean)$value;
         return $this;
     }
     /**
+     * Returns instance of Guzzle Client class.
+     *
      * @return Client
      * @throws \LogicException
      */
@@ -153,9 +157,9 @@ class GuzzleNetworkRetriever implements EveApiRetrieverInterface
         return $this->client;
     }
     /**
-     * @return boolean
+     * @return bool
      */
-    private function shouldRetrieve()
+    private function shouldRetrieve(): bool
     {
         return $this->retrieve;
     }

@@ -56,9 +56,9 @@ interface EveApiRetrieverInterface
      *
      * Allows class to stay registered for events but be enabled or disabled during runtime.
      *
-     * @param boolean $value
+     * @param bool $value
      *
-     * @return EveApiRetrieverInterface Fluent interface
+     * @return static Fluent interface.
      */
     public function setRetrieve(bool $value = true);
 }
