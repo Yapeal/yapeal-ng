@@ -34,29 +34,23 @@ declare(strict_types = 1);
  */
 namespace Yapeal\FileSystem;
 
-use FilePathNormalizer\FilePathNormalizerTrait;
 use Yapeal\Exception\YapealFileSystemException;
 
-/** @noinspection PhpUnnecessaryFullyQualifiedNameInspection */
 /**
  * Trait RelativeFileSearchTrait
- *
- * @method \Yapeal\Event\MediatorInterface getYem()
  */
 trait RelativeFileSearchTrait
 {
-    use FilePathNormalizerTrait;
     /**
      * Fluent interface setter for $relativeBaseDir.
      *
-     * @param string $value
+     * @param string $value MUST have a trailing directory separator and SHOULD be an absolute path.
      *
      * @return RelativeFileSearchTrait Fluent interface.
      */
     public function setRelativeBaseDir(string $value): self
     {
-        $this->relativeBaseDir = $this->getFpn()
-            ->normalizePath($value);
+        $this->relativeBaseDir = str_replace('\\', '/', $value);
         return $this;
     }
     /**
@@ -86,9 +80,7 @@ trait RelativeFileSearchTrait
             . ',%1$s%2$s.%4$s,%1$s%2$s_%4$s'
             . ',%1$scommon.%4$s,%1$scommon_%4$s,%1$s%4$s';
         $fileNames = explode(',', sprintf($combinations, $this->getRelativeBaseDir(), $prefix, $name, $suffix));
-        $fpn = $this->getFpn();
         foreach ($fileNames as $fileName) {
-            $fileName = $fpn->normalizeFile($fileName);
             if (is_readable($fileName) && is_file($fileName)) {
                 return $fileName;
             }
