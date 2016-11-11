@@ -48,15 +48,38 @@ class YamlConfigFile
     /**
      * YamlConfigFile constructor.
      *
-     * @param string|null $pathFile
-     * @param array|null  $settings
-     *
-     * @internal param string $fileName
+     * @param string|null $pathFile File name with absolute path.
+     * @param array $settings Contents as an associate array.
      */
-    public function __construct(string $pathFile = null, array $settings = null)
+    public function __construct(string $pathFile = null, array $settings = [])
     {
         $this->pathFile = $pathFile;
         $this->settings = $settings;
+    }
+    /**
+     * @param array|null $yaml The array to be flattened. If null assumes $settings.
+     *
+     * @return array
+     */
+    public function flattenYaml(array $yaml = null): array
+    {
+        if (null === $yaml) {
+            $yaml = $this->getSettings();
+        }
+        if (0 === count($yaml)) {
+            return [];
+        }
+        $rItIt = new \RecursiveIteratorIterator(new \RecursiveArrayIterator($yaml));
+        $settings = [];
+        foreach ($rItIt as $leafValue) {
+            $keys = [];
+            foreach (range(0, $rItIt->getDepth()) as $depth) {
+                $keys[] = $rItIt->getSubIterator($depth)
+                    ->key();
+            }
+            $settings[implode('.', $keys)] = $leafValue;
+        }
+        return $settings;
     }
     /**
      * @return string
@@ -72,18 +95,13 @@ class YamlConfigFile
     }
     /**
      * @return array
-     * @throws \LogicException
      */
     public function getSettings(): array
     {
-        if (null === $this->settings) {
-            $mess = 'Trying to access $settings before it was set';
-            throw new \LogicException($mess);
-        }
         return $this->settings;
     }
     /**
-     * @return self
+     * @return self Fluent interface.
      * @throws \LogicException
      */
     public function read(): self
@@ -99,7 +117,6 @@ class YamlConfigFile
             $this->setSettings([]);
             return $this;
         }
-        $data = $this->flattenYaml($data);
         $this->setSettings($data);
         return $this;
     }
@@ -108,16 +125,15 @@ class YamlConfigFile
      */
     public function save()
     {
-        $data = $this->unflattenYaml($this->getSettings());
-        $data = (new Dumper())->dump($data);
+        $data = (new Dumper())->dump($this->getSettings());
         $this->safeDataWrite($this->getPathFile(), $data);
     }
     /**
-     * @param string $value
+     * @param string|null $value File name with absolute path.
      *
-     * @return self
+     * @return self Fluent interface.
      */
-    public function setPathFile(string $value): self
+    public function setPathFile(string $value = null): self
     {
         $this->pathFile = $value;
         return $this;
@@ -125,12 +141,35 @@ class YamlConfigFile
     /**
      * @param array $value
      *
-     * @return self
+     * @return self Fluent interface.
      */
-    public function setSettings(array $value): self
+    public function setSettings(array $value = []): self
     {
         $this->settings = $value;
         return $this;
+    }
+    /**
+     * @param array|null $yaml The array to be unflattened. If null assumes $settings.
+     *
+     * @return array
+     */
+    public function unflattenYaml(array $yaml = null): array
+    {
+        if (null === $yaml) {
+            $yaml = $this->getSettings();
+        }
+        if (0 === count($yaml)) {
+            return [];
+        }
+        $output = [];
+        foreach ((array)$yaml as $key => $value) {
+            $this->arraySet($output, $key, $value);
+            if (is_array($value) && false !== strpos($key, '.')) {
+                $nested = $this->unflattenYaml($value);
+                $output[$key] = $nested;
+            }
+        }
+        return $output;
     }
     /**
      * @param array      $array
@@ -161,45 +200,6 @@ class YamlConfigFile
         }
         $array[array_shift($keys)] = $value;
         return $array;
-    }
-    /**
-     * @param array $yaml
-     *
-     * @return array
-     */
-    private function flattenYaml(array $yaml): array
-    {
-        /**
-         * @var \RecursiveIteratorIterator|\Traversable $rItIt
-         */
-        $rItIt = new \RecursiveIteratorIterator(new \RecursiveArrayIterator($yaml));
-        $settings = [];
-        foreach ($rItIt as $leafValue) {
-            $keys = [];
-            foreach (range(0, $rItIt->getDepth()) as $depth) {
-                $keys[] = $rItIt->getSubIterator($depth)
-                    ->key();
-            }
-            $settings[implode('.', $keys)] = $leafValue;
-        }
-        return $settings;
-    }
-    /**
-     * @param array $yaml
-     *
-     * @return array
-     */
-    private function unflattenYaml(array $yaml): array
-    {
-        $output = [];
-        foreach ($yaml as $key => $value) {
-            $this->arraySet($output, $key, $value);
-            if (is_array($value) && false !== strpos($key, '.')) {
-                $nested = $this->unflattenYaml($value);
-                $output[$key] = $nested;
-            }
-        }
-        return $output;
     }
     /**
      * @var string $pathFile
