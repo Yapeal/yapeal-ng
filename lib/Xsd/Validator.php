@@ -52,7 +52,7 @@ class Validator
      *
      * @param string $dir Base directory where Eve API XSD files can be found.
      */
-    public function __construct($dir = __DIR__)
+    public function __construct(string $dir = __DIR__)
     {
         $this->setRelativeBaseDir($dir . '/');
     }
