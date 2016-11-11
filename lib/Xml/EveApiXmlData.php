@@ -141,9 +141,6 @@ class EveApiXmlData implements EveApiReadWriteInterface
     {
         $hash = $this->getEveApiName() . $this->getEveApiSectionName();
         $arguments = $this->getEveApiArguments();
-        if (!in_array($this->getEveApiName(), ['accountBalance', 'walletJournal', 'walletTransactions'], true)) {
-            unset($arguments['accountKey']);
-        }
         unset($arguments['mask'], $arguments['rowCount']);
         ksort($arguments);
         foreach ($arguments as $key => $value) {
