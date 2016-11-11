@@ -68,6 +68,8 @@ class YapealAutoMagic extends Command implements YEMAwareInterface
     }
     /**
      * Configures the current command.
+     *
+     * @throws \Symfony\Component\Console\Exception\LogicException
      */
     protected function configure()
     {

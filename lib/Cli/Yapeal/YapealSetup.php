@@ -264,8 +264,8 @@ HELP;
     {
         if ($this->hasConfigFile()) {
             $ycf = new YamlConfigFile($this->getDic()['Yapeal.vendorParentDir'] . 'config');
-            $ycf->read();
-            $this->yamlFile = $ycf->getSettings();
+            $this->yamlFile = $ycf->read()
+                ->flattenYaml();
         }
     }
     /**
