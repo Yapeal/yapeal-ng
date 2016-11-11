@@ -43,17 +43,13 @@ class EveApiXmlData implements EveApiReadWriteInterface
      * Used to add item to arguments list.
      *
      * @param string $name
-     * @param mixed  $value
+     * @param string $value
      *
-     * @throws \InvalidArgumentException
      * @return self Fluent interface.
      */
-    public function addEveApiArgument(string $name, $value)
+    public function addEveApiArgument(string $name, string $value): self
     {
-        if (null === $value) {
-            return $this;
-        }
-        $this->eveApiArguments[$name] = (string)$value;
+        $this->eveApiArguments[$name] = $value;
         return $this;
     }
     /**
@@ -71,7 +67,7 @@ class EveApiXmlData implements EveApiReadWriteInterface
      *
      * @param string $name
      *
-     * @return null|string
+     * @return string
      * @throws \DomainException
      */
     public function getEveApiArgument(string $name): string
@@ -122,13 +118,10 @@ class EveApiXmlData implements EveApiReadWriteInterface
     /**
      * Getter for the actual Eve API XML received.
      *
-     * @return string|false Returns false if XML is a empty string.
+     * @return string
      */
-    public function getEveApiXml()
+    public function getEveApiXml(): string
     {
-        if ('' === (string)$this->eveApiXml) {
-            return false;
-        }
         return $this->eveApiXml;
     }
     /**
@@ -162,11 +155,11 @@ class EveApiXmlData implements EveApiReadWriteInterface
     /**
      * Cache interval setter.
      *
-     * @param int $value
+     * @param int $value Caching interval in seconds.
      *
      * @return self Fluent interface.
      */
-    public function setCacheInterval(int $value)
+    public function setCacheInterval(int $value): self
     {
         $this->cacheInterval = (int)$value;
         return $this;
@@ -189,10 +182,9 @@ class EveApiXmlData implements EveApiReadWriteInterface
      * @param string[] $values
      *
      * @return self Fluent interface.
-     * @throws \InvalidArgumentException
      * @uses EveApiXmlData::addEveApiArgument()
      */
-    public function setEveApiArguments(array $values)
+    public function setEveApiArguments(array $values): self
     {
         $this->eveApiArguments = [];
         if (0 === count($values)) {
@@ -209,14 +201,9 @@ class EveApiXmlData implements EveApiReadWriteInterface
      * @param string $value
      *
      * @return self Fluent interface.
-     * @throws \InvalidArgumentException
      */
-    public function setEveApiName(string $value)
+    public function setEveApiName(string $value): self
     {
-        if (!is_string($value)) {
-            $mess = 'Name MUST be string but was given ' . gettype($value);
-            throw new \InvalidArgumentException($mess);
-        }
         $this->eveApiName = $value;
         return $this;
     }
@@ -226,39 +213,26 @@ class EveApiXmlData implements EveApiReadWriteInterface
      * @param string $value
      *
      * @return self Fluent interface.
-     * @throws \InvalidArgumentException
      */
-    public function setEveApiSectionName(string $value)
+    public function setEveApiSectionName(string $value): self
     {
-        if (!is_string($value)) {
-            $mess = 'Section name MUST be string but was given ' . gettype($value);
-            throw new \InvalidArgumentException($mess);
-        }
         $this->eveApiSectionName = $value;
         return $this;
     }
     /**
      * Sets the actual Eve API XML data received.
      *
-     * @param string|bool $xml Only allows string or false NOT true.
+     * @param string $xml Actual XML content.
      *
      * @return self Fluent interface.
-     * @throws \InvalidArgumentException
      */
-    public function setEveApiXml($xml = false)
+    public function setEveApiXml(string $xml = ''): self
     {
-        if (false === $xml) {
-            $xml = '';
-        }
-        if (!is_string($xml)) {
-            $mess = 'Xml MUST be string but was given ' . gettype($xml);
-            throw new \InvalidArgumentException($mess);
-        }
         $this->eveApiXml = $xml;
         return $this;
     }
     /**
-     * Holds expected/calculated cache interval for the current API.
+     * Holds expected/calculated cache interval for the current API in seconds.
      *
      * @var int $cacheInterval
      */

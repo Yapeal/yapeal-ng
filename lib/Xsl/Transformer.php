@@ -105,7 +105,7 @@ class Transformer implements TransformerInterface
     private function addYapealProcessingInstructionToXml(EveApiReadWriteInterface $data): self
     {
         $xml = $data->getEveApiXml();
-        if (false === $xml || '' === $xml) {
+        if ('' === $xml) {
             return $this;
         }
         $arguments = $data->getEveApiArguments();
@@ -225,7 +225,7 @@ class Transformer implements TransformerInterface
     private function getXmlInstance(EveApiReadWriteInterface $data)
     {
         $xml = $data->getEveApiXml();
-        if (false === $xml || '' === $xml) {
+        if ('' === $xml) {
             $mess = 'Given empty XML during the transform of';
             $this->getYem()
                 ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->createEveApiMessage($mess, $data));

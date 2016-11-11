@@ -43,11 +43,11 @@ interface EveApiReadWriteInterface
      * Used to add item to arguments list.
      *
      * @param string $name
-     * @param mixed  $value
+     * @param string $value
      *
-     * @return self Fluent interface.
+     * @return static Fluent interface.
      */
-    public function addEveApiArgument(string $name, $value);
+    public function addEveApiArgument(string $name, string $value);
     /**
      * Getter for cache interval.
      *
@@ -87,9 +87,9 @@ interface EveApiReadWriteInterface
     /**
      * Getter for the actual Eve API XML received.
      *
-     * @return string|false Returns false if XML is a empty string.
+     * @return string
      */
-    public function getEveApiXml();
+    public function getEveApiXml(): string;
     /**
      * Used to get a repeatable unique hash for any combination API name, section, and arguments.
      *
@@ -107,9 +107,9 @@ interface EveApiReadWriteInterface
     /**
      * Cache interval setter.
      *
-     * @param int $value Caching interval.
+     * @param int $value Caching interval in seconds.
      *
-     * @return self Fluent interface.
+     * @return static Fluent interface.
      */
     public function setCacheInterval(int $value);
     /**
@@ -129,8 +129,7 @@ interface EveApiReadWriteInterface
      *
      * @param string[] $values
      *
-     * @return self Fluent interface.
-     * @throws \InvalidArgumentException
+     * @return static Fluent interface.
      * @uses EveApiXmlData::addEveApiArgument()
      */
     public function setEveApiArguments(array $values);
@@ -139,8 +138,7 @@ interface EveApiReadWriteInterface
      *
      * @param string $value
      *
-     * @return self Fluent interface.
-     * @throws \InvalidArgumentException
+     * @return static Fluent interface.
      */
     public function setEveApiName(string $value);
     /**
@@ -148,17 +146,15 @@ interface EveApiReadWriteInterface
      *
      * @param string $value
      *
-     * @return self Fluent interface.
-     * @throws \InvalidArgumentException
+     * @return static Fluent interface.
      */
     public function setEveApiSectionName(string $value);
     /**
      * Sets the actual Eve API XML data received.
      *
-     * @param string|bool $xml Only allows string or false NOT true.
+     * @param string $xml XML data.
      *
-     * @return self Fluent interface.
-     * @throws \InvalidArgumentException
+     * @return static Fluent interface.
      */
-    public function setEveApiXml($xml = false);
+    public function setEveApiXml(string $xml = '');
 }

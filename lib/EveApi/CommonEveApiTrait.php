@@ -292,7 +292,7 @@ trait CommonEveApiTrait
             if (false === $this->emitEvents($data, $eventSuffix)) {
                 return false;
             }
-            if (false === $data->getEveApiXml()) {
+            if ('' === $data->getEveApiXml()) {
                 if ($data->hasEveApiArgument('accountKey') && '10000' === $data->getEveApiArgument('accountKey')
                     && 'corp' === strtolower($data->getEveApiSectionName())
                 ) {
@@ -350,7 +350,7 @@ trait CommonEveApiTrait
      */
     protected function updateCachedUntil(EveApiReadWriteInterface $data)
     {
-        if (false === $data->getEveApiXml()) {
+        if ('' === $data->getEveApiXml()) {
             return $this;
         }
         /** @noinspection PhpUndefinedFieldInspection */

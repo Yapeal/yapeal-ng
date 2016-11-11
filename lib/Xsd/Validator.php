@@ -73,7 +73,7 @@ class Validator
         $yem->triggerLogEvent('Yapeal.Log.log',
             Logger::DEBUG,
             $this->getReceivedEventMessage($data, $eventName, __CLASS__));
-        if (false === $data->getEveApiXml()) {
+        if ('' === $data->getEveApiXml()) {
             return $event;
         }
         $htmlError = strpos($data->getEveApiXml(), '<!DOCTYPE html');

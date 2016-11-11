@@ -90,7 +90,7 @@ class Creator
             return $event;
         }
         $xml = $data->getEveApiXml();
-        if (false === $xml) {
+        if ('' === $xml) {
             return $event->setHandledSufficiently();
         }
         $sxi = new \SimpleXMLIterator($xml);

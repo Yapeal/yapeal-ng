@@ -83,7 +83,7 @@ class CachePreserver implements EveApiPreserverInterface
             ucfirst($data->getEveApiName()),
             $data->getHash());
         $xml = $data->getEveApiXml();
-        if (false === $xml) {
+        if ('' === $xml) {
             return $event->setHandledSufficiently();
         }
         // Insures retriever never see partly written file by deleting old file and using temp file for writing.

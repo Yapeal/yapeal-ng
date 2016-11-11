@@ -80,7 +80,7 @@ trait PreserverTrait
         $this->setYem($yem);
         $data = $event->getData();
         $xml = $data->getEveApiXml();
-        if (false === $xml) {
+        if ('' === $xml) {
             return $event->setHandledSufficiently();
         }
         $this->getYem()
