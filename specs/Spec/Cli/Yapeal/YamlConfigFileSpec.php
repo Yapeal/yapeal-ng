@@ -70,9 +70,4 @@ class YamlConfigFileSpec extends ObjectBehavior
         $this->shouldThrow(new \LogicException($mess))
             ->during('getPathFile');
     }
-    public function it_throws_exception_in_get_settings_when_not_set_yet()
-    {
-        $mess = 'Trying to access $settings before it was set';
-        $this->shouldThrow(new \LogicException($mess))->during('getSettings');
-    }
 }
