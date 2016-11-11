@@ -125,7 +125,7 @@ trait ConfigFileProcessingTrait
         $yaml = $this->getDic()['Yapeal.Config.Yaml'];
         $settings = $yaml->setPathFile($configFile)
             ->read()
-            ->getSettings();
+            ->flattenYaml();
         if (0 === count($settings)) {
             return $existing;
         }
