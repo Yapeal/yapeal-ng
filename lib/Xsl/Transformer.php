@@ -77,32 +77,18 @@ class Transformer implements TransformerInterface
         $yem->triggerLogEvent('Yapeal.Log.log',
             Logger::DEBUG,
             $this->getReceivedEventMessage($data, $eventName, __CLASS__));
-        try {
-            $xslName = $this->findRelativeFileWithPath(ucfirst($data->getEveApiSectionName()),
-                $data->getEveApiName(),
-                'xsl');
-        } catch (YapealFileSystemException $exc) {
-            $mess = 'Failed to find accessible XSL transform file during';
-            $yem->triggerLogEvent('Yapeal.Log.log',
-                Logger::WARNING,
-                $this->createEventMessage($mess, $data, $eventName),
-                ['exception' => $exc]);
-            return $event;
-        }
-        $mess = sprintf('Using %s file to transform', $xslName);
-        $yem->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->createEveApiMessage($mess, $data));
         $xml = $this->addYapealProcessingInstructionToXml($data)
-            ->performTransform($xslName, $data);
+            ->performTransform($data);
         if (false === $xml) {
-            $mess = 'Failed to transform xml during';
+            $mess = 'Failed to transform the XML of';
             $yem->triggerLogEvent('Yapeal.Log.log',
                 Logger::WARNING,
                 $this->createEventMessage($mess, $data, $eventName));
             return $event;
         }
-        $xml = (new \tidy())->repairString($xml, $this->tidyConfig, 'utf8');
-        return $event->setData($data->setEveApiXml($xml))
-            ->setHandledSufficiently();
+        $data->setEveApiXml($this->getTidy()
+            ->repairString($xml));
+        return $event->setHandledSufficiently();
     }
     /**
      * Adds Processing Instruction to XML containing json encoding of any post used during retrieve.
@@ -119,13 +105,15 @@ class Transformer implements TransformerInterface
     private function addYapealProcessingInstructionToXml(EveApiReadWriteInterface $data): self
     {
         $xml = $data->getEveApiXml();
-        if (false === $xml) {
+        if (false === $xml || '' === $xml) {
             return $this;
         }
         $arguments = $data->getEveApiArguments();
+        // Include only partial vCode for security.
         if (!empty($arguments['vCode'])) {
-            $arguments['vCode'] = substr($arguments['vCode'], 0, 8) . '...';
+            $arguments['vCode'] = substr($arguments['vCode'], 0, min(8, strlen($arguments['vCode']) - 1)) . '...';
         }
+        // Remove arguments that should never be included.
         unset($arguments['mask'], $arguments['rowCount']);
         ksort($arguments);
         $json = json_encode($arguments);
@@ -138,15 +126,129 @@ class Transformer implements TransformerInterface
         $data->setEveApiXml($xml);
         return $this;
     }
+    /**
+     * Checks for any libxml errors and logs them.
+     *
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
+     */
     private function checkLibXmlErrors()
     {
         $errors = libxml_get_errors();
         if (0 !== count($errors)) {
             foreach ($errors as $error) {
                 $this->getYem()
-                    ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $error->message);
+                    ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $error->message);
             }
         }
+    }
+    /**
+     * @param EveApiReadWriteInterface $data
+     *
+     * @return \SimpleXMLElement|false
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
+     */
+    private function getStyleSheetInstance(EveApiReadWriteInterface $data)
+    {
+        try {
+            $xslFile = $this->findRelativeFileWithPath(ucfirst($data->getEveApiSectionName()),
+                $data->getEveApiName(),
+                'xsl');
+        } catch (YapealFileSystemException $exc) {
+            $mess = 'Failed to find accessible XSL file during the transform of';
+            $this->getYem()
+                ->triggerLogEvent('Yapeal.Log.log',
+                    Logger::DEBUG,
+                    $this->createEveApiMessage($mess, $data),
+                    ['exception' => $exc]);
+            return false;
+        }
+        $styleSheet = $this->safeFileRead($xslFile);
+        if (false === $styleSheet) {
+            $mess = sprintf('Failed to read XSL file %s during the transform of', $xslFile);
+            $this->getYem()
+                ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->createEveApiMessage($mess, $data));
+            return false;
+        }
+        if ('' === $styleSheet) {
+            $mess = sprintf('Received an empty XSL file %s during the transform of', $xslFile);
+            $this->getYem()
+                ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->createEveApiMessage($mess, $data));
+            return false;
+        }
+        try {
+            $instance = new \SimpleXMLElement($styleSheet);
+        } catch (\Exception $exc) {
+            $mess = sprintf('SimpleXMLElement exception caused by XSL file %s during the transform of', $xslFile);
+            $this->getYem()
+                ->triggerLogEvent('Yapeal.log.log',
+                    Logger::DEBUG,
+                    $this->createEveApiMessage($mess, $data),
+                    ['exception' => $exc]);
+            $this->checkLibXmlErrors();
+            return false;
+        }
+        $mess = sprintf('Transforming XML using XSL file %s', $xslFile);
+        $this->getYem()
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->createEveApiMessage($mess, $data));
+        return $instance;
+    }
+    /**
+     * @return \tidy
+     */
+    private function getTidy(): \tidy
+    {
+        if (null === $this->tidy) {
+            $tidyConfig = [
+                'indent' => true,
+                'indent-spaces' => 4,
+                'input-xml' => true,
+                'newline' => 'LF',
+                'output-xml' => true,
+                'wrap' => '250'
+            ];
+            $this->tidy = new \tidy(null, $tidyConfig, 'utf8');
+        }
+        return $this->tidy;
+    }
+    /**
+     * @param EveApiReadWriteInterface $data
+     *
+     * @return \SimpleXMLElement|false
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
+     */
+    private function getXmlInstance(EveApiReadWriteInterface $data)
+    {
+        $xml = $data->getEveApiXml();
+        if (false === $xml || '' === $xml) {
+            $mess = 'Given empty XML during the transform of';
+            $this->getYem()
+                ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->createEveApiMessage($mess, $data));
+            return false;
+        }
+        try {
+            $instance = new \SimpleXMLElement($xml);
+        } catch (\Exception $exc) {
+            $mess = 'The XML cause SimpleXMLElement exception during the transform of';
+            $this->getYem()
+                ->triggerLogEvent('Yapeal.log.log',
+                    Logger::WARNING,
+                    $this->createEveApiMessage($mess, $data),
+                    ['exception' => $exc]);
+            $apiName = $data->getEveApiName();
+            $data->setEveApiName('Untransformed_' . $apiName);
+            // Cache error causing XML.
+            $this->emitEvents($data, 'preserve', 'Yapeal.Xml.Error');
+            $data->setEveApiName($apiName);
+            $this->checkLibXmlErrors();
+            return false;
+        }
+        return $instance;
     }
     /**
      * @return \XSLTProcessor
@@ -161,64 +263,38 @@ class Transformer implements TransformerInterface
     /**
      * Does actual XSL transform on the Eve API XML.
      *
-     * @param string                   $xslName
      * @param EveApiReadWriteInterface $data
      *
-     * @return string|false
+     * @return false|string
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
-    private function performTransform(string $xslName, EveApiReadWriteInterface $data)
+    private function performTransform(EveApiReadWriteInterface $data)
     {
-        $xsl = $this->safeFileRead($xslName);
-        if (false === $xsl) {
-            $mess = sprintf('Failed to read XSL file %s during', $xslName);
-            $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $this->createEveApiMessage($mess, $data));
-            return false;
-        }
-        if ('' === $xsl) {
-            $mess = sprintf('Received an empty XSL file %s during', $xslName);
-            $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $this->createEveApiMessage($mess, $data));
-            return false;
-        }
         libxml_clear_errors();
         libxml_use_internal_errors(true);
-        libxml_clear_errors();
+        $styleInstance = $this->getStyleSheetInstance($data);
+        if (false === $styleInstance) {
+            libxml_use_internal_errors(false);
+            return false;
+        }
         $xslt = $this->getXslt();
-        try {
-            $result = $xslt->importStylesheet(new \SimpleXMLElement($xsl));
-        } catch (\Exception $exc) {
-            $mess = sprintf('XSL file %s cause SimpleXMLElement exception during', $xslName);
-            $this->getYem()
-                ->triggerLogEvent('Yapeal.log.log',
-                    Logger::WARNING,
-                    $this->createEveApiMessage($mess, $data),
-                    ['exception' => $exc]);
-            $this->checkLibXmlErrors();
-            return false;
-        }
+        $result = $xslt->importStylesheet($styleInstance);
         if (false === $result) {
-            $mess = sprintf('XSLT could not import %s style sheet during', $xslName);
+            $mess = 'XSLT could not import style sheet during the transform of';
             $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $this->createEveApiMessage($mess, $data));
+                ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->createEveApiMessage($mess, $data));
             $this->checkLibXmlErrors();
+            libxml_use_internal_errors(false);
             return false;
         }
-        $result = false;
-        try {
-            $result = $xslt->transformToXml(new \SimpleXMLElement($data->getEveApiXml()));
-        } catch (\Exception $exc) {
-            $mess = 'XML cause SimpleXMLElement exception in';
-            $this->getYem()
-                ->triggerLogEvent('Yapeal.log.log',
-                    Logger::WARNING,
-                    $this->createEveApiMessage($mess, $data),
-                    ['exception' => $exc]);
-            // Fall through intended so any libxml errors are logged and the untransformed XML can be preserved.
+        $xmlInstance = $this->getXmlInstance($data);
+        if (false === $xmlInstance) {
+            libxml_use_internal_errors(false);
+            return false;
         }
+        $result = $xslt->transformToXml($xmlInstance);
         if (false === $result) {
             $this->checkLibXmlErrors();
             $apiName = $data->getEveApiName();
@@ -227,24 +303,13 @@ class Transformer implements TransformerInterface
             $this->emitEvents($data, 'preserve', 'Yapeal.Xml.Error');
             $data->setEveApiName($apiName);
         }
-        libxml_clear_errors();
         libxml_use_internal_errors(false);
-        libxml_clear_errors();
         return $result;
     }
     /**
-     * Holds tidy config settings.
-     *
-     * @var array $tidyConfig
+     * @var \tidy $tidy
      */
-    private $tidyConfig = [
-        'indent' => true,
-        'indent-spaces' => 4,
-        'input-xml' => true,
-        'newline' => 'LF',
-        'output-xml' => true,
-        'wrap' => '1000'
-    ];
+    private $tidy;
     /**
      * @var \XSLTProcessor $xslt
      */
