@@ -77,15 +77,15 @@ class Transformer implements TransformerInterface
         $yem->triggerLogEvent('Yapeal.Log.log',
             Logger::DEBUG,
             $this->getReceivedEventMessage($data, $eventName, __CLASS__));
+        // Pretty up the XML to make other processing easier.
+        $data->setEveApiXml($this->getTidy()
+            ->repairString($data->getEveApiXml()));
         $xml = $this->addYapealProcessingInstructionToXml($data)
             ->performTransform($data);
         if (false === $xml) {
-            $mess = 'Failed to transform the XML of';
-            $yem->triggerLogEvent('Yapeal.Log.log',
-                Logger::WARNING,
-                $this->createEventMessage($mess, $data, $eventName));
             return $event;
         }
+        // Pretty up the transformed XML.
         $data->setEveApiXml($this->getTidy()
             ->repairString($xml));
         return $event->setHandledSufficiently();
@@ -99,6 +99,7 @@ class Transformer implements TransformerInterface
      * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
+     * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
      */
@@ -113,16 +114,17 @@ class Transformer implements TransformerInterface
         if (!empty($arguments['vCode'])) {
             $arguments['vCode'] = substr($arguments['vCode'], 0, min(8, strlen($arguments['vCode']) - 1)) . '...';
         }
-        // Remove arguments that should never be included.
+        // Remove arguments that never need to be included.
         unset($arguments['mask'], $arguments['rowCount']);
         ksort($arguments);
         $json = json_encode($arguments);
-        $xml = str_replace(["encoding='UTF-8'?>\r\n<eveapi", "encoding='UTF-8'?>\n<eveapi"],
-            [
-                "encoding='UTF-8'?>\r\n<?yapeal.parameters.json " . $json . "?>\r\n<eveapi",
-                "encoding='UTF-8'?>\n<?yapeal.parameters.json " . $json . "?>\n<eveapi"
-            ],
-            $xml);
+        if (false === $json) {
+            $mess = sprintf('JSON encoding of parameters failed with %s during', json_last_error_msg());
+            $this->getYem()
+                ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $this->createEveApiMessage($mess, $data));
+            return $this;
+        }
+        $xml = str_replace("='UTF-8'?>\n", "='UTF-8'?>\n<?yapeal.parameters.json " . $json . "?>\n", $xml);
         $data->setEveApiXml($xml);
         return $this;
     }
@@ -179,6 +181,9 @@ class Transformer implements TransformerInterface
                 ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->createEveApiMessage($mess, $data));
             return false;
         }
+        libxml_clear_errors();
+        libxml_use_internal_errors(true);
+        $instance = false;
         try {
             $instance = new \SimpleXMLElement($styleSheet);
         } catch (\Exception $exc) {
@@ -189,11 +194,13 @@ class Transformer implements TransformerInterface
                     $this->createEveApiMessage($mess, $data),
                     ['exception' => $exc]);
             $this->checkLibXmlErrors();
-            return false;
         }
-        $mess = sprintf('Transforming XML using XSL file %s', $xslFile);
-        $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->createEveApiMessage($mess, $data));
+        libxml_use_internal_errors(false);
+        if (false !== $instance) {
+            $mess = sprintf('Using XSL file %s during the transform of', $xslFile);
+            $this->getYem()
+                ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->createEveApiMessage($mess, $data));
+        }
         return $instance;
     }
     /**
@@ -231,6 +238,9 @@ class Transformer implements TransformerInterface
                 ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->createEveApiMessage($mess, $data));
             return false;
         }
+        libxml_clear_errors();
+        libxml_use_internal_errors(true);
+        $instance = false;
         try {
             $instance = new \SimpleXMLElement($xml);
         } catch (\Exception $exc) {
@@ -240,14 +250,14 @@ class Transformer implements TransformerInterface
                     Logger::WARNING,
                     $this->createEveApiMessage($mess, $data),
                     ['exception' => $exc]);
+            // Cache error causing XML.
             $apiName = $data->getEveApiName();
             $data->setEveApiName('Untransformed_' . $apiName);
-            // Cache error causing XML.
             $this->emitEvents($data, 'preserve', 'Yapeal.Xml.Error');
             $data->setEveApiName($apiName);
             $this->checkLibXmlErrors();
-            return false;
         }
+        libxml_use_internal_errors(false);
         return $instance;
     }
     /**
@@ -272,16 +282,16 @@ class Transformer implements TransformerInterface
      */
     private function performTransform(EveApiReadWriteInterface $data)
     {
-        libxml_clear_errors();
-        libxml_use_internal_errors(true);
-        $styleInstance = $this->getStyleSheetInstance($data);
-        if (false === $styleInstance) {
-            libxml_use_internal_errors(false);
+        if (false === $styleInstance = $this->getStyleSheetInstance($data)) {
             return false;
         }
+        if (false === $xmlInstance = $this->getXmlInstance($data)) {
+            return false;
+        }
+        libxml_clear_errors();
+        libxml_use_internal_errors(true);
         $xslt = $this->getXslt();
-        $result = $xslt->importStylesheet($styleInstance);
-        if (false === $result) {
+        if (false === $xslt->importStylesheet($styleInstance)) {
             $mess = 'XSLT could not import style sheet during the transform of';
             $this->getYem()
                 ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->createEveApiMessage($mess, $data));
@@ -289,22 +299,22 @@ class Transformer implements TransformerInterface
             libxml_use_internal_errors(false);
             return false;
         }
-        $xmlInstance = $this->getXmlInstance($data);
-        if (false === $xmlInstance) {
-            libxml_use_internal_errors(false);
-            return false;
-        }
-        $result = $xslt->transformToXml($xmlInstance);
-        if (false === $result) {
-            $this->checkLibXmlErrors();
+        $xml = $xslt->transformToXml($xmlInstance);
+        if (false === $xml) {
+            $mess = 'Failed to transform the XML of';
+            $this->getYem()
+                ->triggerLogEvent('Yapeal.Log.log',
+                    Logger::WARNING,
+                    $this->createEveApiMessage($mess, $data));
+            // Cache error causing XML.
             $apiName = $data->getEveApiName();
             $data->setEveApiName('Untransformed_' . $apiName);
-            // Cache error causing XML.
             $this->emitEvents($data, 'preserve', 'Yapeal.Xml.Error');
             $data->setEveApiName($apiName);
+            $this->checkLibXmlErrors();
         }
         libxml_use_internal_errors(false);
-        return $result;
+        return $xml;
     }
     /**
      * @var \tidy $tidy
