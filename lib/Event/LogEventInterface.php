@@ -56,19 +56,19 @@ interface LogEventInterface extends EventInterface
     /**
      * @param array $value
      *
-     * @return LogEventInterface Fluent interface.
+     * @return static Fluent interface.
      */
-    public function setContext(array $value): LogEventInterface;
+    public function setContext(array $value);
     /**
      * @param int $value
      *
-     * @return LogEventInterface Fluent interface.
+     * @return static Fluent interface.
      */
-    public function setLevel(int $value): LogEventInterface;
+    public function setLevel(int $value);
     /**
      * @param string $value
      *
-     * @return LogEventInterface Fluent interface.
+     * @return static Fluent interface.
      */
-    public function setMessage(string $value): LogEventInterface;
+    public function setMessage(string $value);
 }

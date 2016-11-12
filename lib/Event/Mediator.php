@@ -36,13 +36,11 @@ namespace Yapeal\Event;
 
 use EventMediator\AbstractContainerMediator;
 use EventMediator\ContainerMediatorInterface;
-use EventMediator\EventInterface;
 use Yapeal\Container\Container;
 use Yapeal\Container\ContainerInterface;
 use Yapeal\Log\Logger;
 use Yapeal\Xml\EveApiReadWriteInterface;
 
-/** @noinspection LongInheritanceChainInspection */
 /**
  * Class Mediator
  */
@@ -58,7 +56,6 @@ class Mediator extends AbstractContainerMediator implements MediatorInterface
     {
         $this->setServiceContainer($serviceContainer);
     }
-    /** @noinspection GenericObjectTypeUsageInspection */
     /**
      * This method is used any time the mediator need to get the actual instance
      * of the class for an event.
@@ -104,39 +101,44 @@ class Mediator extends AbstractContainerMediator implements MediatorInterface
         $this->serviceContainer = $value;
         return $this;
     }
-    /** @noinspection MoreThanThreeArgumentsInspection */
     /**
      * @param string                    $eventName
      * @param EveApiReadWriteInterface  $data
-     * @param null|EveApiEventInterface $event
+     * @param EveApiEventInterface|null $event
      *
-     * @return EventInterface|EveApiEventInterface
+     * @return EveApiEventInterface
      * @throws \DomainException
      * @throws \InvalidArgumentException
+     * @throws \UnexpectedValueException
      */
     public function triggerEveApiEvent(
         string $eventName,
         EveApiReadWriteInterface $data,
         EveApiEventInterface $event = null
-    ): EventInterface
-    {
+    ): EveApiEventInterface {
         if (null === $event) {
             $event = new EveApiEvent();
         }
         $event->setData($data);
-        return $this->trigger($eventName, $event);
+        $event = $this->trigger($eventName, $event);
+        if (!$event instanceof EveApiEventInterface) {
+            $mess = 'Received un-expected EventInterface from trigger';
+            throw new \UnexpectedValueException($mess);
+        }
+        return $event;
     }
-    /** @noinspection MoreThanThreeArgumentsInspection */
+    /** @noinspection PhpTooManyParametersInspection */
     /**
      * @param string                 $eventName
      * @param int                    $level
      * @param string                 $message
      * @param array                  $context
-     * @param null|LogEventInterface $event
+     * @param LogEventInterface|null $event
      *
-     * @return EventInterface
+     * @return LogEventInterface
      * @throws \DomainException
      * @throws \InvalidArgumentException
+     * @throws \UnexpectedValueException
      */
     public function triggerLogEvent(
         string $eventName,
@@ -144,23 +146,32 @@ class Mediator extends AbstractContainerMediator implements MediatorInterface
         string $message = '',
         array $context = [],
         LogEventInterface $event = null
-    ): EventInterface
-    {
+    ): LogEventInterface {
         if (null === $event) {
             $event = new LogEvent();
         }
         $event->setLevel($level)
             ->setMessage($message)
             ->setContext($context);
-        return $this->trigger($eventName, $event);
+        $event = $this->trigger($eventName, $event);
+        if (!$event instanceof LogEventInterface) {
+            $mess = 'Received un-expected EventInterface from trigger';
+            throw new \UnexpectedValueException($mess);
+        }
+        return $event;
     }
     /**
      * Used to get the service container.
      *
-     * @return ContainerInterface|null
+     * @return ContainerInterface
+     * @throws \LogicException
      */
     private function getServiceContainer()
     {
+        if (null === $this->serviceContainer) {
+            $mess = 'Tried to use serviceContainer before it was set';
+            throw new \LogicException($mess);
+        }
         return $this->serviceContainer;
     }
     /**

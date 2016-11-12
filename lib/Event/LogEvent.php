@@ -47,11 +47,8 @@ class LogEvent extends Event implements LogEventInterface
      * @param string $message
      * @param array  $context
      */
-    public function __construct(
-        int $level = Logger::DEBUG,
-        string $message = '',
-        array $context = []
-    ) {
+    public function __construct(int $level = Logger::DEBUG, string $message = '', array $context = [])
+    {
         $this->setLevel($level)
             ->setMessage($message)
             ->setContext($context);
@@ -80,9 +77,9 @@ class LogEvent extends Event implements LogEventInterface
     /**
      * @param array $value
      *
-     * @return LogEventInterface Fluent interface.
+     * @return self Fluent interface.
      */
-    public function setContext(array $value): LogEventInterface
+    public function setContext(array $value): self
     {
         $this->context = $value;
         return $this;
@@ -90,9 +87,9 @@ class LogEvent extends Event implements LogEventInterface
     /**
      * @param int $value
      *
-     * @return LogEventInterface Fluent interface.
+     * @return self Fluent interface.
      */
-    public function setLevel(int $value): LogEventInterface
+    public function setLevel(int $value): self
     {
         $this->level = $value;
         return $this;
@@ -100,9 +97,9 @@ class LogEvent extends Event implements LogEventInterface
     /**
      * @param string $value
      *
-     * @return LogEventInterface Fluent interface.
+     * @return self Fluent interface.
      */
-    public function setMessage(string $value): LogEventInterface
+    public function setMessage(string $value): self
     {
         $this->message = $value;
         return $this;

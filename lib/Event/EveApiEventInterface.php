@@ -63,16 +63,16 @@ interface EveApiEventInterface extends EventInterface
      *
      * @param EveApiReadWriteInterface $value
      *
-     * @return EveApiEventInterface Fluent interface.
+     * @return static Fluent interface.
      */
-    public function setData(EveApiReadWriteInterface $value): EveApiEventInterface;
+    public function setData(EveApiReadWriteInterface $value);
     /**
      * Set to indicate event was handled sufficiently while still allows additional listener(s) to have a chance to
      * handle the event as well.
      *
      * @param bool $value
      *
-     * @return EveApiEventInterface Fluent interface.
+     * @return static Fluent interface.
      */
-    public function setHandledSufficiently(bool $value = true): EveApiEventInterface;
+    public function setHandledSufficiently(bool $value = true);
 }

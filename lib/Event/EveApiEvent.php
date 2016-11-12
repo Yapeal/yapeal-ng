@@ -35,7 +35,6 @@ declare(strict_types = 1);
 namespace Yapeal\Event;
 
 use EventMediator\Event;
-use LogicException;
 use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
@@ -53,7 +52,7 @@ class EveApiEvent extends Event implements EveApiEventInterface
     {
         if (!$this->data instanceof EveApiReadWriteInterface) {
             $mess = 'Tried to use data before it was set';
-            throw new LogicException($mess);
+            throw new \LogicException($mess);
         }
         return $this->data;
     }
@@ -74,9 +73,9 @@ class EveApiEvent extends Event implements EveApiEventInterface
      *
      * @param EveApiReadWriteInterface $value
      *
-     * @return EveApiEventInterface Fluent interface.
+     * @return self Fluent interface.
      */
-    public function setData(EveApiReadWriteInterface $value): EveApiEventInterface
+    public function setData(EveApiReadWriteInterface $value): self
     {
         $this->data = $value;
         return $this;
@@ -87,9 +86,9 @@ class EveApiEvent extends Event implements EveApiEventInterface
      *
      * @param bool $value
      *
-     * @return EveApiEventInterface Fluent interface.
+     * @return self Fluent interface.
      */
-    public function setHandledSufficiently(bool $value = true): EveApiEventInterface
+    public function setHandledSufficiently(bool $value = true): self
     {
         $this->handledSufficiently = $value;
         return $this;
