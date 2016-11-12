@@ -51,6 +51,7 @@ interface MediatorInterface extends ContainerMediatorInterface
      * @return EveApiEventInterface
      * @throws \DomainException
      * @throws \InvalidArgumentException
+     * @throws \UnexpectedValueException
      */
     public function triggerEveApiEvent(
         string $eventName,
@@ -68,6 +69,7 @@ interface MediatorInterface extends ContainerMediatorInterface
      * @return LogEventInterface
      * @throws \DomainException
      * @throws \InvalidArgumentException
+     * @throws \UnexpectedValueException
      */
     public function triggerLogEvent(
         string $eventName,
