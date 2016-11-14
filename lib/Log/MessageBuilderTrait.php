@@ -77,9 +77,8 @@ trait MessageBuilderTrait
         string $messagePrefix,
         EveApiReadWriteInterface $data,
         string $eventName
-    ): string
-    {
-        $messagePrefix .= sprintf(' %s event from', $eventName);
+    ): string {
+        $messagePrefix .= sprintf(' the %s event while processing', $eventName);
         return $this->createEveApiMessage($messagePrefix, $data);
     }
     /**
@@ -103,12 +102,11 @@ trait MessageBuilderTrait
      */
     protected function getEmptyXmlDataMessage(EveApiReadWriteInterface $data, string $eventName): string
     {
-        $messagePrefix = 'XML empty after';
+        $messagePrefix = 'XML is empty after';
         return $this->createEventMessage($messagePrefix, $data, $eventName);
     }
     /**
      * @param EveApiReadWriteInterface $data
-     * @param string                   $eventName
      * @param string                   $fileName
      *
      * @return string
@@ -116,12 +114,10 @@ trait MessageBuilderTrait
      */
     protected function getFailedToWriteFileMessage(
         EveApiReadWriteInterface $data,
-        string $eventName,
         string $fileName
-    ): string
-    {
-        $messagePrefix = sprintf('Failed writing %s file during', $fileName);
-        return $this->createEventMessage($messagePrefix, $data, $eventName);
+    ): string {
+        $messagePrefix = sprintf('Writing file %s failed during the creation of', $fileName);
+        return $this->createEveApiMessage($messagePrefix, $data);
     }
     /**
      * @param EveApiReadWriteInterface $data
@@ -159,8 +155,7 @@ trait MessageBuilderTrait
         EveApiReadWriteInterface $data,
         string $eventName,
         string $location
-    ): string
-    {
+    ): string {
         $messagePrefix = sprintf('Received in %s', $location);
         return $this->createEventMessage($messagePrefix, $data, $eventName);
     }
