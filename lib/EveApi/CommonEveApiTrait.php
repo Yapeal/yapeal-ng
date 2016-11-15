@@ -55,7 +55,7 @@ trait CommonEveApiTrait
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
-     * @throws \Yapeal\Exception\YapealDatabaseException
+     * @throws \UnexpectedValueException
      */
     public function oneShot(EveApiReadWriteInterface $data): bool
     {
@@ -79,6 +79,7 @@ trait CommonEveApiTrait
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
+     * @throws \UnexpectedValueException
      * @throws \Yapeal\Exception\YapealDatabaseException
      */
     public function startEveApi(EveApiEventInterface $event, string $eventName, MediatorInterface $yem)
@@ -93,7 +94,7 @@ trait CommonEveApiTrait
         try {
             $records = $this->getActive($data);
         } catch (\PDOException $exc) {
-            $mess = 'Could NOT get a list of active owners for';
+            $mess = 'Could NOT get a list of active owners during the processing of';
             $this->getYem()
                 ->triggerLogEvent('Yapeal.Log.log',
                     Logger::WARNING,
@@ -102,7 +103,7 @@ trait CommonEveApiTrait
             return $event;
         }
         if (0 === count($records)) {
-            $mess = 'No active owners found for';
+            $mess = 'No active owners found during the processing of';
             $yem->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $this->createEveApiMessage($mess, $data));
             $this->emitEvents($data, 'end');
             return $event->setHandledSufficiently();
@@ -135,7 +136,7 @@ trait CommonEveApiTrait
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
-     * @throws \Yapeal\Exception\YapealDatabaseException
+     * @throws \UnexpectedValueException
      */
     protected function cachedUntilIsNotExpired(EveApiReadWriteInterface $data): bool
     {
@@ -150,7 +151,7 @@ trait CommonEveApiTrait
                 ->query($sql)
                 ->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\PDOException $exc) {
-            $mess = 'Could NOT get cache expired for';
+            $mess = 'Could NOT query cache expired during the processing of';
             $this->getYem()
                 ->triggerLogEvent('Yapeal.Log.log',
                     Logger::WARNING,
@@ -159,19 +160,19 @@ trait CommonEveApiTrait
             return false;
         }
         if (0 === count($expires)) {
-            $mess = 'No UtilCachedUntil record found for';
+            $mess = 'No UtilCachedUntil record found during the processing of';
             $this->getYem()
                 ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->createEveApiMessage($mess, $data));
             return false;
         }
         if (1 < count($expires)) {
-            $mess = 'Multiple UtilCachedUntil records found for';
+            $mess = 'Multiple UtilCachedUntil records found during the processing of';
             $this->getYem()
                 ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $this->createEveApiMessage($mess, $data));
             return false;
         }
         if (strtotime($expires[0]['expires'] . '+00:00') < time()) {
-            $mess = 'Expired UtilCachedUntil record found for';
+            $mess = 'Expired UtilCachedUntil record found during the processing of';
             $this->getYem()
                 ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->createEveApiMessage($mess, $data));
             return false;
@@ -199,8 +200,7 @@ trait CommonEveApiTrait
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
-     * @throws \PDOException
-     * @throws \Yapeal\Exception\YapealDatabaseException
+     * @throws \UnexpectedValueException
      */
     protected function getActive(EveApiReadWriteInterface $data)
     {
@@ -255,7 +255,7 @@ trait CommonEveApiTrait
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
-     * @throws \Yapeal\Exception\YapealDatabaseException
+     * @throws \UnexpectedValueException
      */
     protected function gotApiLock(EveApiReadWriteInterface $data): bool
     {
@@ -272,10 +272,36 @@ trait CommonEveApiTrait
         } catch (\PDOException $exc) {
             $context = ['exception' => $exc];
         }
-        $mess = $success ? 'Got lock for' : 'Could NOT get lock for';
+        $mess = $success ? 'Got lock during the processing of' : 'Could NOT get lock during the processing of';
         $this->getYem()
             ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $this->createEveApiMessage($mess, $data), $context);
         return $success;
+    }
+    /**
+     * Used to make duplicate records for each accountKey.
+     *
+     * Eve APIs like the corp accountBalance, walletJournal, and walletTransactions are all per wallet as seen in game
+     * so they have to be processed for each of the 'accountKey' to the Eve API servers. Currently that means 8 plus the
+     * faction warfare/console game wallet for those corps involved with that part of the game.
+     *
+     * The same APIs for chars allow accountKey as well but they currently only have the one wallet 1000 so it could be
+     * considered optional for them but CCP may decide to change that in the future so Yapeal uses it with them as well.
+     *
+     * @param array $records
+     *
+     * @return array
+     */
+    protected function processAccountKeys(array $records): array
+    {
+        $replacements = [];
+        foreach ($records as $arguments) {
+            foreach ($this->accountKeys as $accountKey) {
+                $newArgs = $arguments;
+                $newArgs['accountKey'] = $accountKey;
+                $replacements[] = $newArgs;
+            }
+        }
+        return $replacements;
     }
     /**
      * @param EveApiReadWriteInterface $data
@@ -284,6 +310,7 @@ trait CommonEveApiTrait
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
+     * @throws \UnexpectedValueException
      */
     protected function processEvents(EveApiReadWriteInterface $data): bool
     {
@@ -296,7 +323,7 @@ trait CommonEveApiTrait
                 if ($data->hasEveApiArgument('accountKey') && '10000' === $data->getEveApiArgument('accountKey')
                     && 'corp' === strtolower($data->getEveApiSectionName())
                 ) {
-                    $mess = 'No faction warfare account data in';
+                    $mess = 'No faction warfare account data during the processing of';
                     $this->getYem()
                         ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $this->createEveApiMessage($mess, $data));
                     return false;
@@ -317,7 +344,7 @@ trait CommonEveApiTrait
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
-     * @throws \Yapeal\Exception\YapealDatabaseException
+     * @throws \UnexpectedValueException
      */
     protected function releaseApiLock(EveApiReadWriteInterface $data): bool
     {
@@ -342,19 +369,17 @@ trait CommonEveApiTrait
     /**
      * @param EveApiReadWriteInterface $data
      *
-     * @return self Fluent interface.
+     * @return static Fluent interface.
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
-     * @throws \Yapeal\Exception\YapealDatabaseException
+     * @throws \UnexpectedValueException
      */
     protected function updateCachedUntil(EveApiReadWriteInterface $data)
     {
         if ('' === $data->getEveApiXml()) {
             return $this;
         }
-        /** @noinspection PhpUndefinedFieldInspection */
-        /** @noinspection UnnecessaryParenthesesInspection */
         $currentTime = (string)(new \SimpleXMLElement($data->getEveApiXml()))->currentTime[0];
         if ('' === $currentTime) {
             return $this;
@@ -397,30 +422,4 @@ trait CommonEveApiTrait
      * @var int $mask
      */
     protected $mask;
-    /**
-     * Used to make duplicate records for each accountKey.
-     *
-     * Eve APIs like the corp accountBalance, walletJournal, and walletTransactions are all per wallet as seen in game
-     * so they have to be processed for each of the 'accountKey' to the Eve API servers. Currently that means 8 plus the
-     * faction warfare/console game wallet for those corps involved with that part of the game.
-     *
-     * The same APIs for chars allow accountKey as well but they currently only have the one wallet 1000 so it could be
-     * considered optional for them but CCP may decide to change that in the future so Yapeal uses it with them as well.
-     *
-     * @param array $records
-     *
-     * @return array
-     */
-    protected function processAccountKeys(array $records): array
-    {
-        $replacements = [];
-        foreach ($records as $arguments) {
-            foreach ($this->accountKeys as $accountKey) {
-                $newArgs = $arguments;
-                $newArgs['accountKey'] = $accountKey;
-                $replacements[] = $newArgs;
-            }
-        }
-        return $replacements;
-    }
 }
