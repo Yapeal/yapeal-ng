@@ -58,7 +58,10 @@ trait EveApiEventEmitterTrait
      * @param string                   $eventPrefix
      *
      * @return bool
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
      * @throws \LogicException
+     * @throws \UnexpectedValueException
      */
     protected function emitEvents(
         EveApiReadWriteInterface $data,

@@ -48,7 +48,10 @@ interface EveApiRetrieverInterface
      * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
      * @throws \LogicException
+     * @throws \UnexpectedValueException
      */
     public function retrieveEveApi(EveApiEventInterface $event, string $eventName, MediatorInterface $yem);
     /**
