@@ -45,6 +45,8 @@ class LineFormatter extends MLineFormatter
      * @param mixed $data
      *
      * @return mixed
+     * @throws \InvalidArgumentException
+     * @throws \RuntimeException
      */
     protected function normalize($data)
     {
