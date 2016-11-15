@@ -113,7 +113,7 @@ class Creator
         if (false === $this->safeFileWrite($outputFile, $contents)) {
             $yem->triggerLogEvent($eventName,
                 Logger::WARNING,
-                $this->getFailedToWriteFileMessage($data, $eventName, $outputFile));
+                $this->getFailedToWriteFileMessage($data, $outputFile));
             return $event;
         }
         return $event->setHandledSufficiently();
