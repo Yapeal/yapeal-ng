@@ -37,16 +37,23 @@ namespace Yapeal\Xsd;
 use Yapeal\Event\EveApiEventEmitterTrait;
 use Yapeal\Event\EveApiEventInterface;
 use Yapeal\Event\MediatorInterface;
+use Yapeal\Event\YEMAwareInterface;
 use Yapeal\Exception\YapealFileSystemException;
 use Yapeal\FileSystem\RelativeFileSearchTrait;
+use Yapeal\FileSystem\SafeFileHandlingTrait;
 use Yapeal\Log\Logger;
+use Yapeal\Xml\EveApiReadWriteInterface;
+use Yapeal\Xml\LibXmlChecksTrait;
 
 /**
  * Class Validator
  */
-class Validator
+class Validator implements ValidatorInterface, YEMAwareInterface
 {
-    use EveApiEventEmitterTrait, RelativeFileSearchTrait;
+    use EveApiEventEmitterTrait;
+    use LibXmlChecksTrait;
+    use RelativeFileSearchTrait;
+    use SafeFileHandlingTrait;
     /**
      * Constructor.
      *
@@ -65,79 +72,183 @@ class Validator
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
+     * @throws \UnexpectedValueException
      */
-    public function validateEveApi(EveApiEventInterface $event, $eventName, MediatorInterface $yem)
-    {
+    public function validateEveApi(
+        EveApiEventInterface $event,
+        string $eventName,
+        MediatorInterface $yem
+    ): EveApiEventInterface {
         $this->setYem($yem);
         $data = $event->getData();
         $yem->triggerLogEvent('Yapeal.Log.log',
             Logger::DEBUG,
             $this->getReceivedEventMessage($data, $eventName, __CLASS__));
-        if ('' === $data->getEveApiXml()) {
+        if ('' === $xml = $data->getEveApiXml()) {
+            $messagePrefix = 'Given empty XML during the validation of';
+            $yem->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $this->createEveApiMessage($messagePrefix, $data));
             return $event;
         }
-        $htmlError = strpos($data->getEveApiXml(), '<!DOCTYPE html');
-        if (false !== $htmlError) {
-            $mess = 'Received HTML result from ';
-            $yem->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $this->createEveApiMessage($mess, $data));
+        if (false !== strpos($xml, '<!DOCTYPE html')) {
+            $messagePrefix = 'Received HTML error doc instead of XML data during the validation of';
+            $yem->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $this->createEveApiMessage($messagePrefix, $data));
+            // Cache received error html.
             $apiName = $data->getEveApiName();
             $data->setEveApiName('Invalid_' . $apiName);
-            // Cache error html.
             $this->emitEvents($data, 'preserve', 'Yapeal.Xml.Error');
             $data->setEveApiName($apiName);
-            return $event->setData($data);
-        }
-        try {
-            $xsdName = $this->findRelativeFileWithPath(ucfirst($data->getEveApiSectionName()),
-                $data->getEveApiName(),
-                'xsd');
-        } catch (YapealFileSystemException $exc) {
-            $mess = 'Failed to find accessible XSD schema file during';
-            $yem->triggerLogEvent('Yapeal.Log.log',
-                Logger::WARNING,
-                $this->createEventMessage($mess, $data, $eventName),
-                ['exception' => $exc]);
             return $event;
         }
-        $mess = sprintf('Using %1$s file to validate', $xsdName);
-        $yem->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->createEveApiMessage($mess, $data));
+        if (false === $xsdContents = $this->getXsdFileContents($data)) {
+            return $event;
+        }
         libxml_clear_errors();
         libxml_use_internal_errors(true);
-        libxml_clear_errors();
-        $dom = new \DOMDocument();
-        $loaded = $dom->loadXML($data->getEveApiXml());
-        if (!$loaded || !$dom->schemaValidate($xsdName)) {
-            /**
-             * @var \libXMLError[] $errors
-             */
-            $errors = libxml_get_errors();
-            if (0 !== count($errors)) {
-                foreach ($errors as $error) {
-                    if (null !== $error->message) {
-                        $yem->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $error->message);
-                    }
-                }
-            }
-            libxml_clear_errors();
+        $dom = $this->getDom();
+        if (false === $dom->loadXML($xml)) {
+            $messagePrefix = 'DOM could not load XML during the validation of';
+            $yem->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $this->createEveApiMessage($messagePrefix, $data));
+            $this->checkLibXmlErrors($data, $yem);
             libxml_use_internal_errors(false);
-            libxml_clear_errors();
+            return $event;
+        }
+        if (false === $dom->schemaValidateSource($xsdContents)) {
+            $messagePrefix = 'DOM schema could not validate XML during the validation of';
+            $yem->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $this->createEveApiMessage($messagePrefix, $data));
+            // Cache error causing XML.
             $apiName = $data->getEveApiName();
             $data->setEveApiName('Invalid_' . $apiName);
-            // Cache error causing XML.
             $this->emitEvents($data, 'preserve', 'Yapeal.Xml.Error');
             $data->setEveApiName($apiName);
-            $event->setData($data);
-            return $event->setHandledSufficiently(false);
+            $this->checkLibXmlErrors($data, $yem);
+            libxml_use_internal_errors(false);
+            return $event;
         }
-        libxml_clear_errors();
+        if (false === $this->checkForValidDateTimes($dom, $data)) {
+            return $event;
+        }
         libxml_use_internal_errors(false);
-        libxml_clear_errors();
+        $messagePrefix = 'Successfully validated the XML during the validation of';
+        $yem->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $this->createEveApiMessage($messagePrefix, $data));
         // Check for XML error element.
         if (false !== strpos($data->getEveApiXml(), '<error ')) {
             $this->emitEvents($data, 'start', 'Yapeal.Xml.Error');
-            $event->setData($data);
-            return $event->setHandledSufficiently(false);
+            return $event;
         }
         return $event->setHandledSufficiently();
     }
+    /**
+     * @param \DOMDocument             $dom
+     * @param EveApiReadWriteInterface $data
+     *
+     * @return bool
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
+     * @throws \UnexpectedValueException
+     */
+    private function checkForValidDateTimes(\DOMDocument $dom, EveApiReadWriteInterface $data)
+    {
+        libxml_clear_errors();
+        libxml_use_internal_errors(true);
+        if (false === $simple = simplexml_import_dom($dom)) {
+            $messagePrefix = 'SimpleXMLElement could not import DOM during the validation of';
+            $this->getYem()
+                ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $this->createEveApiMessage($messagePrefix, $data));
+            $this->checkLibXmlErrors($data, $this->getYem());
+            libxml_use_internal_errors(false);
+            return false;
+        }
+        $eveFormat = 'Y-m-d H:i:sP';
+        if (false === $current = \DateTimeImmutable::createFromFormat($eveFormat, $simple->currentTime[0] . '+00:00')) {
+            $messagePrefix = 'Failed to get DateTime instance for currentTime during the retrieval of';
+            $this->getYem()
+                ->triggerLogEvent('Yapeal.Log.log', Logger::ERROR, $this->createEveApiMessage($messagePrefix, $data));
+            return false;
+        }
+        if (false === $until = \DateTimeImmutable::createFromFormat($eveFormat, $simple->cachedUntil[0] . '+00:00')) {
+            $messagePrefix = 'Failed to get DateTime instance for cachedUntil during the retrieval of';
+            $this->getYem()
+                ->triggerLogEvent('Yapeal.Log.log', Logger::ERROR, $this->createEveApiMessage($messagePrefix, $data));
+            return false;
+        }
+        if ($until <= $current) {
+            $messagePrefix = sprintf('CachedUntil is invalid was given %s and currentTime is %s during the validation of',
+                $until->format($eveFormat),
+                $current->format($eveFormat));
+            $this->getYem()
+                ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $this->createEveApiMessage($messagePrefix, $data));
+            $mess = 'Please report the above logged error to CCP so they can fixed it';
+            $this->getYem()
+                ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $mess);
+            return false;
+        }
+        // Current plus a day.
+        if ($until > $current->add(new \DateInterval('P1D'))) {
+            $messagePrefix = sprintf('CachedUntil is excessively long was given %s and it is currently %s during the'
+                . ' validation of',
+                $until->format($eveFormat),
+                $current->format($eveFormat));
+            $this->getYem()
+                ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $this->createEveApiMessage($messagePrefix, $data));
+            return false;
+        }
+        return true;
+    }
+    /**
+     * @return \DOMDocument
+     */
+    private function getDom(): \DOMDocument
+    {
+        if (null === $this->dom) {
+            $this->dom = new \DOMDocument();
+        }
+        return $this->dom;
+    }
+    /**
+     * @param EveApiReadWriteInterface $data
+     *
+     * @return false|string
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
+     * @throws \UnexpectedValueException
+     */
+    private function getXsdFileContents(EveApiReadWriteInterface $data)
+    {
+        try {
+            $xsdFile = $this->findRelativeFileWithPath(ucfirst($data->getEveApiSectionName()),
+                $data->getEveApiName(),
+                'xsl');
+        } catch (YapealFileSystemException $exc) {
+            $messagePrefix = 'Failed to find accessible XSD file during the validation of';
+            $this->getYem()
+                ->triggerLogEvent('Yapeal.Log.log',
+                    Logger::NOTICE,
+                    $this->createEveApiMessage($messagePrefix, $data),
+                    ['exception' => $exc]);
+            return false;
+        }
+        $contents = $this->safeFileRead($xsdFile);
+        if (false === $contents) {
+            $messagePrefix = sprintf('Failed to read XSD file %s during the validation of', $xsdFile);
+            $this->getYem()
+                ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $this->createEveApiMessage($messagePrefix, $data));
+            return false;
+        }
+        if ('' === $contents) {
+            $messagePrefix = sprintf('Received an empty XSD file %s during the validation of', $xsdFile);
+            $this->getYem()
+                ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $this->createEveApiMessage($messagePrefix, $data));
+            return false;
+        }
+        $messagePrefix = sprintf('Using XSD file %s during the validation of', $xsdFile);
+        $this->getYem()
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->createEveApiMessage($messagePrefix, $data));
+        return $contents;
+    }
+    /**
+     * @var \DOMDocument $dom
+     */
+    private $dom;
 }
