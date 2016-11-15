@@ -54,12 +54,12 @@ class GuzzleNetworkRetriever implements EveApiRetrieverInterface
     use EveApiEventEmitterTrait;
     /**
      * @param Client $client
-     * @param bool   $preserve
+     * @param bool   $retrieve
      */
-    public function __construct(Client $client, bool $preserve = true)
+    public function __construct(Client $client, bool $retrieve = true)
     {
         $this->setClient($client)
-            ->setRetrieve($preserve);
+            ->setRetrieve($retrieve);
     }
     /**
      * Method that is called for retrieve event.
@@ -68,17 +68,18 @@ class GuzzleNetworkRetriever implements EveApiRetrieverInterface
      * @param string               $eventName
      * @param MediatorInterface    $yem
      *
-     * @return \Yapeal\Event\EveApiEventInterface
+     * @return EveApiEventInterface
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
-     * @throws \GuzzleHttp\Exception\ClientException
+     * @throws \UnexpectedValueException
      */
     public function retrieveEveApi(EveApiEventInterface $event, string $eventName, MediatorInterface $yem)
     {
         if (!$this->shouldRetrieve()) {
             return $event;
         }
+        $this->setYem($yem);
         $data = $event->getData();
         $yem->triggerLogEvent('Yapeal.Log.log',
             Logger::DEBUG,
@@ -88,33 +89,35 @@ class GuzzleNetworkRetriever implements EveApiRetrieverInterface
             $response = $this->getClient()
                 ->post($uri, ['form_params' => $data->getEveApiArguments()]);
         } catch (ClientException $exc) {
+            // Is there a HTML Error response from the Eve API server that can be returned?
             if ($exc->hasResponse()) {
                 $response = $exc->getResponse();
             } else {
-                $messagePrefix = 'Could NOT retrieve XML data during';
+                $messagePrefix = 'Client exception received during the retrieval of';
                 $yem->triggerLogEvent('Yapeal.Log.log',
-                    Logger::DEBUG,
-                    $this->createEventMessage($messagePrefix, $data, $eventName),
+                    Logger::NOTICE,
+                    $this->createEveApiMessage($messagePrefix, $data),
                     ['exception' => $exc]);
                 return $event;
             }
         } catch (RequestException $exc) {
-            $messagePrefix = 'Could NOT retrieve XML data during';
+            $messagePrefix = 'Request exception received during the retrieval of';
             $yem->triggerLogEvent('Yapeal.Log.log',
-                Logger::DEBUG,
-                $this->createEventMessage($messagePrefix, $data, $eventName),
+                Logger::NOTICE,
+                $this->createEveApiMessage($messagePrefix, $data),
                 ['exception' => $exc]);
             return $event;
         }
-        $body = (string)$response->getBody();
-        if ('' === $body) {
-            $messagePrefix = 'Received empty body during';
+        if ('' !== $body = (string)$response->getBody()) {
+            $messagePrefix = 'Successfully retrieved the body of';
+            $yem->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $this->createEveApiMessage($messagePrefix, $data));
+        } else {
+            $messagePrefix = 'Received empty body during the retrieval of';
             $yem->triggerLogEvent('Yapeal.Log.log',
                 Logger::NOTICE,
-                $this->createEventMessage($messagePrefix, $data, $eventName));
+                $this->createEveApiMessage($messagePrefix, $data));
         }
         $data->setEveApiXml($body);
-        $yem->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->getFinishedEventMessage($data, $eventName));
         return $event->setData($data)
             ->setHandledSufficiently();
     }
