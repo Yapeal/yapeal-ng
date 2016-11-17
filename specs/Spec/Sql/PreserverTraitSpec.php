@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1);
 /**
  * Contains class PreserverTraitSpec.
  *
@@ -34,10 +34,14 @@ declare(strict_types=1);
  */
 namespace Spec\Yapeal\Sql;
 
+use PhpSpec\Exception\Example\SkippingException;
 use PhpSpec\ObjectBehavior;
-//use Prophecy\Argument;
+use PhpSpec\Wrapper\Collaborator;
 use Yapeal\Container\ContainerInterface;
+use Yapeal\Event\MediatorInterface;
+use Yapeal\Sql\CommonSqlQueries;
 
+//use Prophecy\Argument;
 /**
  * Class PreserverTraitSpec
  *
@@ -52,14 +56,31 @@ use Yapeal\Container\ContainerInterface;
  */
 class PreserverTraitSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+    /**
+     * @param Collaborator|CommonSqlQueries  $csq
+     * @param \PDO|Collaborator              $pdo
+     * @param Collaborator|MediatorInterface $yem
+     */
+    public function it_is_initializable(CommonSqlQueries $csq, \PDO $pdo, MediatorInterface $yem)
     {
+        $this->beConstructedWith($csq, $pdo, $yem);
         $this->shouldImplement('Yapeal\Event\EveApiPreserverInterface');
     }
+    public function it_should_convert_data_rows_into_sql_upsert_in_attribute_preserve_data()
+    {
+        $defaults = ['accountKey' => null, 'description' => null, 'ownerID' => 3];
+        $rows = $this->sxe->xpath('//divisions/row');
+        $tableName = 'corpDivisions';
+        throw new SkippingException('Incomplete test');
+    }
+    /** @noinspection PhpTooManyParametersInspection */
     /**
-     * @param \PhpSpec\Wrapper\Collaborator|\Yapeal\Container\ContainerInterface $dic
+     * @param Collaborator|\Yapeal\Container\ContainerInterface $dic
+     * @param Collaborator|CommonSqlQueries                     $csq
+     * @param \PDO|Collaborator                                 $pdo
+     * @param Collaborator|MediatorInterface                    $yem
      */
-    public function let(ContainerInterface $dic)
+    public function let(ContainerInterface $dic, CommonSqlQueries $csq, \PDO $pdo, MediatorInterface $yem)
     {
         $dic->keys();
         $this->beAnInstanceOf('\Spec\Yapeal\Sql\MockPreserver');
@@ -131,11 +152,4 @@ XML;
      * @var \SimpleXMLElement $sxe
      */
     private $sxe;
-    public function it_should_convert_data_rows_into_sql_upsert_in_attribute_preserve_data()
-    {
-        $defaults = ['accountKey' => null, 'description' => null, 'ownerID'=> 3];
-        $rows = $this->sxe->xpath('//divisions/row');
-        $tableName = 'corpDivisions';
-
-    }
 }
