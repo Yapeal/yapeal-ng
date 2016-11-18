@@ -83,7 +83,7 @@ class Transformer implements TransformerInterface, YEMAwareInterface
             $this->getReceivedEventMessage($data, $eventName, __CLASS__));
         // Pretty up the XML to make other processing easier.
         $data->setEveApiXml($this->getTidy()
-            ->repairString($data->getEveApiXml()));
+            ->repairString($data->getEveApiXml(), $this->tidyConfig, 'utf8'));
         $xml = $this->addYapealProcessingInstructionToXml($data)
             ->performTransform($data);
         if (false === $xml) {
@@ -91,7 +91,7 @@ class Transformer implements TransformerInterface, YEMAwareInterface
         }
         // Pretty up the transformed XML.
         $data->setEveApiXml($this->getTidy()
-            ->repairString($xml));
+            ->repairString($xml, $this->tidyConfig, 'utf8'));
         $messagePrefix = 'Successfully transformed the XML of';
         $yem->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $this->createEveApiMessage($messagePrefix, $data));
         return $event->setHandledSufficiently();
@@ -131,8 +131,11 @@ class Transformer implements TransformerInterface, YEMAwareInterface
                 ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $this->createEveApiMessage($mess, $data));
             return $this;
         }
-        $xml = str_replace("='UTF-8'?>\n", "='UTF-8'?>\n<?yapeal.parameters.json " . $json . "?>\n", $xml);
-        $data->setEveApiXml($xml);
+        $xml = str_ireplace("=\"utf-8\"?>\n<eveapi",
+            "=\"utf-8\"?>\n<?yapeal.parameters.json " . $json . "?>\n<eveapi",
+            $xml);
+        $data->setEveApiXml($this->getTidy()
+            ->repairString($xml, $this->tidyConfig, 'utf8'));
         return $this;
     }
     /**
@@ -156,7 +159,7 @@ class Transformer implements TransformerInterface, YEMAwareInterface
             $messagePrefix = 'Failed to find accessible XSL file during the transform of';
             $this->getYem()
                 ->triggerLogEvent('Yapeal.Log.log',
-                    Logger::DEBUG,
+                    Logger::WARNING,
                     $this->createEveApiMessage($messagePrefix, $data),
                     ['exception' => $exc]);
             return false;
@@ -165,13 +168,13 @@ class Transformer implements TransformerInterface, YEMAwareInterface
         if (false === $styleSheet) {
             $messagePrefix = sprintf('Failed to read XSL file %s during the transform of', $xslFile);
             $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->createEveApiMessage($messagePrefix, $data));
+                ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $this->createEveApiMessage($messagePrefix, $data));
             return false;
         }
         if ('' === $styleSheet) {
             $messagePrefix = sprintf('Received an empty XSL file %s during the transform of', $xslFile);
             $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->createEveApiMessage($messagePrefix, $data));
+                ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $this->createEveApiMessage($messagePrefix, $data));
             return false;
         }
         libxml_clear_errors();
@@ -183,8 +186,8 @@ class Transformer implements TransformerInterface, YEMAwareInterface
             $messagePrefix = sprintf('SimpleXMLElement exception caused by XSL file %s during the transform of',
                 $xslFile);
             $this->getYem()
-                ->triggerLogEvent('Yapeal.log.log',
-                    Logger::DEBUG,
+                ->triggerLogEvent('Yapeal.Log.log',
+                    Logger::WARNING,
                     $this->createEveApiMessage($messagePrefix, $data),
                     ['exception' => $exc]);
             $this->checkLibXmlErrors($data, $this->getYem());
@@ -203,15 +206,7 @@ class Transformer implements TransformerInterface, YEMAwareInterface
     private function getTidy(): \tidy
     {
         if (null === $this->tidy) {
-            $tidyConfig = [
-                'indent' => true,
-                'indent-spaces' => 4,
-                'input-xml' => true,
-                'newline' => 'LF',
-                'output-xml' => true,
-                'wrap' => '250'
-            ];
-            $this->tidy = new \tidy(null, $tidyConfig, 'utf8');
+            $this->tidy = new \tidy();
         }
         return $this->tidy;
     }
@@ -230,7 +225,7 @@ class Transformer implements TransformerInterface, YEMAwareInterface
         if ('' === $xml) {
             $messagePrefix = 'Given empty XML during the transform of';
             $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->createEveApiMessage($messagePrefix, $data));
+                ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $this->createEveApiMessage($messagePrefix, $data));
             return false;
         }
         libxml_clear_errors();
@@ -241,7 +236,7 @@ class Transformer implements TransformerInterface, YEMAwareInterface
         } catch (\Exception $exc) {
             $messagePrefix = 'The XML cause SimpleXMLElement exception during the transform of';
             $this->getYem()
-                ->triggerLogEvent('Yapeal.log.log',
+                ->triggerLogEvent('Yapeal.Log.log',
                     Logger::WARNING,
                     $this->createEveApiMessage($messagePrefix, $data),
                     ['exception' => $exc]);
@@ -250,6 +245,8 @@ class Transformer implements TransformerInterface, YEMAwareInterface
             $data->setEveApiName('Untransformed_' . $apiName);
             $this->emitEvents($data, 'preserve', 'Yapeal.Xml.Error');
             $data->setEveApiName($apiName);
+            // Empty invalid XML since it is not usable.
+            $data->setEveApiXml('');
             $this->checkLibXmlErrors($data, $this->getYem());
         }
         libxml_use_internal_errors(false);
@@ -290,25 +287,12 @@ class Transformer implements TransformerInterface, YEMAwareInterface
         if (false === $xslt->importStylesheet($styleInstance)) {
             $messagePrefix = 'XSLT could not import style sheet during the transform of';
             $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->createEveApiMessage($messagePrefix, $data));
+                ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $this->createEveApiMessage($messagePrefix, $data));
             $this->checkLibXmlErrors($data, $this->getYem());
             libxml_use_internal_errors(false);
             return false;
         }
         $xml = $xslt->transformToXml($xmlInstance);
-        if (false === $xml) {
-            $messagePrefix = 'Failed to transform the XML of';
-            $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log',
-                    Logger::WARNING,
-                    $this->createEveApiMessage($messagePrefix, $data));
-            // Cache error causing XML.
-            $apiName = $data->getEveApiName();
-            $data->setEveApiName('Untransformed_' . $apiName);
-            $this->emitEvents($data, 'preserve', 'Yapeal.Xml.Error');
-            $data->setEveApiName($apiName);
-            $this->checkLibXmlErrors($data, $this->getYem());
-        }
         libxml_use_internal_errors(false);
         return $xml;
     }
@@ -316,6 +300,17 @@ class Transformer implements TransformerInterface, YEMAwareInterface
      * @var \tidy $tidy
      */
     private $tidy;
+    /**
+     * @var array $tidyConfig
+     */
+    private $tidyConfig = [
+        'indent' => true,
+        'indent-spaces' => 4,
+        'input-xml' => true,
+        'newline' => 'LF',
+        'output-xml' => true,
+        'wrap' => '250'
+    ];
     /**
      * @var \XSLTProcessor $xslt
      */
