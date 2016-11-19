@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare(strict_types = 1);
 /**
  * Contains class MediatorSpec.
  *
@@ -36,7 +36,9 @@ namespace Spec\Yapeal\Event;
 
 use EventMediator\Event;
 use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Collaborator;
 use Prophecy\Argument;
+use Yapeal\Container\Container;
 
 /**
  * Class MediatorSpec
@@ -57,7 +59,7 @@ class MediatorSpec extends ObjectBehavior
         $this->shouldImplement('\\EventMediator\\MediatorInterface');
     }
     /**
-     * @param \PhpSpec\Wrapper\Collaborator|MockListener $listener
+     * @param Collaborator|MockListener $listener
      *
      * @throws \DomainException
      * @throws \InvalidArgumentException
@@ -67,8 +69,38 @@ class MediatorSpec extends ObjectBehavior
         $this->addListener('test', [$listener, 'method1'])
             ->shouldReturn($this);
     }
+    public function it_provides_fluent_interface_from_add_service_listener()
+    {
+        $this->addServiceListener('test', ['\DummyClass', 'method1'])
+            ->shouldReturn($this);
+    }
     /**
-     * @param \PhpSpec\Wrapper\Collaborator|MockSubscriber $sub
+     * @param Collaborator|MockServiceSubscriber $sub
+     *
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \LengthException
+     * @throws \Prophecy\Exception\InvalidArgumentException
+     */
+    public function it_provides_fluent_interface_from_add_service_subscriber(MockServiceSubscriber $sub)
+    {
+        $events = [
+            'test1' => [
+                [
+                    [
+                        'containerID1',
+                        'method1'
+                    ]
+                ]
+            ]
+        ];
+        $sub->getServiceSubscribedEvents()
+            ->willReturn($events);
+        $this->addServiceSubscriber($sub)
+            ->shouldReturn($this);
+    }
+    /**
+     * @param Collaborator|MockSubscriber $sub
      *
      * @throws \DomainException
      * @throws \InvalidArgumentException
@@ -93,7 +125,7 @@ class MediatorSpec extends ObjectBehavior
             ->shouldReturn($this);
     }
     /**
-     * @param \PhpSpec\Wrapper\Collaborator|MockListener $listener
+     * @param Collaborator|MockListener $listener
      *
      * @throws \DomainException
      * @throws \InvalidArgumentException
@@ -103,8 +135,39 @@ class MediatorSpec extends ObjectBehavior
         $this->removeListener('test', [$listener, 'method1'])
             ->shouldReturn($this);
     }
+    public function it_provides_fluent_interface_from_remove_service_listener()
+    {
+        $this->removeServiceListener('test', ['\DummyClass', 'method1'])
+            ->shouldReturn($this);
+    }
     /**
-     * @param \PhpSpec\Wrapper\Collaborator|MockSubscriber $sub
+     * @param Collaborator|MockServiceSubscriber $sub
+     *
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \LengthException
+     * @throws \Prophecy\Exception\InvalidArgumentException
+     */
+    public function it_provides_fluent_interface_from_remove_service_subscriber(MockServiceSubscriber $sub)
+    {
+        $events = [
+            'test1' => [
+                [
+                    [
+                        'containerID1',
+                        'method1'
+                    ]
+                ]
+            ]
+        ];
+        $sub->getServiceSubscribedEvents()
+            ->willReturn($events);
+        $this->addServiceSubscriber($sub);
+        $this->removeServiceSubscriber($sub)
+            ->shouldReturn($this);
+    }
+    /**
+     * @param Collaborator|MockSubscriber $sub
      *
      * @throws \DomainException
      * @throws \InvalidArgumentException
@@ -134,8 +197,13 @@ class MediatorSpec extends ObjectBehavior
         $this->getListeners()
             ->shouldHaveCount(0);
     }
+    public function it_returns_empty_array_before_any_service_listeners_added()
+    {
+        $this->getServiceListeners()
+            ->shouldHaveCount(0);
+    }
     /**
-     * @param \PhpSpec\Wrapper\Collaborator|MockListener $listener
+     * @param Collaborator|MockListener $listener
      *
      * @throws \DomainException
      * @throws \InvalidArgumentException
@@ -146,8 +214,14 @@ class MediatorSpec extends ObjectBehavior
             ->getListeners('test1')
             ->shouldHaveCount(0);
     }
+    public function it_returns_empty_array_when_event_has_no_service_listeners()
+    {
+        $this->addServiceListener('test2', ['ContainerID1', 'method1'])
+            ->getServiceListeners('test1')
+            ->shouldHaveCount(0);
+    }
     /**
-     * @param \PhpSpec\Wrapper\Collaborator|MockSubscriber $sub
+     * @param Collaborator|MockSubscriber $sub
      *
      * @throws \DomainException
      * @throws \InvalidArgumentException
@@ -185,7 +259,7 @@ class MediatorSpec extends ObjectBehavior
             ->shouldHaveKey('test2');
     }
     /**
-     * @param \PhpSpec\Wrapper\Collaborator|MockListener $listener
+     * @param Collaborator|MockListener $listener
      *
      * @throws \DomainException
      * @throws \InvalidArgumentException
@@ -207,11 +281,12 @@ class MediatorSpec extends ObjectBehavior
     /**
      * Issue #1 - Mediator calls listeners in wrong order.
      *
-     * @param MockListener $listener
-     * @param Event        $event
+     * @param Collaborator|MockListener $listener
+     * @param Event|Collaborator        $event
      *
      * @throws \DomainException
      * @throws \InvalidArgumentException
+     * @throws \Prophecy\Exception\InvalidArgumentException
      */
     public function it_should_call_listeners_for_their_events_in_correct_priority_order_when_event_is_triggered(
         MockListener $listener,
@@ -243,11 +318,12 @@ class MediatorSpec extends ObjectBehavior
             ->shouldReturn($expected);
     }
     /**
-     * @param MockListener $listener
-     * @param Event        $event
+     * @param Collaborator|MockListener $listener
+     * @param Event|Collaborator        $event
      *
      * @throws \DomainException
      * @throws \InvalidArgumentException
+     * @throws \Prophecy\Exception\InvalidArgumentException
      */
     public function it_should_call_listeners_for_their_events_when_event_is_triggered(
         MockListener $listener,
@@ -264,6 +340,81 @@ class MediatorSpec extends ObjectBehavior
             ->shouldBeCalled();
         $this->trigger('test1', $event);
     }
+    /**
+     * @param Collaborator|MockListener $listener
+     * @param Event|Collaborator        $event
+     * @param Collaborator|Container    $container
+     *
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \Prophecy\Exception\InvalidArgumentException
+     * @throws \RuntimeException
+     */
+    public function it_should_call_service_listeners_for_their_events_when_event_is_triggered(
+        MockListener $listener,
+        Event $event,
+        Container $container
+    ) {
+        $event->hasBeenHandled()
+            ->willReturn(false);
+        $this->addServiceListener('test1', ['ContainerID1', 'method1']);
+        $this->getServiceListeners()
+            ->shouldHaveKey('test1');
+        $container->offsetGet('ContainerID1')
+            ->willReturn($listener);
+        $this->setServiceContainer($container);
+        $listener->method1($event, 'test1', $this)
+            ->shouldBeCalled();
+        $this->trigger('test1', $event);
+    }
+    /** @noinspection PhpTooManyParametersInspection */
+    /**
+     * @param Collaborator|MockListener          $listener
+     * @param Event|Collaborator                 $event
+     * @param Collaborator|Container             $container
+     * @param Collaborator|MockServiceSubscriber $sub
+     *
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \LengthException
+     * @throws \LogicException
+     * @throws \Prophecy\Exception\InvalidArgumentException
+     * @throws \RuntimeException
+     */
+    public function it_should_call_service_subscribers_for_their_events_when_event_is_triggered(
+        MockListener $listener,
+        Event $event,
+        Container $container,
+        MockServiceSubscriber $sub
+    ) {
+        $events = [
+            'test1' => [
+                [
+                    [
+                        'containerID1',
+                        'method1'
+                    ]
+                ]
+            ]
+        ];
+        $event->hasBeenHandled()
+            ->willReturn(false);
+        $listener->method1($event, 'test1', $this)
+            ->willReturn($event);
+        $sub->getServiceSubscribedEvents()
+            ->willReturn($events);
+        $this->addServiceSubscriber($sub);
+        $this->getServiceListeners()
+            ->shouldHaveKey('test1');
+        $container->offsetGet('containerID1')
+            ->willReturn($listener);
+        $this->setServiceContainer($container);
+        $listener->method1($event, 'test1', $this)
+            ->shouldBeCalled();
+        $this->getServiceByName('containerID1')
+            ->shouldReturn($listener);
+        $this->trigger('test1', $event);
+    }
     public function it_should_get_the_same_event_back_from_trigger_if_there_are_no_listeners()
     {
         $event = new Event();
@@ -271,7 +422,7 @@ class MediatorSpec extends ObjectBehavior
             ->shouldReturn($event);
     }
     /**
-     * @param \PhpSpec\Wrapper\Collaborator|MockListener $listener
+     * @param Collaborator|MockListener $listener
      *
      * @throws \DomainException
      * @throws \InvalidArgumentException
@@ -304,12 +455,89 @@ class MediatorSpec extends ObjectBehavior
         $this->getListeners()
             ->shouldHaveCount(1);
     }
+    public function it_should_have_less_service_listeners_if_one_is_removed()
+    {
+        $listeners = [
+            ['event1', 'containerID1', 'method1', 0],
+            ['event1', 'containerID1', 'method1', 'first'],
+            ['event2', 'containerID1', 'method1', 0]
+        ];
+        foreach ($listeners as $listener) {
+            list($event, $containerID, $method, $priority) = $listener;
+            $this->addServiceListener($event, [$containerID, $method], $priority);
+        }
+        $this->getServiceListeners()
+            ->shouldHaveCount(2);
+        $this->getServiceListeners()
+            ->shouldHaveKey('event1');
+        $this->getServiceListeners()
+            ->shouldHaveKey('event2');
+        $this->getServiceListeners('event1')
+            ->shouldHaveCount(2);
+        $this->removeServiceListener('event1', ['containerID1', 'method1'], 'first');
+        $this->getServiceListeners('event1')
+            ->shouldHaveCount(1);
+        $this->removeServiceListener('event1', ['containerID1', 'method1']);
+        $this->getServiceListeners('event1')
+            ->shouldHaveCount(0);
+        $this->getServiceListeners()
+            ->shouldHaveCount(1);
+    }
     /**
-     * @param MockSubscriber $sub
+     * @param Collaborator|MockServiceSubscriber $sub
      *
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LengthException
+     * @throws \Prophecy\Exception\InvalidArgumentException
+     */
+    public function it_should_have_listener_after_adding_service_subscriber(MockServiceSubscriber $sub)
+    {
+        $events = [
+            'test1' => [
+                [
+                    [
+                        'containerID1',
+                        'method1'
+                    ],
+                    [
+                        'containerID1',
+                        'method2'
+                    ]
+                ]
+            ],
+            'test2' => [
+                [
+                    [
+                        'containerID1',
+                        'method1'
+                    ],
+                    [
+                        'containerID1',
+                        'method2'
+                    ]
+                ]
+            ]
+        ];
+        $this->getServiceListeners()
+            ->shouldHaveCount(0);
+        $sub->getServiceSubscribedEvents()
+            ->willReturn($events);
+        $this->addServiceSubscriber($sub);
+        $this->getServiceListeners()
+            ->shouldHaveCount(2);
+        $this->getServiceListeners()
+            ->shouldHaveKey('test1');
+        $this->getServiceListeners()
+            ->shouldHaveKey('test2');
+    }
+    /**
+     * @param Collaborator|MockSubscriber $sub
+     *
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \LengthException
+     * @throws \Prophecy\Exception\InvalidArgumentException
      */
     public function it_should_have_listener_after_adding_subscriber(MockSubscriber $sub)
     {
@@ -338,11 +566,12 @@ class MediatorSpec extends ObjectBehavior
             ->shouldHaveKey('test1');
     }
     /**
-     * @param MockSubscriber $sub
+     * @param Collaborator|MockSubscriber $sub
      *
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LengthException
+     * @throws \Prophecy\Exception\InvalidArgumentException
      */
     public function it_should_have_no_listeners_if_only_subscriber_is_removed(MockSubscriber $sub)
     {
@@ -388,7 +617,63 @@ class MediatorSpec extends ObjectBehavior
             ->shouldHaveCount(0);
     }
     /**
-     * @param \PhpSpec\Wrapper\Collaborator|MockListener $listener
+     * @param Collaborator|MockServiceSubscriber $sub
+     *
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \LengthException
+     * @throws \Prophecy\Exception\InvalidArgumentException
+     */
+    public function it_should_have_no_service_listeners_if_only_service_subscriber_is_removed(
+        MockServiceSubscriber $sub
+    ) {
+        $events = [
+            'test1' => [
+                [
+                    [
+                        'containerID1',
+                        'method1'
+                    ],
+                    [
+                        'containerID1',
+                        'method2'
+                    ]
+                ]
+            ],
+            'test2' => [
+                'last' => [
+                    [
+                        'containerID1',
+                        'method1'
+                    ]
+                ],
+                [
+                    [
+                        'containerID1',
+                        'method2'
+                    ]
+                ]
+            ],
+            'test3' => [
+                [
+                    [
+                        'containerID1',
+                        'method1'
+                    ]
+                ]
+            ]
+        ];
+        $sub->getServiceSubscribedEvents()
+            ->willReturn($events);
+        $this->addServiceSubscriber($sub);
+        $this->getServiceListeners()
+            ->shouldHaveCount(3);
+        $this->removeServiceSubscriber($sub);
+        $this->getServiceListeners()
+            ->shouldHaveCount(0);
+    }
+    /**
+     * @param Collaborator|MockListener $listener
      *
      * @throws \DomainException
      * @throws \InvalidArgumentException
@@ -400,13 +685,23 @@ class MediatorSpec extends ObjectBehavior
         $this->getListeners('event')
             ->shouldHaveCount(1);
     }
+    public function it_should_ignore_duplicate_service_listeners_for_the_same_event_and_priority()
+    {
+        $this->addServiceListener('event',
+            ['\Spec\EventMediator\MockListener', 'method1']);
+        $this->addServiceListener('event',
+            ['\Spec\EventMediator\MockListener', 'method1']);
+        $this->getServiceListeners('event')
+            ->shouldHaveCount(1);
+    }
     /**
-     * @param MockListener $listener1
-     * @param MockListener $listener2
-     * @param Event        $event
+     * @param Collaborator|MockListener $listener1
+     * @param Collaborator|MockListener $listener2
+     * @param Event|Collaborator        $event
      *
      * @throws \DomainException
      * @throws \InvalidArgumentException
+     * @throws \Prophecy\Exception\InvalidArgumentException
      */
     public function it_should_only_call_listeners_for_current_events_when_event_triggers(
         MockListener $listener1,
@@ -434,11 +729,12 @@ class MediatorSpec extends ObjectBehavior
     /**
      * Issue #2 - Higher priority handles don't stop lower priority listeners from seeing event.
      *
-     * @param MockListener $listener
-     * @param Event        $event
+     * @param Collaborator|MockListener $listener
+     * @param Event|Collaborator        $event
      *
      * @throws \DomainException
      * @throws \InvalidArgumentException
+     * @throws \Prophecy\Exception\InvalidArgumentException
      */
     public function it_should_only_call_listeners_for_event_until_one_of_them_handles_the_event(
         MockListener $listener,
@@ -463,7 +759,7 @@ class MediatorSpec extends ObjectBehavior
         $this->trigger('test1', $event);
     }
     /**
-     * @param \PhpSpec\Wrapper\Collaborator|MockListener $listener
+     * @param Collaborator|MockListener $listener
      *
      * @throws \DomainException
      * @throws \InvalidArgumentException
@@ -487,7 +783,7 @@ class MediatorSpec extends ObjectBehavior
             ->shouldHaveKey('event2');
     }
     /**
-     * @param \PhpSpec\Wrapper\Collaborator|MockListener $listener
+     * @param Collaborator|MockListener $listener
      *
      * @throws \DomainException
      * @throws \InvalidArgumentException
@@ -514,13 +810,68 @@ class MediatorSpec extends ObjectBehavior
         $this->getListeners('event2')
             ->shouldHaveKey(-1);
     }
+    /** @noinspection PhpTooManyParametersInspection */
+    /**
+     * @param Collaborator|MockListener          $listener
+     * @param Event|Collaborator                 $event
+     * @param Collaborator|Container             $container
+     * @param Collaborator|MockServiceSubscriber $sub
+     *
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \LengthException
+     * @throws \LogicException
+     * @throws \Prophecy\Exception\InvalidArgumentException
+     * @throws \RuntimeException
+     */
+    public function it_should_still_allow_service_subscriber_to_be_removed_after_event_has_been_triggered(
+        MockListener $listener,
+        Event $event,
+        Container $container,
+        MockServiceSubscriber $sub
+    ) {
+        $events = [
+            'test1' => [
+                [
+                    [
+                        'containerID1',
+                        'method1'
+                    ]
+                ]
+            ]
+        ];
+        $event->hasBeenHandled()
+            ->willReturn(false);
+        $sub->getServiceSubscribedEvents()
+            ->willReturn($events);
+        $this->addServiceSubscriber($sub);
+        $this->getServiceListeners()
+            ->shouldHaveKey('test1');
+        $container->offsetGet('containerID1')
+            ->willReturn($listener);
+        $this->setServiceContainer($container);
+        $listener->method1($event, 'test1', $this)
+            ->shouldBeCalled();
+        $this->getServiceByName('containerID1')
+            ->shouldReturn($listener);
+        $this->trigger('test1', $event);
+        $this->removeServiceSubscriber($sub);
+        $this->getServiceListeners()
+            ->shouldNotHaveKey('test1');
+    }
     public function it_still_returns_an_event_from_trigger_even_if_none_given()
     {
         $this->trigger('test', null)
             ->shouldReturnAnInstanceOf('EventMediator\EventInterface');
     }
+    public function it_throws_exception_for_badly_formed_listener_when_trying_to_add_service_listener()
+    {
+        $mess = 'Service listener form MUST be ["containerID", "methodName"]';
+        $this->shouldThrow(new \InvalidArgumentException($mess))
+            ->during('addServiceListener', ['test', ['methodName']]);
+    }
     /**
-     * @param \PhpSpec\Wrapper\Collaborator|MockListener $listener
+     * @param Collaborator|MockListener $listener
      */
     public function it_throws_exception_for_empty_event_name_when_adding_listener(MockListener $listener)
     {
@@ -528,8 +879,14 @@ class MediatorSpec extends ObjectBehavior
         $this->shouldThrow(new \DomainException($mess))
             ->during('addListener', ['', [$listener, 'method1']]);
     }
+    public function it_throws_exception_for_empty_event_name_when_adding_service_listener()
+    {
+        $mess = 'Event name can NOT be empty';
+        $this->shouldThrow(new \DomainException($mess))
+            ->during('addServiceListener', ['', ['\DummyClass', 'method1']]);
+    }
     /**
-     * @param \PhpSpec\Wrapper\Collaborator|MockListener $listener
+     * @param Collaborator|MockListener $listener
      */
     public function it_throws_exception_for_empty_event_name_when_removing_listener(MockListener $listener)
     {
@@ -537,20 +894,63 @@ class MediatorSpec extends ObjectBehavior
         $this->shouldThrow(new \DomainException($mess))
             ->during('removeListener', ['', [$listener, 'method1']]);
     }
+    public function it_throws_exception_for_empty_event_name_when_removing_service_listener()
+    {
+        $mess = 'Event name can NOT be empty';
+        $this->shouldThrow(new \DomainException($mess))
+            ->during('removeServiceListener', ['', ['\DummyClass', 'method1']]);
+    }
     public function it_throws_exception_for_empty_event_name_when_triggered()
     {
         $mess = 'Event name can NOT be empty';
         $this->shouldThrow(new \DomainException($mess))
             ->during('trigger', ['']);
     }
+    public function it_throws_exception_for_empty_listener_class_name_when_trying_to_add_service_listener()
+    {
+        $mess = 'Using any non-printable characters in the container ID is NOT allowed';
+        $this->shouldThrow(new \InvalidArgumentException($mess))
+            ->during('addServiceListener', ['test', ['', 'test1']]);
+    }
+    public function it_throws_exception_for_empty_listener_method_name_when_trying_to_add_service_listener()
+    {
+        $mess = 'Service listener method name format is invalid, was given ';
+        $this->shouldThrow(new \InvalidArgumentException($mess))
+            ->during('addServiceListener', ['test', ['\DummyClass', '']]);
+    }
     /**
-     * @param \PhpSpec\Wrapper\Collaborator|MockListener $listener
+     * @param Collaborator|MockSubscriber $sub
+     */
+    public function it_throws_exception_for_incorrect_service_container_type_when_trying_to_set_container(
+        MockSubscriber $sub
+    ) {
+        $mess = sprintf('Must be an instance of ContainerInterface but was given %s',
+            gettype($sub));
+        $this->shouldThrow(new \InvalidArgumentException($mess))
+            ->during('setServiceContainer', [$sub]);
+    }
+    /**
+     * @param Collaborator|MockListener $listener
      */
     public function it_throws_exception_for_invalid_event_name_when_adding_listener(MockListener $listener)
     {
         $mess = 'Using any non-printable characters in the event name is NOT allowed';
         $this->shouldThrow(new \DomainException($mess))
             ->during('addListener', ["\001", [$listener, 'method1']]);
+    }
+    public function it_throws_exception_for_invalid_listener_types_when_trying_to_add_service_listener()
+    {
+        $listeners = [
+            [123, 'method1'],
+            [true, 'method1'],
+            [null, 'method1']
+        ];
+        $mess = 'Service listener container ID MUST be a string, but was given ';
+        foreach ($listeners as $listener) {
+            list($class, $method) = $listener;
+            $this->shouldThrow(new \InvalidArgumentException($mess . gettype($class)))
+                ->during('addServiceListener', ['test', [$class, $method]]);
+        }
     }
     public function it_throws_exception_for_missing_listeners_when_add_listeners_by_event_list()
     {
@@ -581,5 +981,32 @@ class MediatorSpec extends ObjectBehavior
         $mess = 'Must have as least one priority per listed event';
         $this->shouldThrow(new \LengthException($mess))
             ->during('addListenersByEventList', [$events]);
+    }
+    public function it_throws_exception_for_non_string_listener_method_name_when_trying_to_add_service_listener()
+    {
+        $messages = [
+            'array' => [],
+            'integer' => 0,
+            'NULL' => null
+        ];
+        foreach ($messages as $mess => $methodName) {
+            $mess = 'Service listener method name MUST be a string, but was given ' . $mess;
+            $this->shouldThrow(new \InvalidArgumentException($mess))
+                ->during('addServiceListener', ['test', ['\DummyClass', $methodName]]);
+        }
+    }
+    public function it_throws_exception_for_non_string_listener_method_name_when_trying_to_remove_service_listener()
+    {
+        $this->addServiceListener('test', ['\DummyClass', 'method1']);
+        $messages = [
+            'array' => [],
+            'integer' => 0,
+            'NULL' => null
+        ];
+        foreach ($messages as $mess => $methodName) {
+            $mess = 'Service listener method name MUST be a string, but was given ' . $mess;
+            $this->shouldThrow(new \InvalidArgumentException($mess))
+                ->during('removeServiceListener', ['test', ['\DummyClass', $methodName]]);
+        }
     }
 }
