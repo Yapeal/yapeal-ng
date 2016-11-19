@@ -124,13 +124,11 @@ class Transformer implements TransformerInterface, YEMAwareInterface
         // Remove arguments that never need to be included.
         unset($arguments['mask'], $arguments['rowCount']);
         ksort($arguments);
+        /*
+         * Ignoring untestable edge case of json_encode returning false. It would require $data to be broken in
+         * some way that also breaks json_encode.
+         */
         $json = json_encode($arguments);
-        if (false === $json) {
-            $mess = sprintf('JSON encoding of parameters failed with %s during', json_last_error_msg());
-            $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $this->createEveApiMessage($mess, $data));
-            return $this;
-        }
         $xml = str_ireplace("=\"utf-8\"?>\n<eveapi",
             "=\"utf-8\"?>\n<?yapeal.parameters.json " . $json . "?>\n<eveapi",
             $xml);
