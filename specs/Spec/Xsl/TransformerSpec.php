@@ -418,62 +418,6 @@ XML;
      * @throws \Symfony\Component\Filesystem\Exception\IOException
      * @throws \UnexpectedValueException
      */
-    public function it_should_log_warning_including_exception_when_given_invalid_style_sheet(
-        EveApiEventInterface $event,
-        LogEventInterface $log,
-        MediatorInterface $yem
-    ) {
-        $xsl = <<<'XSL'
-<xsl:transform xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
-    <xsl:iBreakU/>
-</xsl:transform>
-XSL;
-        $this->filesystem->dumpFile($this->workingDirectory . 'Xsl/common.xsl', $xsl);
-        $given = <<<'XML'
-<?xml version="1.0" encoding="utf-8"?>
-<eveapi version="1">
-    <currentTime>2020-12-31 23:54:59</currentTime>
-    <result>
-        <rowset name="test" key="id" columns="id,name">
-            <row id="1" name="name1"/>
-            <row name="name2" id="3"/>
-            <row id="2" name="name3"/>
-        </rowset>
-    </result>
-    <cachedUntil>2020-12-31 23:59:59</cachedUntil>
-</eveapi>
-XML;
-        $data = (new EveApiXmlData())->setEveApiName('Api1')
-            ->setEveApiSectionName('Section1')
-            ->setEveApiXml($given);
-        $event->getData()
-            ->willReturn($data);
-        /** @noinspection PhpStrictTypeCheckingInspection */
-        $yem->triggerLogEvent(Argument::cetera())
-            ->willReturn($log);
-        $messagePrefix = 'XSLT could not import style sheet during the transform of';
-        /** @noinspection PhpStrictTypeCheckingInspection */
-        $yem->triggerLogEvent('Yapeal.Log.log',
-            Logger::WARNING,
-            Argument::containingString($messagePrefix),
-            Argument::cetera())
-            ->willReturn($log)
-            ->shouldBeCalled();
-        $this->transformEveApi($event, 'test', $yem);
-    }
-    /**
-     * @param Collaborator|EveApiEventInterface $event
-     * @param Collaborator|LogEventInterface    $log
-     * @param Collaborator|MediatorInterface    $yem
-     *
-     * @throws FailureException
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
-     * @throws \Prophecy\Exception\InvalidArgumentException
-     * @throws \Symfony\Component\Filesystem\Exception\IOException
-     * @throws \UnexpectedValueException
-     */
     public function it_should_log_warning_including_exception_when_given_invalid_xml(
         EveApiEventInterface $event,
         LogEventInterface $log,
@@ -605,6 +549,62 @@ XML;
             Logger::WARNING,
             Argument::containingString($messagePrefix),
             Argument::withEntry('exception', Argument::type('\Exception')))
+            ->willReturn($log)
+            ->shouldBeCalled();
+        $this->transformEveApi($event, 'test', $yem);
+    }
+    /**
+     * @param Collaborator|EveApiEventInterface $event
+     * @param Collaborator|LogEventInterface    $log
+     * @param Collaborator|MediatorInterface    $yem
+     *
+     * @throws FailureException
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
+     * @throws \Prophecy\Exception\InvalidArgumentException
+     * @throws \Symfony\Component\Filesystem\Exception\IOException
+     * @throws \UnexpectedValueException
+     */
+    public function it_should_log_warning_when_given_invalid_style_sheet(
+        EveApiEventInterface $event,
+        LogEventInterface $log,
+        MediatorInterface $yem
+    ) {
+        $xsl = <<<'XSL'
+<xsl:transform xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+    <xsl:iBreakU/>
+</xsl:transform>
+XSL;
+        $this->filesystem->dumpFile($this->workingDirectory . 'Xsl/common.xsl', $xsl);
+        $given = <<<'XML'
+<?xml version="1.0" encoding="utf-8"?>
+<eveapi version="1">
+    <currentTime>2020-12-31 23:54:59</currentTime>
+    <result>
+        <rowset name="test" key="id" columns="id,name">
+            <row id="1" name="name1"/>
+            <row name="name2" id="3"/>
+            <row id="2" name="name3"/>
+        </rowset>
+    </result>
+    <cachedUntil>2020-12-31 23:59:59</cachedUntil>
+</eveapi>
+XML;
+        $data = (new EveApiXmlData())->setEveApiName('Api1')
+            ->setEveApiSectionName('Section1')
+            ->setEveApiXml($given);
+        $event->getData()
+            ->willReturn($data);
+        /** @noinspection PhpStrictTypeCheckingInspection */
+        $yem->triggerLogEvent(Argument::cetera())
+            ->willReturn($log);
+        $messagePrefix = 'XSLT could not import style sheet during the transform of';
+        /** @noinspection PhpStrictTypeCheckingInspection */
+        $yem->triggerLogEvent('Yapeal.Log.log',
+            Logger::WARNING,
+            Argument::containingString($messagePrefix),
+            Argument::cetera())
             ->willReturn($log)
             ->shouldBeCalled();
         $this->transformEveApi($event, 'test', $yem);
