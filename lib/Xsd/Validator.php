@@ -86,12 +86,12 @@ class Validator implements ValidatorInterface, YEMAwareInterface
             $this->getReceivedEventMessage($data, $eventName, __CLASS__));
         if ('' === $xml = $data->getEveApiXml()) {
             $messagePrefix = 'Given empty XML during the validation of';
-            $yem->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $this->createEveApiMessage($messagePrefix, $data));
+            $yem->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $this->createEveApiMessage($messagePrefix, $data));
             return $event;
         }
         if (false !== strpos($xml, '<!DOCTYPE html')) {
             $messagePrefix = 'Received HTML error doc instead of XML data during the validation of';
-            $yem->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $this->createEveApiMessage($messagePrefix, $data));
+            $yem->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $this->createEveApiMessage($messagePrefix, $data));
             // Cache received error html.
             $apiName = $data->getEveApiName();
             $data->setEveApiName('Invalid_' . $apiName);
@@ -112,7 +112,8 @@ class Validator implements ValidatorInterface, YEMAwareInterface
             libxml_use_internal_errors(false);
             return $event;
         }
-        if (false === $dom->schemaValidateSource($xsdContents)) {
+        /** @noinspection PhpUsageOfSilenceOperatorInspection */
+        if (false === @$dom->schemaValidateSource($xsdContents)) {
             $messagePrefix = 'DOM schema could not validate XML during the validation of';
             $yem->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $this->createEveApiMessage($messagePrefix, $data));
             // Cache error causing XML.
@@ -131,7 +132,7 @@ class Validator implements ValidatorInterface, YEMAwareInterface
         $messagePrefix = 'Successfully validated the XML during the validation of';
         $yem->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $this->createEveApiMessage($messagePrefix, $data));
         // Check for XML error element.
-        if (false !== strpos($data->getEveApiXml(), '<error ')) {
+        if (false !== strpos($xml, '<error ')) {
             $this->emitEvents($data, 'start', 'Yapeal.Xml.Error');
             return $event;
         }
@@ -151,27 +152,10 @@ class Validator implements ValidatorInterface, YEMAwareInterface
     {
         libxml_clear_errors();
         libxml_use_internal_errors(true);
-        if (false === $simple = simplexml_import_dom($dom)) {
-            $messagePrefix = 'SimpleXMLElement could not import DOM during the validation of';
-            $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $this->createEveApiMessage($messagePrefix, $data));
-            $this->checkLibXmlErrors($data, $this->getYem());
-            libxml_use_internal_errors(false);
-            return false;
-        }
+        $simple = simplexml_import_dom($dom);
         $eveFormat = 'Y-m-d H:i:sP';
-        if (false === $current = \DateTimeImmutable::createFromFormat($eveFormat, $simple->currentTime[0] . '+00:00')) {
-            $messagePrefix = 'Failed to get DateTime instance for currentTime during the retrieval of';
-            $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::ERROR, $this->createEveApiMessage($messagePrefix, $data));
-            return false;
-        }
-        if (false === $until = \DateTimeImmutable::createFromFormat($eveFormat, $simple->cachedUntil[0] . '+00:00')) {
-            $messagePrefix = 'Failed to get DateTime instance for cachedUntil during the retrieval of';
-            $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::ERROR, $this->createEveApiMessage($messagePrefix, $data));
-            return false;
-        }
+        $current = \DateTimeImmutable::createFromFormat($eveFormat, $simple->currentTime[0] . '+00:00');
+        $until = \DateTimeImmutable::createFromFormat($eveFormat, $simple->cachedUntil[0] . '+00:00');
         if ($until <= $current) {
             $messagePrefix = sprintf('CachedUntil is invalid was given %s and currentTime is %s during the validation of',
                 $until->format($eveFormat),
@@ -190,7 +174,7 @@ class Validator implements ValidatorInterface, YEMAwareInterface
                 $until->format($eveFormat),
                 $current->format($eveFormat));
             $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $this->createEveApiMessage($messagePrefix, $data));
+                ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $this->createEveApiMessage($messagePrefix, $data));
             return false;
         }
         return true;
@@ -219,12 +203,12 @@ class Validator implements ValidatorInterface, YEMAwareInterface
         try {
             $xsdFile = $this->findRelativeFileWithPath(ucfirst($data->getEveApiSectionName()),
                 $data->getEveApiName(),
-                'xsl');
+                'xsd');
         } catch (YapealFileSystemException $exc) {
             $messagePrefix = 'Failed to find accessible XSD file during the validation of';
             $this->getYem()
                 ->triggerLogEvent('Yapeal.Log.log',
-                    Logger::NOTICE,
+                    Logger::WARNING,
                     $this->createEveApiMessage($messagePrefix, $data),
                     ['exception' => $exc]);
             return false;
@@ -233,19 +217,38 @@ class Validator implements ValidatorInterface, YEMAwareInterface
         if (false === $contents) {
             $messagePrefix = sprintf('Failed to read XSD file %s during the validation of', $xsdFile);
             $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $this->createEveApiMessage($messagePrefix, $data));
+                ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $this->createEveApiMessage($messagePrefix, $data));
             return false;
         }
         if ('' === $contents) {
             $messagePrefix = sprintf('Received an empty XSD file %s during the validation of', $xsdFile);
             $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $this->createEveApiMessage($messagePrefix, $data));
+                ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $this->createEveApiMessage($messagePrefix, $data));
             return false;
         }
-        $messagePrefix = sprintf('Using XSD file %s during the validation of', $xsdFile);
-        $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->createEveApiMessage($messagePrefix, $data));
-        return $contents;
+        libxml_clear_errors();
+        libxml_use_internal_errors(true);
+        try {
+            if (false !== new \SimpleXMLElement($contents)) {
+                $messagePrefix = sprintf('Using XSD file %s during the validation of', $xsdFile);
+                $this->getYem()
+                    ->triggerLogEvent('Yapeal.Log.log',
+                        Logger::INFO,
+                        $this->createEveApiMessage($messagePrefix, $data));
+                return $contents;
+            }
+        } catch (\Exception $exc) {
+            $messagePrefix = sprintf('SimpleXMLElement exception caused by XSD file %s during the validation of',
+                $xsdFile);
+            $this->getYem()
+                ->triggerLogEvent('Yapeal.Log.log',
+                    Logger::WARNING,
+                    $this->createEveApiMessage($messagePrefix, $data),
+                    ['exception' => $exc]);
+            $this->checkLibXmlErrors($data, $this->getYem());
+        }
+        libxml_use_internal_errors(false);
+        return false;
     }
     /**
      * @var \DOMDocument $dom
