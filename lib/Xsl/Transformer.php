@@ -82,16 +82,14 @@ class Transformer implements TransformerInterface, YEMAwareInterface
             Logger::DEBUG,
             $this->getReceivedEventMessage($data, $eventName, __CLASS__));
         // Pretty up the XML to make other processing easier.
-        $data->setEveApiXml($this->getTidy()
-            ->repairString($data->getEveApiXml(), $this->tidyConfig, 'utf8'));
+        $data->setEveApiXml(tidy_repair_string($data->getEveApiXml(), $this->tidyConfig, 'utf8'));
         $xml = $this->addYapealProcessingInstructionToXml($data)
             ->performTransform($data);
         if (false === $xml) {
             return $event;
         }
         // Pretty up the transformed XML.
-        $data->setEveApiXml($this->getTidy()
-            ->repairString($xml, $this->tidyConfig, 'utf8'));
+        $data->setEveApiXml(tidy_repair_string($xml, $this->tidyConfig, 'utf8'));
         $messagePrefix = 'Successfully transformed the XML of';
         $yem->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $this->createEveApiMessage($messagePrefix, $data));
         return $event->setHandledSufficiently();
@@ -132,8 +130,7 @@ class Transformer implements TransformerInterface, YEMAwareInterface
         $xml = str_ireplace("=\"utf-8\"?>\n<eveapi",
             "=\"utf-8\"?>\n<?yapeal.parameters.json " . $json . "?>\n<eveapi",
             $xml);
-        $data->setEveApiXml($this->getTidy()
-            ->repairString($xml, $this->tidyConfig, 'utf8'));
+        $data->setEveApiXml(tidy_repair_string($xml, $this->tidyConfig, 'utf8'));
         return $this;
     }
     /**
@@ -197,16 +194,6 @@ class Transformer implements TransformerInterface, YEMAwareInterface
                 ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $this->createEveApiMessage($messagePrefix, $data));
         }
         return $instance;
-    }
-    /**
-     * @return \tidy
-     */
-    private function getTidy(): \tidy
-    {
-        if (null === $this->tidy) {
-            $this->tidy = new \tidy();
-        }
-        return $this->tidy;
     }
     /**
      * @param EveApiReadWriteInterface $data
@@ -294,10 +281,6 @@ class Transformer implements TransformerInterface, YEMAwareInterface
         libxml_use_internal_errors(false);
         return $xml;
     }
-    /**
-     * @var \tidy $tidy
-     */
-    private $tidy;
     /**
      * @var array $tidyConfig
      */
