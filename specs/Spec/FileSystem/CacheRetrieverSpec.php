@@ -79,6 +79,49 @@ class CacheRetrieverSpec extends ObjectBehavior
     }
     /**
      * @param Collaborator|EveApiEventInterface $event
+     * @param Collaborator|LogEventInterface    $log
+     * @param Collaborator|MediatorInterface    $yem
+     *
+     * @throws FailureException
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
+     * @throws \Prophecy\Exception\InvalidArgumentException
+     * @throws \Symfony\Component\Filesystem\Exception\IOException
+     * @throws \UnexpectedValueException
+     */
+    public function it_should_delete_expired_cache_file(
+        EveApiEventInterface $event,
+        LogEventInterface $log,
+        MediatorInterface $yem
+    ) {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="utf-8"?>
+<eveapi version="1">
+    <currentTime>2000-12-31 23:54:59</currentTime>
+    <result />
+    <cachedUntil>2000-12-31 23:59:59</cachedUntil>
+</eveapi>
+XML;
+        $data = (new EveApiXmlData())->setEveApiName('Api1')
+            ->setEveApiSectionName('Section1');
+        $pathFile = sprintf($this->workingDirectory . 'cache/%s/%s%s.xml',
+            $data->getEveApiSectionName(),
+            $data->getEveApiName(),
+            $data->getHash());
+        $this->filesystem->dumpFile($pathFile, $xml);
+        $event->getData()
+            ->willReturn($data);
+        /** @noinspection PhpStrictTypeCheckingInspection */
+        $yem->triggerLogEvent(Argument::cetera())
+            ->willReturn($log);
+        $this->retrieveEveApi($event, 'test', $yem);
+        if ($this->filesystem->exists($pathFile)) {
+            throw new FailureException('Failed to delete expired XML file');
+        }
+    }
+    /**
+     * @param Collaborator|EveApiEventInterface $event
      * @param Collaborator|MediatorInterface    $yem
      *
      * @throws \DomainException
@@ -135,6 +178,41 @@ XML;
         /** @noinspection PhpStrictTypeCheckingInspection */
         $yem->triggerLogEvent('Yapeal.Log.log',
             Logger::ERROR,
+            Argument::containingString($messagePrefix),
+            Argument::cetera())
+            ->willReturn($log)
+            ->shouldBeCalled();
+        $this->retrieveEveApi($event, 'test', $yem);
+    }
+    /**
+     * @param Collaborator|EveApiEventInterface $event
+     * @param Collaborator|LogEventInterface    $log
+     * @param Collaborator|MediatorInterface    $yem
+     *
+     * @throws FailureException
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
+     * @throws \Prophecy\Exception\InvalidArgumentException
+     * @throws \Symfony\Component\Filesystem\Exception\IOException
+     * @throws \UnexpectedValueException
+     */
+    public function it_should_log_message_when_xml_can_not_be_loaded(
+        EveApiEventInterface $event,
+        LogEventInterface $log,
+        MediatorInterface $yem
+    ) {
+        $data = (new EveApiXmlData())->setEveApiName('Api1')
+            ->setEveApiSectionName('Section1');
+        $event->getData()
+            ->willReturn($data);
+        /** @noinspection PhpStrictTypeCheckingInspection */
+        $yem->triggerLogEvent(Argument::cetera())
+            ->willReturn($log);
+        $messagePrefix = 'Failed to retrieve XML file ';
+        /** @noinspection PhpStrictTypeCheckingInspection */
+        $yem->triggerLogEvent('Yapeal.Log.log',
+            Logger::INFO,
             Argument::containingString($messagePrefix),
             Argument::cetera())
             ->willReturn($log)
@@ -378,6 +456,57 @@ XML;
      * @throws \Symfony\Component\Filesystem\Exception\IOException
      * @throws \UnexpectedValueException
      */
+    public function it_should_succeed_when_cached_until_is_not_expired_and_has_been_cached_more_than_five_minutes(
+        EveApiEventInterface $event,
+        LogEventInterface $log,
+        MediatorInterface $yem
+    ) {
+        $xml = <<<'XML'
+<?xml version="1.0" encoding="utf-8"?>
+<eveapi version="1">
+    <currentTime>2000-12-31 23:54:59</currentTime>
+    <result />
+    <cachedUntil>2020-12-31 23:59:59</cachedUntil>
+</eveapi>
+XML;
+        $data = (new EveApiXmlData())->setEveApiName('Api1')
+            ->setEveApiSectionName('Section1');
+        $pathFile = sprintf($this->workingDirectory . 'cache/%s/%s%s.xml',
+            $data->getEveApiSectionName(),
+            $data->getEveApiName(),
+            $data->getHash());
+        $this->filesystem->dumpFile($pathFile, $xml);
+        $event->getData()
+            ->willReturn($data);
+        $event->setHandledSufficiently()
+            ->willReturn($event);
+        $event->setData($data->setEveApiXml($xml))
+            ->willReturn($event);
+        /** @noinspection PhpStrictTypeCheckingInspection */
+        $yem->triggerLogEvent(Argument::cetera())
+            ->willReturn($log);
+        $messagePrefix = 'Successfully retrieved the XML of';
+        /** @noinspection PhpStrictTypeCheckingInspection */
+        $yem->triggerLogEvent('Yapeal.Log.log',
+            Logger::DEBUG,
+            Argument::containingString($messagePrefix),
+            Argument::cetera())
+            ->willReturn($log)
+            ->shouldBeCalled();
+        $this->retrieveEveApi($event, 'test', $yem);
+    }
+    /**
+     * @param Collaborator|EveApiEventInterface $event
+     * @param Collaborator|LogEventInterface    $log
+     * @param Collaborator|MediatorInterface    $yem
+     *
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
+     * @throws \Prophecy\Exception\InvalidArgumentException
+     * @throws \Symfony\Component\Filesystem\Exception\IOException
+     * @throws \UnexpectedValueException
+     */
     public function it_should_succeed_when_xml_has_been_cached_less_than_five_minutes_and_ignore_cached_until(
         EveApiEventInterface $event,
         LogEventInterface $log,
@@ -418,23 +547,6 @@ XML;
         $this->retrieveEveApi($event, 'test', $yem);
     }
     /**
-     * @throws \Symfony\Component\Filesystem\Exception\IOException
-     */
-    public function let()
-    {
-        $this->prepWorkingDirectory();
-        $this->filesystem->mkdir($this->workingDirectory . 'cache');
-        $this->beConstructedWith($this->workingDirectory . 'cache');
-        $this->setRetrieve(true);
-    }
-    /**
-     *
-     */
-    public function letGo()
-    {
-        $this->removeWorkingDirectory();
-    }
-    /**
      * @param Collaborator|EveApiEventInterface $event
      * @param Collaborator|LogEventInterface    $log
      * @param Collaborator|MediatorInterface    $yem
@@ -443,46 +555,39 @@ XML;
      * @throws \InvalidArgumentException
      * @throws \LogicException
      * @throws \Prophecy\Exception\InvalidArgumentException
-     * @throws \Symfony\Component\Filesystem\Exception\IOException
      * @throws \UnexpectedValueException
      */
-    public function it_should_succeed_when_cached_until_is_not_expired_and_has_been_cached_more_than_five_minutes(
+    public function it_throws_exception_when_get_cache_dir_is_use_before_it_is_set(
         EveApiEventInterface $event,
         LogEventInterface $log,
         MediatorInterface $yem
     ) {
-        $xml = <<<'XML'
-<?xml version="1.0" encoding="utf-8"?>
-<eveapi version="1">
-    <currentTime>2000-12-31 23:54:59</currentTime>
-    <result />
-    <cachedUntil>2020-12-31 23:59:59</cachedUntil>
-</eveapi>
-XML;
+        $this->setCachePath('');
         $data = (new EveApiXmlData())->setEveApiName('Api1')
             ->setEveApiSectionName('Section1');
-        $pathFile = sprintf($this->workingDirectory . 'cache/%s/%s%s.xml',
-            $data->getEveApiSectionName(),
-            $data->getEveApiName(),
-            $data->getHash());
-        $this->filesystem->dumpFile($pathFile, $xml);
         $event->getData()
             ->willReturn($data);
-        $event->setHandledSufficiently()
-            ->willReturn($event);
-        $event->setData($data->setEveApiXml($xml))
-            ->willReturn($event);
         /** @noinspection PhpStrictTypeCheckingInspection */
         $yem->triggerLogEvent(Argument::cetera())
             ->willReturn($log);
-        $messagePrefix = 'Successfully retrieved the XML of';
-        /** @noinspection PhpStrictTypeCheckingInspection */
-        $yem->triggerLogEvent('Yapeal.Log.log',
-            Logger::DEBUG,
-            Argument::containingString($messagePrefix),
-            Argument::cetera())
-            ->willReturn($log)
-            ->shouldBeCalled();
-        $this->retrieveEveApi($event, 'test', $yem);
+        $this->shouldThrow('\LogicException')
+            ->duringRetrieveEveApi($event, 'test', $yem);
+    }
+    /**
+     * @throws \Symfony\Component\Filesystem\Exception\IOException
+     */
+    public function let()
+    {
+        $this->prepWorkingDirectory();
+        $this->filesystem->mkdir($this->workingDirectory . 'cache');
+        $this->beConstructedWith($this->workingDirectory . 'cache/');
+        $this->setRetrieve(true);
+    }
+    /**
+     *
+     */
+    public function letGo()
+    {
+        $this->removeWorkingDirectory();
     }
 }

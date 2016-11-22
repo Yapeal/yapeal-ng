@@ -97,14 +97,13 @@ class CacheRetriever implements EveApiRetrieverInterface
     /**
      * Set cache path for Eve API XML.
      *
-     * @param string $value Absolute path to cache/ directory. If empty it will use cache/ directory relative to
-     *                      Yapeal-ng's root.
+     * @param string $value Absolute path to cache/ directory.
      *
      * @return self Fluent interface.
      */
     public function setCachePath(string $value): self
     {
-        $this->cachePath = trim($value);
+        $this->cachePath = $value;
         return $this;
     }
     /**
@@ -133,8 +132,7 @@ class CacheRetriever implements EveApiRetrieverInterface
             $mess = 'Tried to access $cachePath before it was set';
             throw new \LogicException($mess);
         }
-        return $this->getFpn()
-            ->normalizePath($this->cachePath);
+        return $this->cachePath;
     }
     /**
      * @param EveApiReadWriteInterface $data
