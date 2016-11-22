@@ -62,5 +62,6 @@ if (!class_exists('\Composer\Autoload\ClassLoader', false)) {
     } else {
         fwrite(STDOUT, $mess);
     }
+    unset($mess);
     return 1;
 }
