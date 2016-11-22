@@ -51,9 +51,11 @@ class CacheRetriever implements EveApiRetrieverInterface
     use LibXmlChecksTrait;
     use SafeFileHandlingTrait;
     /**
+     * CacheRetriever constructor.
+     *
      * @param string $cachePath
      */
-    public function __construct(string $cachePath = '')
+    public function __construct(string $cachePath)
     {
         $this->setCachePath($cachePath);
     }
@@ -100,12 +102,9 @@ class CacheRetriever implements EveApiRetrieverInterface
      *
      * @return self Fluent interface.
      */
-    public function setCachePath(string $value = ''): self
+    public function setCachePath(string $value): self
     {
-        if ('' === $value) {
-            $value = dirname(str_replace('\\', '/', __DIR__), 2) . '/cache/';
-        }
-        $this->cachePath = $value;
+        $this->cachePath = trim($value);
         return $this;
     }
     /**
