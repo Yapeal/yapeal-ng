@@ -48,15 +48,13 @@ interface EveApiPreserverInterface
      * @return EveApiEventInterface
      *
      */
-    public function preserveEveApi(EveApiEventInterface $event, string $eventName, MediatorInterface $yem);
+    public function preserveEveApi(EveApiEventInterface $event, string $eventName, MediatorInterface $yem): EveApiEventInterface;
     /**
      * Turn on or off preserving of Eve API data by this preserver.
      *
      * Allows class to stay registered for events but be enabled or disabled during runtime.
      *
      * @param boolean $value
-     *
-     * @return void
      */
     public function setPreserve(bool $value = true);
 }
