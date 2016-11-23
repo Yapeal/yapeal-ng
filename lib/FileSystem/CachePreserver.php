@@ -45,15 +45,13 @@ use Yapeal\Log\Logger;
  */
 class CachePreserver implements EveApiPreserverInterface
 {
-    use SafeFileHandlingTrait, EveApiEventEmitterTrait;
+    use SafeFileHandlingTrait;
+    use EveApiEventEmitterTrait;
     /**
-     * @param string|null $cachePath
-     * @param bool        $preserve
-     *
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
+     * @param string $cachePath
+     * @param bool   $preserve
      */
-    public function __construct(string $cachePath = null, bool $preserve = false)
+    public function __construct(string $cachePath, bool $preserve = false)
     {
         $this->setCachePath($cachePath)
             ->setPreserve($preserve);
@@ -64,56 +62,47 @@ class CachePreserver implements EveApiPreserverInterface
      * @param MediatorInterface    $yem
      *
      * @return EveApiEventInterface
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
      * @throws \LogicException
+     * @throws \UnexpectedValueException
      */
-    public function preserveEveApi(EveApiEventInterface $event, string $eventName, MediatorInterface $yem)
-    {
+    public function preserveEveApi(
+        EveApiEventInterface $event,
+        string $eventName,
+        MediatorInterface $yem
+    ): EveApiEventInterface {
         if (!$this->shouldPreserve()) {
             return $event;
         }
         $data = $event->getData();
-        $this->setYem($yem);
         $yem->triggerLogEvent('Yapeal.Log.log',
             Logger::DEBUG,
             $this->getReceivedEventMessage($data, $eventName, __CLASS__));
         // BaseSection/ApiHash.xml
-        $cacheFile = sprintf('%1$s%2$s/%3$s%4$s.xml',
+        $cacheFile = sprintf('%s%s/%s%s.xml',
             $this->getCachePath(),
             ucfirst($data->getEveApiSectionName()),
             ucfirst($data->getEveApiName()),
             $data->getHash());
-        $xml = $data->getEveApiXml();
-        if ('' === $xml) {
-            return $event->setHandledSufficiently();
+        if ('' === $xml = $data->getEveApiXml()) {
+            return $event;
         }
         // Insures retriever never see partly written file by deleting old file and using temp file for writing.
         if (false === $this->safeFileWrite($cacheFile, $xml)) {
             return $event;
         }
-        return $event->setHandledSufficiently();
+        $event->setHandledSufficiently();
+        return $event;
     }
     /**
-     * @param string|null $value
+     * @param string $value
      *
-     * @return CachePreserver Fluent interface.
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
+     * @return self Fluent interface.
      */
-    public function setCachePath($value = null): self
+    public function setCachePath(string $value): self
     {
-        if ($value === null) {
-            $value = dirname(dirname(__DIR__)) . '/cache/';
-        }
-        if (!is_string($value)) {
-            $mess = 'Cache path MUST be string, but was given ' . gettype($value);
-            throw new \InvalidArgumentException($mess);
-        }
-        if ('' === $this->cachePath) {
-            $mess = 'Cache path can NOT be empty';
-            throw new \DomainException($mess);
-        }
-        $this->cachePath = $this->getFpn()
-            ->normalizePath($value);
+        $this->cachePath = $value;
         return $this;
     }
     /**
@@ -123,11 +112,12 @@ class CachePreserver implements EveApiPreserverInterface
      *
      * @param bool $value
      *
-     * @return void
+     * @return self Fluent interface.
      */
-    public function setPreserve(bool $value = true)
+    public function setPreserve(bool $value = true): self
     {
         $this->preserve = $value;
+        return $this;
     }
     /**
      * @return string
@@ -135,8 +125,8 @@ class CachePreserver implements EveApiPreserverInterface
      */
     protected function getCachePath()
     {
-        if (null === $this->cachePath) {
-            $mess = ' Trying to use cachePath before it was set';
+        if (null === $this->cachePath || '' === $this->cachePath) {
+            $mess = 'Trying to use cachePath before it was set';
             throw new \LogicException($mess);
         }
         return $this->cachePath;
