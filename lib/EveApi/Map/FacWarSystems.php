@@ -34,6 +34,7 @@ declare(strict_types = 1);
  */
 namespace Yapeal\EveApi\Map;
 
+use Yapeal\Event\EveApiPreserverInterface;
 use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
 use Yapeal\Xml\EveApiReadWriteInterface;
@@ -41,7 +42,7 @@ use Yapeal\Xml\EveApiReadWriteInterface;
 /**
  * Class FacWarSystems
  */
-class FacWarSystems extends MapSection
+class FacWarSystems extends MapSection implements EveApiPreserverInterface
 {
     use PreserverTrait;
 

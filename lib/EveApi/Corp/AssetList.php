@@ -35,6 +35,7 @@ declare(strict_types = 1);
 namespace Yapeal\EveApi\Corp;
 
 use Yapeal\EveApi\NestedSetTrait;
+use Yapeal\Event\EveApiPreserverInterface;
 use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
 use Yapeal\Xml\EveApiReadWriteInterface;
@@ -42,7 +43,7 @@ use Yapeal\Xml\EveApiReadWriteInterface;
 /**
  * Class AssetList.
  */
-class AssetList extends CorpSection
+class AssetList extends CorpSection implements EveApiPreserverInterface
 {
     use PreserverTrait, NestedSetTrait;
 

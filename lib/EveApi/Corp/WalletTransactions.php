@@ -34,6 +34,7 @@ declare(strict_types = 1);
  */
 namespace Yapeal\EveApi\Corp;
 
+use Yapeal\Event\EveApiPreserverInterface;
 use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
 use Yapeal\Xml\EveApiReadWriteInterface;
@@ -41,7 +42,7 @@ use Yapeal\Xml\EveApiReadWriteInterface;
 /**
  * Class WalletTransactions
  */
-class WalletTransactions extends CorpSection
+class WalletTransactions extends CorpSection implements EveApiPreserverInterface
 {
     use PreserverTrait;
 

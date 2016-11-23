@@ -34,6 +34,7 @@ declare(strict_types = 1);
  */
 namespace Yapeal\EveApi\Eve;
 
+use Yapeal\Event\EveApiPreserverInterface;
 use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
 use Yapeal\Xml\EveApiReadWriteInterface;
@@ -41,7 +42,7 @@ use Yapeal\Xml\EveApiReadWriteInterface;
 /**
  * Class RefTypes
  */
-class RefTypes extends EveSection
+class RefTypes extends EveSection implements EveApiPreserverInterface
 {
     use PreserverTrait;
 

@@ -35,6 +35,7 @@ declare(strict_types = 1);
 namespace Yapeal\EveApi\Corp;
 
 use Yapeal\EveApi\CommonEveApiTrait;
+use Yapeal\Event\EveApiPreserverInterface;
 use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
 use Yapeal\Xml\EveApiReadWriteInterface;
@@ -42,7 +43,7 @@ use Yapeal\Xml\EveApiReadWriteInterface;
 /**
  * Class CorporationSheet.
  */
-class CorporationSheet
+class CorporationSheet implements EveApiPreserverInterface
 {
     use CommonEveApiTrait, PreserverTrait;
 
@@ -219,7 +220,7 @@ class CorporationSheet
                 return false;
             }
             if ('retrieve' === $eventSuffix) {
-                $data->addEveApiArgument('corporationID', $corpID);
+                $data->addEveApiArgument('corporationID', (string)$corpID);
             }
             if (false === $data->getEveApiXml()) {
                 if ($data->hasEveApiArgument('accountKey') && '10000' === $data->getEveApiArgument('accountKey')
