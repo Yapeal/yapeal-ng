@@ -68,6 +68,7 @@ trait PreserverTrait
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
+     * @throws \UnexpectedValueException
      */
     public function preserveEveApi(
         EveApiEventInterface $event,
@@ -138,10 +139,10 @@ trait PreserverTrait
      * @param array               $columnDefaults
      * @param string              $tableName
      *
-     * @return self Fluent interface.
+     * @return static Fluent interface.
      * @throws \DomainException
      * @throws \InvalidArgumentException
-     * @throws \LogicException
+     * @throws \UnexpectedValueException
      */
     protected function attributePreserveData(array $rows, array $columnDefaults, string $tableName)
     {
@@ -173,10 +174,10 @@ trait PreserverTrait
      * @param string[] $columnNames
      * @param string   $tableName
      *
-     * @return self Fluent interface.
+     * @return static Fluent interface.
      * @throws \DomainException
      * @throws \InvalidArgumentException
-     * @throws \LogicException
+     * @throws \UnexpectedValueException
      */
     protected function flush(array $columns, array $columnNames, string $tableName)
     {
@@ -249,10 +250,10 @@ trait PreserverTrait
      * @param array               $columnDefaults
      * @param string              $tableName
      *
-     * @return self Fluent interface.
+     * @return static Fluent interface.
      * @throws \DomainException
      * @throws \InvalidArgumentException
-     * @throws \LogicException
+     * @throws \UnexpectedValueException
      */
     protected function valuesPreserveData(array $elements, array $columnDefaults, string $tableName)
     {
