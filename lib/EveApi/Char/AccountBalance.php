@@ -35,6 +35,7 @@ declare(strict_types = 1);
 namespace Yapeal\EveApi\Char;
 
 use Yapeal\CommonToolsInterface;
+use Yapeal\Event\EveApiPreserverInterface;
 use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
 use Yapeal\Xml\EveApiReadWriteInterface;
@@ -42,7 +43,7 @@ use Yapeal\Xml\EveApiReadWriteInterface;
 /**
  * Class AccountBalance
  */
-class AccountBalance extends CharSection implements CommonToolsInterface
+class AccountBalance extends CharSection implements CommonToolsInterface, EveApiPreserverInterface
 {
     use PreserverTrait;
 
@@ -62,9 +63,11 @@ class AccountBalance extends CharSection implements CommonToolsInterface
      * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
-     * @throws \LogicException
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \UnexpectedValueException
      */
-    protected function preserveToAccountBalance(EveApiReadWriteInterface $data)
+    protected function preserveToAccountBalance(EveApiReadWriteInterface $data): self
     {
         $tableName = 'charAccountBalance';
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());

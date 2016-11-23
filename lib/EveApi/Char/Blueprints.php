@@ -34,6 +34,7 @@ declare(strict_types = 1);
  */
 namespace Yapeal\EveApi\Char;
 
+use Yapeal\Event\EveApiPreserverInterface;
 use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
 use Yapeal\Xml\EveApiReadWriteInterface;
@@ -41,7 +42,7 @@ use Yapeal\Xml\EveApiReadWriteInterface;
 /**
  * Class Blueprints
  */
-class Blueprints extends CharSection
+class Blueprints extends CharSection implements EveApiPreserverInterface
 {
     use PreserverTrait;
 
@@ -60,9 +61,11 @@ class Blueprints extends CharSection
      * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
-     * @throws \LogicException
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \UnexpectedValueException
      */
-    protected function preserveToBlueprints(EveApiReadWriteInterface $data)
+    protected function preserveToBlueprints(EveApiReadWriteInterface $data): self
     {
         $tableName = 'charBlueprints';
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());

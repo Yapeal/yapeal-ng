@@ -36,6 +36,7 @@ namespace Yapeal\EveApi\Char;
 
 use Yapeal\CommonToolsInterface;
 use Yapeal\EveApi\NestedSetTrait;
+use Yapeal\Event\EveApiPreserverInterface;
 use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
 use Yapeal\Xml\EveApiReadWriteInterface;
@@ -43,7 +44,7 @@ use Yapeal\Xml\EveApiReadWriteInterface;
 /**
  * Class AssetList.
  */
-class AssetList extends CharSection implements CommonToolsInterface
+class AssetList extends CharSection implements CommonToolsInterface, EveApiPreserverInterface
 {
     use PreserverTrait, NestedSetTrait;
 
@@ -60,9 +61,11 @@ class AssetList extends CharSection implements CommonToolsInterface
      * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
-     * @throws \LogicException
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \UnexpectedValueException
      */
-    protected function preserveToAssetList(EveApiReadWriteInterface $data)
+    protected function preserveToAssetList(EveApiReadWriteInterface $data): self
     {
         $tableName = 'charAssetList';
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());

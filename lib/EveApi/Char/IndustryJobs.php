@@ -35,6 +35,7 @@ declare(strict_types = 1);
 namespace Yapeal\EveApi\Char;
 
 use Yapeal\Event\EveApiEventInterface;
+use Yapeal\Event\EveApiPreserverInterface;
 use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
@@ -43,7 +44,7 @@ use Yapeal\Xml\EveApiReadWriteInterface;
 /**
  * Class IndustryJobs
  */
-class IndustryJobs extends CharSection
+class IndustryJobs extends CharSection implements EveApiPreserverInterface
 {
     use PreserverTrait;
 

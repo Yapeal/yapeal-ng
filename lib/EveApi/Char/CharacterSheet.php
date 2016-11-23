@@ -34,6 +34,7 @@ declare(strict_types = 1);
  */
 namespace Yapeal\EveApi\Char;
 
+use Yapeal\Event\EveApiPreserverInterface;
 use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
 use Yapeal\Xml\EveApiReadWriteInterface;
@@ -41,7 +42,7 @@ use Yapeal\Xml\EveApiReadWriteInterface;
 /**
  * Class CharacterSheet
  */
-class CharacterSheet extends CharSection
+class CharacterSheet extends CharSection implements EveApiPreserverInterface
 {
     use PreserverTrait;
 
@@ -71,9 +72,11 @@ class CharacterSheet extends CharSection
      * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
-     * @throws \LogicException
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \UnexpectedValueException
      */
-    protected function preserveToAttributes(EveApiReadWriteInterface $data)
+    protected function preserveToAttributes(EveApiReadWriteInterface $data): self
     {
         $tableName = 'charAttributes';
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
@@ -100,9 +103,11 @@ class CharacterSheet extends CharSection
      * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
-     * @throws \LogicException
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \UnexpectedValueException
      */
-    protected function preserveToCertificates(EveApiReadWriteInterface $data)
+    protected function preserveToCertificates(EveApiReadWriteInterface $data): self
     {
         $tableName = 'charCertificates';
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
@@ -125,9 +130,11 @@ class CharacterSheet extends CharSection
      * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
-     * @throws \LogicException
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \UnexpectedValueException
      */
-    protected function preserveToCharacterSheet(EveApiReadWriteInterface $data)
+    protected function preserveToCharacterSheet(EveApiReadWriteInterface $data): self
     {
         $tableName = 'charCharacterSheet';
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
@@ -178,9 +185,11 @@ class CharacterSheet extends CharSection
      * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
-     * @throws \LogicException
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \UnexpectedValueException
      */
-    protected function preserveToCorporationRoles(EveApiReadWriteInterface $data)
+    protected function preserveToCorporationRoles(EveApiReadWriteInterface $data): self
     {
         $tableName = 'charCorporationRoles';
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
@@ -204,9 +213,11 @@ class CharacterSheet extends CharSection
      * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
-     * @throws \LogicException
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \UnexpectedValueException
      */
-    protected function preserveToCorporationRolesAtBase(EveApiReadWriteInterface $data)
+    protected function preserveToCorporationRolesAtBase(EveApiReadWriteInterface $data): self
     {
         $tableName = 'charCorporationRolesAtBase';
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
@@ -230,9 +241,11 @@ class CharacterSheet extends CharSection
      * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
-     * @throws \LogicException
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \UnexpectedValueException
      */
-    protected function preserveToCorporationRolesAtHQ(EveApiReadWriteInterface $data)
+    protected function preserveToCorporationRolesAtHQ(EveApiReadWriteInterface $data): self
     {
         $tableName = 'charCorporationRolesAtHQ';
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
@@ -256,9 +269,11 @@ class CharacterSheet extends CharSection
      * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
-     * @throws \LogicException
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \UnexpectedValueException
      */
-    protected function preserveToCorporationRolesAtOther(EveApiReadWriteInterface $data)
+    protected function preserveToCorporationRolesAtOther(EveApiReadWriteInterface $data): self
     {
         $tableName = 'charCorporationRolesAtOther';
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
@@ -282,9 +297,11 @@ class CharacterSheet extends CharSection
      * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
-     * @throws \LogicException
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \UnexpectedValueException
      */
-    protected function preserveToCorporationTitles(EveApiReadWriteInterface $data)
+    protected function preserveToCorporationTitles(EveApiReadWriteInterface $data): self
     {
         $tableName = 'charCorporationTitles';
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
@@ -308,9 +325,11 @@ class CharacterSheet extends CharSection
      * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
-     * @throws \LogicException
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \UnexpectedValueException
      */
-    protected function preserveToImplants(EveApiReadWriteInterface $data)
+    protected function preserveToImplants(EveApiReadWriteInterface $data): self
     {
         $tableName = 'charImplants';
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
@@ -334,9 +353,11 @@ class CharacterSheet extends CharSection
      * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
-     * @throws \LogicException
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \UnexpectedValueException
      */
-    protected function preserveToJumpCloneImplants(EveApiReadWriteInterface $data)
+    protected function preserveToJumpCloneImplants(EveApiReadWriteInterface $data): self
     {
         $tableName = 'charJumpCloneImplants';
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
@@ -361,9 +382,11 @@ class CharacterSheet extends CharSection
      * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
-     * @throws \LogicException
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \UnexpectedValueException
      */
-    protected function preserveToJumpClones(EveApiReadWriteInterface $data)
+    protected function preserveToJumpClones(EveApiReadWriteInterface $data): self
     {
         $tableName = 'charJumpClones';
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
@@ -389,9 +412,11 @@ class CharacterSheet extends CharSection
      * @param EveApiReadWriteInterface $data
      *
      * @return self Fluent interface.
-     * @throws \LogicException
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \UnexpectedValueException
      */
-    protected function preserveToSkills(EveApiReadWriteInterface $data)
+    protected function preserveToSkills(EveApiReadWriteInterface $data): self
     {
         $tableName = 'charSkills';
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
