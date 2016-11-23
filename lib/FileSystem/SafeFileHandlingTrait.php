@@ -85,7 +85,8 @@ trait SafeFileHandlingTrait
         }
         $path = dirname($pathFile);
         $baseFile = basename($pathFile);
-        if (false === $this->isWritablePath($path)) {
+        // Need second check because at least Windows can report directory writable even when file is not.
+        if (false === $this->isWritablePath($path) || false === is_writable($pathFile)) {
             return false;
         }
         if (false === $this->deleteWithRetry($pathFile)) {
@@ -96,6 +97,9 @@ trait SafeFileHandlingTrait
             return false;
         }
         $tmpFile = sprintf('%1$s/%2$s.tmp', $path, hash('sha1', $baseFile . random_bytes(8)));
+        if (false === is_writable($tmpFile)) {
+            return false;
+        }
         if (false === $this->safeDataWrite($tmpFile, $data)) {
             $this->releaseHandle($handle);
             return false;
@@ -282,7 +286,7 @@ trait SafeFileHandlingTrait
         // Write timeout calculated by using file size and write speed of
         // 16MB/sec with 2 second minimum time enforced.
         $timeout = max(2, intdiv($amountToWrite, 1 << 24));
-        $handle = $this->acquireLockedHandle($pathFile, $timeout);
+        $handle = $this->acquireLockedHandle($pathFile, 'cb+', $timeout);
         if (false === $handle) {
             return false;
         }
