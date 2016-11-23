@@ -85,27 +85,20 @@ trait SafeFileHandlingTrait
         }
         $path = dirname($pathFile);
         $baseFile = basename($pathFile);
-        // Need second check because at least Windows can report directory writable even when file is not.
-        if (false === $this->isWritablePath($path) || false === is_writable($pathFile)) {
+        if (false === $this->isWritablePath($path)) {
+            return false;
+        }
+        $tmpFile = sprintf('%1$s/%2$s.tmp', $path, hash('sha1', $baseFile . random_bytes(8)));
+        if (false === $this->safeDataWrite($tmpFile, $data)) {
             return false;
         }
         if (false === $this->deleteWithRetry($pathFile)) {
             return false;
         }
-        $handle = $this->acquireLockedHandle($pathFile);
-        if (false === $handle) {
-            return false;
+        /** @noinspection PhpUsageOfSilenceOperatorInspection */
+        if (false === $renamed = rename($tmpFile, $pathFile)) {
+            $this->deleteWithRetry($tmpFile);
         }
-        $tmpFile = sprintf('%1$s/%2$s.tmp', $path, hash('sha1', $baseFile . random_bytes(8)));
-        if (false === is_writable($tmpFile)) {
-            return false;
-        }
-        if (false === $this->safeDataWrite($tmpFile, $data)) {
-            $this->releaseHandle($handle);
-            return false;
-        }
-        $renamed = rename($tmpFile, $pathFile);
-        $this->releaseHandle($handle);
         return $renamed;
     }
     /**
@@ -146,18 +139,17 @@ trait SafeFileHandlingTrait
     private function acquiredLock($handle, int $timeout): bool
     {
         $timeout = min(16, max(2, $timeout));
-        //Give max of $timeout seconds or 2 * $timeout tries to getting lock.
-        $timeout = time() + $timeout;
-        $maxTries = 2 * $timeout;
-        $minWait = 25000;
-        $maxWait = $minWait * $maxTries;
+        // Give max of $timeout seconds or 50 * $timeout tries to getting lock.
+        $maxTries = 50 * $timeout;
+        $timeout += time();
         $tries = 0;
         while (!flock($handle, LOCK_EX | LOCK_NB)) {
-            if (++$tries > $maxTries || time() > $timeout) {
+            // Between 1/10th and 1/100th of a second randomized wait between tries used to help prevent deadlocks.
+            $wait = random_int(10000, 100000);
+            if (++$tries > $maxTries || (time() + $wait) >= $timeout) {
                 return false;
             }
-            // Randomize to help prevent deadlocks.
-            usleep(random_int($minWait, $maxWait));
+            usleep($wait);
         }
         return true;
     }
@@ -247,18 +239,18 @@ trait SafeFileHandlingTrait
         rewind($handle);
         $data = '';
         $tries = 0;
-        $timeout = time() + $timeout;
+        $timeout += time();
         while (!feof($handle)) {
-            if (++$tries > 10 || time() > $timeout) {
-                $this->releaseHandle($handle);
-                return false;
-            }
             $read = fread($handle, $bufferSize);
             // Decrease $tries while making progress but NEVER $tries < 1.
             if ('' !== $read && $tries > 0) {
                 --$tries;
             }
             $data .= $read;
+            if (++$tries > 10 || time() > $timeout) {
+                $this->releaseHandle($handle);
+                return false;
+            }
         }
         $this->releaseHandle($handle);
         return $data;
@@ -292,20 +284,20 @@ trait SafeFileHandlingTrait
         }
         $dataWritten = 0;
         $tries = 0;
-        $timeout = time() + $timeout;
-        while ($dataWritten < $amountToWrite) {
-            if (++$tries > 10 || time() > $timeout) {
-                $this->releaseHandle($handle);
-                $this->deleteWithRetry($pathFile);
-                return false;
-            }
+        $timeout += time();
+        do {
             $written = fwrite($handle, substr($data, $dataWritten, $bufferSize));
             // Decrease $tries while making progress but NEVER $tries <= 0.
             if ($written > 0 && $tries > 0) {
                 --$tries;
             }
             $dataWritten += $written;
-        }
+            if (++$tries > 10 || time() > $timeout) {
+                $this->releaseHandle($handle);
+                $this->deleteWithRetry($pathFile);
+                return false;
+            }
+        } while ($dataWritten < $amountToWrite);
         $this->releaseHandle($handle);
         return true;
     }
