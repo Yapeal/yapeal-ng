@@ -82,6 +82,44 @@ class CachePreserverSpec extends ObjectBehavior
      * @param Collaborator|LogEventInterface    $log
      * @param Collaborator|MediatorInterface    $yem
      *
+     * @throws FailureException
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
+     * @throws \Prophecy\Exception\InvalidArgumentException
+     * @throws \Symfony\Component\Filesystem\Exception\IOException
+     * @throws \UnexpectedValueException
+     */
+    public function it_should_actual_write_cache_file_when_successful(
+        EveApiEventInterface $event,
+        LogEventInterface $log,
+        MediatorInterface $yem
+    ) {
+        $this->filesystem->mkdir($this->workingDirectory . 'cache/Section1/');
+        $data = (new EveApiXmlData())->setEveApiName('Api1')
+            ->setEveApiSectionName('Section1')
+            ->setEveApiXml('test');
+        $event->getData()
+            ->willReturn($data);
+        $event->setHandledSufficiently()
+            ->shouldBeCalled();
+        /** @noinspection PhpStrictTypeCheckingInspection */
+        $yem->triggerLogEvent(Argument::cetera())
+            ->willReturn($log);
+        $this->preserveEveApi($event, 'test', $yem);
+        if (!$this->filesystem->exists(sprintf($this->workingDirectory . 'cache/%s/%s%s.xml',
+            $data->getEveApiSectionName(),
+            $data->getEveApiName(),
+            $data->getHash()))
+        ) {
+            throw new FailureException('Never wrote to cache file');
+        }
+    }
+    /**
+     * @param Collaborator|EveApiEventInterface $event
+     * @param Collaborator|LogEventInterface    $log
+     * @param Collaborator|MediatorInterface    $yem
+     *
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
@@ -217,6 +255,36 @@ class CachePreserverSpec extends ObjectBehavior
      * @throws \InvalidArgumentException
      * @throws \LogicException
      * @throws \Prophecy\Exception\InvalidArgumentException
+     * @throws \Symfony\Component\Filesystem\Exception\IOException
+     * @throws \UnexpectedValueException
+     */
+    public function it_should_set_event_handled_sufficiently_when_write_succeeds(
+        EveApiEventInterface $event,
+        LogEventInterface $log,
+        MediatorInterface $yem
+    ) {
+        $this->filesystem->mkdir($this->workingDirectory . 'cache/Section1/');
+        $data = (new EveApiXmlData())->setEveApiName('Api1')
+            ->setEveApiSectionName('Section1')
+            ->setEveApiXml('test');
+        $event->getData()
+            ->willReturn($data);
+        $event->setHandledSufficiently()
+            ->shouldBeCalled();
+        /** @noinspection PhpStrictTypeCheckingInspection */
+        $yem->triggerLogEvent(Argument::cetera())
+            ->willReturn($log);
+        $this->preserveEveApi($event, 'test', $yem);
+    }
+    /**
+     * @param Collaborator|EveApiEventInterface $event
+     * @param Collaborator|LogEventInterface    $log
+     * @param Collaborator|MediatorInterface    $yem
+     *
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
+     * @throws \Prophecy\Exception\InvalidArgumentException
      * @throws \UnexpectedValueException
      */
     public function it_throws_exception_when_get_cache_dir_is_use_before_it_is_set(
@@ -253,73 +321,5 @@ class CachePreserverSpec extends ObjectBehavior
     public function letGo()
     {
         $this->removeWorkingDirectory();
-    }
-    /**
-     * @param Collaborator|EveApiEventInterface $event
-     * @param Collaborator|LogEventInterface    $log
-     * @param Collaborator|MediatorInterface    $yem
-     *
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
-     * @throws \Prophecy\Exception\InvalidArgumentException
-     * @throws \Symfony\Component\Filesystem\Exception\IOException
-     * @throws \UnexpectedValueException
-     */
-    public function it_should_set_event_handled_sufficiently_when_write_succeeds(
-        EveApiEventInterface $event,
-        LogEventInterface $log,
-        MediatorInterface $yem
-    ) {
-        $this->filesystem->mkdir($this->workingDirectory . 'cache/Section1/');
-        $data = (new EveApiXmlData())->setEveApiName('Api1')
-            ->setEveApiSectionName('Section1')
-            ->setEveApiXml('test');
-        $event->getData()
-            ->willReturn($data);
-        $event->setHandledSufficiently()
-            ->shouldBeCalled();
-        /** @noinspection PhpStrictTypeCheckingInspection */
-        $yem->triggerLogEvent(Argument::cetera())
-            ->willReturn($log);
-        $this->preserveEveApi($event, 'test', $yem);
-    }
-    /**
-     * @param Collaborator|EveApiEventInterface $event
-     * @param Collaborator|LogEventInterface    $log
-     * @param Collaborator|MediatorInterface    $yem
-     *
-     * @throws FailureException
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
-     * @throws \Prophecy\Exception\InvalidArgumentException
-     * @throws \Symfony\Component\Filesystem\Exception\IOException
-     * @throws \UnexpectedValueException
-     */
-    public function it_should_actual_write_cache_file_when_successful(
-        EveApiEventInterface $event,
-        LogEventInterface $log,
-        MediatorInterface $yem
-    ) {
-        $this->filesystem->mkdir($this->workingDirectory . 'cache/Section1/');
-        $data = (new EveApiXmlData())->setEveApiName('Api1')
-            ->setEveApiSectionName('Section1')
-            ->setEveApiXml('test');
-        $event->getData()
-            ->willReturn($data);
-        $event->setHandledSufficiently()
-            ->shouldBeCalled();
-        /** @noinspection PhpStrictTypeCheckingInspection */
-        $yem->triggerLogEvent(Argument::cetera())
-            ->willReturn($log);
-        $this->preserveEveApi($event, 'test', $yem);
-        if (!$this->filesystem->exists(sprintf($this->workingDirectory . 'cache/%s/%s%s.xml',
-            $data->getEveApiSectionName(),
-            $data->getEveApiName(),
-            $data->getHash()))
-        ) {
-            throw new FailureException('Never wrote to cache file');
-        }
     }
 }
