@@ -110,7 +110,7 @@ interface ContainerInterface extends \ArrayAccess
      * @param ServiceProviderInterface $provider A ServiceProviderInterface instance
      * @param array                    $values   An array of values that customizes the provider
      *
-     * @return ContainerInterface
+     * @return static Fluent interface.
      */
-    public function register(ServiceProviderInterface $provider, array $values = []): ContainerInterface;
+    public function register(ServiceProviderInterface $provider, array $values = []);
 }

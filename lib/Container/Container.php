@@ -121,18 +121,18 @@ class Container implements ContainerInterface
     /**
      * Checks if a parameter or an object is set.
      *
-     * @param string $id The unique identifier for the parameter or object
+     * @param string|int $id The unique identifier for the parameter or object
      *
      * @return bool
      */
-    public function offsetExists($id)
+    public function offsetExists($id): bool
     {
         return (array_key_exists($id, $this->keys) && true === $this->keys[$id]);
     }
     /**
      * Gets a parameter or an object.
      *
-     * @param string $id The unique identifier for the parameter or object
+     * @param string|int $id The unique identifier for the parameter or object
      *
      * @return mixed The value of the parameter or an object
      *
@@ -168,8 +168,8 @@ class Container implements ContainerInterface
      * as function names (strings) are callable (creating a function with
      * the same name as an existing parameter would break your container).
      *
-     * @param string $id    The unique identifier for the parameter or object
-     * @param mixed  $value The value of the parameter or a closure to define an object
+     * @param string|int $id    The unique identifier for the parameter or object
+     * @param mixed      $value The value of the parameter or a closure to define an object
      *
      * @throws \RuntimeException Prevent override of a frozen service
      */
@@ -182,9 +182,9 @@ class Container implements ContainerInterface
         $this->keys[$id] = true;
     }
     /**
-     * Unsets a parameter or an object.
+     * Un-sets a parameter or an object.
      *
-     * @param string $id The unique identifier for the parameter or object
+     * @param string|int $id The unique identifier for the parameter or object
      */
     public function offsetUnset($id)
     {
@@ -237,9 +237,9 @@ class Container implements ContainerInterface
      * @param ServiceProviderInterface $provider A ServiceProviderInterface instance
      * @param array                    $values   An array of values that customizes the provider
      *
-     * @return ContainerInterface
+     * @return self Fluent interface.
      */
-    public function register(ServiceProviderInterface $provider, array $values = []): ContainerInterface
+    public function register(ServiceProviderInterface $provider, array $values = []): self
     {
         $provider->register($this);
         foreach ($values as $key => $value) {
