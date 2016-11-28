@@ -34,7 +34,6 @@ declare(strict_types = 1);
  */
 namespace Yapeal\Configuration;
 
-use Yapeal\Cli\Yapeal\YamlConfigFile;
 use Yapeal\Container\ContainerInterface;
 use Yapeal\DicAwareInterface;
 use Yapeal\DicAwareTrait;
@@ -44,7 +43,8 @@ use Yapeal\DicAwareTrait;
  */
 class Wiring implements DicAwareInterface
 {
-    use ConfigFileProcessingTrait, DicAwareTrait;
+    use ConfigFileProcessingTrait;
+    use DicAwareTrait;
     /**
      * @param ContainerInterface $dic
      */
@@ -53,13 +53,29 @@ class Wiring implements DicAwareInterface
         $this->setDic($dic);
     }
     /**
+     * This is used to configure/wire all the pieces of Yapeal-ng together.
+     *
+     * It is not required to use this method or even this class but the rest of Yapeal-ng relies heavily on the
+     * container $dic having been setup in a way that mimics it closely. With all the other ways this method and other
+     * parts of Yapeal-ng provides to override or change things it is __very strongly__ suggested that application
+     * developers use it.
+     *
+     * _NOTE:_
+     *
+     *     The Yapeal.Wiring.Handlers.config setting has extra special handling because everything else is very heavily
+     *     dependant on the initial paths it determines which are used to find everything else. An application developer
+     *     considering override this setting should shoot yourself in the foot first to help dull the pain you will be
+     *     causing yourself by overriding it. For the masochists that go ahead, enjoy it, but I don't want any pictures
+     *     or descriptive e-mail sent to me about your experience please.
+     *
      * @return self Fluent interface.
      * @throws \LogicException
      */
-    public function wireAll()
+    public function wireAll(): self
     {
-        $dic = $this->dic;
+        $dic = $this->getDic();
         $base = 'Yapeal.Wiring.Handlers.';
+        $dic[$base . 'config'] = $dic[$base . 'config'] ?? '\Yapeal\Configuration\ConfigWiring';
         $names = ['Config', 'Error', 'Event', 'Log', 'Sql', 'Xml', 'Xsd', 'Xsl', 'FileSystem', 'Network', 'EveApi'];
         /**
          * @var WiringInterface $class
@@ -82,46 +98,5 @@ class Wiring implements DicAwareInterface
             }
         }
         return $this;
-    }
-    /**
-     * @return void
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
-     */
-    protected function wireConfig()
-    {
-        $dic = $this->getDic();
-        $path = str_replace('\\', '/', dirname(dirname(__DIR__))) . '/';
-        // These two paths are critical to Yapeal-ng working and can't be overridden here.
-        $dic['Yapeal.baseDir'] = $path;
-        $dic['Yapeal.libDir'] = $path . 'lib/';
-        if (empty($dic['Yapeal.Config.Yaml'])) {
-            $dic['Yapeal.Config.Yaml'] = $dic->factory(function () {
-                return new YamlConfigFile();
-            });
-        }
-        $configFiles = [
-            __DIR__ . '/yapeal_defaults.yaml',
-            $path . 'config/yapeal.yaml'
-        ];
-        $vendorPos = strpos($path, 'vendor/');
-        if (false !== $vendorPos) {
-            $dic['Yapeal.vendorParentDir'] = substr($path, 0, $vendorPos);
-            $configFiles[] = $dic['Yapeal.vendorParentDir'] . 'config/yapeal.yaml';
-        }
-        $settings = [];
-        // Process each file in turn so any substitutions are done in a more
-        // consistent way.
-        foreach ($configFiles as $configFile) {
-            $settings = $this->parserConfigFile($configFile, $settings);
-        }
-        $settings = $this->doSubstitutions($settings, $dic);
-        if (0 !== count($settings)) {
-            // Assure NOT overwriting already existing settings given by application.
-            foreach ($settings as $key => $value) {
-                $dic[$key] = $dic[$key] ?? $value;
-            }
-        }
     }
 }
