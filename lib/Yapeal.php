@@ -36,7 +36,6 @@ namespace Yapeal;
 
 use Yapeal\Event\EveApiEventEmitterTrait;
 use Yapeal\Event\MediatorInterface;
-use Yapeal\Event\YEMAwareTrait;
 use Yapeal\Log\Logger;
 use Yapeal\Sql\CommonSqlQueries;
 use Yapeal\Sql\CSQAwareTrait;
@@ -50,7 +49,6 @@ class Yapeal
 {
     use CSQAwareTrait;
     use PDOAwareTrait;
-    use YEMAwareTrait;
     use EveApiEventEmitterTrait;
     /**
      * @param CommonSqlQueries         $csq
@@ -74,9 +72,10 @@ class Yapeal
      *
      * @return int Returns 0 if everything was fine else something >= 1 for any
      * errors.
-     * @throws \LogicException
      * @throws \DomainException
      * @throws \InvalidArgumentException
+     * @throws \LogicException
+     * @throws \UnexpectedValueException
      */
     public function autoMagic()
     {
@@ -94,10 +93,10 @@ class Yapeal
         } catch (\PDOException $exc) {
             $mess = 'Could not access utilEveApi table';
             $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess, ['exception' => $exc]);
+                ->triggerLogEvent('Yapeal.Log.error', Logger::CRITICAL, $mess, ['exception' => $exc]);
             return 1;
         }
-        // Always check APIKeyInfo.
+        // Always check APIKeyInfo first.
         array_unshift($records, ['apiName' => 'APIKeyInfo', 'interval' => 300, 'sectionName' => 'account']);
         foreach ($records as $record) {
             $data = clone $this->data;
