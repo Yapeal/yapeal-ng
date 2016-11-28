@@ -92,8 +92,7 @@ class CachePreserver implements EveApiPreserverInterface
         if (false === $this->safeFileWrite($cacheFile, $xml)) {
             return $event;
         }
-        $event->setHandledSufficiently();
-        return $event;
+        return $event->setHandledSufficiently();
     }
     /**
      * @param string $value

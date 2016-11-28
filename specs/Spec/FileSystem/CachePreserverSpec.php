@@ -101,8 +101,7 @@ class CachePreserverSpec extends ObjectBehavior
             ->setEveApiXml('test');
         $event->getData()
             ->willReturn($data);
-        $event->setHandledSufficiently()
-            ->shouldBeCalled();
+        $event->setHandledSufficiently()->willReturn($event);
         /** @noinspection PhpStrictTypeCheckingInspection */
         $yem->triggerLogEvent(Argument::cetera())
             ->willReturn($log);
@@ -150,10 +149,10 @@ class CachePreserverSpec extends ObjectBehavior
      * @param Collaborator|LogEventInterface    $log
      * @param Collaborator|MediatorInterface    $yem
      *
+     * @throws SkippingException
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
-     * @throws \Prophecy\Exception\InvalidArgumentException
      * @throws \Symfony\Component\Filesystem\Exception\IOException
      * @throws \UnexpectedValueException
      */
@@ -269,8 +268,7 @@ class CachePreserverSpec extends ObjectBehavior
             ->setEveApiXml('test');
         $event->getData()
             ->willReturn($data);
-        $event->setHandledSufficiently()
-            ->shouldBeCalled();
+        $event->setHandledSufficiently()->willReturn($event);
         /** @noinspection PhpStrictTypeCheckingInspection */
         $yem->triggerLogEvent(Argument::cetera())
             ->willReturn($log);
