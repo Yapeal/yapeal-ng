@@ -72,11 +72,21 @@ class MockPreserver implements EveApiPreserverInterface
      * @return static
      * @throws \DomainException
      * @throws \InvalidArgumentException
-     * @throws \LogicException
+     * @throws \UnexpectedValueException
      */
     public function proxyAttributePreserveData(array $rows, array $columnDefaults, string $tableName)
     {
         return $this->attributePreserveData($rows, $columnDefaults, $tableName);
+    }
+    /**
+     * @param \SimpleXMLElement[] $rows
+     * @param array               $columnDefaults
+     *
+     * @return array
+     */
+    public function proxyProcessXmlRows(array $rows, array $columnDefaults): array
+    {
+        return $this->processXmlRows($rows, $columnDefaults);
     }
     /**
      * @param array  $elements
@@ -86,7 +96,7 @@ class MockPreserver implements EveApiPreserverInterface
      * @return static
      * @throws \DomainException
      * @throws \InvalidArgumentException
-     * @throws \LogicException
+     * @throws \UnexpectedValueException
      */
     public function proxyValuesPreserveData(array $elements, array $columnDefaults, string $tableName)
     {

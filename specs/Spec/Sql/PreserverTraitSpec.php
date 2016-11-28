@@ -37,7 +37,6 @@ namespace Spec\Yapeal\Sql;
 use PhpSpec\Exception\Example\SkippingException;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
-use Yapeal\Container\ContainerInterface;
 use Yapeal\Event\MediatorInterface;
 use Yapeal\Sql\CommonSqlQueries;
 
@@ -45,8 +44,8 @@ use Yapeal\Sql\CommonSqlQueries;
 /**
  * Class PreserverTraitSpec
  *
- * @mixin \Yapeal\Sql\PreserverTrait
  * @mixin \Spec\Yapeal\Sql\MockPreserver
+ * @mixin \Yapeal\Sql\PreserverTrait
  *
  * @method void during($method, array $params)
  * @method void shouldBe($value)
@@ -56,14 +55,8 @@ use Yapeal\Sql\CommonSqlQueries;
  */
 class PreserverTraitSpec extends ObjectBehavior
 {
-    /**
-     * @param Collaborator|CommonSqlQueries  $csq
-     * @param \PDO|Collaborator              $pdo
-     * @param Collaborator|MediatorInterface $yem
-     */
-    public function it_is_initializable(CommonSqlQueries $csq, \PDO $pdo, MediatorInterface $yem)
+    public function it_is_initializable()
     {
-        $this->beConstructedWith($csq, $pdo, $yem);
         $this->shouldImplement('Yapeal\Event\EveApiPreserverInterface');
     }
     public function it_should_convert_data_rows_into_sql_upsert_in_attribute_preserve_data()
@@ -73,17 +66,45 @@ class PreserverTraitSpec extends ObjectBehavior
         $tableName = 'corpDivisions';
         throw new SkippingException('Incomplete test');
     }
-    /** @noinspection PhpTooManyParametersInspection */
-    /**
-     * @param Collaborator|\Yapeal\Container\ContainerInterface $dic
-     * @param Collaborator|CommonSqlQueries                     $csq
-     * @param \PDO|Collaborator                                 $pdo
-     * @param Collaborator|MediatorInterface                    $yem
-     */
-    public function let(ContainerInterface $dic, CommonSqlQueries $csq, \PDO $pdo, MediatorInterface $yem)
+    public function it_should_convert_simple_xml_element_array_to_flat_array_in_process_xml_rows()
     {
-        $dic->keys();
+        $defaults = ['accountKey' => null, 'description' => 'A division', 'ownerID' => 123];
+        $rows = $this->sxe->xpath('//divisions/row');
+        $expected = [
+            '1000',
+            'string1',
+            '123',
+            '1001',
+            'string2',
+            '123',
+            '1002',
+            'A division',
+            '123',
+            '1003',
+            'string4',
+            '123',
+            '1004',
+            'string5',
+            '123',
+            '1005',
+            'string6',
+            '123',
+            '1006',
+            'string7',
+            '123'
+        ];
+        $this->proxyProcessXmlRows($rows, $defaults)
+            ->shouldReturn($expected);
+    }
+    /**
+     * @param Collaborator|CommonSqlQueries $csq
+     * @param Collaborator|\PDO $pdo
+     * @param Collaborator|MediatorInterface $yem
+     */
+    public function let(CommonSqlQueries $csq, \PDO $pdo, MediatorInterface $yem)
+    {
         $this->beAnInstanceOf('\Spec\Yapeal\Sql\MockPreserver');
+        $this->beConstructedWith($csq, $pdo, $yem);
         $this->sxe = new \SimpleXMLElement($this->testCorpSheet);
     }
     /**
@@ -127,7 +148,7 @@ class PreserverTraitSpec extends ObjectBehavior
         <divisions columns="accountKey,description" key="accountKey">
             <row accountKey="1000" description="string1"/>
             <row accountKey="1001" description="string2"/>
-            <row accountKey="1002" description="string3"/>
+            <row accountKey="1002" description=""/>
             <row accountKey="1003" description="string4"/>
             <row accountKey="1004" description="string5"/>
             <row accountKey="1005" description="string6"/>
