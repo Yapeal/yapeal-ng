@@ -1,5 +1,5 @@
--- Sql/queries/getSortedEveApis.mysql.sql
--- version 20160809230319.496
+-- Sql/queries/getSortedMethodNames.mysql.sql
+-- version 20161128084414.715
 -- @formatter:off
 SELECT "apiName", "sectionName"
     FROM "{schema}"."{tablePrefix}utilEveApi"
