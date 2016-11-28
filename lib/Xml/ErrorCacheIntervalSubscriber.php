@@ -54,9 +54,13 @@ class ErrorCacheIntervalSubscriber
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
+     * @throws \UnexpectedValueException
      */
-    public function processXmlError(EveApiEventInterface $event, string $eventName, MediatorInterface $yem)
-    {
+    public function processXmlError(
+        EveApiEventInterface $event,
+        string $eventName,
+        MediatorInterface $yem
+    ): EveApiEventInterface {
         $this->setYem($yem);
         $data = $event->getData();
         $yem->triggerLogEvent('Yapeal.Log.log',
@@ -66,20 +70,14 @@ class ErrorCacheIntervalSubscriber
         /** @noinspection PhpUndefinedFieldInspection */
         $errorText = (string)$simple->error[0];
         /** @noinspection PhpUndefinedFieldInspection */
-        if (isset($simple->error[0]['code'])) {
-            /** @noinspection PhpUndefinedFieldInspection */
-            $code = (int)$simple->error[0]['code'];
-            $mess = sprintf('Received XML error: (%1$s) "%2$s" during', $code, $errorText);
-        } else {
-            $mess = sprintf('Received XML error with no code attribute: "%1$s" during', $errorText);
-            $yem->triggerLogEvent('Yapeal.Log.log',
-                Logger::WARNING,
-                $this->createEventMessage($mess, $data, $eventName));
-            return $event;
-        }
+        $code = (int)$simple->error[0]['code'] ?? 0;
+        $mess = sprintf('Received from the Eve API server an XML error (%s) "%s" response during the validation of',
+            $code,
+            $errorText);
+        $mess = $this->createEveApiMessage($mess, $data);
         if ($code < 200) {
-            if (false !== strpos($mess, 'retry after')) {
-                $data->setCacheInterval(strtotime(substr($mess, -19) . '+00:00') - time());
+            if (false !== strpos($errorText, 'retry after')) {
+                $data->setCacheInterval(strtotime(substr($errorText, -19) . '+00:00') - time());
             }
             $yem->triggerLogEvent('Yapeal.Log.log',
                 Logger::WARNING,
@@ -97,9 +95,9 @@ class ErrorCacheIntervalSubscriber
                 $this->createEventMessage($mess, $data, $eventName));
             $data->setCacheInterval(300);
         }
+        // Cache error XML.
         $apiName = $data->getEveApiName();
         $data->setEveApiName('Error_' . $apiName);
-        // Cache error XML.
         $this->emitEvents($data, 'preserve', 'Yapeal.Xml.Error');
         $data->setEveApiName($apiName);
         return $event->setData($data)
