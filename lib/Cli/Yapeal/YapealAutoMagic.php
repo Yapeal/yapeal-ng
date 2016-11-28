@@ -51,7 +51,10 @@ use Yapeal\Yapeal;
  */
 class YapealAutoMagic extends Command implements YEMAwareInterface
 {
-    use CommonToolsTrait, ConfigFileTrait, EveApiEventEmitterTrait, VerbosityToStrategyTrait;
+    use CommonToolsTrait;
+    use ConfigFileTrait;
+    use EveApiEventEmitterTrait;
+    use VerbosityToStrategyTrait;
     /**
      * @param string|null        $name
      * @param ContainerInterface $dic
@@ -105,9 +108,7 @@ HELP;
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
-     * @throws \Yapeal\Exception\YapealDatabaseException
-     * @throws \Yapeal\Exception\YapealException
-     *
+     * @throws \UnexpectedValueException
      * @see    setCode()
      */
     protected function execute(InputInterface $input, OutputInterface $output)
