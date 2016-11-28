@@ -84,9 +84,7 @@ trait CommonEveApiTrait
      */
     public function startEveApi(EveApiEventInterface $event, string $eventName, MediatorInterface $yem)
     {
-        if (!$this->hasYem()) {
-            $this->setYem($yem);
-        }
+        $this->setYem($yem);
         $data = $event->getData();
         $yem->triggerLogEvent('Yapeal.Log.log',
             Logger::DEBUG,
