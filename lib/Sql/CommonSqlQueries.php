@@ -64,7 +64,7 @@ use Yapeal\FileSystem\SafeFileHandlingTrait;
  * @method string getDropSchema()
  * @method string getMemberCorporationIDsExcludingAccountCorporations()
  * @method string getSchemaNames()
- * @method string getSortedEveApis()
+ * @method string getSortedMethodNames()
  * @method string getUpsert($tableName, $columnNameList, $rowCount)
  * @method string getUtilCachedUntilExpires($accountKey, $apiName, $ownerID)
  * @method string getUtilLatestDatabaseVersion()
@@ -86,6 +86,7 @@ class CommonSqlQueries implements DicAwareInterface
     {
         $this->setDic($dic);
         $this->platform = $dic['Yapeal.Sql.platform'];
+        $this->createDir = $dic['Yapeal.Sql.dir'] . 'Create/';
         $this->queriesDir = $dic['Yapeal.Sql.dir'] . 'queries/';
     }
     /**
@@ -102,22 +103,42 @@ class CommonSqlQueries implements DicAwareInterface
     {
         $methodName = $name . ucfirst($this->platform);
         if (method_exists($this, $methodName)) {
-            $sql = call_user_func_array([$this, $methodName], $arguments);
-            if (false !== $sql) {
+            if (false !== $sql = call_user_func_array([$this, $methodName], $arguments)) {
                 return $this->processSql($methodName, $sql, $arguments);
             }
         }
-        $fileNames = explode(',',
-            sprintf('%1$s%2$s.%3$s.sql,%1$s%2$s.sql', $this->queriesDir, $name, $this->platform));
-        foreach ($fileNames as $fileName) {
-            if ($this->isCachedSql($fileName)) {
-                return $this->getCachedSql($fileName);
+        if (0 === strpos($name, 'get')) {
+            $fileNames = explode(',',
+                sprintf('%1$s%2$s.%3$s.sql,%1$s%2$s.sql', $this->queriesDir, $name, $this->platform));
+            foreach ($fileNames as $fileName) {
+                if ($this->isCachedSql($fileName)) {
+                    return $this->getCachedSql($fileName);
+                }
+                if (false === $sql = $this->safeFileRead($fileName)) {
+                    continue;
+                }
+                return $this->processSql($fileName, $sql, $arguments);
             }
-            $sql = $this->safeFileRead($fileName);
-            if (false === $sql) {
-                continue;
+        } elseif (0 === strpos($name, 'create')) {
+            // Split up into 'create{sectionName}{tableName}{ignored}'
+            $regex = '%^create([[:upper:]][[:lower:]]+)([[:upper:]]\w+)%';
+            // Ignoring last (optional, should be empty) part of preg_split().
+            list($sectionName, $tableName,) = preg_split($regex,
+                $name,
+                3,
+                PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
+            $fileNames = explode(',',
+                sprintf('%1$s%2$s/%3$s%4$s.sql,%1$s%2$s/%3$s.sql',
+                    $this->createDir,
+                    $sectionName,
+                    $tableName,
+                    $this->platform));
+            foreach ($fileNames as $fileName) {
+                if (false === $sql = $this->safeFileRead($fileName)) {
+                    continue;
+                }
+                return $sql;
             }
-            return $this->processSql($fileName, $sql, $arguments);
         }
         $mess = 'Unknown method ' . $name;
         throw new \BadMethodCallException($mess);
@@ -206,6 +227,10 @@ class CommonSqlQueries implements DicAwareInterface
         }
         return $sql;
     }
+    /**
+     * @var string $createDir
+     */
+    private $createDir;
     /**
      * @var string $platform
      */
