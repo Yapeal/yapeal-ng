@@ -54,9 +54,9 @@ trait SqlSubsTrait
     protected function getCleanedUpSql(string $sql, array $replacements): string
     {
         // Remove multi-space indents.
-        while (false !== strpos($sql, "\n  ")) {
-            $sql = str_replace("\n  ", "\n ", $sql);
-        }
+        do {
+            $sql = str_replace("\n  ", "\n ", $sql, $count);
+        } while (0 < $count);
         $replacements = array_reverse($replacements);
         $replacements["\n)"] = ')';
         $replacements["\n "] = ' ';
