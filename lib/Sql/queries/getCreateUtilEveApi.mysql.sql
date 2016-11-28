@@ -1,5 +1,5 @@
--- Sql/Util/CreateEveApi.sql
--- version 20160131212500.003
+-- Sql/queries/getCreateUtilEveApi.mysql.sql
+-- version 20161127224516.738
 CREATE TABLE "{schema}"."{tablePrefix}utilEveApi" (
     "active"      TINYINT(1) UNSIGNED NOT NULL,
     "apiName"     CHAR(32)            NOT NULL,
@@ -91,5 +91,12 @@ INSERT INTO "{schema}"."{tablePrefix}utilEveApi" ("sectionName", "apiName", "mas
         ('map', 'Jumps', 2, 3600, 1),
         ('map', 'Kills', 4, 3600, 1),
         ('map', 'Sovereignty', 8, 3600, 1),
-        ('server', 'ServerStatus', 1, 300, 1);
+        ('server', 'ServerStatus', 1, 300, 1),
+        ('util', 'CachedUntil', 0, 0 , 0),
+        ('util', 'RegisteredKey', 0, 0 , 0),
+        ('util', 'RegisteredUploader', 0, 0 , 0),
+        ('util', 'UploadDestination', 0, 0 , 0),
+        ('util', 'XmlCache', 0, 0 , 0);
+INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
+    VALUES ('20161127224516.738');
 COMMIT;

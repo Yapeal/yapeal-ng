@@ -1,5 +1,5 @@
--- Sql/Util/CreateDatabaseVersion.sql
--- version 20160131212501.000
+-- Sql/queries/getCreateUtilDatabaseVersion.mysql.sql
+-- version 20161127224340.210
 CREATE TABLE "{schema}"."{tablePrefix}utilDatabaseVersion" (
     "version" CHAR(18) NOT NULL,
     PRIMARY KEY ("version")
@@ -7,5 +7,5 @@ CREATE TABLE "{schema}"."{tablePrefix}utilDatabaseVersion" (
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
-    VALUES ('20160131212501.000');
+    VALUES ('20161127224340.210');
 COMMIT;
