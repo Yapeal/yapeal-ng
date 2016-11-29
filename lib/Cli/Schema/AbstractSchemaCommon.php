@@ -115,12 +115,12 @@ abstract class AbstractSchemaCommon extends Command implements YEMAwareInterface
      * @param string          $fileName
      * @param OutputInterface $output
      *
+     * @throws YapealDatabaseException
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
      * @throws \Symfony\Component\Console\Exception\LogicException
-     * @throws \Yapeal\Exception\YapealDatabaseException
-     * @internal param string $sqlStatements
+     * @throws \UnexpectedValueException
      */
     protected function executeSqlStatements(string $sqlStatements, string $fileName, OutputInterface $output)
     {
