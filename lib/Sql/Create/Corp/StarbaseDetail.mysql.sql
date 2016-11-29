@@ -18,7 +18,7 @@ CREATE TABLE "{database}"."{tablePrefix}corpFuel" (
     "typeID"   BIGINT(20) UNSIGNED NOT NULL,
     PRIMARY KEY ("ownerID", "itemID")
 );
-CREATE TABLE "{database}"."{table_prefix}corpGeneralSettings" (
+CREATE TABLE "{database}"."{tablePrefix}corpGeneralSettings" (
     "allowAllianceMembers"    TINYINT(1)           NOT NULL,
     "allowCorporationMembers" TINYINT(1)           NOT NULL,
     "deployFlags"             SMALLINT(5) UNSIGNED NOT NULL,
