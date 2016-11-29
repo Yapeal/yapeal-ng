@@ -80,14 +80,13 @@ trait PreserverTrait
         }
         $this->setYem($yem);
         $data = $event->getData();
-        $xml = $data->getEveApiXml();
-        if ('' === $xml) {
-            return $event->setHandledSufficiently();
-        }
         $this->getYem()
             ->triggerLogEvent('Yapeal.Log.log',
                 Logger::DEBUG,
                 $this->getReceivedEventMessage($data, $eventName, __CLASS__));
+        if ('' === $data->getEveApiXml()) {
+            return $event;
+        }
         $this->getPdo()
             ->beginTransaction();
         try {
@@ -122,7 +121,7 @@ trait PreserverTrait
      */
     public function setPreserve(bool $value = true)
     {
-        $this->preserve = (boolean)$value;
+        $this->preserve = $value;
         return $this;
     }
     /**
@@ -149,14 +148,49 @@ trait PreserverTrait
         $this->lastColumnCount = 0;
         $this->lastRowCount = 0;
         unset($this->pdoStatement);
-        if (0 === count($rows)) {
+        if (0 === $rowCount = count($rows)) {
             return $this;
         }
-        // 1000 is a 'magic' number that seems to work well.
-        $rows = array_chunk($rows, 1000, true);
         $columnNames = array_keys($columnDefaults);
-        foreach ($rows as $chunk) {
-            $this->flush($this->processXmlRows($columnDefaults, $chunk), $columnNames, $tableName);
+        /**
+         * Determines the maximum number of rows per SQL query.
+         *
+         * ## Background
+         *
+         * Coming up with a good chunk size is harder than it seems. First there a lot of Eve APIs with just few rows
+         * like Account APIKeyInfo or Corp AccountBalance then there are others like Eve AllianceList, or Corp AssetList
+         * which have 1000s or maybe even 10000s of rows for the last one in some larger corps with a lot of offices.
+         *
+         * On the SQL side of things larger queries are generally more efficient but also take up a lot more memory to
+         * build. Plus very large queries tend to exceed limits built into the driver or database server itself to
+         * protect against DOS attacks etc.
+         *
+         * After a lot of feedback from application developers and issues reports the upper limit seems to be around
+         * 1000 rows at least with MySQL which has been the only test platform used in the past with Yapeal-ng. The
+         * other factor is the OS the database is running on. The Windows drivers at least for MySQL seem to cause the
+         * most issues but as stated 1000 rows seems to keep the problems from turn up. There are some php.ini settings
+         * that can be changed to help with using larger queries but not everyone has access to them depending on where
+         * they're host their site and other reasons.
+         *
+         * So to summarize for the really large Eve APIs results you want to use as few large queries as you can without
+         * exceeding database platform or OS limits while also not needlessly breaking up smaller results which would
+         * hurt performance and efficiency.
+         *
+         * ## Explaining the code
+         *
+         *   1. Take the row count and divide it by 4 throwing away any remainder to help keep memory use down without
+         *   create tons of queries to process which is less efficient.
+         *   2. Make sure for larger Eve APIs not to exceed 1000 rows chunks using min().
+         *   3. Insure small and medium size Eve APIs aren't broken up needlessly by enforcing minimum of 100 rows
+         *   chunks by using max().
+         *
+         * @var int $chunkSize
+         */
+        $chunkSize = max(100, min(1000, intdiv($rowCount, 4)));
+        for ($pos = 0; $pos <= $rowCount; $pos += $chunkSize) {
+            $this->flush($this->processXmlRows(array_slice($rows, $pos, $chunkSize, false), $columnDefaults),
+                $columnNames,
+                $tableName);
         }
         return $this;
     }
@@ -185,7 +219,7 @@ trait PreserverTrait
             return $this;
         }
         $rowCount = intdiv(count($columns), count($columnNames));
-        $mess = sprintf('Have %1$s row(s) to upsert into %2$s table', $rowCount, $tableName);
+        $mess = sprintf('Have %s row(s) to upsert into %s table', $rowCount, $tableName);
         $this->getYem()
             ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess);
         $isNotPrepared = $this->lastColumnCount !== count($columnNames)
@@ -195,8 +229,7 @@ trait PreserverTrait
             $sql = $this->getCsq()
                 ->getUpsert($tableName, $columnNames, $rowCount);
             $mess = preg_replace('%(,\([?,]*\))+%', ',...', $sql);
-            $lastError = preg_last_error();
-            if (PREG_NO_ERROR !== $lastError) {
+            if (PREG_NO_ERROR !== $lastError = preg_last_error()) {
                 $constants = array_flip(get_defined_constants(true)['pcre']);
                 $lastError = $constants[$lastError];
                 $mess = 'Received preg error ' . $lastError;
@@ -225,20 +258,22 @@ trait PreserverTrait
     /**
      * Combines the column defaults with a set of rows.
      *
-     * @param array               $columnDefaults
      * @param \SimpleXMLElement[] $rows
+     *
+     * @param array               $columnDefaults
      *
      * @return array
      */
-    protected function processXmlRows(array $columnDefaults, array $rows): array
+    protected function processXmlRows(array $rows, array $columnDefaults): array
     {
-        $columns = [];
-        foreach ($rows as $row) {
+        $callback = function (array $carry, \SimpleXMLElement $row) use ($columnDefaults): array {
             foreach ($columnDefaults as $key => $value) {
-                $columns[] = (null === $value || '' !== (string)$row[$key]) ? (string)$row[$key] : (string)$value;
+                $attribute = (string)$row[$key];
+                $carry[] = '' !== $attribute ? $attribute : (string)$value;
             }
-        }
-        return $columns;
+            return $carry;
+        };
+        return array_reduce($rows, $callback, []);
     }
     /**
      * Used to process the second most common style of API data.
@@ -260,15 +295,21 @@ trait PreserverTrait
         if (0 === count($elements)) {
             return $this;
         }
-        $row = [];
-        foreach ($elements as $element) {
-            $row[$element->getName()] = (string)$element;
-        }
-        $columns = [];
-        foreach ($columnDefaults as $key => $value) {
-            $columns[] = array_key_exists($key, $row) ? $row[$key] : (string)$value;
-        }
-        return $this->flush($columns, array_keys($columnDefaults), $tableName);
+        $defaultNames = array_keys($columnDefaults);
+        $callback = function (array $carry, \SimpleXMLElement $element) use ($defaultNames): array {
+            if (in_array($name = $element->getName(), $defaultNames, true)) {
+                $carry[$name] = (string)$element;
+            }
+            return $carry;
+        };
+        /*
+         * The array reduce returns only elements with names in $columnDefaults. It also converts them from
+         * SimpleXMLElements to a plain associative array.
+         * Array replace is used to overwrite the column default values with any values given in the filtered and
+         * converted elements. This also assures they are in the correct order.
+         */
+        $columns = array_replace($columnDefaults, array_reduce($elements, $callback, []));
+        return $this->flush(array_values($columns), $defaultNames, $tableName);
     }
     /**
      * @var string[] preserveTos
