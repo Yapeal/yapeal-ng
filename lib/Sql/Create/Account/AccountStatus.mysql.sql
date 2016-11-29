@@ -1,5 +1,5 @@
--- Sql/Account/CreateAccountStatus.sql
--- version 20160629012109.102
+-- Sql/Create/Account/AccountStatus.mysql.sql
+-- version 20161129011718.511
 CREATE TABLE "{schema}"."{tablePrefix}accountAccountStatus" (
     "createDate"   DATETIME            NOT NULL,
     "logonCount"   BIGINT(20) UNSIGNED NOT NULL,
@@ -24,7 +24,6 @@ CREATE TABLE "{schema}"."{tablePrefix}accountOffers" (
 );
 START TRANSACTION;
 -- @formatter:off
-INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
-    VALUES ('20160629012109.102')
-    ON DUPLICATE KEY UPDATE "version" = VALUES("version");
+INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
+    VALUES ('20161129011718.511');
 COMMIT;
