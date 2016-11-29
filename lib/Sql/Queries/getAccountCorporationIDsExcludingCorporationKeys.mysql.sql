@@ -1,5 +1,5 @@
--- Sql/queries/getAccountCorporationIDsExcludingCorporationKeys.mysql.sql
--- version 20160810093043.788
+-- Sql/Queries/getAccountCorporationIDsExcludingCorporationKeys.mysql.sql
+-- version 20161129051220.752
 -- @formatter:off
 SELECT DISTINCT acc."corporationID"
  FROM "{schema}"."{tablePrefix}accountCharacters" AS acc

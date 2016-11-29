@@ -1,5 +1,5 @@
--- Sql/queries/getCreateAddOrModifyColumnProcedure.mysql.sql
--- version 20160810085257.100
+-- Sql/Queries/getCreateAddOrModifyColumnProcedure.mysql.sql
+-- version 20161129051749.109
 -- @formatter:off
 CREATE PROCEDURE "{schema}"."AddOrModifyColumn"(
  IN param_database_name  VARCHAR(100) CHARACTER SET utf8 COLLATE utf8_unicode_ci,

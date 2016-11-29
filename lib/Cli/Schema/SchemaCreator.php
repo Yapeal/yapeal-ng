@@ -41,13 +41,16 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Yapeal\Container\ContainerInterface;
 use Yapeal\Event\YEMAwareTrait;
+use Yapeal\Exception\YapealDatabaseException;
 use Yapeal\Log\Logger;
+use Yapeal\Sql\CSQAwareTrait;
 
 /**
  * Class SchemaCreator
  */
 class SchemaCreator extends AbstractSchemaCommon
 {
+    use CSQAwareTrait;
     use YEMAwareTrait;
     /**
      * @param string             $name
@@ -59,7 +62,6 @@ class SchemaCreator extends AbstractSchemaCommon
     public function __construct(string $name, ContainerInterface $dic)
     {
         $this->setDescription('Retrieves SQL from files and initializes schema');
-        $this->setName($name);
         $this->setDic($dic);
         parent::__construct($name);
     }
@@ -151,159 +153,135 @@ HELP;
      * @throws \InvalidArgumentException
      * @throws \LogicException
      * @throws \Symfony\Component\Console\Exception\LogicException
+     * @throws \UnexpectedValueException
      * @throws \Yapeal\Exception\YapealDatabaseException
      * @throws \Yapeal\Exception\YapealFileSystemException
      */
     protected function processSql(OutputInterface $output)
     {
+        $csq = $this->getCsq();
         $yem = $this->getYem();
-        /**
-         * @var array        $section
-         * @var string|false $sqlStatements
-         */
-        foreach ($this->getCreateFileList($output) as $section) {
-            foreach ($section as $keyName => $sqlStatements) {
-                if (false === $sqlStatements) {
-                    if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
-                        $mess = sprintf('<error>Could NOT get contents of SQL file for %1$s</error>', $keyName);
-                        $output->writeln($mess);
-                        $yem->triggerLogEvent('Yapeal.Log.log', Logger::INFO, strip_tags($mess));
-                    }
-                    continue;
+        $this->processSchemaQueries($output)
+            ->processSpecialYapealTables($output);
+        foreach ($this->getCreateMethodNames() as $methodName) {
+            try {
+                $sqlStatements = $csq->$methodName();
+            } catch (\BadMethodCallException $exc) {
+                if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
+                    $mess = sprintf('<error>Could NOT get contents of SQL file for %s</error>', $methodName);
+                    $output->writeln($mess);
+                    $yem->triggerLogEvent('Yapeal.Log.log', Logger::INFO, strip_tags($mess));
                 }
-                $this->executeSqlStatements($sqlStatements, $keyName, $output);
+                continue;
             }
+            $this->executeSqlStatements($sqlStatements, 'SchemaCreator::' . $methodName, $output);
         }
     }
     /**
-     * First custom tables sql file found is returned.
-     *
-     * @param string $path
-     * @param array  $fileList
-     * @param string $platformExt
-     *
      * @return array
      * @throws \LogicException
+     * @internal param OutputInterface $output
+     *
      */
-    private function addCustomFile(string $path, array $fileList, string $platformExt): array
+    private function getCreateMethodNames(): array
     {
-        $dic = $this->getDic();
-        $fileNames = '%1$sCreateCustomTables,%2$sconfig/CreateCustomTables';
-        $subs = [$path, $dic['Yapeal.baseDir']];
-        if (!empty($dic['Yapeal.vendorParentDir'])) {
-            $fileNames .= ',%3$sconfig/CreateCustomTables';
-            $subs[] = $dic['Yapeal.vendorParentDir'];
+        $sql = $this->getCsq()
+            ->getSortedMethodNames();
+        $rows = $this->getPdo()
+            ->query($sql)
+            ->fetchAll(\PDO::FETCH_ASSOC);
+        $methodNames = [];
+        foreach ($rows as $row) {
+            $methodNames[] = sprintf('create%s%s', ucfirst($row['sectionName']), $row['apiName']);
         }
-        $customFiles = array_reverse(explode(',', vsprintf($fileNames, $subs)));
-        // First one found wins.
-        foreach ([$platformExt, '.sql'] as $ext) {
-            foreach ($customFiles as $keyName) {
-                $contents = $this->safeFileRead($keyName . $ext);
-                if (false !== $contents) {
-                    $fileList['Custom'][$keyName] = $contents;
-                    break 2;
-                }
-            }
-        }
-        return $fileList;
+        return $methodNames;
     }
     /**
      * @param OutputInterface $output
      *
-     * @return array
+     * @return self Fluent interface.
+     * @throws YapealDatabaseException
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
-     * @throws \Yapeal\Exception\YapealFileSystemException
+     * @throws \Symfony\Component\Console\Exception\LogicException
+     * @throws \UnexpectedValueException
      */
-    private function getCreateFileList(OutputInterface $output): array
+    private function processSchemaQueries(OutputInterface $output): self
     {
-        $dic = $this->getDic();
-        $path = $dic['Yapeal.Sql.dir'];
-        if (!is_readable($path)) {
+        if ($this->dropSchema) {
+            try {
+            $this->executeSqlStatements($this->getCsq()
+                ->getDropSchema(),
+                'SchemaCreator::DropSchema',
+                $output);
+            } catch (\BadMethodCallException $exc) {
+                $mess = '<error>Failed to get drop schema SQL</error>';
+                if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
+                    $output->writeln($mess);
+                    $this->getYem()
+                        ->triggerLogEvent('Yapeal.Log.error', Logger::ERROR, strip_tags($mess));
+                }
+                throw new YapealDatabaseException(strip_tags($mess), 2, $exc);
+            }
+        }
+        try {
+        $this->executeSqlStatements($this->getCsq()
+            ->getCreateSchema(),
+            'SchemaCreator::CreateSchema',
+            $output);
+        } catch (\BadMethodCallException $exc) {
+            $mess = '<error>Failed to get create schema SQL</error>';
             if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
-                $mess = sprintf('<comment>Could NOT access Sql directory %1$s</comment>', $path);
-                $this->getYem()
-                    ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, strip_tags($mess));
                 $output->writeln($mess);
+                $this->getYem()
+                    ->triggerLogEvent('Yapeal.Log.error', Logger::ERROR, strip_tags($mess));
             }
-            return [];
+            throw new YapealDatabaseException(strip_tags($mess), 2, $exc);
         }
-        $fileList = [];
-        $platformExt = sprintf('.%1$s.sql', $dic['Yapeal.Sql.platform']);
-        // First find any sql files with platform extension.
-        $fileList = $this->getSectionsFileList($path, $fileList, $platformExt);
-        $fileList = $this->prependDropSchema($path, $fileList, $platformExt);
-        $fileList = $this->addCustomFile($path, $fileList, $platformExt);
-        return $fileList;
+        return $this;
     }
     /**
-     * @param string $path
-     * @param array  $fileList
-     * @param string $platformExt
+     * @param OutputInterface $output
      *
-     * @return array
+     * @return self Fluent interface.
+     * @throws YapealDatabaseException
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
+     * @throws \Symfony\Component\Console\Exception\LogicException
+     * @throws \UnexpectedValueException
      */
-    private function getSectionsFileList(string $path, array $fileList, string $platformExt): array
+    private function processSpecialYapealTables(OutputInterface $output): self
     {
-        $fpn = $this->getFpn();
-        $sections = ['Schema', 'Util', 'Account', 'Api', 'Char', 'Corp', 'Eve', 'Map', 'Server'];
-        foreach ($sections as $section) {
-            foreach (new \DirectoryIterator($path . $section . '/') as $fileInfo) {
-                // Add file path if it's a sql create file for the correct platform.
-                if ($fileInfo->isFile() && 0 === strpos($fileInfo->getBasename(), 'Create')) {
-                    $baseName = $fileInfo->getBasename();
-                    $firstDot = strpos($baseName, '.');
-                    $isSql = $firstDot === strpos($baseName, '.sql');
-                    $isPlatform = $firstDot === strpos($baseName, $platformExt);
-                    $baseName = substr($baseName, 0, $firstDot);
-                    $keyName = $fpn->normalizePath($fileInfo->getPath()) . $baseName;
-                    $notSet = !array_key_exists($section, $fileList)
-                        || !array_key_exists($keyName, $fileList[$section])
-                        || false === $fileList[$section][$keyName];
-                    if ($isPlatform) {
-                        $fileList[$section][$keyName] = $this->safeFileRead($keyName . $platformExt);
-                    } elseif ($isSql && $notSet) {
-                        $fileList[$section][$keyName] = $this->safeFileRead($keyName . '.sql');
-                    }
-                }
+        try {
+            $this->executeSqlStatements($this->getCsq()
+                ->getCreateYapealSchemaVersion(),
+                'SchemaCreator::CreateYapealSchemaVersion',
+                $output);
+        } catch (\BadMethodCallException $exc) {
+            $mess = '<error>Failed to get create table SQL for critical Yapeal schema version table</error>';
+            if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
+                $output->writeln($mess);
+                $this->getYem()->triggerLogEvent('Yapeal.Log.error', Logger::ERROR, strip_tags($mess));
             }
+            throw new YapealDatabaseException(strip_tags($mess), 2, $exc);
         }
-        return $fileList;
-    }
-    /**
-     * Prepends drop schema if it is requested and exists.
-     *
-     * @param string $path
-     * @param array  $fileList
-     * @param string $platformExt
-     *
-     * @return array
-     * @throws \Yapeal\Exception\YapealFileSystemException
-     */
-    private function prependDropSchema(string $path, array $fileList, string $platformExt)
-    {
-        if (true !== $this->dropSchema) {
-            return $fileList;
-        }
-        // Add drop database file if requested and exists.
-        $keyName = $path . 'Schema/DropSchema';
-        foreach ([$platformExt, '.sql'] as $ext) {
-            $contents = $this->safeFileRead($keyName . $ext);
-            if (false !== $contents) {
-                if (array_key_exists('Schema', $fileList)) {
-                    $schema = array_reverse($fileList['Schema'], true);
-                    $schema[$keyName] = $contents;
-                    $fileList['Schema'] = array_reverse($schema, true);
-                    break;
-                } else {
-                    $fileList = array_reverse($fileList, true);
-                    $fileList['Schema'][$keyName] = $contents;
-                    $fileList = array_reverse($fileList, true);
-                }
+        try {
+        $this->executeSqlStatements($this->getCsq()
+                ->getCreateYapealEveApi(),
+                'SchemaCreator::CreateYapealEveApi',
+                $output);
+        } catch (\BadMethodCallException $exc) {
+            $mess = '<error>Failed to get create table SQL for critical Yapeal Eve Api table</error>';
+            if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
+                $output->writeln($mess);
+                $this->getYem()
+                    ->triggerLogEvent('Yapeal.Log.error', Logger::ERROR, strip_tags($mess));
             }
+            throw new YapealDatabaseException(strip_tags($mess), 2, $exc);
         }
-        return $fileList;
+        return $this;
     }
     /**
      * @var bool $dropSchema

@@ -1,4 +1,4 @@
--- Sql/queries/getCreateYapealSchemaVersion.mysql.sql
+-- Sql/Queries/getCreateYapealSchemaVersion.mysql.sql
 -- version 20161129003801.886
 CREATE TABLE "{schema}"."{tablePrefix}yapealSchemaVersion" (
     "version" CHAR(18) NOT NULL,

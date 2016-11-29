@@ -1,5 +1,5 @@
--- Sql/queries/initialization.mysql.sql
--- version 20160809230712.628
+-- Sql/Queries/initialization.mysql.sql
+-- version 20161129052454.272
 -- @formatter:off
 SET SESSION SQL_MODE = 'ANSI,TRADITIONAL';
 SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE;

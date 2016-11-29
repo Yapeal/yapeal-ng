@@ -1,4 +1,4 @@
--- Sql/queries/getApiLockRelease.mysql.sql
--- version 20160810071555.849
+-- Sql/Queries/getApiLockRelease.mysql.sql
+-- version 20161129051502.262
 -- @formatter:off
 SELECT RELEASE_LOCK('%1$s');

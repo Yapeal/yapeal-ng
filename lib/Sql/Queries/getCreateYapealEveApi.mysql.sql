@@ -1,4 +1,4 @@
--- Sql/queries/getCreateYapealEveApi.mysql.sql
+-- Sql/Queries/getCreateYapealEveApi.mysql.sql
 -- version 20161129004147.928
 CREATE TABLE "{schema}"."{tablePrefix}yapealEveApi" (
     "active"      TINYINT(1) UNSIGNED NOT NULL,
