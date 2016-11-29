@@ -82,7 +82,7 @@ class SqlWiring implements WiringInterface
                     $replacements['{password}']);
                 $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
                 $csq = $dic['Yapeal.Sql.CommonQueries'];
-                $pdo->exec($csq->initialization());
+                $pdo->exec($csq->getInitialization());
                 return $pdo;
             };
         }
