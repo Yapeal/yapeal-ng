@@ -63,6 +63,9 @@ class SchemaCreator extends AbstractSchemaCommon
     {
         $this->setDescription('Retrieves SQL from files and initializes schema');
         $this->setDic($dic);
+        $this->setCsq($dic['Yapeal.Sql.CommonQueries']);
+        $this->setPdo($dic['Yapeal.Sql.Connection']);
+        $this->setYem($dic['Yapeal.Event.Mediator']);
         parent::__construct($name);
     }
     /** @noinspection PhpMissingParentCallCommonInspection */
@@ -128,9 +131,6 @@ HELP;
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        if (!$this->hasYem()) {
-            $this->setYem($this->getDic()['Yapeal.Event.Mediator']);
-        }
         if ($input->getOption('dropSchema')) {
             /**
              * @var QuestionHelper $question
@@ -167,10 +167,10 @@ HELP;
             try {
                 $sqlStatements = $csq->$methodName();
             } catch (\BadMethodCallException $exc) {
-                if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
-                    $mess = sprintf('<error>Could NOT get contents of SQL file for %s</error>', $methodName);
+                if ($output::VERBOSITY_DEBUG <= $output->getVerbosity()) {
+                    $mess = sprintf('<comment>Could NOT get contents of SQL file for %s</comment>', $methodName);
+                    $yem->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, strip_tags($mess));
                     $output->writeln($mess);
-                    $yem->triggerLogEvent('Yapeal.Log.log', Logger::INFO, strip_tags($mess));
                 }
                 continue;
             }
@@ -211,31 +211,31 @@ HELP;
     {
         if ($this->dropSchema) {
             try {
-            $this->executeSqlStatements($this->getCsq()
-                ->getDropSchema(),
-                'SchemaCreator::DropSchema',
-                $output);
+                $this->executeSqlStatements($this->getCsq()
+                    ->getDropSchema(),
+                    'SchemaCreator::DropSchema',
+                    $output);
             } catch (\BadMethodCallException $exc) {
                 $mess = '<error>Failed to get drop schema SQL</error>';
+                $this->getYem()
+                    ->triggerLogEvent('Yapeal.Log.error', Logger::ERROR, strip_tags($mess));
                 if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
                     $output->writeln($mess);
-                    $this->getYem()
-                        ->triggerLogEvent('Yapeal.Log.error', Logger::ERROR, strip_tags($mess));
                 }
                 throw new YapealDatabaseException(strip_tags($mess), 2, $exc);
             }
         }
         try {
-        $this->executeSqlStatements($this->getCsq()
-            ->getCreateSchema(),
-            'SchemaCreator::CreateSchema',
-            $output);
+            $this->executeSqlStatements($this->getCsq()
+                ->getCreateSchema(),
+                'SchemaCreator::CreateSchema',
+                $output);
         } catch (\BadMethodCallException $exc) {
             $mess = '<error>Failed to get create schema SQL</error>';
+            $this->getYem()
+                ->triggerLogEvent('Yapeal.Log.error', Logger::ERROR, strip_tags($mess));
             if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
                 $output->writeln($mess);
-                $this->getYem()
-                    ->triggerLogEvent('Yapeal.Log.error', Logger::ERROR, strip_tags($mess));
             }
             throw new YapealDatabaseException(strip_tags($mess), 2, $exc);
         }
@@ -261,23 +261,24 @@ HELP;
                 $output);
         } catch (\BadMethodCallException $exc) {
             $mess = '<error>Failed to get create table SQL for critical Yapeal schema version table</error>';
+            $this->getYem()
+                ->triggerLogEvent('Yapeal.Log.error', Logger::ERROR, strip_tags($mess));
             if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
                 $output->writeln($mess);
-                $this->getYem()->triggerLogEvent('Yapeal.Log.error', Logger::ERROR, strip_tags($mess));
             }
             throw new YapealDatabaseException(strip_tags($mess), 2, $exc);
         }
         try {
-        $this->executeSqlStatements($this->getCsq()
+            $this->executeSqlStatements($this->getCsq()
                 ->getCreateYapealEveApi(),
                 'SchemaCreator::CreateYapealEveApi',
                 $output);
         } catch (\BadMethodCallException $exc) {
             $mess = '<error>Failed to get create table SQL for critical Yapeal Eve Api table</error>';
+            $this->getYem()
+                ->triggerLogEvent('Yapeal.Log.error', Logger::ERROR, strip_tags($mess));
             if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
                 $output->writeln($mess);
-                $this->getYem()
-                    ->triggerLogEvent('Yapeal.Log.error', Logger::ERROR, strip_tags($mess));
             }
             throw new YapealDatabaseException(strip_tags($mess), 2, $exc);
         }
