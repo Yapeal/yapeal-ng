@@ -44,7 +44,8 @@ NOTE:
     In the follow text I use the term 'schema' for what most people know
     as a database. In standards like SQL-92 the correct term is schema
     and I have choose to use it as well here and most places throughout
-    Yapeal-ng. Vendors are also slowly move to this term.
+    Yapeal-ng. Vendors are slowly move to this term also so expect to start
+    seeing it more often.
 
 Located in the `Sql` section of `yapeal.yaml` is where most of the
 settings that need to be change can be found.
@@ -136,7 +137,7 @@ There are a couple settings here that as an application developer you'll
 probably need to change. The first that MUST be changed when Yapeal-ng
 is under the vendor/ directory is the `dir` setting. Normally this is
 set to a `log/` directory inside of  Yapeal-ng itself and since anything
-under `vendor/` should be read only this is a bad place for it to be
+under `vendor/` should be _read only_ this is a bad place for it to be
 writing a log file. Best thing to do is set it to the same directory you
 use for logging errors in your application. In cases where your
 application doesn't have a log directory you might redirect to a tmp
@@ -149,7 +150,7 @@ will cover here but you can contact me directly for more information.
 
 The only other setting anyone is likely to change here is the
 `threshold` one. You may during development or at least during initial
-deployment want to see some additional logging then switch to lesser
+deployment want to see some additional logging then switch to less verbose
 level later. Main thing here is to make sure this setting is always
 below the setting in `Yapeal.Error.threshold`. For example if the
 setting in Error section is 400(ERROR) then the setting in Log must be
@@ -169,11 +170,11 @@ should explain for you. Most of them have to do with the User-Agent
 header Yapeal-ng will use while connecting to the Eve API servers. There
 is also one to change between the live server and the test server which
 can be useful during testing when you want a little less variable data
-source that what the live server provides.
+source than what the live server provides.
 
 ## Command Line Tools
 
-Originally the command line tools did just additional jobs outside of
+Originally the command line tools just did additional jobs outside of
 Yapeal-ng's normal operations but as time has got on they have grown
 both in complexity and numbers and are now more directly involved with
 the addition of `yc Yapeal:AutoMagic` to replace the older
@@ -207,7 +208,7 @@ enough to let you started using the Yapeal-ng console commands.
 Short form `yc S:C`.
 
 _NOTE:_ This is for initial schema creation only. Use `yc S:U` command
-that is explain later for updating the schema after updating Yapeal-ng
+which is explain later for updating the schema after updating Yapeal-ng
 itself.
 
 To keep the example simple I'll assume you have already set up

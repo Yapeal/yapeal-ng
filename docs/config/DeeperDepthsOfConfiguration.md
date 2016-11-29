@@ -15,8 +15,8 @@ Nothing really new here both have the same Yapeal 'root' for lack of a
 better word that everything else falls under. There is one default
 setting that was added here to help track which version of Yapeal you
 have installed much like was tried a few time in the distant past when
-Yapeal used an `ini` file for config which was later dropped. Not really
-something you'll change so on to the Cache section.
+Yapeal used an `ini` file for config but the setting was later dropped.
+Not really something you'll change so on to the Cache section.
 
 ### Yapeal:Cache Section
 
@@ -53,9 +53,9 @@ Everything here can be found in the Sql section for Yapeal-ng but in a
 deeper and changed form. Something I have started doing is try changing
 Yapeal-ng from being a MySql only solution for PHP but to a more
 multiple database platform one. This is somewhat of a painful process.
-Even though I used things like PDO, using SQL-92 standard for the SQL,
-and other stuff to try isolating the DB interact from the rest of the
-logic it never the less ended up being more MySql only that it should
+Even though I used things like PDO, using mostly SQL-92 standard for the SQL,
+and some other stuff to try isolating the DB interact from the rest of the
+logic Yapeal-ng never the less ended up being more MySql only that it should
 have been.
 
 I'm writing this right after I made a lot of the changes to this section
@@ -89,7 +89,7 @@ this is Yapeal:Sql:Platforms:mysql:schema. The default value for schema
 is `{Yapeal.Sql.database}` allowing the legacy BC stuff to happen but it
 is strongly suggested you use the new setting to save some unneeded
 indirection. I'll try to better explain the reason for the changes here.
-There are two things separate things going on here with the name change
+There are two separate things going on here with the name change
 and the per platform stuff as well. I'll start with the name change
 first.
 
@@ -106,15 +106,15 @@ and used the non-standard database instead. In the past Yapeal and
 Yapeal-ng have done this as well. Now with trying the transition to
 multiple platform support I've decided that schema is better as slowly
 but surely all the platforms seem to be moving towards the standards and
-schema.
+the use of schema.
 
 The per platform part is basically to allow for settings that are need
-or very useful to have but don't apply well to other platforms to have
-a place to be plus it it allows you to have settings for multiple
+or very useful to have but don't apply at all or well to other platforms
+to have a place to be plus it it allows you to have settings for multiple
 platforms ready to use and by just changing the platform setting you
 can switch database back ends. The last reason it probably more useful
-to me for testing while developing Yapeal-ng than for application
-developer but there maybe use case there as well for someone.
+to me for testing while developing Yapeal-ng than for any application
+developer but there maybe a use case there as well for someone else.
 
 #### Yapeal:Database:hostName setting
 
@@ -128,7 +128,7 @@ Direct copy into Yapeal:Sql:password for legacy and you should replace
 the default value instead as above. Interesting thing to note is that
 not all of the platforms that PDO supports have password or users. The
 most common example would be SQLite since it's usually just a local
-file somewhere.
+file somewhere and has no need for a password.
 
 #### Yapeal:Database:userName setting
 
