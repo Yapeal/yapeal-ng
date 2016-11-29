@@ -1,5 +1,5 @@
--- Sql/Char/CreateResearch.sql
--- version 20160629053442.767
+-- Sql/Create/Char/Research.sql
+-- version 20161129113301.043
 CREATE TABLE "{schema}"."{tablePrefix}charResearch" (
     "agentID"           BIGINT(20) UNSIGNED NOT NULL,
     "ownerID"           BIGINT(20) UNSIGNED NOT NULL,
@@ -12,5 +12,5 @@ CREATE TABLE "{schema}"."{tablePrefix}charResearch" (
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20160629053442.767');
+    VALUES ('20161129113301.043');
 COMMIT;

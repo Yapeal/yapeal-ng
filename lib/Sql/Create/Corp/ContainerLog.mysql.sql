@@ -1,5 +1,5 @@
--- Sql/Corp/CreateContainerLog.sql
--- version 20160629053417.748
+-- Sql/Create/Corp/ContainerLog.sql
+-- version 20161129113301.053
 CREATE TABLE "{schema}"."{tablePrefix}corpContainerLog" (
     "action"           CHAR(255)                    DEFAULT '',
     "actorID"          BIGINT(20) UNSIGNED NOT NULL,
@@ -20,5 +20,5 @@ CREATE TABLE "{schema}"."{tablePrefix}corpContainerLog" (
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20160629053417.748');
+    VALUES ('20161129113301.053');
 COMMIT;

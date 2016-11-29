@@ -1,5 +1,5 @@
 -- Sql/Queries/getActiveMailBodiesWithOwnerID.mysql.sql
--- version 20161129051318.720
+-- version 20161129113301.004
 -- @formatter:off
 SELECT "messageID"
  FROM "{schema}"."{tablePrefix}charMailMessages" AS cmm

@@ -1,5 +1,5 @@
 -- Sql/Queries/getDeleteFromStarbaseDetailTables.mysql.sql
--- version 20161129052023.581
+-- version 20161129113301.015
 -- @formatter:off
 DELETE FROM "{schema}"."{tablePrefix}%1$s"
     WHERE "ownerID"='%2$s'

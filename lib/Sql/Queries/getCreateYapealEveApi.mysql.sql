@@ -1,5 +1,5 @@
 -- Sql/Queries/getCreateYapealEveApi.mysql.sql
--- version 20161129004147.928
+-- version 20161129113301.001
 CREATE TABLE "{schema}"."{tablePrefix}yapealEveApi" (
     "active"      TINYINT(1) UNSIGNED NOT NULL,
     "apiName"     CHAR(32)            NOT NULL,
@@ -98,5 +98,5 @@ INSERT INTO "{schema}"."{tablePrefix}yapealEveApi" ("sectionName", "apiName", "m
         ('yapeal', 'UploadDestination', 0, 0 , 0),
         ('yapeal', 'XmlCache', 0, 0 , 0);
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20161129004147.928');
+    VALUES ('20161129113301.001');
 COMMIT;

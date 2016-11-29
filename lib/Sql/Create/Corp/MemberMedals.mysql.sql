@@ -1,5 +1,5 @@
--- Sql/Corp/CreateMemberMedals.sql
--- version 20160629053439.567
+-- Sql/Create/Corp/MemberMedals.sql
+-- version 20161129113301.061
 CREATE TABLE "{schema}"."{tablePrefix}corpMemberMedals" (
     "characterID" BIGINT(20) UNSIGNED NOT NULL,
     "issued"      DATETIME            NOT NULL,
@@ -13,5 +13,5 @@ CREATE TABLE "{schema}"."{tablePrefix}corpMemberMedals" (
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20160629053439.567');
+    VALUES ('20161129113301.061');
 COMMIT;

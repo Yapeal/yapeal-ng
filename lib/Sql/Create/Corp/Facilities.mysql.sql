@@ -1,5 +1,5 @@
--- Sql/Corp/CreateFacilities.sql
--- version 20160629053420.041
+-- Sql/Create/Corp/Facilities.sql
+-- version 20161129113301.057
 CREATE TABLE "{schema}"."{tablePrefix}corpFacilities" (
     "facilityID"       BIGINT(20) UNSIGNED NOT NULL,
     "ownerID"          BIGINT(20) UNSIGNED NOT NULL,
@@ -16,5 +16,5 @@ CREATE TABLE "{schema}"."{tablePrefix}corpFacilities" (
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20160629053420.041');
+    VALUES ('20161129113301.057');
 COMMIT;

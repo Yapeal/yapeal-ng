@@ -1,5 +1,5 @@
 -- Sql/Create/Yapeal/XmlCache.mysql.sql
--- version 20161129032822.109
+-- version 20161129113301.083
 CREATE TABLE "{schema}"."{tablePrefix}yapealXmlCache" (
     "accountKey"  SMALLINT(5) UNSIGNED NOT NULL DEFAULT 0,
     "apiName"     CHAR(32)             NOT NULL,
@@ -16,5 +16,5 @@ ALTER TABLE "{schema}"."{tablePrefix}yapealXmlCache"
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20161129032822.109');
+    VALUES ('20161129113301.083');
 COMMIT;

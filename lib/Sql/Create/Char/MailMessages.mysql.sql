@@ -1,5 +1,5 @@
--- Sql/Char/CreateMailMessages.mysql.sql
--- version 20160822175059.411
+-- Sql/Create/Char/MailMessages.mysql.sql
+-- version 20161129113301.039
 CREATE TABLE "{database}"."{tablePrefix}charMailMessages" (
     "messageID"          BIGINT(20) UNSIGNED NOT NULL,
     "ownerID"            BIGINT(20) UNSIGNED NOT NULL,
@@ -15,5 +15,5 @@ CREATE TABLE "{database}"."{tablePrefix}charMailMessages" (
 );
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20160822175059.411');
+    VALUES ('20161129113301.039');
 COMMIT;

@@ -1,8 +1,8 @@
--- Sql/Corp/CreateMarketOrders.sql
--- version 20160629053437.987
+-- Sql/Create/Corp/MarketOrders.sql
+-- version 20161129113301.059
 CREATE TABLE "{schema}"."{tablePrefix}corpMarketOrders" LIKE "{schema}"."{tablePrefix}charMarketOrders";
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20160629053437.987');
+    VALUES ('20161129113301.059');
 COMMIT;

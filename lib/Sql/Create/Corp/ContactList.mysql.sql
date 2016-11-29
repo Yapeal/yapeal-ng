@@ -1,5 +1,5 @@
--- Sql/Corp/CreateContactList.sql
--- version 20160629053416.744
+-- Sql/Create/Corp/ContactList.sql
+-- version 20161129113301.052
 CREATE TABLE "{schema}"."{tablePrefix}corpAllianceContactLabels" LIKE "{schema}"."{tablePrefix}charAllianceContactLabels";
 CREATE TABLE "{schema}"."{tablePrefix}corpAllianceContactList" LIKE "{schema}"."{tablePrefix}charAllianceContactList";
 CREATE TABLE "{schema}"."{tablePrefix}corpContactList" LIKE "{schema}"."{tablePrefix}charAllianceContactList";
@@ -7,5 +7,5 @@ CREATE TABLE "{schema}"."{tablePrefix}corpCorporateContactLabels" LIKE "{schema}
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20160629053416.744');
+    VALUES ('20161129113301.052');
 COMMIT;

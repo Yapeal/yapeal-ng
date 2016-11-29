@@ -1,5 +1,5 @@
--- Sql/Char/CreateIndustryJobs.sql
--- version 20160629053421.318
+-- Sql/Create/Char/IndustryJobs.sql
+-- version 20161129113301.037
 CREATE TABLE "{schema}"."{tablePrefix}charIndustryJobs" (
     "activityID"           TINYINT(2) UNSIGNED NOT NULL,
     "blueprintID"          BIGINT(20) UNSIGNED NOT NULL,
@@ -38,5 +38,5 @@ ALTER TABLE "{schema}"."{tablePrefix}charIndustryJobs"
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20160629053421.318');
+    VALUES ('20161129113301.037');
 COMMIT;

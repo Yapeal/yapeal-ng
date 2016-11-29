@@ -1,5 +1,5 @@
--- Sql/Eve/CreateConquerableStationList.sql
--- version 20160629053415.526
+-- Sql/Create/Eve/ConquerableStationList.sql
+-- version 20161129113301.071
 CREATE TABLE "{schema}"."{tablePrefix}eveConquerableStationList" (
     "corporationID"   BIGINT(20) UNSIGNED NOT NULL,
     "corporationName" CHAR(100)           NOT NULL,
@@ -15,5 +15,5 @@ CREATE TABLE "{schema}"."{tablePrefix}eveConquerableStationList" (
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20160629053415.526');
+    VALUES ('20161129113301.071');
 COMMIT;

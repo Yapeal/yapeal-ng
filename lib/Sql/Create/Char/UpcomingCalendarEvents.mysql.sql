@@ -1,5 +1,5 @@
--- Sql/Char/CreateUpcomingCalendarEvents.sql
--- version 20160629053459.556
+-- Sql/Create/Char/UpcomingCalendarEvents.sql
+-- version 20161129113301.046
 CREATE TABLE "{schema}"."{tablePrefix}charUpcomingCalendarEvents" (
     "duration"    SMALLINT(4) UNSIGNED NOT NULL,
     "eventDate"   DATETIME             NOT NULL,
@@ -16,5 +16,5 @@ CREATE TABLE "{schema}"."{tablePrefix}charUpcomingCalendarEvents" (
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20160629053459.556');
+    VALUES ('20161129113301.046');
 COMMIT;

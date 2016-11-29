@@ -1,5 +1,5 @@
 -- Sql/Create/Yapeal/UploadDestination.mysql.sql
--- version 20161129032558.704
+-- version 20161129113301.082
 CREATE TABLE "{schema}"."{tablePrefix}yapealUploadDestination" (
     "active"              TINYINT(1) UNSIGNED NOT NULL,
     "name"                CHAR(50)            NOT NULL,
@@ -10,5 +10,5 @@ CREATE TABLE "{schema}"."{tablePrefix}yapealUploadDestination" (
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20161129032558.704');
+    VALUES ('20161129113301.082');
 COMMIT;

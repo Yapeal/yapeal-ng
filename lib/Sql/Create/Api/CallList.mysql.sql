@@ -1,5 +1,5 @@
 -- Sql/Create/Api/CallList.mysql.sql
--- version 20161129014729.754
+-- version 20161129113301.029
 CREATE TABLE "{schema}"."{tablePrefix}apiCallList" (
     "description" TEXT                NOT NULL,
     "groupID"     TINYINT(2) UNSIGNED NOT NULL,
@@ -17,5 +17,5 @@ CREATE TABLE "{schema}"."{tablePrefix}apiCalls" (
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20161129014729.754');
+    VALUES ('20161129113301.029');
 COMMIT;

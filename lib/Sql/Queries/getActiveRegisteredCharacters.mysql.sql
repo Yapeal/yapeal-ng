@@ -1,5 +1,5 @@
 -- Sql/Queries/getActiveRegisteredCharacters.mysql.sql
--- version 20161129035603.613
+-- version 20161129113301.006
 -- @formatter:off
 SELECT ac."characterID", yrk."keyID", yrk."vCode"
     FROM "{schema}"."{tablePrefix}accountKeyBridge" AS akb

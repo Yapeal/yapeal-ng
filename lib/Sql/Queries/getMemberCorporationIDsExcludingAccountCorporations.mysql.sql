@@ -1,5 +1,5 @@
 -- Sql/Queries/getMemberCorporationIDsExcludingAccountCorporations.mysql.sql
--- version 20161129052339.082
+-- version 20161129113301.023
 -- @formatter:off
 SELECT DISTINCT emc."corporationID"
  FROM "{schema}"."{tablePrefix}eveMemberCorporations" AS emc

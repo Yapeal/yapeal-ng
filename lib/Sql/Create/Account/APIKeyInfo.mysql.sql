@@ -1,5 +1,5 @@
 -- Sql/Create/Account/APIKeyInfo.mysql.sql
--- version 20161129012511.839
+-- version 20161129113301.028
 CREATE TABLE "{schema}"."{tablePrefix}accountAPIKeyInfo" (
     "accessMask" BIGINT(20) UNSIGNED NOT NULL,
     "expires"    DATETIME            NOT NULL DEFAULT '2038-01-19 03:14:07',
@@ -32,5 +32,5 @@ ALTER TABLE "{schema}"."{tablePrefix}accountKeyBridge"
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20161129012511.839');
+    VALUES ('20161129113301.028');
 COMMIT;

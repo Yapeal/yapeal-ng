@@ -1,5 +1,5 @@
--- Sql/Corp/CreateWalletJournal.sql
--- version 20160629053500.715
+-- Sql/Create/Corp/WalletJournal.sql
+-- version 20161129113301.068
 CREATE TABLE "{schema}"."{tablePrefix}corpWalletJournal" LIKE "{schema}"."{tablePrefix}charWalletJournal";
 ALTER TABLE "{schema}"."{tablePrefix}corpWalletJournal"
     DROP COLUMN "taxAmount";
@@ -8,5 +8,5 @@ ALTER TABLE "{schema}"."{tablePrefix}corpWalletJournal"
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20160629053500.715');
+    VALUES ('20161129113301.068');
 COMMIT;

@@ -1,5 +1,5 @@
--- Sql/Corp/CreateStarbaseDetail.mysql.sql
--- version 20160822061939.133
+-- Sql/Create/Corp/StarbaseDetail.mysql.sql
+-- version 20161129113301.066
 CREATE TABLE "{database}"."{tablePrefix}corpCombatSettings" (
     "itemID"                  BIGINT(20) UNSIGNED    NOT NULL,
     "onAggressionEnabled"     TINYINT(1)             NOT NULL,
@@ -37,5 +37,5 @@ CREATE TABLE "{database}"."{tablePrefix}corpStarbaseDetail" (
 );
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20160822061939.133');
+    VALUES ('20161129113301.066');
 COMMIT;

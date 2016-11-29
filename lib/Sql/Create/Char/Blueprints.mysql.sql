@@ -1,5 +1,5 @@
--- Sql/Char/CreateBlueprints.sql
--- version 20160629053412.374
+-- Sql/Create/Char/Blueprints.sql
+-- version 20161129113301.032
 CREATE TABLE "{schema}"."{tablePrefix}charBlueprints" (
     "flagID"             BIGINT(20) UNSIGNED NOT NULL,
     "itemID"             BIGINT(20) UNSIGNED NOT NULL,
@@ -19,5 +19,5 @@ ALTER TABLE "{schema}"."{tablePrefix}charBlueprints"
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20160629053412.374');
+    VALUES ('20161129113301.032');
 COMMIT;

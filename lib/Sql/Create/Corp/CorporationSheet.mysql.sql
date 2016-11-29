@@ -1,5 +1,5 @@
--- Sql/Corp/CreateCorporationSheet.mysql.sql
--- version 20160821184013.625
+-- Sql/Create/Corp/CorporationSheet.mysql.sql
+-- version 20161129113301.055
 CREATE TABLE "{database}"."{tablePrefix}corpCorporationSheet" (
     "allianceID"      BIGINT(20) UNSIGNED    NOT NULL,
     "allianceName"    CHAR(100)              NOT NULL,
@@ -46,5 +46,5 @@ CREATE TABLE "{database}"."{tablePrefix}corpWalletDivisions" (
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20160821184013.625');
+    VALUES ('20161129113301.055');
 COMMIT;

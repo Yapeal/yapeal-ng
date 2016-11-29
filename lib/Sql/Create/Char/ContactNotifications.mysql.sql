@@ -1,5 +1,5 @@
--- Sql/Char/CreateContactNotifications.sql
--- version 20160629053417.257
+-- Sql/Create/Char/ContactNotifications.sql
+-- version 20161129113301.035
 CREATE TABLE "{schema}"."{tablePrefix}charContactNotifications" (
     "messageData"    TEXT,
     "notificationID" BIGINT(20) UNSIGNED NOT NULL,
@@ -12,5 +12,5 @@ CREATE TABLE "{schema}"."{tablePrefix}charContactNotifications" (
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20160629053417.257');
+    VALUES ('20161129113301.035');
 COMMIT;

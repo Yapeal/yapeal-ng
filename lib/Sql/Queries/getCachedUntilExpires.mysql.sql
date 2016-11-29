@@ -1,5 +1,5 @@
 -- Sql/Queries/getCachedUntilExpires.mysql.sql
--- version 20161129051611.031
+-- version 20161129113301.012
 -- @formatter:off
 SELECT "expires"
  FROM "{schema}"."{tablePrefix}yapealCachedUntil"

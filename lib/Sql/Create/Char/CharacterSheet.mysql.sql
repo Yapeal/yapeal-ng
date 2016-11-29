@@ -1,5 +1,5 @@
--- Sql/Char/CreateCharacterSheet.sql
--- version 20160629013856.361
+-- Sql/Create/Char/CharacterSheet.sql
+-- version 20161129113301.033
 CREATE TABLE "{schema}"."{tablePrefix}charAttributes" (
     "charisma"     TINYINT(2) UNSIGNED NOT NULL,
     "intelligence" TINYINT(2) UNSIGNED NOT NULL,
@@ -94,5 +94,5 @@ CREATE TABLE "{schema}"."{tablePrefix}charSkills" (
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20160629013856.361');
+    VALUES ('20161129113301.033');
 COMMIT;

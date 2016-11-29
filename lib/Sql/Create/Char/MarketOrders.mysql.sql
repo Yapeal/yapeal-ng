@@ -1,5 +1,5 @@
--- Sql/Char/CreateMarketOrders.sql
--- version 20160629053437.490
+-- Sql/Create/Char/MarketOrders.sql
+-- version 20161129113301.040
 CREATE TABLE "{schema}"."{tablePrefix}charMarketOrders" (
     "accountKey"   SMALLINT(5) UNSIGNED    NOT NULL,
     "bid"          TINYINT(1) UNSIGNED     NOT NULL,
@@ -27,5 +27,5 @@ ALTER TABLE "{schema}"."{tablePrefix}charMarketOrders"
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20160629053437.490');
+    VALUES ('20161129113301.040');
 COMMIT;

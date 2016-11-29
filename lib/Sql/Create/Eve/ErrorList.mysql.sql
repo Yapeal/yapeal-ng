@@ -1,5 +1,5 @@
--- Sql/Eve/CreateErrorList.sql
--- version 20160629053419.498
+-- Sql/Create/Eve/ErrorList.sql
+-- version 20161129113301.072
 CREATE TABLE "{schema}"."{tablePrefix}eveErrorList" (
     "errorCode" SMALLINT(4) UNSIGNED NOT NULL,
     "errorText" TEXT,
@@ -8,5 +8,5 @@ CREATE TABLE "{schema}"."{tablePrefix}eveErrorList" (
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20160629053419.498');
+    VALUES ('20161129113301.072');
 COMMIT;

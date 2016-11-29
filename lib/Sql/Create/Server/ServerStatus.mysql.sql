@@ -1,5 +1,5 @@
--- Sql/Server/CreateServerStatus.sql
--- version 20160629053443.301
+-- Sql/Create/Server/ServerStatus.sql
+-- version 20161129113301.078
 CREATE TABLE "{schema}"."{tablePrefix}serverServerStatus" (
     "onlinePlayers" BIGINT(20) UNSIGNED    NOT NULL,
     "serverOpen"    ENUM ('False', 'True') NOT NULL
@@ -7,5 +7,5 @@ CREATE TABLE "{schema}"."{tablePrefix}serverServerStatus" (
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20160629053443.301');
+    VALUES ('20161129113301.078');
 COMMIT;

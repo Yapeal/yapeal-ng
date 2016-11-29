@@ -1,5 +1,5 @@
--- Sql/Eve/CreateCertificateTree.sql
--- version 20160629053413.578
+-- Sql/Create/Eve/CertificateTree.sql
+-- version 20161129113301.070
 CREATE TABLE "{schema}"."{tablePrefix}eveCertificateTree" (
     "categoryID"   BIGINT(20) UNSIGNED NOT NULL,
     "categoryName" CHAR(100)           NOT NULL,
@@ -8,5 +8,5 @@ CREATE TABLE "{schema}"."{tablePrefix}eveCertificateTree" (
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20160629053413.578');
+    VALUES ('20161129113301.070');
 COMMIT;
