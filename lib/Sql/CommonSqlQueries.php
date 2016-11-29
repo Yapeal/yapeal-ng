@@ -63,13 +63,13 @@ use Yapeal\FileSystem\SafeFileHandlingTrait;
  * @method string getDeleteFromTableWithOwnerID($tableName, $ownerID)
  * @method string getDropAddOrModifyColumnProcedure()
  * @method string getDropSchema()
+ * @method string getInitialization()
  * @method string getLatestYapealSchemaVersion()
  * @method string getLatestYapealSchemaVersionInsert()
  * @method string getMemberCorporationIDsExcludingAccountCorporations()
  * @method string getSchemaNames()
  * @method string getSortedMethodNames()
  * @method string getUpsert($tableName, $columnNameList, $rowCount)
- * @method string initialization()
  */
 class CommonSqlQueries implements DicAwareInterface
 {
@@ -128,7 +128,7 @@ class CommonSqlQueries implements DicAwareInterface
                 3,
                 PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
             $fileNames = explode(',',
-                sprintf('%1$s%2$s/%3$s%4$s.sql,%1$s%2$s/%3$s.sql',
+                sprintf('%1$s%2$s/%3$s.%4$s.sql,%1$s%2$s/%3$s.sql',
                     $this->createDir,
                     $sectionName,
                     $tableName,
