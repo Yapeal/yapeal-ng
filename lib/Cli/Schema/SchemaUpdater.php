@@ -136,7 +136,7 @@ HELP;
      */
     private function addDatabaseProcedure(OutputInterface $output)
     {
-        $name = 'DatabaseUpdater::addDatabaseProcedure';
+        $name = 'SchemaUpdater::addDatabaseProcedure';
         $csq = $this->getCsq();
         $this->executeSqlStatements($csq->getDropAddOrModifyColumnProcedure()
             . PHP_EOL
@@ -156,7 +156,7 @@ HELP;
      */
     private function dropDatabaseProcedure(OutputInterface $output)
     {
-        $name = 'DatabaseUpdater::dropDatabaseProcedure';
+        $name = 'SchemaUpdater::dropDatabaseProcedure';
         $this->executeSqlStatements($this->getCsq()
             ->getDropAddOrModifyColumnProcedure(),
             $name,
