@@ -1,6 +1,6 @@
--- Sql/queries/getCreateUtilEveApi.mysql.sql
--- version 20161127224516.738
-CREATE TABLE "{schema}"."{tablePrefix}utilEveApi" (
+-- Sql/queries/getCreateYapealEveApi.mysql.sql
+-- version 20161129004147.928
+CREATE TABLE "{schema}"."{tablePrefix}yapealEveApi" (
     "active"      TINYINT(1) UNSIGNED NOT NULL,
     "apiName"     CHAR(32)            NOT NULL,
     "interval"    INT(10) UNSIGNED    NOT NULL,
@@ -10,7 +10,7 @@ CREATE TABLE "{schema}"."{tablePrefix}utilEveApi" (
 );
 START TRANSACTION;
 -- @formatter:off
-INSERT INTO "{schema}"."{tablePrefix}utilEveApi" ("sectionName", "apiName", "mask", "interval", "active")
+INSERT INTO "{schema}"."{tablePrefix}yapealEveApi" ("sectionName", "apiName", "mask", "interval", "active")
     VALUES
         ('account', 'AccountStatus', 33554432, 3600, 1),
         ('account', 'YapealCorporationSheet', 0, 21600, 1),
@@ -92,11 +92,11 @@ INSERT INTO "{schema}"."{tablePrefix}utilEveApi" ("sectionName", "apiName", "mas
         ('map', 'Kills', 4, 3600, 1),
         ('map', 'Sovereignty', 8, 3600, 1),
         ('server', 'ServerStatus', 1, 300, 1),
-        ('util', 'CachedUntil', 0, 0 , 0),
-        ('util', 'RegisteredKey', 0, 0 , 0),
-        ('util', 'RegisteredUploader', 0, 0 , 0),
-        ('util', 'UploadDestination', 0, 0 , 0),
-        ('util', 'XmlCache', 0, 0 , 0);
-INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
-    VALUES ('20161127224516.738');
+        ('yapeal', 'CachedUntil', 0, 0 , 0),
+        ('yapeal', 'RegisteredKey', 0, 0 , 0),
+        ('yapeal', 'RegisteredUploader', 0, 0 , 0),
+        ('yapeal', 'UploadDestination', 0, 0 , 0),
+        ('yapeal', 'XmlCache', 0, 0 , 0);
+INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
+    VALUES ('20161129004147.928');
 COMMIT;
