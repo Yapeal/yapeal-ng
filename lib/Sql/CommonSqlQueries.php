@@ -87,7 +87,7 @@ class CommonSqlQueries implements DicAwareInterface
         $this->setDic($dic);
         $this->platform = $dic['Yapeal.Sql.platform'];
         $this->createDir = $dic['Yapeal.Sql.dir'] . 'Create/';
-        $this->queriesDir = $dic['Yapeal.Sql.dir'] . 'queries/';
+        $this->queriesDir = $dic['Yapeal.Sql.dir'] . 'Queries/';
     }
     /**
      * @param string $name
