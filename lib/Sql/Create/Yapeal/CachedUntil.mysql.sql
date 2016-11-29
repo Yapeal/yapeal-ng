@@ -1,6 +1,6 @@
--- Sql/Util/CreateCachedUntil.sql
--- version 20160131212500.001
-CREATE TABLE "{schema}"."{tablePrefix}utilCachedUntil" (
+-- Sql/Create/Yapeal/CachedUntil.mysql.sql
+-- version 20161129031109.738
+CREATE TABLE "{schema}"."{tablePrefix}yapealCachedUntil" (
     "accountKey"  SMALLINT(5) UNSIGNED NOT NULL DEFAULT 0,
     "apiName"     CHAR(32)             NOT NULL,
     "expires"     DATETIME             NOT NULL,
@@ -8,3 +8,8 @@ CREATE TABLE "{schema}"."{tablePrefix}utilCachedUntil" (
     "sectionName" CHAR(8)              NOT NULL,
     PRIMARY KEY ("apiName", "ownerID", "accountKey")
 );
+START TRANSACTION;
+-- @formatter:off
+INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
+    VALUES ('20161129031109.738');
+COMMIT;
