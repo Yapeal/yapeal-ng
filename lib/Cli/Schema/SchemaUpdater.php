@@ -91,11 +91,12 @@ HELP;
     /**
      * @param OutputInterface $output
      *
+     * @throws YapealDatabaseException
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
      * @throws \Symfony\Component\Console\Exception\LogicException
-     * @throws \Yapeal\Exception\YapealDatabaseException
+     * @throws \UnexpectedValueException
      */
     protected function processSql(OutputInterface $output)
     {
@@ -128,11 +129,12 @@ HELP;
     /**
      * @param OutputInterface $output
      *
+     * @throws YapealDatabaseException
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
      * @throws \Symfony\Component\Console\Exception\LogicException
-     * @throws \Yapeal\Exception\YapealDatabaseException
+     * @throws \UnexpectedValueException
      */
     private function addDatabaseProcedure(OutputInterface $output)
     {
@@ -148,11 +150,12 @@ HELP;
     /**
      * @param OutputInterface $output
      *
+     * @throws YapealDatabaseException
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
      * @throws \Symfony\Component\Console\Exception\LogicException
-     * @throws \Yapeal\Exception\YapealDatabaseException
+     * @throws \UnexpectedValueException
      */
     private function dropDatabaseProcedure(OutputInterface $output)
     {
@@ -169,12 +172,12 @@ HELP;
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
-     * @throws \Yapeal\Exception\YapealDatabaseException
+     * @throws \UnexpectedValueException
      */
     private function getLatestDatabaseVersion(OutputInterface $output): string
     {
         $sql = $this->getCsq()
-            ->getUtilLatestDatabaseVersion();
+            ->getLatestYapealSchemaVersion();
         try {
             $result = $this->getPdo()
                 ->query($sql, \PDO::FETCH_NUM);
@@ -200,10 +203,11 @@ HELP;
      * @param string          $latestVersion
      * @param OutputInterface $output
      *
-     * @return array|\string[]
+     * @return array|string[]
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
+     * @throws \UnexpectedValueException
      */
     private function getUpdateFileList(string $latestVersion, OutputInterface $output): array
     {
@@ -246,15 +250,15 @@ HELP;
      * @throws \LogicException
      * @throws \Yapeal\Exception\YapealDatabaseException
      */
-    private function getUpsertStatement(): \PDOStatement
+    private function getInsertStatement(): \PDOStatement
     {
-        if (null === $this->upsertStatement) {
+        if (null === $this->insertStatement) {
             $sql = $this->getCsq()
-                ->getUtilLatestDatabaseVersionUpdate();
-            $this->upsertStatement = $this->getPdo()
+                ->getLatestYapealSchemaVersionInsert();
+            $this->insertStatement = $this->getPdo()
                 ->prepare($sql);
         }
-        return $this->upsertStatement;
+        return $this->insertStatement;
     }
     /**
      * @param string $updateVersion
@@ -268,12 +272,12 @@ HELP;
         $pdo = $this->getPdo();
         try {
             $pdo->beginTransaction();
-            $this->getUpsertStatement()
+            $this->getInsertStatement()
                 ->execute([$updateVersion]);
             $pdo->commit();
         } catch (\PDOException $exc) {
-            $mess = sprintf('Database error message was %s', $exc->getMessage()) . PHP_EOL;
-            $mess .= sprintf('Database "version" update failed for %1$s',
+            $mess = sprintf('PDO error message was %s', $exc->getMessage()) . PHP_EOL;
+            $mess .= sprintf('Schema "version" update failed for %s',
                 $updateVersion);
             if ($pdo->inTransaction()) {
                 $pdo->rollBack();
@@ -282,7 +286,7 @@ HELP;
         }
     }
     /**
-     * @var \PDOStatement $upsertStatement
+     * @var \PDOStatement $insertStatement
      */
-    private $upsertStatement;
+    private $insertStatement;
 }

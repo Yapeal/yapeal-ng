@@ -23,7 +23,6 @@ CREATE TABLE "{schema}"."{tablePrefix}charCorporateContactLabels" LIKE "{schema}
 CREATE TABLE "{schema}"."{tablePrefix}charCorporateContactList" LIKE "{schema}"."{tablePrefix}charAllianceContactList";
 START TRANSACTION;
 -- @formatter:off
-INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
-    VALUES ('20160629053416.231')
-    ON DUPLICATE KEY UPDATE "version" = VALUES("version");
+INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
+    VALUES ('20160629053416.231');
 COMMIT;

@@ -36,7 +36,6 @@ CREATE TABLE "{database}"."{tablePrefix}corpStarbaseDetail" (
     PRIMARY KEY ("ownerID", "itemID")
 );
 -- @formatter:off
-INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
-    VALUES ('20160822061939.133')
-    ON DUPLICATE KEY UPDATE "version" = VALUES("version");
+INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
+    VALUES ('20160822061939.133');
 COMMIT;

@@ -15,7 +15,6 @@ CREATE TABLE "{schema}"."{tablePrefix}charSkillInTraining" (
 );
 START TRANSACTION;
 -- @formatter:off
-INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
-    VALUES ('20160629053444.328')
-    ON DUPLICATE KEY UPDATE "version" = VALUES("version");
+INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
+    VALUES ('20160629053444.328');
 COMMIT;

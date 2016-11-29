@@ -18,7 +18,6 @@ CREATE TABLE "{schema}"."{tablePrefix}corpOutpostList" (
 );
 START TRANSACTION;
 -- @formatter:off
-INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
-    VALUES ('20160629053441.369')
-    ON DUPLICATE KEY UPDATE "version" = VALUES("version");
+INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
+    VALUES ('20160629053441.369');
 COMMIT;

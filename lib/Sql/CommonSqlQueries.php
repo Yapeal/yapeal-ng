@@ -52,6 +52,7 @@ use Yapeal\FileSystem\SafeFileHandlingTrait;
  * @method string getActiveStarbaseTowers($mask, $ownerID)
  * @method string getApiLock($hash)
  * @method string getApiLockRelease($hash)
+ * @method string getCachedUntilExpires($accountKey, $apiName, $ownerID)
  * @method string getCreateAddOrModifyColumnProcedure()
  * @method string getCreateSchema()
  * @method string getCreateYapealEveApi()
@@ -62,13 +63,12 @@ use Yapeal\FileSystem\SafeFileHandlingTrait;
  * @method string getDeleteFromTableWithOwnerID($tableName, $ownerID)
  * @method string getDropAddOrModifyColumnProcedure()
  * @method string getDropSchema()
+ * @method string getLatestYapealSchemaVersion()
+ * @method string getLatestYapealSchemaVersionInsert()
  * @method string getMemberCorporationIDsExcludingAccountCorporations()
  * @method string getSchemaNames()
  * @method string getSortedMethodNames()
  * @method string getUpsert($tableName, $columnNameList, $rowCount)
- * @method string getUtilCachedUntilExpires($accountKey, $apiName, $ownerID)
- * @method string getUtilLatestDatabaseVersion()
- * @method string getUtilLatestDatabaseVersionUpdate()
  * @method string initialization()
  */
 class CommonSqlQueries implements DicAwareInterface

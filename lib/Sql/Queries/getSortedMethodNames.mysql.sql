@@ -1,6 +1,6 @@
--- Sql/queries/getSortedMethodNames.mysql.sql
--- version 20161128084414.715
+-- Sql/Queries/getSortedMethodNames.mysql.sql
+-- version 20161129041420.039
 -- @formatter:off
 SELECT "apiName", "sectionName"
-    FROM "{schema}"."{tablePrefix}utilEveApi"
+    FROM "{schema}"."{tablePrefix}yapealEveApi"
     ORDER BY "sectionName" ASC, "apiName" ASC;

@@ -14,7 +14,6 @@ CREATE TABLE "{database}"."{tablePrefix}charMailMessages" (
     PRIMARY KEY ("ownerID", "messageID")
 );
 -- @formatter:off
-INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
-    VALUES ('20160822175059.411')
-    ON DUPLICATE KEY UPDATE "version" = VALUES("version");
+INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
+    VALUES ('20160822175059.411');
 COMMIT;

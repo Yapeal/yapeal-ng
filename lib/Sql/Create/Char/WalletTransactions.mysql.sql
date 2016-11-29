@@ -25,7 +25,6 @@ ALTER TABLE "{schema}"."{tablePrefix}charWalletTransactions"
     ADD INDEX "WalletTransactions2" ("ownerID", "typeID", "transactionID");
 START TRANSACTION;
 -- @formatter:off
-INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
-    VALUES ('20160629053501.276')
-    ON DUPLICATE KEY UPDATE "version" = VALUES("version");
+INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
+    VALUES ('20160629053501.276');
 COMMIT;

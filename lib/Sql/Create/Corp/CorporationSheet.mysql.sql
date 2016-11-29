@@ -45,7 +45,6 @@ CREATE TABLE "{database}"."{tablePrefix}corpWalletDivisions" (
 );
 START TRANSACTION;
 -- @formatter:off
-INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
-    VALUES ('20160821184013.625')
-    ON DUPLICATE KEY UPDATE "version" = VALUES("version");
+INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
+    VALUES ('20160821184013.625');
 COMMIT;

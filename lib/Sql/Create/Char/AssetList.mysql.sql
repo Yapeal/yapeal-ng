@@ -21,7 +21,6 @@ ALTER TABLE "{schema}"."{tablePrefix}charAssetList"
     ADD INDEX "AssetList2" ("ownerID", "typeID", "itemID");
 START TRANSACTION;
 -- @formatter:off
-INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
-    VALUES ('20160811033922.567')
-    ON DUPLICATE KEY UPDATE "version" = VALUES("version");
+INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
+    VALUES ('20160811033922.567');
 COMMIT;

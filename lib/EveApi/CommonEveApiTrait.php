@@ -139,7 +139,7 @@ trait CommonEveApiTrait
     protected function cachedUntilIsNotExpired(EveApiReadWriteInterface $data): bool
     {
         $sql = $this->getCsq()
-            ->getUtilCachedUntilExpires($data->hasEveApiArgument('accountKey') ? $data->getEveApiArgument('accountKey') : '0',
+            ->getCachedUntilExpires($data->hasEveApiArgument('accountKey') ? $data->getEveApiArgument('accountKey') : '0',
                 $data->getEveApiName(),
                 $this->extractOwnerID($data->getEveApiArguments()));
         $this->getYem()
@@ -158,19 +158,19 @@ trait CommonEveApiTrait
             return false;
         }
         if (0 === count($expires)) {
-            $mess = 'No UtilCachedUntil record found during the processing of';
+            $mess = 'No cached until row found during the processing of';
             $this->getYem()
                 ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->createEveApiMessage($mess, $data));
             return false;
         }
         if (1 < count($expires)) {
-            $mess = 'Multiple UtilCachedUntil records found during the processing of';
+            $mess = 'Multiple cached until rows found during the processing of';
             $this->getYem()
                 ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $this->createEveApiMessage($mess, $data));
             return false;
         }
         if (strtotime($expires[0]['expires'] . '+00:00') < time()) {
-            $mess = 'Expired UtilCachedUntil record found during the processing of';
+            $mess = 'Expired cached until row found during the processing of';
             $this->getYem()
                 ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->createEveApiMessage($mess, $data));
             return false;
