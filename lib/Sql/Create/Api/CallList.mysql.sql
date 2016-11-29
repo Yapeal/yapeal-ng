@@ -1,5 +1,5 @@
--- Sql/Api/CreateCallList.sql
--- version 20160629012109.659
+-- Sql/Create/Api/CallList.mysql.sql
+-- version 20161129014729.754
 CREATE TABLE "{schema}"."{tablePrefix}apiCallList" (
     "description" TEXT                NOT NULL,
     "groupID"     TINYINT(2) UNSIGNED NOT NULL,
@@ -16,7 +16,6 @@ CREATE TABLE "{schema}"."{tablePrefix}apiCalls" (
 );
 START TRANSACTION;
 -- @formatter:off
-INSERT INTO "{schema}"."{tablePrefix}utilDatabaseVersion" ("version")
-    VALUES ('20160629012109.659')
-    ON DUPLICATE KEY UPDATE "version" = VALUES("version");
+INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
+    VALUES ('20161129014729.754');
 COMMIT;
