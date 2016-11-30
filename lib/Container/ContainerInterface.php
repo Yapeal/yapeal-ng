@@ -53,7 +53,7 @@ interface ContainerInterface extends \ArrayAccess
      * Useful when you want to extend an existing object definition,
      * without necessarily loading that object.
      *
-     * @param string|int $key      The unique identifier for the object
+     * @param string|int $id       The unique identifier for the object
      * @param callable   $callable A service definition to extend the original
      *
      * @return callable The wrapped callable
@@ -61,7 +61,7 @@ interface ContainerInterface extends \ArrayAccess
      * @throws \InvalidArgumentException If the identifier is NOT defined or NOT
      * a service definition
      */
-    public function extend($key, callable $callable): callable;
+    public function extend($id, callable $callable): callable;
     /**
      * Marks a callable as being a factory service.
      *
