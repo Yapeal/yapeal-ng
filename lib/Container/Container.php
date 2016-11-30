@@ -69,14 +69,14 @@ class Container implements ContainerInterface, ServiceProviderInterface
      * Useful when you want to extend an existing object definition,
      * without necessarily loading that object.
      *
-     * @param string   $id       The unique identifier for the object
-     * @param callable $callable A service definition to extend the original
+     * @param string|int $id       The unique identifier for the object
+     * @param callable   $callable A service definition to extend the original
      *
      * @return callable The wrapped callable
      *
      * @throws \InvalidArgumentException if the identifier is not defined or not a service definition
      */
-    public function extend(string $id, callable $callable): callable
+    public function extend($id, callable $callable): callable
     {
         if (!$this->offsetExists($id)) {
             throw new \InvalidArgumentException(sprintf('Identifier "%s" is not defined.', $id));
@@ -100,8 +100,6 @@ class Container implements ContainerInterface, ServiceProviderInterface
      * @param callable $callable A service definition to be used as a factory
      *
      * @return callable The passed callable
-     *
-     * @throws \InvalidArgumentException Service definition has to be a closure of an invokable object
      */
     public function factory(callable $callable): callable
     {
