@@ -104,13 +104,4 @@ interface ContainerInterface extends \ArrayAccess
      * @throws \InvalidArgumentException if the identifier is NOT defined
      */
     public function raw(string $key);
-    /**
-     * Registers a service provider.
-     *
-     * @param ServiceProviderInterface $provider A ServiceProviderInterface instance
-     * @param array                    $values   An array of values that customizes the provider
-     *
-     * @return static Fluent interface.
-     */
-    public function register(ServiceProviderInterface $provider, array $values = []);
 }

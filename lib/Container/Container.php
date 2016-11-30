@@ -44,7 +44,7 @@ namespace Yapeal\Container;
  * @author Michael Cummings <mgcummings@yahoo.com>
  * @since  1.1.x-WIP
  */
-class Container implements ContainerInterface
+class Container implements ContainerInterface, ServiceProviderInterface
 {
     /**
      * Instantiate the container.

@@ -45,9 +45,9 @@ interface ServiceProviderInterface
      * This method should only be used to configure services and parameters.
      * It should not get services.
      *
-     * @param ContainerInterface $container A container instance
+     * @param ServiceProviderInterface $container A container instance
      *
-     * @return void
+     * @return static Fluent interface.
      */
-    public function register(ContainerInterface $container);
+    public function register(ServiceProviderInterface $container);
 }
