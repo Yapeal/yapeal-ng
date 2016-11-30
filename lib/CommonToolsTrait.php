@@ -34,6 +34,7 @@ declare(strict_types = 1);
  */
 namespace Yapeal;
 
+use Yapeal\Container\DicAwareTrait;
 use Yapeal\Sql\CSQAwareTrait;
 use Yapeal\Sql\PDOAwareTrait;
 

@@ -32,9 +32,7 @@ declare(strict_types = 1);
  * @copyright 2016 Michael Cummings
  * @license   LGPL-3.0+
  */
-namespace Yapeal;
-
-use Yapeal\Container\ContainerInterface;
+namespace Yapeal\Container;
 
 /**
  * Trait DicAwareTrait.

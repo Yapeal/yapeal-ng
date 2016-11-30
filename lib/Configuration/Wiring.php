@@ -35,8 +35,8 @@ declare(strict_types = 1);
 namespace Yapeal\Configuration;
 
 use Yapeal\Container\ContainerInterface;
-use Yapeal\DicAwareInterface;
-use Yapeal\DicAwareTrait;
+use Yapeal\Container\DicAwareInterface;
+use Yapeal\Container\DicAwareTrait;
 
 /**
  * Class Wiring

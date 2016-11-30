@@ -36,12 +36,13 @@ namespace Yapeal\Configuration;
 
 use Yapeal\Cli\Yapeal\YamlConfigFile;
 use Yapeal\Container\ContainerInterface;
-use Yapeal\DicAwareTrait;
+use Yapeal\Container\DicAwareInterface;
+use Yapeal\Container\DicAwareTrait;
 
 /**
  * Class ConfigWiring.
  */
-class ConfigWiring implements WiringInterface
+class ConfigWiring implements WiringInterface, DicAwareInterface
 {
     use ConfigFileProcessingTrait;
     use DicAwareTrait;

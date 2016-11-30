@@ -42,7 +42,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Yapeal\Cli\ConfigFileTrait;
 use Yapeal\Cli\VerbosityToStrategyTrait;
 use Yapeal\CommonToolsTrait;
-use Yapeal\DicAwareInterface;
+use Yapeal\Container\DicAwareInterface;
 use Yapeal\Event\YEMAwareInterface;
 use Yapeal\Event\YEMAwareTrait;
 use Yapeal\Exception\YapealDatabaseException;
@@ -168,7 +168,7 @@ abstract class AbstractSchemaCommon extends Command implements YEMAwareInterface
                     $statement,
                     $exc->getCode(),
                     $exc->getMessage());
-                $yem->triggerLogEvent('Yapeal.Log.log', Logger::CRITICAL, $mess);
+                $yem->triggerLogEvent('Yapeal.Log.error', Logger::CRITICAL, $mess);
                 throw new YapealDatabaseException($mess, 2);
             }
         }
@@ -204,6 +204,7 @@ abstract class AbstractSchemaCommon extends Command implements YEMAwareInterface
         if (!empty($options['configFile'])) {
             $this->processConfigFile($options['configFile'], $dic);
         }
+        // TODO: Needs to be fixed for per platform config settings.
         $base = 'Yapeal.Sql.';
         foreach (['class', 'database', 'hostName', 'password', 'platform', 'tablePrefix', 'userName'] as $option) {
             if (array_key_exists($option, $options) && null !== $options[$option]) {

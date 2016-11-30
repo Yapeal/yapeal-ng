@@ -35,8 +35,8 @@ declare(strict_types = 1);
 namespace Yapeal\Sql;
 
 use Yapeal\Container\ContainerInterface;
-use Yapeal\DicAwareInterface;
-use Yapeal\DicAwareTrait;
+use Yapeal\Container\DicAwareInterface;
+use Yapeal\Container\DicAwareTrait;
 use Yapeal\FileSystem\SafeFileHandlingTrait;
 
 /**
@@ -107,41 +107,41 @@ class CommonSqlQueries implements DicAwareInterface
                 return $this->processSql($methodName, $sql, $arguments);
             }
         }
-        if (0 === strpos($name, 'get')) {
-            $fileNames = explode(',',
-                sprintf('%1$s%2$s.%3$s.sql,%1$s%2$s.sql', $this->queriesDir, $name, $this->platform));
-            foreach ($fileNames as $fileName) {
-                if ($this->isCachedSql($fileName)) {
-                    return $this->getCachedSql($fileName);
-                }
-                if (false === $sql = $this->safeFileRead($fileName)) {
-                    continue;
-                }
-                return $this->processSql($fileName, $sql, $arguments);
-            }
-        } elseif (0 === strpos($name, 'create')) {
-            // Split up into 'create{sectionName}{tableName}{ignored}'
-            $regex = '%^create([[:upper:]][[:lower:]]+)([[:upper:]]\w+)%';
-            // Ignoring last (optional, should be empty) part of preg_split().
-            list($sectionName, $tableName,) = preg_split($regex,
-                $name,
-                3,
-                PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
-            $fileNames = explode(',',
-                sprintf('%1$s%2$s/%3$s.%4$s.sql,%1$s%2$s/%3$s.sql',
-                    $this->createDir,
-                    $sectionName,
-                    $tableName,
-                    $this->platform));
-            foreach ($fileNames as $fileName) {
-                if (false === $sql = $this->safeFileRead($fileName)) {
-                    continue;
-                }
-                return $sql;
-            }
+        if (false !== $result = $this->tryGet($name, $arguments)) {
+            return $result;
+        }
+        if (false !== $result = $this->tryCreate($name)) {
+            return $result;
         }
         $mess = 'Unknown method ' . $name;
         throw new \BadMethodCallException($mess);
+    }
+    /**
+     * Returns a MySql version of an upsert query.
+     *
+     * @param string   $tableName
+     * @param string[] $columnNameList
+     * @param int      $rowCount
+     *
+     * @return string
+     * @throws \LogicException
+     */
+    protected function getUpsertMysql(string $tableName, array $columnNameList, int $rowCount): string
+    {
+        $replacements = $this->getReplacements();
+        $replacements['{tableName}'] = $tableName;
+        $replacements['{columnNames}'] = implode('","', $columnNameList);
+        $rowPrototype = '(' . implode(',', array_fill(0, count($columnNameList), '?')) . ')';
+        $replacements['{rowset}'] = implode(',', array_fill(0, $rowCount, $rowPrototype));
+        $updates = [];
+        foreach ($columnNameList as $column) {
+            $updates[] = sprintf('"%1$s"=VALUES("%1$s")', $column);
+        }
+        $replacements['{updates}'] = implode(',', $updates);
+        /** @noinspection SqlResolve */
+        $sql = /** @lang text */
+            'INSERT INTO "{schema}"."{tablePrefix}{tableName}" ("{columnNames}") VALUES {rowset} ON DUPLICATE KEY UPDATE {updates}';
+        return str_replace(array_keys($replacements), array_values($replacements), $sql);
     }
     /**
      * @param string $fileName
@@ -171,34 +171,6 @@ class CommonSqlQueries implements DicAwareInterface
         }
         return $this->replacements;
     }
-    /** @noinspection PhpUnusedPrivateMethodInspection */
-    /**
-     * Returns a MySql version of an upsert query.
-     *
-     * @param string   $tableName
-     * @param string[] $columnNameList
-     * @param int      $rowCount
-     *
-     * @return string
-     * @throws \LogicException
-     */
-    private function getUpsertMysql(string $tableName, array $columnNameList, int $rowCount): string
-    {
-        $replacements = $this->getReplacements();
-        $replacements['{tableName}'] = $tableName;
-        $replacements['{columnNames}'] = implode('","', $columnNameList);
-        $rowPrototype = '(' . implode(',', array_fill(0, count($columnNameList), '?')) . ')';
-        $replacements['{rowset}'] = implode(',', array_fill(0, $rowCount, $rowPrototype));
-        $updates = [];
-        foreach ($columnNameList as $column) {
-            $updates[] = sprintf('"%1$s"=VALUES("%1$s")', $column);
-        }
-        $replacements['{updates}'] = implode(',', $updates);
-        /** @noinspection SqlResolve */
-        $sql = /** @lang text */
-            'INSERT INTO "{schema}"."{tablePrefix}{tableName}" ("{columnNames}") VALUES {rowset} ON DUPLICATE KEY UPDATE {updates}';
-        return str_replace(array_keys($replacements), array_values($replacements), $sql);
-    }
     /**
      * @param string $fileName
      *
@@ -226,6 +198,60 @@ class CommonSqlQueries implements DicAwareInterface
             $this->cacheSqlQuery($fileName, $sql);
         }
         return $sql;
+    }
+    /**
+     * @param string $name
+     *
+     * @return string|bool
+     */
+    private function tryCreate(string $name)
+    {
+        if (0 === strpos($name, 'create')) {
+            // Split up into 'create{sectionName}{tableName}{ignored}'
+            $regex = '%^create([[:upper:]][[:lower:]]+)([[:upper:]]\w+)%';
+            // Ignoring last (optional, should be empty) part of preg_split().
+            list($sectionName, $tableName,) = preg_split($regex,
+                $name,
+                3,
+                PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
+            $fileNames = explode(',',
+                sprintf('%1$s%2$s/%3$s.%4$s.sql,%1$s%2$s/%3$s.sql',
+                    $this->createDir,
+                    $sectionName,
+                    $tableName,
+                    $this->platform));
+            foreach ($fileNames as $fileName) {
+                if (false === $sql = $this->safeFileRead($fileName)) {
+                    continue;
+                }
+                return $sql;
+            }
+        }
+        return false;
+    }
+    /**
+     * @param string $name
+     * @param array  $arguments
+     *
+     * @return string|false
+     * @throws \LogicException
+     */
+    private function tryGet(string $name, array $arguments = [])
+    {
+        if (0 === strpos($name, 'get')) {
+            $fileNames = explode(',',
+                sprintf('%1$s%2$s.%3$s.sql,%1$s%2$s.sql', $this->queriesDir, $name, $this->platform));
+            foreach ($fileNames as $fileName) {
+                if ($this->isCachedSql($fileName)) {
+                    return $this->getCachedSql($fileName);
+                }
+                if (false === $sql = $this->safeFileRead($fileName)) {
+                    continue;
+                }
+                return $this->processSql($fileName, $sql, $arguments);
+            }
+        }
+        return false;
     }
     /**
      * @var string $createDir
