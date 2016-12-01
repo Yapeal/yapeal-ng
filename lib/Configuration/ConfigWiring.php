@@ -105,11 +105,9 @@ class ConfigWiring implements WiringInterface, DicAwareInterface
             $settings = $this->parserConfigFile($configFile, $settings);
         }
         $settings = $this->doSubstitutions($settings, $dic);
-        if (0 !== count($settings)) {
-            // Assure NOT overwriting already existing settings given by pre-existing $dic.
-            foreach ($settings as $key => $value) {
-                $dic[$key] = $dic[$key] ?? $value;
-            }
+        $additions = array_diff(array_keys($settings), $dic->keys());
+        foreach ($additions as $add) {
+            $dic[$add] = $settings[$add];
         }
     }
 }
