@@ -8,7 +8,7 @@ Yapeal-ng will process them.
 Except if stated otherwise all paths are relative to the base directory
 where Yapeal-ng is install.
 
-## lib/Configuration/yapeal_defaults.yaml
+## lib/Configuration/YapealDefaults.yaml
 
 The name pretty much tells it all here. It contains the most complete
 set of required and optional defaults that all the other files will be
@@ -85,5 +85,5 @@ amazingApp/
                 lib/
                     Configuration/
                         ...
-                        yapeal_defaults.yaml
+                        YapealDefaults.yaml
 ```
