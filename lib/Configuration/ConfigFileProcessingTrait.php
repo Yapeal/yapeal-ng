@@ -126,9 +126,6 @@ trait ConfigFileProcessingTrait
         $settings = $yaml->setPathFile($configFile)
             ->read()
             ->flattenYaml();
-        if (0 === count($settings)) {
-            return $existing;
-        }
         return array_replace($existing, $settings);
     }
 }
