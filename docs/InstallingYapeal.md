@@ -32,7 +32,11 @@ If you are using Composer in your own project then add a require line
 for Yapeal-ng to your `composer.json` file like any other package:
 
 ```json
-require: "yapeal/yapeal-ng": "dev-master"
+{
+    "require": {
+        "yapeal/yapeal-ng": "dev-master"
+    }
+}
 ```
 
 And do an update in Composer on command line:
