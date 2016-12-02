@@ -62,7 +62,6 @@ use Yapeal\FileSystem\SafeFileHandlingTrait;
  * @method string getDeleteFromTableWithKeyID($tableName, $keyID)
  * @method string getDeleteFromTableWithOwnerID($tableName, $ownerID)
  * @method string getDropAddOrModifyColumnProcedure()
- * @method string getDropSchema()
  * @method string getInitialization()
  * @method string getLatestYapealSchemaVersion()
  * @method string getLatestYapealSchemaVersionInsert()
@@ -73,14 +72,11 @@ use Yapeal\FileSystem\SafeFileHandlingTrait;
  */
 class CommonSqlQueries implements DicAwareInterface
 {
-    use SafeFileHandlingTrait;
     use DicAwareTrait;
+    use SafeFileHandlingTrait;
     use SqlSubsTrait;
     /**
      * @param ContainerInterface $dic
-     *
-     * @internal param string $databaseName
-     * @internal param string $tablePrefix
      */
     public function __construct(ContainerInterface $dic)
     {
@@ -141,7 +137,7 @@ class CommonSqlQueries implements DicAwareInterface
         /** @noinspection SqlResolve */
         $sql = /** @lang text */
             'INSERT INTO "{schema}"."{tablePrefix}{tableName}" ("{columnNames}") VALUES {rowset} ON DUPLICATE KEY UPDATE {updates}';
-        return str_replace(array_keys($replacements), array_values($replacements), $sql);
+        return (string)str_replace(array_keys($replacements), array_values($replacements), $sql);
     }
     /**
      * @param string $fileName
@@ -202,7 +198,7 @@ class CommonSqlQueries implements DicAwareInterface
     /**
      * @param string $name
      *
-     * @return string|bool
+     * @return string|false
      */
     private function tryCreate(string $name)
     {
