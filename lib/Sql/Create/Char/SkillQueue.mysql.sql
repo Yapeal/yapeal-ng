@@ -1,5 +1,5 @@
 -- Sql/Create/Char/SkillQueue.sql
--- version 20161129113301.045
+-- version 20161202044339.020
 CREATE TABLE "{schema}"."{tablePrefix}charSkillQueue" (
     "endSP"         BIGINT(20) UNSIGNED NOT NULL,
     "endTime"       DATETIME            NOT NULL DEFAULT '1970-01-01 00:00:01',
@@ -14,5 +14,5 @@ CREATE TABLE "{schema}"."{tablePrefix}charSkillQueue" (
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20161129113301.045');
+    VALUES ('20161202044339.020');
 COMMIT;

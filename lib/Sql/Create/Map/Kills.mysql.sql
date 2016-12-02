@@ -1,5 +1,5 @@
 -- Sql/Create/Map/Kills.sql
--- version 20161129113301.076
+-- version 20161202044339.051
 CREATE TABLE "{schema}"."{tablePrefix}mapKills" (
     "factionKills"  BIGINT(20) UNSIGNED NOT NULL,
     "podKills"      BIGINT(20) UNSIGNED NOT NULL,
@@ -10,5 +10,5 @@ CREATE TABLE "{schema}"."{tablePrefix}mapKills" (
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20161129113301.076');
+    VALUES ('20161202044339.051');
 COMMIT;

@@ -1,5 +1,5 @@
 -- Sql/Queries/getActiveRegisteredAccountStatus.mysql.sql
--- version 20161129113301.005
+-- version 20161202044339.063
 -- @formatter:off
 SELECT yrk."keyID", yrk."vCode"
     FROM "{schema}"."{tablePrefix}yapealRegisteredKey" AS yrk

@@ -1,5 +1,5 @@
 -- Sql/Create/Map/FacWarSystems.sql
--- version 20161129113301.074
+-- version 20161202044339.049
 CREATE TABLE "{schema}"."{tablePrefix}mapFacWarSystems" (
     "contested"             ENUM ('False', 'True') NOT NULL,
     "occupyingFactionID"    BIGINT(20) UNSIGNED    NOT NULL,
@@ -15,5 +15,5 @@ CREATE TABLE "{schema}"."{tablePrefix}mapFacWarSystems" (
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20161129113301.074');
+    VALUES ('20161202044339.049');
 COMMIT;

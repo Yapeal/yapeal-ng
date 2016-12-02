@@ -1,5 +1,5 @@
 -- Sql/Create/Char/SkillInTraining.sql
--- version 20161129113301.044
+-- version 20161202044339.019
 CREATE TABLE "{schema}"."{tablePrefix}charSkillInTraining" (
     "currentTQTime"         DATETIME                      DEFAULT NULL,
     "offset"                TINYINT(2)           NOT NULL,
@@ -16,5 +16,5 @@ CREATE TABLE "{schema}"."{tablePrefix}charSkillInTraining" (
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20161129113301.044');
+    VALUES ('20161202044339.019');
 COMMIT;

@@ -1,5 +1,5 @@
 -- Sql/Create/Corp/OutpostList.sql
--- version 20161129113301.063
+-- version 20161202044339.038
 CREATE TABLE "{schema}"."{tablePrefix}corpOutpostList" (
     "dockingCostPerShipVolume" DECIMAL(17, 2)           NOT NULL,
     "officeRentalCost"         DECIMAL(17, 2)           NOT NULL,
@@ -19,5 +19,5 @@ CREATE TABLE "{schema}"."{tablePrefix}corpOutpostList" (
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20161129113301.063');
+    VALUES ('20161202044339.038');
 COMMIT;

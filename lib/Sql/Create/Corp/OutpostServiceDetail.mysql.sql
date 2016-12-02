@@ -1,5 +1,5 @@
 -- Sql/Create/Corp/OutpostServiceDetail.sql
--- version 20161129113301.064
+-- version 20161202044339.039
 CREATE TABLE "{schema}"."{tablePrefix}corpOutpostServiceDetail" (
     "discountPerGoodStanding" DECIMAL(5, 2)       NOT NULL,
     "minStanding"             DECIMAL(5, 2)       NOT NULL,
@@ -12,5 +12,5 @@ CREATE TABLE "{schema}"."{tablePrefix}corpOutpostServiceDetail" (
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20161129113301.064');
+    VALUES ('20161202044339.039');
 COMMIT;

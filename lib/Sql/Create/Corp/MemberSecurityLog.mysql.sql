@@ -1,5 +1,5 @@
 -- Sql/Create/Corp/MemberSecurityLog.sql
--- version 20161129113301.062
+-- version 20161202044339.037
 CREATE TABLE "{schema}"."{tablePrefix}corpMemberSecurityLog" (
     "changeTime"       DATETIME            NOT NULL,
     "characterID"      BIGINT(20) UNSIGNED NOT NULL,
@@ -11,5 +11,5 @@ CREATE TABLE "{schema}"."{tablePrefix}corpMemberSecurityLog" (
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20161129113301.062');
+    VALUES ('20161202044339.037');
 COMMIT;

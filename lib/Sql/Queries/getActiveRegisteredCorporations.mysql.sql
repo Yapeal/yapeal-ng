@@ -1,5 +1,5 @@
 -- Sql/Queries/getActiveRegisteredCorporations.mysql.sql
--- version 20161129113301.007
+-- version 20161202044339.065
 -- @formatter:off
 SELECT ac."corporationID", yrk."keyID", yrk."vCode"
     FROM "{schema}"."{tablePrefix}accountKeyBridge" AS akb

@@ -1,5 +1,5 @@
 -- Sql/Create/Char/Notifications.sql
--- version 20161129113301.042
+-- version 20161202044339.017
 CREATE TABLE "{schema}"."{tablePrefix}charNotifications" (
     "notificationID" BIGINT(20) UNSIGNED  NOT NULL,
     "ownerID"        BIGINT(20) UNSIGNED  NOT NULL,
@@ -13,5 +13,5 @@ CREATE TABLE "{schema}"."{tablePrefix}charNotifications" (
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20161129113301.042');
+    VALUES ('20161202044339.017');
 COMMIT;

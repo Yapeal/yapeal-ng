@@ -1,5 +1,5 @@
 -- Sql/Create/Eve/RefTypes.sql
--- version 20161129113301.073
+-- version 20161202044339.048
 CREATE TABLE "{schema}"."{tablePrefix}eveRefTypes" (
     "refTypeID"   SMALLINT(5) UNSIGNED NOT NULL,
     "refTypeName" CHAR(100)            NOT NULL,
@@ -8,5 +8,5 @@ CREATE TABLE "{schema}"."{tablePrefix}eveRefTypes" (
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20161129113301.073');
+    VALUES ('20161202044339.048');
 COMMIT;

@@ -1,5 +1,5 @@
 -- Sql/Create/Map/Jumps.sql
--- version 20161129113301.075
+-- version 20161202044339.050
 CREATE TABLE "{schema}"."{tablePrefix}mapJumps" (
     "shipJumps"     BIGINT(20) UNSIGNED NOT NULL,
     "solarSystemID" BIGINT(20) UNSIGNED NOT NULL,
@@ -8,5 +8,5 @@ CREATE TABLE "{schema}"."{tablePrefix}mapJumps" (
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20161129113301.075');
+    VALUES ('20161202044339.050');
 COMMIT;

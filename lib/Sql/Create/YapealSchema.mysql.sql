@@ -1,5 +1,5 @@
 -- Sql/Queries/getCreateSchema.mysql.sql
--- version 20161129113301.014
+-- version 20161202044339.000
 CREATE SCHEMA "{schema}"
     DEFAULT CHARACTER SET '{characterSet}'
     DEFAULT COLLATE '{characterCollate}';
@@ -10,5 +10,5 @@ CREATE TABLE "{schema}"."{tablePrefix}yapealSchemaVersion" (
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20161129113301.000');
+    VALUES ('20161202044339.000');
 COMMIT;

@@ -1,5 +1,5 @@
 -- Sql/Create/Corp/StarbaseList.sql
--- version 20161129113301.067
+-- version 20161202044339.042
 CREATE TABLE "{schema}"."{tablePrefix}corpStarbaseList" (
     "itemID"          BIGINT(20) UNSIGNED NOT NULL,
     "locationID"      BIGINT(20) UNSIGNED NOT NULL,
@@ -15,5 +15,5 @@ CREATE TABLE "{schema}"."{tablePrefix}corpStarbaseList" (
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20161129113301.067');
+    VALUES ('20161202044339.042');
 COMMIT;

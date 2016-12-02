@@ -1,5 +1,5 @@
 -- Sql/Create/Char/WalletJournal.sql
--- version 20161129113301.047
+-- version 20161202044339.022
 CREATE TABLE "{schema}"."{tablePrefix}charWalletJournal" (
     "amount"        DECIMAL(17, 2)       NOT NULL,
     "argID1"        BIGINT(20) UNSIGNED  NOT NULL,
@@ -28,5 +28,5 @@ ALTER TABLE "{schema}"."{tablePrefix}charWalletJournal"
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20161129113301.047');
+    VALUES ('20161202044339.022');
 COMMIT;

@@ -1,5 +1,5 @@
 -- Sql/Create/Char/ContactList.sql
--- version 20161129113301.034
+-- version 20161202044339.009
 CREATE TABLE "{schema}"."{tablePrefix}charAllianceContactLabels" (
     "labelID" BIGINT(20) UNSIGNED NOT NULL,
     "name"    CHAR(100)           NOT NULL,
@@ -24,5 +24,5 @@ CREATE TABLE "{schema}"."{tablePrefix}charCorporateContactList" LIKE "{schema}".
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20161129113301.034');
+    VALUES ('20161202044339.009');
 COMMIT;

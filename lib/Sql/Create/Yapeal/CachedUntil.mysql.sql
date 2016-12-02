@@ -1,5 +1,5 @@
 -- Sql/Create/Yapeal/CachedUntil.mysql.sql
--- version 20161129113301.079
+-- version 20161202044339.054
 CREATE TABLE "{schema}"."{tablePrefix}yapealCachedUntil" (
     "accountKey"  SMALLINT(5) UNSIGNED NOT NULL DEFAULT 0,
     "apiName"     CHAR(32)             NOT NULL,
@@ -11,5 +11,5 @@ CREATE TABLE "{schema}"."{tablePrefix}yapealCachedUntil" (
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20161129113301.079');
+    VALUES ('20161202044339.054');
 COMMIT;

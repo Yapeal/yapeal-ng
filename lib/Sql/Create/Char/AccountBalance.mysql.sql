@@ -1,5 +1,5 @@
 -- Sql/Create/Char/AccountBalance.mysql.sql
--- version 20161129113301.030
+-- version 20161202044339.005
 CREATE TABLE "{schema}"."{tablePrefix}charAccountBalance" (
     "accountID"  BIGINT(20) UNSIGNED  NOT NULL,
     "accountKey" SMALLINT(5) UNSIGNED NOT NULL,
@@ -12,5 +12,5 @@ ALTER TABLE "{schema}"."{tablePrefix}charAccountBalance"
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20161129113301.030');
+    VALUES ('20161202044339.005');
 COMMIT;

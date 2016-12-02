@@ -1,5 +1,5 @@
 -- Sql/Queries/getActiveApis.mysql.sql
--- version 20161129113301.003
+-- version 20161202044339.061
 -- @formatter:off
 SELECT "apiName", "interval", "sectionName"
     FROM "{schema}"."{tablePrefix}yapealEveApi"

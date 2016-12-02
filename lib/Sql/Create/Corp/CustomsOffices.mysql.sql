@@ -1,5 +1,5 @@
 -- Sql/Create/Corp/CustomsOffices.sql
--- version 20161129113301.056
+-- version 20161202044339.031
 CREATE TABLE "{schema}"."{tablePrefix}corpCustomsOffices" (
     "allowAlliance"           TINYINT(1) UNSIGNED      NOT NULL,
     "allowStandings"          TINYINT(1) UNSIGNED      NOT NULL,
@@ -21,5 +21,5 @@ CREATE TABLE "{schema}"."{tablePrefix}corpCustomsOffices" (
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20161129113301.056');
+    VALUES ('20161202044339.031');
 COMMIT;

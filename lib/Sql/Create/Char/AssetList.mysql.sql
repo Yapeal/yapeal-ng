@@ -1,5 +1,5 @@
 -- Sql/Create/Char/AssetList.mysql.sql
--- version 20161129113301.031
+-- version 20161202044339.006
 CREATE TABLE "{schema}"."{tablePrefix}charAssetList" (
     "ownerID"     BIGINT(20) UNSIGNED  NOT NULL,
     "flag"        SMALLINT(5) UNSIGNED NOT NULL,
@@ -22,5 +22,5 @@ ALTER TABLE "{schema}"."{tablePrefix}charAssetList"
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20161129113301.031');
+    VALUES ('20161202044339.006');
 COMMIT;

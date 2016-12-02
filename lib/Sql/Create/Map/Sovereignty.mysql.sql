@@ -1,5 +1,5 @@
 -- Sql/Create/Map/Sovereignty.sql
--- version 20161129113301.077
+-- version 20161202044339.052
 CREATE TABLE "{schema}"."{tablePrefix}mapSovereignty" (
     "allianceID"      BIGINT(20) UNSIGNED NOT NULL,
     "corporationID"   BIGINT(20) UNSIGNED NOT NULL,
@@ -17,5 +17,5 @@ ALTER TABLE "{schema}"."{tablePrefix}mapSovereignty"
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20161129113301.077');
+    VALUES ('20161202044339.052');
 COMMIT;

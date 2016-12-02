@@ -1,5 +1,5 @@
 -- Sql/Queries/getActiveStarbaseTowers.mysql.sql
--- version 20161129113301.009
+-- version 20161202044339.067
 -- @formatter:off
 SELECT sl."itemID", ac."corporationID", yrk."keyID", yrk."vCode"
     FROM "{schema}"."{tablePrefix}accountKeyBridge" AS akb

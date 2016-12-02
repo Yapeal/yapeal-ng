@@ -1,5 +1,5 @@
 -- Sql/Create/Char/Contracts.sql
--- version 20161129113301.036
+-- version 20161202044339.011
 CREATE TABLE "{schema}"."{tablePrefix}charContracts" (
     "acceptorID"     BIGINT(20) UNSIGNED     NOT NULL,
     "assigneeID"     BIGINT(20) UNSIGNED     NOT NULL,
@@ -29,5 +29,5 @@ CREATE TABLE "{schema}"."{tablePrefix}charContracts" (
 START TRANSACTION;
 -- @formatter:off
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
-    VALUES ('20161129113301.036');
+    VALUES ('20161202044339.011');
 COMMIT;

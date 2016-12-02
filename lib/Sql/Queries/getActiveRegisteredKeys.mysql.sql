@@ -1,5 +1,5 @@
 -- Sql/Queries/getActiveRegisteredKeys.mysql.sql
--- version 20161129113301.008
+-- version 20161202044339.066
 -- @formatter:off
 SELECT "keyID", "vCode"
  FROM "{schema}"."{tablePrefix}yapealRegisteredKey"
