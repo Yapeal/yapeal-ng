@@ -91,12 +91,7 @@ INSERT INTO "{schema}"."{tablePrefix}yapealEveApi" ("sectionName", "apiName", "m
         ('map', 'Jumps', 2, 3600, 1),
         ('map', 'Kills', 4, 3600, 1),
         ('map', 'Sovereignty', 8, 3600, 1),
-        ('server', 'ServerStatus', 1, 300, 1),
-        ('yapeal', 'CachedUntil', 0, 0 , 0),
-        ('yapeal', 'RegisteredKey', 0, 0 , 0),
-        ('yapeal', 'RegisteredUploader', 0, 0 , 0),
-        ('yapeal', 'UploadDestination', 0, 0 , 0),
-        ('yapeal', 'XmlCache', 0, 0 , 0);
+        ('server', 'ServerStatus', 1, 300, 1);
 INSERT INTO "{schema}"."{tablePrefix}yapealSchemaVersion" ("version")
     VALUES ('20161202044339.055');
 COMMIT;
