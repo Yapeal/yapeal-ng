@@ -75,7 +75,6 @@ class CommonSqlQueries implements DicAwareInterface
     {
         $this->setDic($dic);
         $this->platform = $dic['Yapeal.Sql.platform'];
-        $this->createDir = $dic['Yapeal.Sql.dir'] . 'Create/';
         $this->queriesDir = $dic['Yapeal.Sql.dir'] . 'Queries/';
     }
     /**
@@ -97,9 +96,6 @@ class CommonSqlQueries implements DicAwareInterface
             }
         }
         if (false !== $result = $this->tryGet($name, $arguments)) {
-            return $result;
-        }
-        if (false !== $result = $this->tryCreate($name)) {
             return $result;
         }
         $mess = 'Unknown method ' . $name;
@@ -190,36 +186,6 @@ class CommonSqlQueries implements DicAwareInterface
     }
     /**
      * @param string $name
-     *
-     * @return string|false
-     */
-    private function tryCreate(string $name)
-    {
-        if (0 === strpos($name, 'create')) {
-            // Split up into 'create{sectionName}{tableName}{ignored}'
-            $regex = '%^create([[:upper:]][[:lower:]]+)([[:upper:]]\w+)%';
-            // Ignoring last (optional, should be empty) part of preg_split().
-            list($sectionName, $tableName,) = preg_split($regex,
-                $name,
-                3,
-                PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
-            $fileNames = explode(',',
-                sprintf('%1$s%2$s/%3$s.%4$s.sql,%1$s%2$s/%3$s.sql',
-                    $this->createDir,
-                    $sectionName,
-                    $tableName,
-                    $this->platform));
-            foreach ($fileNames as $fileName) {
-                if (false === $sql = $this->safeFileRead($fileName)) {
-                    continue;
-                }
-                return $sql;
-            }
-        }
-        return false;
-    }
-    /**
-     * @param string $name
      * @param array  $arguments
      *
      * @return string|false
@@ -242,10 +208,6 @@ class CommonSqlQueries implements DicAwareInterface
         }
         return false;
     }
-    /**
-     * @var string $createDir
-     */
-    private $createDir;
     /**
      * @var string $platform
      */
