@@ -50,20 +50,8 @@ $dic = $dic ?? new Container();
 if (!$dic instanceof ContainerInterface) {
     $dic = new Container();
 }
-/**
- * @var ContainerInterface $dic
- */
 (new Wiring($dic))->wireAll();
-try {
-    $version = $dic['Yapeal.version'];
-} catch (\InvalidArgumentException $exc) {
-    $version = '0.0.0-0-dev+noGit-unknown';
-}
-$gitVersion = trim(exec('git describe --always --long 2>&1', $junk, $status));
-if (0 === $status && '' !== $gitVersion && $gitVersion !== $version) {
-    $version = $gitVersion . '-dev';
-}
-$application = new Application('Yapeal Console', $version);
+$application = new Application('Yapeal Console', $dic['Yapeal.version']);
 $application->addCommands([
     new EveApiCreator('Developer:EveApi:Creator', $dic),
     new NetworkCache('Network:Cache', $dic),

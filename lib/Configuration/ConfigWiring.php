@@ -100,10 +100,26 @@ class ConfigWiring implements WiringInterface, DicAwareInterface
         foreach ($configFiles as $configFile) {
             $settings = $this->parserConfigFile($configFile, $settings);
         }
+        $settings = $this->gitVersionSetting($settings);
         $settings = $this->doSubstitutions($settings, $dic);
         $additions = array_diff(array_keys($settings), $dic->keys());
         foreach ($additions as $add) {
             $dic[$add] = $settings[$add];
         }
+        print $dic['Yapeal.Network.userAgent'] . PHP_EOL;
+    }
+    /**
+     * @param $settings
+     *
+     * @return array
+     */
+    private function gitVersionSetting($settings): array
+    {
+        $version = $settings['Yapeal.version'] ?? '0.0.0-0-dev+noGit-unknown';
+        $gitVersion = trim(exec('git describe --always --long 2>&1', $junk, $status));
+        if (0 === $status && '' !== $gitVersion && $gitVersion !== $version) {
+            $settings['Yapeal.version'] = $gitVersion . '-dev';
+        }
+        return $settings;
     }
 }
