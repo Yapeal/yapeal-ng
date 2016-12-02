@@ -54,7 +54,11 @@ use Yapeal\Sql\SqlSubsTrait;
  */
 abstract class AbstractSchemaCommon extends Command implements YEMAwareInterface, DicAwareInterface
 {
-    use CommonToolsTrait, ConfigFileTrait, SqlSubsTrait, VerbosityToStrategyTrait, YEMAwareTrait;
+    use CommonToolsTrait;
+    use ConfigFileTrait;
+    use SqlSubsTrait;
+    use VerbosityToStrategyTrait;
+    use YEMAwareTrait;
     /**
      * Sets the help message and all the common options used by the Database:* commands.
      *
@@ -94,10 +98,9 @@ abstract class AbstractSchemaCommon extends Command implements YEMAwareInterface
      * @param OutputInterface $output An OutputInterface instance
      *
      * @return int|null null or 0 if everything went fine, or an error code
+     *
      * @throws \DomainException
      * @throws \LogicException
-     * @throws \Yapeal\Exception\YapealException
-     *
      * @see    setCode()
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -192,10 +195,9 @@ abstract class AbstractSchemaCommon extends Command implements YEMAwareInterface
     /**
      * @param InputInterface $input
      *
-     * @return AbstractSchemaCommon
+     * @return static Fluent interface.
      * @throws \DomainException
      * @throws \LogicException
-     * @throws \Yapeal\Exception\YapealException
      */
     protected function processCliOptions(InputInterface $input)
     {
@@ -215,8 +217,6 @@ abstract class AbstractSchemaCommon extends Command implements YEMAwareInterface
     }
     /**
      * @param OutputInterface $output
-     *
-     * @return void
      */
     abstract protected function processSql(OutputInterface $output);
     /**

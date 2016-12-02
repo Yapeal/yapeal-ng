@@ -50,20 +50,24 @@ class SchemaUpdater extends AbstractSchemaCommon
      * @param string             $name
      * @param ContainerInterface $dic
      *
-     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
      * @throws \Symfony\Component\Console\Exception\LogicException
      */
     public function __construct(string $name, ContainerInterface $dic)
     {
         $this->setDescription('Retrieves SQL from files and updates schema');
-        $this->setName($name);
         $this->setDic($dic);
+        $this->platform = $dic['Yapeal.Sql.platform'];
+        $this->updateDirs = [$dic['Yapeal.Sql.dir']];
+        if (!empty($dic['Yapeal.Sql.appDir'])) {
+            $this->updateDirs[] = $dic['Yapeal.Sql.appDir'];
+        }
+        $this->setCsq($dic['Yapeal.Sql.CommonQueries']);
+        $this->setPdo($dic['Yapeal.Sql.Connection']);
+        $this->setYem($dic['Yapeal.Event.Mediator']);
         parent::__construct($name);
     }
     /**
      * Configures the current command.
-     *
-     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
      */
     protected function configure()
     {
@@ -102,68 +106,24 @@ HELP;
     {
         $yem = $this->getYem();
         $latestVersion = $this->getLatestDatabaseVersion($output);
-        $updateFileList = $this->getUpdateFileList($latestVersion, $output);
-        if (0 === count($updateFileList)) {
+        $fileNames = $this->getUpdateFileNames($latestVersion);
+        if (0 === count($fileNames)) {
             if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
-                $mess = sprintf('<info>No SQL updates newer then current version %1$s were found</info>',
-                    $latestVersion);
+                $mess = sprintf('<info>No SQL updates newer then current version %s were found</info>', $latestVersion);
                 $yem->triggerLogEvent('Yapeal.Log.log', Logger::INFO, strip_tags($mess));
                 $output->writeln($mess);
             }
             return;
         }
-        $this->addDatabaseProcedure($output);
-        foreach ($updateFileList as $keyName => $sqlStatements) {
-            $updateVersion = basename($keyName) . '.000';
-            if (false === $sqlStatements) {
-                $mess = sprintf('<error>Could NOT get contents of SQL file %1$s</error>', $keyName);
+        foreach ($fileNames as $fileName) {
+            if (false === $sqlStatements = $this->safeFileRead($fileName)) {
+                $mess = sprintf('<error>Could NOT get contents of SQL file %s</error>', $fileName);
                 $yem->triggerLogEvent('Yapeal.Log.log', Logger::INFO, strip_tags($mess));
                 $output->writeln($mess);
                 throw new YapealDatabaseException($mess, 2);
             }
-            $this->executeSqlStatements($sqlStatements, $keyName, $output);
-            $this->updateDatabaseVersion($updateVersion);
+            $this->executeSqlStatements($sqlStatements, $fileName, $output);
         }
-        $this->dropDatabaseProcedure($output);
-    }
-    /**
-     * @param OutputInterface $output
-     *
-     * @throws YapealDatabaseException
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
-     * @throws \Symfony\Component\Console\Exception\LogicException
-     * @throws \UnexpectedValueException
-     */
-    private function addDatabaseProcedure(OutputInterface $output)
-    {
-        $name = 'SchemaUpdater::addDatabaseProcedure';
-        $csq = $this->getCsq();
-        $this->executeSqlStatements($csq->getDropAddOrModifyColumnProcedure()
-            . PHP_EOL
-            . $csq->getCreateAddOrModifyColumnProcedure(),
-            $name,
-            $output);
-        $output->writeln('');
-    }
-    /**
-     * @param OutputInterface $output
-     *
-     * @throws YapealDatabaseException
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
-     * @throws \Symfony\Component\Console\Exception\LogicException
-     * @throws \UnexpectedValueException
-     */
-    private function dropDatabaseProcedure(OutputInterface $output)
-    {
-        $name = 'SchemaUpdater::dropDatabaseProcedure';
-        $this->executeSqlStatements($this->getCsq()
-            ->getDropAddOrModifyColumnProcedure(),
-            $name,
-            $output);
     }
     /**
      * @param OutputInterface $output
@@ -181,12 +141,12 @@ HELP;
         try {
             $result = $this->getPdo()
                 ->query($sql, \PDO::FETCH_NUM);
-            $version = sprintf('%018.3F', $result->fetchColumn());
+            $version = (string)$result->fetchColumn();
             $result->closeCursor();
         } catch (\PDOException $exc) {
             $version = '19700101000001.000';
             if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
-                $mess = sprintf('<error>Could NOT get latest database version using default %1$s</error>', $version);
+                $mess = sprintf('<error>Could NOT get latest database version using default %s</error>', $version);
                 $this->getYem()
                     ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, strip_tags($mess));
                 $output->writeln([$sql, $mess]);
@@ -200,93 +160,29 @@ HELP;
         return $version;
     }
     /**
-     * @param string          $latestVersion
-     * @param OutputInterface $output
+     * @param string $latestVersion
      *
      * @return array|string[]
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
-     * @throws \UnexpectedValueException
      */
-    private function getUpdateFileList(string $latestVersion, OutputInterface $output): array
+    private function getUpdateFileNames(string $latestVersion): array
     {
-        $path = $this->getDic()['Yapeal.Sql.dir'] . 'updates/';
-        if (!is_readable($path) || !is_dir($path)) {
-            if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
-                $mess = sprintf('<comment>Could NOT access update directory %1$s</comment>', $path);
-                $this->getYem()
-                    ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, strip_tags($mess));
-                $output->writeln($mess);
-            }
-            return [];
-        }
-        $fileList = [];
-        $platformExt = sprintf('.%1$s.sql', $this->getDic()['Yapeal.Sql.platform']);
-        foreach (new \DirectoryIterator($path) as $fileInfo) {
-            if ($fileInfo->isFile()) {
-                $baseName = $fileInfo->getBasename();
-                $firstDot = strpos($baseName, '.');
-                $isSql = $firstDot === strpos($baseName, '.sql');
-                $isPlatform = $firstDot === strpos($baseName, $platformExt);
-                $baseName = substr($baseName, 0, $firstDot);
-                if (!is_numeric($baseName) || $baseName . '.000' <= $latestVersion) {
-                    continue;
-                }
-                $keyName = $path . $baseName;
-                $notSet = !array_key_exists($keyName, $fileList) || false === $fileList[$keyName];
-                if ($isPlatform) {
-                    $fileList[$keyName] = $this->safeFileRead($keyName . $platformExt);
-                } elseif ($isSql && $notSet) {
-                    $fileList[$keyName] = $this->safeFileRead($keyName . '.sql');
-                }
-            }
-        }
-        asort($fileList);
-        return $fileList;
+        $fileExt = sprintf('.%s.sql', $this->platform);
+        $globPath = sprintf('{%1$s}Updates/{*%2$s,*/*%2$s}',
+            implode(',', $this->updateDirs),
+            $fileExt);
+        $regex = '%^.+?/\d{14}\.\d{3}\..+$%';
+        $filteredNames = array_filter(preg_grep($regex, glob($globPath, GLOB_BRACE | GLOB_NOESCAPE)),
+            function (string $fileName) use ($fileExt, $latestVersion) {
+                return $latestVersion < basename($fileName, $fileExt);
+            });
+        return $filteredNames;
     }
     /**
-     * @return \PDOStatement
-     * @throws \LogicException
-     * @throws \Yapeal\Exception\YapealDatabaseException
+     * @var string $platform
      */
-    private function getInsertStatement(): \PDOStatement
-    {
-        if (null === $this->insertStatement) {
-            $sql = $this->getCsq()
-                ->getLatestYapealSchemaVersionInsert();
-            $this->insertStatement = $this->getPdo()
-                ->prepare($sql);
-        }
-        return $this->insertStatement;
-    }
+    private $platform;
     /**
-     * @param string $updateVersion
-     *
-     * @return void
-     * @throws \LogicException
-     * @throws \Yapeal\Exception\YapealDatabaseException
+     * @var string[] $updateDirs
      */
-    private function updateDatabaseVersion(string $updateVersion)
-    {
-        $pdo = $this->getPdo();
-        try {
-            $pdo->beginTransaction();
-            $this->getInsertStatement()
-                ->execute([$updateVersion]);
-            $pdo->commit();
-        } catch (\PDOException $exc) {
-            $mess = sprintf('PDO error message was %s', $exc->getMessage()) . PHP_EOL;
-            $mess .= sprintf('Schema "version" update failed for %s',
-                $updateVersion);
-            if ($pdo->inTransaction()) {
-                $pdo->rollBack();
-            }
-            throw new YapealDatabaseException($mess, 2);
-        }
-    }
-    /**
-     * @var \PDOStatement $insertStatement
-     */
-    private $insertStatement;
+    private $updateDirs;
 }

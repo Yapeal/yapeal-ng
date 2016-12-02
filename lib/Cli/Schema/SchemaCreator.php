@@ -43,36 +43,34 @@ use Yapeal\Container\ContainerInterface;
 use Yapeal\Event\YEMAwareTrait;
 use Yapeal\Exception\YapealDatabaseException;
 use Yapeal\Log\Logger;
-use Yapeal\Sql\CSQAwareTrait;
 
 /**
  * Class SchemaCreator
  */
 class SchemaCreator extends AbstractSchemaCommon
 {
-    use CSQAwareTrait;
     use YEMAwareTrait;
     /**
      * @param string             $name
      * @param ContainerInterface $dic
      *
      * @throws \Symfony\Component\Console\Exception\LogicException
-     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
      */
     public function __construct(string $name, ContainerInterface $dic)
     {
         $this->setDescription('Retrieves SQL from files and initializes schema');
         $this->setDic($dic);
-        $this->setCsq($dic['Yapeal.Sql.CommonQueries']);
+        $this->platform = $dic['Yapeal.Sql.platform'];
+        $this->createDirs = [$dic['Yapeal.Sql.dir']];
+        if (!empty($dic['Yapeal.Sql.appDir'])) {
+            $this->createDirs[] = $dic['Yapeal.Sql.appDir'];
+        }
         $this->setPdo($dic['Yapeal.Sql.Connection']);
         $this->setYem($dic['Yapeal.Event.Mediator']);
         parent::__construct($name);
     }
-    /** @noinspection PhpMissingParentCallCommonInspection */
     /**
      * Configures the current command.
-     *
-     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
      */
     protected function configure()
     {
@@ -118,15 +116,12 @@ HELP;
      * @param OutputInterface $output An OutputInterface instance
      *
      * @return int null or 0 if everything went fine, or an error code
+     *
      * @throws \DomainException
-     * @throws \InvalidArgumentException
      * @throws \LogicException
      * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
      * @throws \Symfony\Component\Console\Exception\LogicException
      * @throws \Symfony\Component\Console\Exception\RuntimeException
-     * @throws \Yapeal\Exception\YapealDatabaseException
-     * @throws \Yapeal\Exception\YapealException
-     *
      * @see    setCode()
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -149,143 +144,64 @@ HELP;
     /**
      * @param OutputInterface $output
      *
+     * @throws YapealDatabaseException
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
      * @throws \Symfony\Component\Console\Exception\LogicException
      * @throws \UnexpectedValueException
-     * @throws \Yapeal\Exception\YapealDatabaseException
-     * @throws \Yapeal\Exception\YapealFileSystemException
      */
     protected function processSql(OutputInterface $output)
     {
-        $csq = $this->getCsq();
         $yem = $this->getYem();
-        $this->processSchemaQueries($output)
-            ->processSpecialYapealTables($output);
-        foreach ($this->getCreateMethodNames() as $methodName) {
-            try {
-                $sqlStatements = $csq->$methodName();
-            } catch (\BadMethodCallException $exc) {
+        $fileNames = $this->getCreateFileNames();
+        if (0 === count($fileNames)) {
+            if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
+                $mess = '<error>No SQL create files were found</error>';
+                $yem->triggerLogEvent('Yapeal.Log.error', Logger::ERROR, strip_tags($mess));
+                $output->writeln($mess);
+            }
+            return;
+        }
+        foreach ($fileNames as $fileName) {
+            if (false === $sqlStatements = $this->safeFileRead($fileName)) {
                 if ($output::VERBOSITY_DEBUG <= $output->getVerbosity()) {
-                    $mess = sprintf('<comment>Could NOT get contents of SQL file for %s</comment>', $methodName);
+                    $mess = sprintf('<comment>Could NOT get contents of SQL file for %s</comment>', $fileName);
                     $yem->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, strip_tags($mess));
                     $output->writeln($mess);
                 }
                 continue;
             }
-            $this->executeSqlStatements($sqlStatements, 'SchemaCreator::' . $methodName, $output);
+            $this->executeSqlStatements($sqlStatements, $fileName, $output);
         }
     }
     /**
-     * @return array
-     * @throws \LogicException
-     * @internal param OutputInterface $output
-     *
+     * @return array|string[]
      */
-    private function getCreateMethodNames(): array
+    private function getCreateFileNames(): array
     {
-        $sql = $this->getCsq()
-            ->getSortedMethodNames();
-        $rows = $this->getPdo()
-            ->query($sql)
-            ->fetchAll(\PDO::FETCH_ASSOC);
-        $methodNames = [];
-        foreach ($rows as $row) {
-            $methodNames[] = sprintf('create%s%s', ucfirst($row['sectionName']), $row['apiName']);
-        }
-        return $methodNames;
+        $fileExt = sprintf('.%s.sql', $this->platform);
+        $globPath = sprintf('{%1$s}Create/{*%2$s,*/*%2$s}',
+            implode(',', $this->createDirs),
+            $fileExt);
+        $regex = '%^.+?/\w*\..+$%';
+        $drop = $this->dropSchema;
+        $filteredNames = array_filter(preg_grep($regex, glob($globPath, GLOB_BRACE | GLOB_NOESCAPE)),
+            function (string $fileName) use ($drop) {
+                return $drop || 0 !== strpos(basename($fileName), 'DropSchema');
+            });
+        return $filteredNames;
     }
     /**
-     * @param OutputInterface $output
-     *
-     * @return self Fluent interface.
-     * @throws YapealDatabaseException
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
-     * @throws \Symfony\Component\Console\Exception\LogicException
-     * @throws \UnexpectedValueException
+     * @var string[] $createDirs
      */
-    private function processSchemaQueries(OutputInterface $output): self
-    {
-        if ($this->dropSchema) {
-            try {
-                $this->executeSqlStatements($this->getCsq()
-                    ->getDropSchema(),
-                    'SchemaCreator::DropSchema',
-                    $output);
-            } catch (\BadMethodCallException $exc) {
-                $mess = '<error>Failed to get drop schema SQL</error>';
-                $this->getYem()
-                    ->triggerLogEvent('Yapeal.Log.error', Logger::ERROR, strip_tags($mess));
-                if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
-                    $output->writeln($mess);
-                }
-                throw new YapealDatabaseException(strip_tags($mess), 2, $exc);
-            }
-        }
-        try {
-            $this->executeSqlStatements($this->getCsq()
-                ->getCreateSchema(),
-                'SchemaCreator::CreateSchema',
-                $output);
-        } catch (\BadMethodCallException $exc) {
-            $mess = '<error>Failed to get create schema SQL</error>';
-            $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.error', Logger::ERROR, strip_tags($mess));
-            if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
-                $output->writeln($mess);
-            }
-            throw new YapealDatabaseException(strip_tags($mess), 2, $exc);
-        }
-        return $this;
-    }
-    /**
-     * @param OutputInterface $output
-     *
-     * @return self Fluent interface.
-     * @throws YapealDatabaseException
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws \LogicException
-     * @throws \Symfony\Component\Console\Exception\LogicException
-     * @throws \UnexpectedValueException
-     */
-    private function processSpecialYapealTables(OutputInterface $output): self
-    {
-        try {
-            $this->executeSqlStatements($this->getCsq()
-                ->getCreateYapealSchemaVersion(),
-                'SchemaCreator::CreateYapealSchemaVersion',
-                $output);
-        } catch (\BadMethodCallException $exc) {
-            $mess = '<error>Failed to get create table SQL for critical Yapeal schema version table</error>';
-            $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.error', Logger::ERROR, strip_tags($mess));
-            if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
-                $output->writeln($mess);
-            }
-            throw new YapealDatabaseException(strip_tags($mess), 2, $exc);
-        }
-        try {
-            $this->executeSqlStatements($this->getCsq()
-                ->getCreateYapealEveApi(),
-                'SchemaCreator::CreateYapealEveApi',
-                $output);
-        } catch (\BadMethodCallException $exc) {
-            $mess = '<error>Failed to get create table SQL for critical Yapeal Eve Api table</error>';
-            $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.error', Logger::ERROR, strip_tags($mess));
-            if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
-                $output->writeln($mess);
-            }
-            throw new YapealDatabaseException(strip_tags($mess), 2, $exc);
-        }
-        return $this;
-    }
+    private $createDirs;
     /**
      * @var bool $dropSchema
      */
     private $dropSchema = false;
+    /**
+     * @var string $platform
+     */
+    private $platform;
 }
