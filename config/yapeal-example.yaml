@@ -193,7 +193,7 @@ Yapeal:
         password: secret
 
         # Platform of the database server being used.
-        # Cuurently Yapeal only supports using the default 'mysql' but future versions may allow additional platforms.
+        # Currently Yapeal only supports using the default 'mysql' but future versions may allow additional platforms.
         #platform: mysql
 
         # Port to use for a remote database connection.
