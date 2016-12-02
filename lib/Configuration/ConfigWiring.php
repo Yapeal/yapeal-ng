@@ -66,6 +66,7 @@ class ConfigWiring implements WiringInterface, DicAwareInterface
         $dic['Yapeal.baseDir'] = $path;
         $dic['Yapeal.libDir'] = $path . 'lib/';
         $configFiles = [str_replace('\\', '/', __DIR__) . '/yapealDefaults.yaml'];
+        $settings = [];
         /**
          * Do to the importance that the cache/ and log/ directories and the main configuration file _not_ point to
          * somewhere under Composer's vendor/ directory they are now forced to use either vendor parent directory or
@@ -80,25 +81,20 @@ class ConfigWiring implements WiringInterface, DicAwareInterface
          * Read the existing [Configuration Files](../../docs/config/ConfigurationFiles.md) docs for more about how to
          * override the optional config/yapeal.yaml file as well.
          */
-        $vendorPos = strpos($path, 'vendor/');
-        if (false !== $vendorPos) {
+        if (false !== $vendorPos = strpos($path, 'vendor/')) {
             $dic['Yapeal.vendorParentDir'] = substr($path, 0, $vendorPos);
             $configFiles[] = $dic['Yapeal.vendorParentDir'] . 'config/yapeal.yaml';
-            $dic['Yapeal.FileSystem.Cache.dir'] = $dic['Yapeal.FileSystem.Cache.dir'] ??
-                $dic['Yapeal.vendorParentDir'] . 'cache/';
-            $dic['Yapeal.Log.dir'] = $dic['Yapeal.Log.dir'] ??
-                $dic['Yapeal.vendorParentDir'] . 'log/';
+            $settings['Yapeal.FileSystem.Cache.dir'] = '{Yapeal.vendorParentDir}cache/';
+            $settings['Yapeal.Log.dir'] = '{Yapeal.vendorParentDir}log/';
         } else {
             $configFiles[] = $path . 'config/yapeal.yaml';
-            $dic['Yapeal.FileSystem.Cache.dir'] = $dic['Yapeal.FileSystem.Cache.dir'] ??
-                $path . 'cache/';
-            $dic['Yapeal.Log.dir'] = $dic['Yapeal.Log.dir'] ?? $path . 'log/';
+            $settings['Yapeal.FileSystem.Cache.dir'] = $path . 'cache/';
+            $settings['Yapeal.Log.dir'] = $path . 'log/';
         }
-        if (!empty($dic['Yapeal.Config.Files.alternate'])) {
-            $configFiles[] = $dic['Yapeal.Config.Files.alternate'];
+        if (!empty($dic['Yapeal.Config.configFile'])) {
+            $configFiles[] = $dic['Yapeal.Config.configFile'];
             unset($dic['Yapeal.Config.configFile']);
         }
-        $settings = [];
         // Process each file in turn so any substitutions are done in a more
         // consistent way.
         foreach ($configFiles as $configFile) {

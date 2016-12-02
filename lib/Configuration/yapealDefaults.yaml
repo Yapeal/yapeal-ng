@@ -28,7 +28,6 @@ Yapeal:
             mediator: Yapeal\Event\Mediator
     FileSystem:
         Cache:
-            dir: '{Yapeal.baseDir}cache/'
             preserve: false
             retrieve: false
         Handlers:
@@ -37,7 +36,6 @@ Yapeal:
     Log:
         bufferSize: 25
         channel: yapeal
-        dir: '{Yapeal.baseDir}log/'
         fileName: yapeal.log
         threshold: 300
         Handlers:

@@ -86,13 +86,26 @@ trait ConfigFileProcessingTrait
         }
         $depth = 0;
         $maxDepth = 10;
-        $regEx = '%(?<all>\{(?<name>Yapeal(?:\.\w+)+)\})%';
-        $callback = function ($match) use ($settings, $dic) {
-            $name = $match['name'];
-            return $settings[$name] ?? $dic[$name] ?? $match['all'];
+        $regEx = '%(.*)\{(?<name>Yapeal(?:\.\w+)+)\}(.*)%';
+        $callback = function ($subject) use ($dic, $regEx, $settings, &$miss) {
+            if (is_string($subject)) {
+                if (1 === preg_match($regEx, $subject, $matches)) {
+                    $name = $matches['name'];
+                    if (array_key_exists($name, $settings)) {
+                        $subject = $matches[1] . $settings[$name] . $matches[3];
+                    } elseif ($dic->offsetExists($name)){
+                        $subject = $matches[1] . $dic[$name] . $matches[3];
+                    }
+                    if (false !== strpos($subject, '{Yapeal.')) {
+                        ++$miss;
+                    }
+                }
+            }
+            return $subject;
         };
         do {
-            $settings = preg_replace_callback($regEx, $callback, $settings, -1, $count);
+            $miss = 0;
+            $settings = array_map($callback, $settings);
             if (++$depth > $maxDepth) {
                 $mess = 'Exceeded maximum depth, check for possible circular reference(s)';
                 throw new \DomainException($mess);
@@ -104,7 +117,7 @@ trait ConfigFileProcessingTrait
                 $mess = 'Received preg error ' . $lastError;
                 throw new \DomainException($mess);
             }
-        } while ($count > 0);
+        } while (0 < $miss);
         return $settings;
     }
     /**
