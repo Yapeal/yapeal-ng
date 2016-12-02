@@ -1,4 +1,4 @@
--- Sql/Queries/getCreateSchema.mysql.sql
+-- Sql/Create/YapealSchema.mysql.sql
 -- version 20161202044339.000
 CREATE SCHEMA "{schema}"
     DEFAULT CHARACTER SET '{characterSet}'
