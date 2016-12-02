@@ -65,7 +65,7 @@ class ConfigWiring implements WiringInterface, DicAwareInterface
         // These two paths are critical to Yapeal-ng working and can't be overridden.
         $dic['Yapeal.baseDir'] = $path;
         $dic['Yapeal.libDir'] = $path . 'lib/';
-        $configFiles = [str_replace('\\', '/', __DIR__) . '/yapeal_defaults.yaml'];
+        $configFiles = [str_replace('\\', '/', __DIR__) . '/yapealDefaults.yaml'];
         /**
          * Do to the importance that the cache/ and log/ directories and the main configuration file _not_ point to
          * somewhere under Composer's vendor/ directory they are now forced to use either vendor parent directory or
