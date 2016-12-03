@@ -79,8 +79,8 @@ Eve API events that are currently emitted when Yapeal is ran.
     replace to built-in handler's management of the cache interval. It is suggested you register for one or more of the
     account, char, or corp section level events instead of directly to this event which can also be triggered during
     Api, Eve, Map, and Server API where additional management is unlikely to be needed. See the
-    [EveApiEventEmitterTrait::emitEvents() method](EveApiEventEmitterTrait.php) for details about the cluster of events
-    that are triggered.
+    [EveApiEventEmitterTrait::emitEvents() method](../../../lib/Event/EveApiEventEmitterTrait.php) for details about the
+    cluster of events that are triggered.
 - Yapeal.Xml.Error.preserve - The validator triggers this event for any received XML that is found to be invalid in some
     way. __NOTE: The Eve API name will be prefixed with `Invalid_` during this call.__ This is to allow it to be easily
     cached to the filesystem for debugging/troubleshooting without interfering with or being overwritten by any valid
