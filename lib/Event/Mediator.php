@@ -50,7 +50,6 @@ class Mediator extends AbstractContainerMediator implements MediatorInterface
      * @param ContainerInterface|null $serviceContainer
      *
      * @throws \InvalidArgumentException
-     * @throws \RuntimeException
      */
     public function __construct(ContainerInterface $serviceContainer = null)
     {
@@ -83,9 +82,8 @@ class Mediator extends AbstractContainerMediator implements MediatorInterface
      * @param ContainerInterface|null $value
      *
      * @return ContainerMediatorInterface Fluent interface.
-     * @throws \InvalidArgumentException
-     * @throws \RuntimeException
      *
+     * @throws \InvalidArgumentException
      * @link http://pimple.sensiolabs.org/ Pimple
      */
     public function setServiceContainer($value = null): ContainerMediatorInterface

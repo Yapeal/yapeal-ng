@@ -107,7 +107,7 @@ trait EveApiEventEmitterTrait
      * @param string                   $eventSuffix
      * @param string                   $eventPrefix
      *
-     * @return string[]
+     * @return array|string[]
      * @throws \LogicException
      */
     private function getEmitterEvents(EveApiReadWriteInterface $data, string $eventSuffix, string $eventPrefix): array
