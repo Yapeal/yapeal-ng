@@ -106,7 +106,6 @@ class ConfigWiring implements WiringInterface, DicAwareInterface
         foreach ($additions as $add) {
             $dic[$add] = $settings[$add];
         }
-        print $dic['Yapeal.Network.userAgent'] . PHP_EOL;
     }
     /**
      * @param $settings
