@@ -86,19 +86,17 @@ trait ConfigFileProcessingTrait
         }
         $depth = 0;
         $maxDepth = 10;
-        $regEx = '%(.*)\{(?<name>Yapeal(?:\.\w+)+)\}(.*)%';
-        $callback = function ($subject) use ($dic, $regEx, $settings, &$miss) {
-            if (is_string($subject)) {
-                if (1 === preg_match($regEx, $subject, $matches)) {
-                    $name = $matches['name'];
-                    if (array_key_exists($name, $settings)) {
-                        $subject = $matches[1] . $settings[$name] . $matches[3];
-                    } elseif ($dic->offsetExists($name)){
-                        $subject = $matches[1] . $dic[$name] . $matches[3];
-                    }
-                    if (false !== strpos($subject, '{Yapeal.')) {
-                        ++$miss;
-                    }
+        $callback = function ($subject) use ($dic, $settings, &$miss) {
+            $regEx = '%(.*)\{(?<name>(?:\w+)(?:\.\w+)+)\}(.*)%';
+            if (is_string($subject) && preg_match($regEx, $subject, $matches)) {
+                $name = $matches['name'];
+                if ($dic->offsetExists($name)) {
+                    $subject = $matches[1] . $dic[$name] . $matches[3];
+                } elseif (array_key_exists($name, $settings)) {
+                    $subject = $matches[1] . $settings[$name] . $matches[3];
+                }
+                if (false !== strpos($subject, '{') && false !== strpos($subject, '}')) {
+                    ++$miss;
                 }
             }
             return $subject;
