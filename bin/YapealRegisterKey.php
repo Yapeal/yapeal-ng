@@ -1,7 +1,7 @@
 <?php
 declare(strict_types = 1);
 /**
- * Contains UtilRegisterKey class.
+ * Contains YapealRegisterKey class.
  *
  * PHP version 7.0+
  *
@@ -35,16 +35,19 @@ namespace Yapeal;
 use Yapeal\Exception\YapealDatabaseException;
 
 /**
- * Class UtilRegisterKey
+ * Class YapealRegisterKey
  *
  * WARNING: This class changes the PDO connection into MySQL's ANSI,TRADITIONAL
- * mode and makes other changes that may cause other queries in any other code
- * that reuses the connection after the changes to fail. For example if you use
- * things like back-tick quotes in queries they may cause the query to fail or
- * issue warnings. You can find out more about MySQL modes at
+ * mode and makes other changes that may cause other queries in any of your
+ * own application code that tries using the connection after the changes to
+ * fail.
+ *
+ * For example if you use things like back-tick quotes in queries they may
+ * cause the query to fail or issue warnings. You can find out more about MySQL
+ * modes at
  * {@link http://dev.mysql.com/doc/refman/5.5/en/sql-mode.html}
  */
-class UtilRegisterKey
+class YapealRegisterKey
 {
     /**
      * @param \PDO $pdo
@@ -116,7 +119,7 @@ class UtilRegisterKey
     /**
      * Used to load an existing RegisteredKey row from database.
      *
-     * @return UtilRegisterKey Fluent interface.
+     * @return YapealRegisterKey Fluent interface.
      * @throws \LogicException
      * @throws YapealDatabaseException
      */
@@ -145,10 +148,10 @@ class UtilRegisterKey
      * switched to ANSI mode and use UTF-8.
      *
      * @see UtilRegisteredKey
-     * @return UtilRegisterKey Fluent interface.
+     * @return YapealRegisterKey Fluent interface.
      * @throws \LogicException
      */
-    public function save(): UtilRegisterKey
+    public function save(): YapealRegisterKey
     {
         $stmt = $this->initPdo()
             ->getPdo()
@@ -165,7 +168,7 @@ class UtilRegisterKey
     /**
      * @param bool $value
      *
-     * @return UtilRegisterKey Fluent interface.
+     * @return YapealRegisterKey Fluent interface.
      */
     public function setActive($value = true): self
     {
@@ -175,7 +178,7 @@ class UtilRegisterKey
     /**
      * @param string|int $value
      *
-     * @return UtilRegisterKey Fluent interface.
+     * @return YapealRegisterKey Fluent interface.
      * @throws \InvalidArgumentException
      */
     public function setActiveAPIMask($value): self
@@ -197,7 +200,7 @@ class UtilRegisterKey
     /**
      * @param string $databaseName
      *
-     * @return UtilRegisterKey Fluent interface.
+     * @return YapealRegisterKey Fluent interface.
      */
     public function setDatabaseName(string $databaseName): self
     {
@@ -207,7 +210,7 @@ class UtilRegisterKey
     /**
      * @param string|int $value
      *
-     * @return UtilRegisterKey Fluent interface.
+     * @return YapealRegisterKey Fluent interface.
      * @throws \InvalidArgumentException
      */
     public function setKeyID($value): self
@@ -225,7 +228,7 @@ class UtilRegisterKey
     /**
      * @param \PDO $value
      *
-     * @return UtilRegisterKey Fluent interface.
+     * @return YapealRegisterKey Fluent interface.
      */
     public function setPdo(\PDO $value): self
     {
@@ -235,7 +238,7 @@ class UtilRegisterKey
     /**
      * @param string $tablePrefix
      *
-     * @return UtilRegisterKey Fluent interface.
+     * @return YapealRegisterKey Fluent interface.
      */
     public function setTablePrefix(string $tablePrefix = ''): self
     {
@@ -245,7 +248,7 @@ class UtilRegisterKey
     /**
      * @param string $value
      *
-     * @return UtilRegisterKey Fluent interface.
+     * @return YapealRegisterKey Fluent interface.
      * @throws \InvalidArgumentException
      */
     public function setVCode(string $value): self
@@ -305,14 +308,14 @@ class UtilRegisterKey
             'INSERT INTO "%1$s"."%2$s%3$s" ("%4$s") VALUES %5$s ON DUPLICATE KEY UPDATE %6$s',
             $this->databaseName,
             $this->tablePrefix,
-            'utilRegisteredKey',
+            'yapealRegisteredKey',
             $columns,
             $rowPrototype,
             $updates);
         return $sql;
     }
     /**
-     * @return UtilRegisterKey Fluent interface.
+     * @return YapealRegisterKey Fluent interface.
      * @throws \LogicException
      */
     protected function initPdo(): self
