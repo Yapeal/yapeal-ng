@@ -9,7 +9,7 @@ optional and will be silently ignored if they can't be found.
 Except if stated otherwise all paths are relative to the base directory
 where Yapeal-ng is install.
 
-## lib/Configuration/YapealDefaults.yaml
+## lib/Configuration/yapealDefaults.yaml
 
 The name pretty much tells it all here. It contains the most complete
 set of required and optional defaults that all the other files will be
@@ -79,9 +79,13 @@ This special setting can not be set through any of the above config files and
 would have no effect on Yapeal-ng if found in one of them. The only time it is
 looked for in Yapeal-ng is in `lib/Cli/ConfigWiring::wire()` coming from the
 `ContainerInterface` object it is given. This has been added to give the 
-application programmer a way through a code of setting a different location
-than using `amazingApp/config/yapeal.yaml`. For example instead of using in the
-more traditional cron job or scheduled task
+application programmer a way through the code of setting a different location
+than using `amazingApp/config/yapeal.yaml`. For example instead of using it in
+the more traditional cron job or scheduled task you call Yapeal-ng directly
+from a class somewhere in your application when you require an update. Through
+you could try using exec() or system(), etc and bin/yc it would be better to
+use a Container class you already have and pass it to the wiring system from
+Yapeal-ng for the additional configuration then use Yapeal class yourself.
 
 ## Summary
 
