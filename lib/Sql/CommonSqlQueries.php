@@ -58,10 +58,11 @@ use Yapeal\FileSystem\SafeFileHandlingTrait;
  * @method string getDeleteFromTableWithKeyID($tableName, $keyID)
  * @method string getDeleteFromTableWithOwnerID($tableName, $ownerID)
  * @method string getInitialization()
- * @method string getInsert(string $tableName, array $columnNameList, int $rowCount);
+ * @method string getInsert(string $tableName, array $columnNameList, int $rowCount)
  * @method string getLatestYapealSchemaVersion()
  * @method string getMemberCorporationIDsExcludingAccountCorporations()
  * @method string getSchemaNames()
+ * @method string getSelect(string $tableName, array $columnNameList, array $where)
  * @method string getUpsert($tableName, $columnNameList, $rowCount)
  */
 class CommonSqlQueries implements DicAwareInterface
@@ -119,6 +120,28 @@ class CommonSqlQueries implements DicAwareInterface
         $replacements['{rowset}'] = implode(',', array_fill(0, $rowCount, $rowPrototype));
         $sql = /** @lang text */
             'INSERT INTO "{schema}"."{tablePrefix}{tableName}" ("{columnNames}") VALUES {rowset}';
+        return (string)str_replace(array_keys($replacements), array_values($replacements), $sql);
+    }
+    /**
+     * @param string $tableName
+     * @param array  $columnNameList
+     * @param array  $where
+     *
+     * @return string
+     * @throws \LogicException
+     */
+    protected function getSelectMysql(string $tableName, array $columnNameList, array $where): string
+    {
+        $replacements = $this->getReplacements();
+        $replacements['{tableName}'] = $tableName;
+        $replacements['{columnNames}'] = implode('","', $columnNameList);
+        $wheres = [];
+        foreach ($where as $key => $value) {
+            $wheres[] = sprintf('"%s"=\'%s\'', $key, $value);
+        }
+        $replacements['{where}'] = implode(' AND ', $wheres);
+        $sql = /** @lang text */
+            'SELECT "{columnNames}" FROM "{schema}"."{tablePrefix}{tableName}" WHERE {where}';
         return (string)str_replace(array_keys($replacements), array_values($replacements), $sql);
     }
     /**
