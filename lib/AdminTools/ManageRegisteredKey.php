@@ -1,0 +1,278 @@
+<?php
+declare(strict_types = 1);
+/**
+ * Contains class ManageRegisteredKey.
+ *
+ * PHP version 7.0+
+ *
+ * LICENSE:
+ * This file is part of Yet Another Php Eve Api Library also know as Yapeal
+ * which can be used to access the Eve Online API data and place it into a
+ * database.
+ * Copyright (C) 2016 Michael Cummings
+ *
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by the
+ * Free Software Foundation, either version 3 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program. If not, see
+ * <http://spdx.org/licenses/LGPL-3.0.html>.
+ *
+ * You should be able to find a copy of this license in the COPYING-LESSER.md
+ * file. A copy of the GNU GPL should also be available in the COPYING.md file.
+ *
+ * @author    Michael Cummings <mgcummings@yahoo.com>
+ * @copyright 2016 Michael Cummings
+ * @license   LGPL-3.0+
+ */
+namespace Yapeal\AdminTools;
+
+use Yapeal\Event\MediatorInterface;
+use Yapeal\Sql\CommonSqlQueries;
+
+/**
+ * Class ManageRegisteredKey provides CRUD access to the RegisteredKey table.
+ */
+class ManageRegisteredKey
+{
+    /**
+     * ManageRegisteredKey constructor.
+     *
+     * @param CommonSqlQueries  $csq
+     * @param \PDO              $pdo
+     * @param MediatorInterface $yem
+     */
+    public function __construct(CommonSqlQueries $csq, \PDO $pdo, MediatorInterface $yem)
+    {
+        $this->csq = $csq;
+        $this->pdo = $pdo;
+        $this->yem = $yem;
+    }
+    /**
+     * @return bool
+     */
+    public function commit(): bool
+    {
+        $columnNames = ['active', 'activeAPIMask', 'keyID', 'vCode'];
+        try {
+            switch ($this->command) {
+                case 'create':
+                    $sql = $this->csq->getInsert('yapealRegisteredKey', $columnNames, 1);
+                    break;
+                case 'read':
+                    $sql = '';
+                    break;
+                case 'update':
+                    $sql = $this->csq->getUpsert('yapealRegisteredKey',
+                        $columnNames,
+                        1);
+                    break;
+                case 'delete':
+                    $sql = $this->csq->getDeleteFromTableWithKeyID('yapealRegisteredKey', $this->keyID);
+                    break;
+                default:
+                    $this->lastErrorString = 'Unknown command';
+                    return false;
+                    break;
+            }
+        } catch (\BadMethodCallException $exc) {
+            $this->lastErrorString = 'Failed to get SQL for ' . $this->command;
+            return false;
+        }
+        if (!$this->executeCommandSql($sql)) {
+            return false;
+        }
+        $this->command = '';
+        $this->lastErrorString = '';
+        $this->setDirty(false);
+        return true;
+    }
+    /** @noinspection PhpTooManyParametersInspection */
+    /**
+     * @param int    $keyID
+     * @param bool   $active
+     * @param int    $activeAPIMask
+     * @param string $vCode
+     *
+     * @return self Fluent interface.
+     */
+    public function create(int $keyID, bool $active, int $activeAPIMask, string $vCode): self
+    {
+        $this->active = $active;
+        $this->activeAPIMask = $activeAPIMask;
+        $this->keyID = $keyID;
+        $this->vCode = $vCode;
+        $this->command = 'create';
+        $this->setDirty();
+        return $this;
+    }
+    /**
+     * @param int $keyID
+     *
+     * @return self Fluent interface.
+     */
+    public function delete(int $keyID): self
+    {
+        $this->keyID = $keyID;
+        $this->command = 'delete';
+        $this->setDirty();
+        return $this;
+    }
+    /**
+     * @return string
+     */
+    public function getLastErrorString(): string
+    {
+        return $this->lastErrorString;
+    }
+    /**
+     * @return bool
+     */
+    public function hasError(): bool
+    {
+        return '' === $this->lastErrorString;
+    }
+    /**
+     * @return bool
+     */
+    public function isDirty(): bool
+    {
+        return $this->dirty;
+    }
+    /**
+     * @param int  $keyID
+     *
+     * @param bool $refresh
+     *
+     * @return array
+     */
+    public function read(int $keyID, bool $refresh = false): array
+    {
+        if ($keyID !== $this->keyID) {
+            $this->keyID = $keyID;
+            $this->command = 'read';
+            $this->setDirty(true);
+        }
+        if ($refresh) {
+            $this->command = 'read';
+            $this->setDirty(true);
+        }
+        return [
+            'active' => $this->active,
+            'activeAPIMask' => $this->activeAPIMask,
+            'keyID' => $keyID,
+            'vCode' => $this->vCode
+        ];
+    }
+    /**
+     * @param bool|null   $active
+     * @param int|null    $activeAPIMask
+     * @param string|null $vCode
+     *
+     * @return self Fluent interface.
+     */
+    public function update(bool $active = null, int $activeAPIMask = null, string $vCode = null): self
+    {
+        $this->active = $active;
+        $this->activeAPIMask = $activeAPIMask;
+        $this->vCode = $vCode;
+        $this->command = 'update';
+        $this->setDirty();
+        return $this;
+    }
+    /**
+     * @param string $sql
+     *
+     * @return bool
+     */
+    private function executeCommandSql(string $sql)
+    {
+        try {
+            if (!$this->pdo->beginTransaction()) {
+                $this->lastErrorString = 'Failed to start transaction for ' . $this->command;
+                return false;
+            }
+            $stmt = $this->pdo->prepare($sql);
+            if (!$stmt->execute([$this->active ?: 0, $this->activeAPIMask, $this->keyID, $this->vCode])) {
+                if ($this->pdo->inTransaction()) {
+                    $this->pdo->rollBack();
+                }
+                $this->lastErrorString = 'Failed to execute prepared query for ' . $this->command;
+                return false;
+            }
+            if (!$this->pdo->commit()) {
+                if ($this->pdo->inTransaction()) {
+                    $this->pdo->rollBack();
+                }
+                $this->lastErrorString = 'Failed to commit the transaction for ' . $this->command;
+                return false;
+            }
+        } catch (\PDOException $exc) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            $this->lastErrorString = $exc->getMessage();
+            return false;
+        }
+        return true;
+    }
+    /**
+     * @param bool $value
+     *
+     * @return self Fluent interface.
+     */
+    private function setDirty(bool $value = true): self
+    {
+        $this->dirty = $value;
+        return $this;
+    }
+    /**
+     * @var bool $active
+     */
+    private $active = false;
+    /**
+     * @var int $activeAPIMask
+     */
+    private $activeAPIMask = 0;
+    /**
+     * @var string $command
+     */
+    private $command = '';
+    /**
+     * @var CommonSqlQueries $csq
+     */
+    private $csq;
+    /**
+     * Used to track if the current class data is not synced with the table yet.
+     *
+     * @var bool $dirty
+     */
+    private $dirty = true;
+    /**
+     * @var int $keyID
+     */
+    private $keyID;
+    /**
+     * @var string $lastErrorString
+     */
+    private $lastErrorString = '';
+    /**
+     * @var \PDO $pdo
+     */
+    private $pdo;
+    /**
+     * @var string $vCode
+     */
+    private $vCode = '';
+    /**
+     * @var MediatorInterface $yem
+     */
+    private $yem;
+}
