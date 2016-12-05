@@ -58,6 +58,7 @@ use Yapeal\FileSystem\SafeFileHandlingTrait;
  * @method string getDeleteFromTableWithKeyID($tableName, $keyID)
  * @method string getDeleteFromTableWithOwnerID($tableName, $ownerID)
  * @method string getInitialization()
+ * @method string getInsert(string $tableName, array $columnNameList, int $rowCount);
  * @method string getLatestYapealSchemaVersion()
  * @method string getMemberCorporationIDsExcludingAccountCorporations()
  * @method string getSchemaNames()
@@ -102,6 +103,25 @@ class CommonSqlQueries implements DicAwareInterface
         throw new \BadMethodCallException($mess);
     }
     /**
+     * @param string $tableName
+     * @param array  $columnNameList
+     * @param int    $rowCount
+     *
+     * @return string
+     * @throws \LogicException
+     */
+    protected function getInsertMysql(string $tableName, array $columnNameList, int $rowCount): string
+    {
+        $replacements = $this->getReplacements();
+        $replacements['{tableName}'] = $tableName;
+        $replacements['{columnNames}'] = implode('","', $columnNameList);
+        $rowPrototype = '(' . implode(',', array_fill(0, count($columnNameList), '?')) . ')';
+        $replacements['{rowset}'] = implode(',', array_fill(0, $rowCount, $rowPrototype));
+        $sql = /** @lang text */
+            'INSERT INTO "{schema}"."{tablePrefix}{tableName}" ("{columnNames}") VALUES {rowset}';
+        return (string)str_replace(array_keys($replacements), array_values($replacements), $sql);
+    }
+    /**
      * Returns a MySql version of an upsert query.
      *
      * @param string   $tableName
@@ -123,7 +143,6 @@ class CommonSqlQueries implements DicAwareInterface
             $updates[] = sprintf('"%1$s"=VALUES("%1$s")', $column);
         }
         $replacements['{updates}'] = implode(',', $updates);
-        /** @noinspection SqlResolve */
         $sql = /** @lang text */
             'INSERT INTO "{schema}"."{tablePrefix}{tableName}" ("{columnNames}") VALUES {rowset} ON DUPLICATE KEY UPDATE {updates}';
         return (string)str_replace(array_keys($replacements), array_values($replacements), $sql);
