@@ -13,7 +13,7 @@ Ability: Application developer has ability to manage user keys in Yapeal-ng.
         When I create the new key in the ManageRegisteredKey class
         Then from the ManageRegisteredKey class I should be able to read back: "<active>" "<activeAPIMask>" "<keyID>" "<vCode>"
         And the isDirty flag should be set in ManageRegisteredKey
-        But there should still not be a keyID = "<keyID>" row in the "yapealRegisteredKey" table"
+        But there should still not be a keyID = "<keyID>" row in the "yapealRegisteredKey" table
 
         Examples:
             | active | activeAPIMask | keyID | vCode  |
