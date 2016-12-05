@@ -50,7 +50,7 @@ use Yapeal\Exception\YapealDatabaseException;
 class YapealRegisterKey
 {
     /**
-     * @param \PDO $pdo
+     * @param \PDO   $pdo
      * @param string $databaseName
      * @param string $tablePrefix
      */
@@ -61,18 +61,51 @@ class YapealRegisterKey
             ->setTablePrefix($tablePrefix);
     }
     /**
-     * @return bool
-     * @throws \LogicException
-     */
-    public function getActive(): bool
-    {
-        return $this->isActive();
-    }
-    /**
+     * Return string that can be use for GET or POST query or for not so nice user display.
+     *
      * @return string
      * @throws \LogicException
      */
-    public function getActiveAPIMask(): string
+    public function __toString(): string
+    {
+        return http_build_query($this->getAsArray());
+    }
+    /**
+     * @return bool
+     */
+    public function delete(): bool
+    {
+        try {
+            $sql = sprintf(/** @lang text */
+                'DELETE FROM "%s"."%s%s" WHERE "keyID" = %s',
+                $this->databaseName,
+                $this->tablePrefix,
+                'yapealRegisteredKey',
+                $this->getKeyID());
+            if (1 !== $this->getPdo()
+                    ->exec($sql)
+            ) {
+                return false;
+            }
+        } catch (\LogicException $exc) {
+            // KeyID or PDO not being set returns false.
+            return false;
+        }
+        return true;
+    }
+    /**
+     * @return int
+     * @throws \LogicException
+     */
+    public function getActive(): int
+    {
+        return (int)$this->isActive();
+    }
+    /**
+     * @return int
+     * @throws \LogicException
+     */
+    public function getActiveAPIMask(): int
     {
         if (null === $this->activeAPIMask) {
             $mess = 'Tried to access "activeAPIMask" before it was set';
@@ -81,10 +114,35 @@ class YapealRegisterKey
         return $this->activeAPIMask;
     }
     /**
+     * @param bool $activeIsBool
+     *
+     * @return array
+     * @throws \LogicException
+     */
+    public function getAsArray($activeIsBool = false): array
+    {
+        return [
+            'active' => $activeIsBool ? $this->isActive() : $this->getActive(),
+            'activeAPIMask' => $this->getActiveAPIMask(),
+            'keyID' => $this->getKeyID(),
+            'vCode' => $this->getVCode()
+        ];
+    }
+    /**
+     * @param bool $activeIsBool
+     *
      * @return string
      * @throws \LogicException
      */
-    public function getKeyID(): string
+    public function getAsJson($activeIsBool = false): string
+    {
+        return json_encode($this->getAsArray($activeIsBool));
+    }
+    /**
+     * @return int
+     * @throws \LogicException
+     */
+    public function getKeyID(): int
     {
         if (null === $this->keyID) {
             $mess = 'Tried to access "keyID" before it was set';
@@ -119,7 +177,7 @@ class YapealRegisterKey
     /**
      * Used to load an existing RegisteredKey row from database.
      *
-     * @return YapealRegisterKey Fluent interface.
+     * @return self Fluent interface.
      * @throws \LogicException
      * @throws YapealDatabaseException
      */
@@ -135,11 +193,7 @@ class YapealRegisterKey
                 count($result));
             throw new YapealDatabaseException($mess);
         }
-        foreach ($this->getColumnNames() as $column) {
-            /** @noinspection PhpVariableVariableInspection */
-            $this->$column = $result[0][$column];
-        }
-        return $this;
+        return $this->setFromArray($result[0]);
     }
     /**
      * Method used to persist changes to the database.
@@ -168,39 +222,28 @@ class YapealRegisterKey
     /**
      * @param bool $value
      *
-     * @return YapealRegisterKey Fluent interface.
+     * @return self Fluent interface.
      */
-    public function setActive($value = true): self
+    public function setActive(bool $value = true): self
     {
-        $this->active = (bool)$value;
+        $this->active = $value;
         return $this;
     }
     /**
-     * @param string|int $value
+     * @param int $value
      *
      * @return YapealRegisterKey Fluent interface.
      * @throws \InvalidArgumentException
      */
-    public function setActiveAPIMask($value): self
+    public function setActiveAPIMask(int $value): self
     {
-        if (is_int($value)) {
-            $value = (string)$value;
-        }
-        if (!is_string($value)) {
-            $mess = 'ActiveAPIMask MUST be an integer or integer string but was given ' . gettype($value);
-            throw new \InvalidArgumentException($mess);
-        }
-        if (!$this->isIntString($value)) {
-            $mess = 'ActiveAPIMask MUST be an integer or integer string but was given ' . $value;
-            throw new \InvalidArgumentException($mess);
-        }
         $this->activeAPIMask = $value;
         return $this;
     }
     /**
      * @param string $databaseName
      *
-     * @return YapealRegisterKey Fluent interface.
+     * @return self Fluent interface.
      */
     public function setDatabaseName(string $databaseName): self
     {
@@ -208,27 +251,48 @@ class YapealRegisterKey
         return $this;
     }
     /**
-     * @param string|int $value
+     * @param array $key
      *
-     * @return YapealRegisterKey Fluent interface.
+     * @return self Fluent interface.
      * @throws \InvalidArgumentException
      */
-    public function setKeyID($value): self
+    public function setFromArray(array $key): self
     {
-        if (is_int($value)) {
-            $value = (string)$value;
-        }
-        if (!(is_string($value) && $this->isIntString($value))) {
-            $mess = 'KeyID MUST be an integer or integer string but was given (' . gettype($value) . ') ' . $value;
+        $diff = array_diff($this->getColumnNames(), array_keys($key));
+        if (0 !== count($diff)) {
+            $mess = sprintf('The given array is missing ', implode(', ', $diff));
             throw new \InvalidArgumentException($mess);
         }
+        $this->setActive((bool)$key['active'])
+            ->setActiveAPIMask((int)$key['activeAPIMask'])
+            ->setKeyID((int)$key['keyID'])
+            ->setVCode((string)$key['vCode']);
+        return $this;
+    }
+    /**
+     * @param string $json
+     *
+     * @throws \InvalidArgumentException
+     */
+    public function setFromJson(string $json)
+    {
+        $this->setFromArray(json_decode($json));
+    }
+    /**
+     * @param int $value
+     *
+     * @return self Fluent interface.
+     * @throws \InvalidArgumentException
+     */
+    public function setKeyID(int $value): self
+    {
         $this->keyID = $value;
         return $this;
     }
     /**
      * @param \PDO $value
      *
-     * @return YapealRegisterKey Fluent interface.
+     * @return self Fluent interface.
      */
     public function setPdo(\PDO $value): self
     {
@@ -238,7 +302,7 @@ class YapealRegisterKey
     /**
      * @param string $tablePrefix
      *
-     * @return YapealRegisterKey Fluent interface.
+     * @return self Fluent interface.
      */
     public function setTablePrefix(string $tablePrefix = ''): self
     {
@@ -248,7 +312,7 @@ class YapealRegisterKey
     /**
      * @param string $value
      *
-     * @return YapealRegisterKey Fluent interface.
+     * @return self Fluent interface.
      * @throws \InvalidArgumentException
      */
     public function setVCode(string $value): self
@@ -259,7 +323,7 @@ class YapealRegisterKey
     /**
      * @return array
      */
-    protected function getColumnNames(): array
+    private function getColumnNames(): array
     {
         return ['active', 'activeAPIMask', 'keyID', 'vCode'];
     }
@@ -267,22 +331,23 @@ class YapealRegisterKey
      * @return string
      * @throws \LogicException
      */
-    protected function getExistingRegisteredKeyById(): string
+    private function getExistingRegisteredKeyById(): string
     {
         $columns = implode('","', $this->getColumnNames());
         /** @noinspection SqlResolve */
         return sprintf(/** @lang text */
-            'SELECT "%4$s" FROM "%1$s"."%2$sutilRegisteredKey" WHERE "keyID"=%3$s',
+            'SELECT "%s" FROM "%s"."%s%s" WHERE "keyID"=%s',
+            $columns,
             $this->databaseName,
             $this->tablePrefix,
-            $this->getKeyID(),
-            $columns);
+            'yapealRegisteredKey',
+            $this->getKeyID());
     }
     /**
      * @return \PDO
      * @throws \LogicException
      */
-    protected function getPdo(): \PDO
+    private function getPdo(): \PDO
     {
         if (null === $this->pdo) {
             $mess = 'Tried to use pdo before it was set';
@@ -293,7 +358,7 @@ class YapealRegisterKey
     /**
      * @return string
      */
-    protected function getUpsert(): string
+    private function getUpsert(): string
     {
         $columnNames = $this->getColumnNames();
         $columns = implode('","', $columnNames);
@@ -303,9 +368,8 @@ class YapealRegisterKey
             $updates[] = '"' . $column . '"=VALUES("' . $column . '")';
         }
         $updates = implode(',', $updates);
-        /** @noinspection SqlResolve */
         $sql = sprintf(/** @lang text */
-            'INSERT INTO "%1$s"."%2$s%3$s" ("%4$s") VALUES %5$s ON DUPLICATE KEY UPDATE %6$s',
+            'INSERT INTO "%s"."%s%s" ("%s") VALUES %s ON DUPLICATE KEY UPDATE %s',
             $this->databaseName,
             $this->tablePrefix,
             'yapealRegisteredKey',
@@ -315,10 +379,10 @@ class YapealRegisterKey
         return $sql;
     }
     /**
-     * @return YapealRegisterKey Fluent interface.
+     * @return self Fluent interface.
      * @throws \LogicException
      */
-    protected function initPdo(): self
+    private function initPdo(): self
     {
         $pdo = $this->getPdo();
         $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
@@ -330,21 +394,11 @@ class YapealRegisterKey
         return $this;
     }
     /**
-     * @param string $value
-     *
-     * @return bool
-     */
-    protected function isIntString(string $value): bool
-    {
-        $result = str_replace(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'], '', $value);
-        return ('' === $result);
-    }
-    /**
      * @var bool $active
      */
     private $active;
     /**
-     * @var string $activeAPIMask
+     * @var int $activeAPIMask
      */
     private $activeAPIMask;
     /**
@@ -352,7 +406,7 @@ class YapealRegisterKey
      */
     private $databaseName;
     /**
-     * @var string $keyID
+     * @var int $keyID
      */
     private $keyID;
     /**
