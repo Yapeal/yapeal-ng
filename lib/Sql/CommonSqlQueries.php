@@ -134,17 +134,13 @@ class CommonSqlQueries implements DicAwareInterface
     protected function getUpsertMysql(string $tableName, array $columnNameList, int $rowCount): string
     {
         $replacements = $this->getReplacements();
-        $replacements['{tableName}'] = $tableName;
-        $replacements['{columnNames}'] = implode('","', $columnNameList);
-        $rowPrototype = '(' . implode(',', array_fill(0, count($columnNameList), '?')) . ')';
-        $replacements['{rowset}'] = implode(',', array_fill(0, $rowCount, $rowPrototype));
+        $sql = $this->getInsertMysql($tableName, $columnNameList, $rowCount);
+        $sql .= ' ON DUPLICATE KEY UPDATE {updates}';
         $updates = [];
         foreach ($columnNameList as $column) {
             $updates[] = sprintf('"%1$s"=VALUES("%1$s")', $column);
         }
         $replacements['{updates}'] = implode(',', $updates);
-        $sql = /** @lang text */
-            'INSERT INTO "{schema}"."{tablePrefix}{tableName}" ("{columnNames}") VALUES {rowset} ON DUPLICATE KEY UPDATE {updates}';
         return (string)str_replace(array_keys($replacements), array_values($replacements), $sql);
     }
     /**
