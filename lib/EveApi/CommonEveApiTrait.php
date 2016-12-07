@@ -139,9 +139,9 @@ trait CommonEveApiTrait
     protected function cachedUntilIsNotExpired(EveApiReadWriteInterface $data): bool
     {
         $sql = $this->getCsq()
-            ->getCachedUntilExpires($data->hasEveApiArgument('accountKey') ? $data->getEveApiArgument('accountKey') : '0',
+            ->getCachedUntilExpires($data->hasEveApiArgument('accountKey') ? (int)$data->getEveApiArgument('accountKey') : 0,
                 $data->getEveApiName(),
-                $this->extractOwnerID($data->getEveApiArguments()));
+                (int)$this->extractOwnerID($data->getEveApiArguments()));
         $this->getYem()
             ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
         try {
@@ -180,16 +180,16 @@ trait CommonEveApiTrait
     /**
      * @param string[] $candidates
      *
-     * @return string
+     * @return int
      */
-    protected function extractOwnerID(array $candidates): string
+    protected function extractOwnerID(array $candidates): int
     {
         foreach (['corporationID', 'characterID', 'keyID'] as $item) {
             if (array_key_exists($item, $candidates)) {
-                return (string)$candidates[$item];
+                return (int)$candidates[$item];
             }
         }
-        return '0';
+        return 0;
     }
     /**
      * @param EveApiReadWriteInterface $data
@@ -215,7 +215,7 @@ trait CommonEveApiTrait
             case 'char':
                 if ('MailBodies' === $data->getEveApiName()) {
                     $sql = $this->getCsq()
-                        ->getActiveMailBodiesWithOwnerID($data->getEveApiArgument('characterID'));
+                        ->getActiveMailBodiesWithOwnerID((int)$data->getEveApiArgument('characterID'));
                     break;
                 }
                 $sql = $this->getCsq()
@@ -224,7 +224,7 @@ trait CommonEveApiTrait
             case 'corp':
                 if ('StarbaseDetails' === $data->getEveApiName()) {
                     $sql = $this->getCsq()
-                        ->getActiveStarbaseTowers($this->getMask(), $data->getEveApiArgument('corporationID'));
+                        ->getActiveStarbaseTowers($this->getMask(), (int)$data->getEveApiArgument('corporationID'));
                     break;
                 }
                 $sql = $this->getCsq()

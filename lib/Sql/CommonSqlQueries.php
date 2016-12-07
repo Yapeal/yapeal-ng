@@ -44,26 +44,26 @@ use Yapeal\FileSystem\SafeFileHandlingTrait;
  *
  * @method string getAccountCorporationIDsExcludingCorporationKeys()
  * @method string getActiveApis()
- * @method string getActiveMailBodiesWithOwnerID($ownerID)
- * @method string getActiveRegisteredAccountStatus($mask)
- * @method string getActiveRegisteredCharacters($mask)
- * @method string getActiveRegisteredCorporations($mask)
+ * @method string getActiveMailBodiesWithOwnerID(int $ownerID)
+ * @method string getActiveRegisteredAccountStatus(int $mask)
+ * @method string getActiveRegisteredCharacters(int $mask)
+ * @method string getActiveRegisteredCorporations(int $mask)
  * @method string getActiveRegisteredKeys()
- * @method string getActiveStarbaseTowers($mask, $ownerID)
- * @method string getApiLock($hash)
- * @method string getApiLockRelease($hash)
- * @method string getCachedUntilExpires($accountKey, $apiName, $ownerID)
- * @method string getDeleteFromStarbaseDetailTables($tableName, $ownerID, $starbaseID)
- * @method string getDeleteFromTable($tableName)
- * @method string getDeleteFromTableWithKeyID($tableName, $keyID)
- * @method string getDeleteFromTableWithOwnerID($tableName, $ownerID)
+ * @method string getActiveStarbaseTowers(int $mask, int $ownerID)
+ * @method string getApiLock(int $hash)
+ * @method string getApiLockRelease(int $hash)
+ * @method string getCachedUntilExpires(int $accountKey, string $apiName, int $ownerID)
+ * @method string getDeleteFromStarbaseDetailTables(string $tableName, int $ownerID, int $starbaseID)
+ * @method string getDeleteFromTable(string $tableName)
+ * @method string getDeleteFromTableWithKeyID(string $tableName, int $keyID)
+ * @method string getDeleteFromTableWithOwnerID(string $tableName, int $ownerID)
  * @method string getInitialization()
  * @method string getInsert(string $tableName, array $columnNameList, int $rowCount)
  * @method string getLatestYapealSchemaVersion()
  * @method string getMemberCorporationIDsExcludingAccountCorporations()
  * @method string getSchemaNames()
  * @method string getSelect(string $tableName, array $columnNameList, array $where)
- * @method string getUpsert($tableName, $columnNameList, $rowCount)
+ * @method string getUpsert(string $tableName, array $columnNameList, int $rowCount)
  */
 class CommonSqlQueries implements DicAwareInterface
 {
@@ -134,14 +134,17 @@ class CommonSqlQueries implements DicAwareInterface
     {
         $replacements = $this->getReplacements();
         $replacements['{tableName}'] = $tableName;
-        $replacements['{columnNames}'] = implode('","', $columnNameList);
+        $replacements['{columnNames}'] = '"' . implode('","', $columnNameList) . '"';
+        if (1 === count($columnNameList) && false !== strpos($columnNameList[0], '*')) {
+            $replacements['{columnNames}'] = $columnNameList[0];
+        }
         $wheres = [];
         foreach ($where as $key => $value) {
             $wheres[] = sprintf('"%s"=\'%s\'', $key, $value);
         }
         $replacements['{where}'] = implode(' AND ', $wheres);
         $sql = /** @lang text */
-            'SELECT "{columnNames}" FROM "{schema}"."{tablePrefix}{tableName}" WHERE {where}';
+            'SELECT {columnNames} FROM "{schema}"."{tablePrefix}{tableName}" WHERE {where}';
         return (string)str_replace(array_keys($replacements), array_values($replacements), $sql);
     }
     /**

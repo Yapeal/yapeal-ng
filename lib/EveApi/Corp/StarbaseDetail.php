@@ -97,7 +97,7 @@ class StarbaseDetail extends CorpSection implements EveApiPreserverInterface
     {
         $tableName = 'corpCombatSettings';
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
-        $starbaseID = $data->getEveApiArgument('itemID');
+        $starbaseID = (int)$data->getEveApiArgument('itemID');
         $sql = $this->getCsq()
             ->getDeleteFromStarbaseDetailTables($tableName, $ownerID, $starbaseID);
         $this->getYem()
@@ -128,7 +128,7 @@ class StarbaseDetail extends CorpSection implements EveApiPreserverInterface
     {
         $tableName = 'corpFuel';
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
-        $starbaseID = $data->getEveApiArgument('itemID');
+        $starbaseID = (int)$data->getEveApiArgument('itemID');
         $sql = $this->getCsq()
             ->getDeleteFromStarbaseDetailTables($tableName, $ownerID, $starbaseID);
         $this->getYem()
@@ -155,7 +155,7 @@ class StarbaseDetail extends CorpSection implements EveApiPreserverInterface
     {
         $tableName = 'corpGeneralSettings';
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
-        $starbaseID = $data->getEveApiArgument('itemID');
+        $starbaseID = (int)$data->getEveApiArgument('itemID');
         $sql = $this->getCsq()
             ->getDeleteFromStarbaseDetailTables($tableName, $ownerID, $starbaseID);
         $this->getYem()
@@ -184,7 +184,7 @@ class StarbaseDetail extends CorpSection implements EveApiPreserverInterface
     {
         $tableName = 'corpStarbaseDetail';
         $ownerID = $this->extractOwnerID($data->getEveApiArguments());
-        $starbaseID = $data->getEveApiArgument('itemID');
+        $starbaseID = (int)$data->getEveApiArgument('itemID');
         $sql = $this->getCsq()
             ->getDeleteFromStarbaseDetailTables($tableName, $ownerID, $starbaseID);
         $this->getYem()
