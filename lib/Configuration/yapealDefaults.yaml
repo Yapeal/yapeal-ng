@@ -12,10 +12,51 @@ Yapeal:
             fingersCrossed: Monolog\Handler\FingersCrossedHandler
             group: Monolog\Handler\GroupHandler
             lineFormatter: Yapeal\Log\LineFormatter
-            logger: Monolog\Logger
+            logger: Yapeal\Log\Logger
             strategy: Yapeal\Log\ActivationStrategy
             stream: Monolog\Handler\StreamHandler
         Parameters:
+            Cli:
+                bubble: true
+                filePermission: ~
+                handler: 'Yapeal.Error.Classes.stream'
+                level: 100
+                lineFormatter: 'Yapeal.Error.Callable.LineFormatter'
+                preserve: true
+                stream: 'php://stderr'
+                useLocking: false
+            Error:
+                exceptionLevel: ~
+                fatalLevel: ~
+            FileSystem:
+                bubble: true
+                filePermission: ~
+                handler: 'Yapeal.Error.Classes.stream'
+                level: 100
+                lineFormatter: 'Yapeal.Error.Callable.LineFormatter'
+                preserve: true
+                stream: '{Yapeal.Error.dir}{Yapeal.Error.fileName}'
+                useLocking: false
+            FingersCrossed:
+                activationStrategy: 'Yapeal.Error.Callable.Strategy'
+                bubble: true
+                bufferSize: '{Yapeal.Error.bufferSize}'
+                handler: 'Yapeal.Error.Callable.Group'
+                passThruLevel: ~
+                stopBuffering: false
+            Group:
+                bubble: true
+                handlers: 'Yapeal.Error.Callable.Cli,Yapeal.Error.Callable.FileSystem'
+            LineFormatter:
+                allowInlineLineBreaks: true
+                dateFormat: U.u
+                format: ~
+                ignoreEmptyContextAndExtra: true
+                includeStackTraces: true
+            Logger:
+                handlers: 'Yapeal.Error.Callable.FingersCrossed'
+                name: '{Yapeal.Error.channel}'
+                processors: ''
             Strategy:
                 actionLevel: '{Yapeal.Error.threshold}'
     EveApi:
@@ -50,6 +91,24 @@ Yapeal:
             strategy: Yapeal\Log\ActivationStrategy
             stream: Monolog\Handler\StreamHandler
         Parameters:
+            Cli:
+                bubble: true
+                filePermission: ~
+                handler: 'Yapeal.Log.Classes.stream'
+                level: 100
+                lineFormatter: 'Yapeal.Log.Callable.LineFormatter'
+                preserve: true
+                stream: 'php://stderr'
+                useLocking: false
+            FileSystem:
+                bubble: true
+                filePermission: ~
+                handler: 'Yapeal.Log.Classes.stream'
+                level: 100
+                lineFormatter: 'Yapeal.Log.Callable.LineFormatter'
+                preserve: true
+                stream: '{Yapeal.Log.dir}{Yapeal.Log.fileName}'
+                useLocking: false
             FingersCrossed:
                 activationStrategy: 'Yapeal.Log.Callable.Strategy'
                 bubble: true
@@ -59,37 +118,19 @@ Yapeal:
                 stopBuffering: false
             Group:
                 bubble: true
-                handlers: 'Yapeal.Log.Callable.StdErr,Yapeal.Log.Callable.LogDir'
+                handlers: 'Yapeal.Log.Callable.Cli,Yapeal.Log.Callable.FileSystem'
             LineFormatter:
                 allowInlineLineBreaks: true
                 dateFormat: U.u
                 format: ~
                 ignoreEmptyContextAndExtra: true
                 includeStackTraces: true
-            LogDir:
-                bubble: true
-                filePermission: ~
-                handler: 'Yapeal.Log.Classes.stream'
-                level: 100
-                lineFormatter: 'Yapeal.Log.Callable.LineFormatter'
-                preserve: true
-                stream: '{Yapeal.Log.dir}{Yapeal.Log.fileName}'
-                useLocking: false
             Logger:
                 handlers: 'Yapeal.Log.Callable.FingersCrossed'
                 name: '{Yapeal.Log.channel}'
                 processors: ''
             Strategy:
                 actionLevel: '{Yapeal.Log.threshold}'
-            StdErr:
-                bubble: true
-                filePermission: ~
-                handler: 'Yapeal.Log.Classes.stream'
-                level: 100
-                lineFormatter: 'Yapeal.Log.Callable.LineFormatter'
-                preserve: true
-                stream: 'php://stderr'
-                useLocking: false
     Network:
         appComment: 'of the instructions'
         appName: 'I did not follow'

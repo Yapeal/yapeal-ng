@@ -34,10 +34,7 @@ declare(strict_types = 1);
  */
 namespace Yapeal\Configuration;
 
-use Monolog\Handler\FingersCrossedHandler;
-use Monolog\Handler\StreamHandler;
 use Yapeal\Container\ContainerInterface;
-use Yapeal\Log\Logger;
 
 /**
  * Class LogWiring.
@@ -50,8 +47,8 @@ class LogWiring implements WiringInterface
     public function wire(ContainerInterface $dic)
     {
         $this->wireLineFormatter($dic)
-            ->wireStdErr($dic)
-            ->wireLogDir($dic)
+            ->wireCli($dic)
+            ->wireFileSystem($dic)
             ->wireGroup($dic)
             ->wireStrategy($dic)
             ->wireFingersCrossed($dic)
@@ -67,15 +64,68 @@ class LogWiring implements WiringInterface
      *
      * @return self Fluent interface.
      */
+    private function wireCli(ContainerInterface $dic): self
+    {
+        if (empty($dic['Yapeal.Log.Callable.Cli'])) {
+            $dic['Yapeal.Log.Callable.Cli'] = function () use ($dic) {
+                $parameters = [
+                    $dic['Yapeal.Log.Parameters.Cli.stream'],
+                    $dic['Yapeal.Log.Parameters.Cli.level'],
+                    $dic['Yapeal.Log.Parameters.Cli.bubble'],
+                    $dic['Yapeal.Log.Parameters.Cli.filePermission'],
+                    $dic['Yapeal.Log.Parameters.Cli.useLocking']
+                ];
+                /**
+                 * @var \Monolog\Handler\StreamHandler $stream
+                 */
+                $stream = new $dic['Yapeal.Log.Classes.stream'](...$parameters);
+                $lineFormatter = $dic['Yapeal.Log.Parameters.Cli.lineFormatter'];
+                $stream->setFormatter($dic[$lineFormatter]);
+                return $stream;
+            };
+        }
+        return $this;
+    }
+    /**
+     * @param ContainerInterface $dic
+     *
+     * @return self Fluent interface.
+     */
+    private function wireFileSystem(ContainerInterface $dic): self
+    {
+        if (empty($dic['Yapeal.Log.Callable.FileSystem'])) {
+            $dic['Yapeal.Log.Callable.FileSystem'] = function () use ($dic) {
+                $parameters = [
+                    $dic['Yapeal.Log.Parameters.FileSystem.stream'],
+                    $dic['Yapeal.Log.Parameters.FileSystem.level'],
+                    $dic['Yapeal.Log.Parameters.FileSystem.bubble'],
+                    $dic['Yapeal.Log.Parameters.FileSystem.filePermission'],
+                    $dic['Yapeal.Log.Parameters.FileSystem.useLocking']
+                ];
+                /**
+                 * @var \Monolog\Handler\StreamHandler $stream
+                 */
+                $stream = new $dic['Yapeal.Log.Classes.stream'](...$parameters);
+                $lineFormatter = $dic['Yapeal.Log.Parameters.FileSystem.lineFormatter'];
+                $stream->setFormatter($dic[$lineFormatter]);
+                return $stream;
+            };
+        }
+        return $this;
+    }
+    /**
+     * @param ContainerInterface $dic
+     *
+     * @return self Fluent interface.
+     */
     private function wireFingersCrossed(ContainerInterface $dic): self
     {
         if (empty($dic['Yapeal.Log.Callable.FingersCrossed'])) {
             $dic['Yapeal.Log.Callable.FingersCrossed'] = function () use ($dic) {
                 /**
-                 * @var string                $activationStrategy
-                 * @var FingersCrossedHandler $fch
-                 * @var string                $handler
-                 * @var array                 $parameters
+                 * @var string $activationStrategy
+                 * @var string $handler
+                 * @var array  $parameters
                  */
                 $activationStrategy = $dic['Yapeal.Log.Parameters.FingersCrossed.activationStrategy'];
                 $handler = $dic['Yapeal.Log.Parameters.FingersCrossed.handler'];
@@ -87,8 +137,7 @@ class LogWiring implements WiringInterface
                     $dic['Yapeal.Log.Parameters.FingersCrossed.stopBuffering'],
                     $dic['Yapeal.Log.Parameters.FingersCrossed.passThruLevel'],
                 ];
-                $fch = new $dic['Yapeal.Log.Classes.fingersCrossed'](...$parameters);
-                return $fch;
+                return new $dic['Yapeal.Log.Classes.fingersCrossed'](...$parameters);
             };
         }
         return $this;
@@ -148,39 +197,12 @@ class LogWiring implements WiringInterface
      *
      * @return self Fluent interface.
      */
-    private function wireLogDir(ContainerInterface $dic)
-    {
-        if (empty($dic['Yapeal.Log.Callable.LogDir'])) {
-            $dic['Yapeal.Log.Callable.LogDir'] = function () use ($dic) {
-                $parameters = [
-                    $dic['Yapeal.Log.Parameters.LogDir.stream'],
-                    $dic['Yapeal.Log.Parameters.LogDir.level'],
-                    $dic['Yapeal.Log.Parameters.LogDir.bubble'],
-                    $dic['Yapeal.Log.Parameters.LogDir.filePermission'],
-                    $dic['Yapeal.Log.Parameters.LogDir.useLocking']
-                ];
-                /**
-                 * @var StreamHandler $stream
-                 */
-                $stream = new $dic['Yapeal.Log.Classes.stream'](...$parameters);
-                $formatter = new $dic[$dic['Yapeal.Log.Parameters.LogDir.lineFormatter']];
-                $stream->setFormatter($formatter);
-                return $stream;
-            };
-        }
-        return $this;
-    }
-    /**
-     * @param ContainerInterface $dic
-     *
-     * @return self Fluent interface.
-     */
     private function wireLogger(ContainerInterface $dic)
     {
         if (empty($dic['Yapeal.Log.Callable.Logger'])) {
             $dic['Yapeal.Log.Callable.Logger'] = function () use ($dic) {
                 /**
-                 * @var Logger $logger
+                 * @var \Yapeal\Log\Logger $logger
                  */
                 $handlers = [];
                 foreach (explode(',', $dic['Yapeal.Log.Parameters.Logger.handlers']) as $handler) {
@@ -203,33 +225,6 @@ class LogWiring implements WiringInterface
                 ];
                 $logger = new $dic['Yapeal.Log.Classes.logger'](...$parameters);
                 return $logger;
-            };
-        }
-        return $this;
-    }
-    /**
-     * @param ContainerInterface $dic
-     *
-     * @return self Fluent interface.
-     */
-    private function wireStdErr(ContainerInterface $dic)
-    {
-        if (empty($dic['Yapeal.Log.Callable.StdErr'])) {
-            $dic['Yapeal.Log.Callable.StdErr'] = function () use ($dic) {
-                $parameters = [
-                    $dic['Yapeal.Log.Parameters.StdErr.stream'],
-                    $dic['Yapeal.Log.Parameters.StdErr.level'],
-                    $dic['Yapeal.Log.Parameters.StdErr.bubble'],
-                    $dic['Yapeal.Log.Parameters.StdErr.filePermission'],
-                    $dic['Yapeal.Log.Parameters.StdErr.useLocking']
-                ];
-                /**
-                 * @var StreamHandler $stream
-                 */
-                $stream = new $dic['Yapeal.Log.Classes.stream'](...$parameters);
-                $formatter = new $dic[$dic['Yapeal.Log.Parameters.LogDir.lineFormatter']];
-                $stream->setFormatter($formatter);
-                return $stream;
             };
         }
         return $this;

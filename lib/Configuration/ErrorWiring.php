@@ -35,8 +35,6 @@ declare(strict_types = 1);
 namespace Yapeal\Configuration;
 
 use Yapeal\Container\ContainerInterface;
-use Yapeal\Log\LineFormatter;
-use Yapeal\Log\Logger;
 
 /**
  * Class ErrorWiring.
@@ -48,45 +46,208 @@ class ErrorWiring implements WiringInterface
      */
     public function wire(ContainerInterface $dic)
     {
-        if (empty($dic['Yapeal.Error.Strategy'])) {
-            $dic['Yapeal.Error.Strategy'] = function () use ($dic) {
-                return new $dic['Yapeal.Error.Handlers.strategy']((int)$dic['Yapeal.Error.threshold']);
+        $this->wireLineFormatter($dic)
+            ->wireCli($dic)
+            ->wireFileSystem($dic)
+            ->wireGroup($dic)
+            ->wireStrategy($dic)
+            ->wireFingersCrossed($dic)
+            ->wireLogger($dic);
+        /**
+         * @var \Yapeal\Event\MediatorInterface $mediator
+         */
+        $mediator = $dic['Yapeal.Event.Mediator'];
+        $mediator->addServiceListener('Yapeal.Log.error', ['Yapeal.Error.Callable.Logger', 'logEvent'], 'last');
+    }
+    /**
+     * @param ContainerInterface $dic
+     *
+     * @return self Fluent interface.
+     */
+    private function wireCli(ContainerInterface $dic): self
+    {
+        if (empty($dic['Yapeal.Error.Callable.Cli'])) {
+            $dic['Yapeal.Error.Callable.Cli'] = function () use ($dic) {
+                $parameters = [
+                    $dic['Yapeal.Error.Parameters.Cli.stream'],
+                    $dic['Yapeal.Error.Parameters.Cli.level'],
+                    $dic['Yapeal.Error.Parameters.Cli.bubble'],
+                    $dic['Yapeal.Error.Parameters.Cli.filePermission'],
+                    $dic['Yapeal.Error.Parameters.Cli.useLocking']
+                ];
+                /**
+                 * @var \Monolog\Handler\StreamHandler $stream
+                 */
+                $stream = new $dic['Yapeal.Error.Classes.stream'](...$parameters);
+                $lineFormatter = $dic['Yapeal.Error.Parameters.Cli.lineFormatter'];
+                $stream->setFormatter($dic[$lineFormatter]);
+                return $stream;
             };
         }
-        if (empty($dic['Yapeal.Error.Logger'])) {
-            $dic['Yapeal.Error.Logger'] = function () use ($dic) {
+        return $this;
+    }
+    /**
+     * @param ContainerInterface $dic
+     *
+     * @return self Fluent interface.
+     */
+    private function wireFileSystem(ContainerInterface $dic): self
+    {
+        if (empty($dic['Yapeal.Error.Callable.FileSystem'])) {
+            $dic['Yapeal.Error.Callable.FileSystem'] = function () use ($dic) {
+                $parameters = [
+                    $dic['Yapeal.Error.Parameters.FileSystem.stream'],
+                    $dic['Yapeal.Error.Parameters.FileSystem.level'],
+                    $dic['Yapeal.Error.Parameters.FileSystem.bubble'],
+                    $dic['Yapeal.Error.Parameters.FileSystem.filePermission'],
+                    $dic['Yapeal.Error.Parameters.FileSystem.useLocking']
+                ];
                 /**
-                 * @var Logger $logger
+                 * @var \Monolog\Handler\StreamHandler $stream
                  */
-                $logger = new $dic['Yapeal.Error.Handlers.class']($dic['Yapeal.Error.channel']);
-                $group = [];
-                $lineFormatter = new LineFormatter(null, 'U.u', true, true);
-                $lineFormatter->includeStacktraces();
+                $stream = new $dic['Yapeal.Error.Classes.stream'](...$parameters);
+                $lineFormatter = $dic['Yapeal.Error.Parameters.FileSystem.lineFormatter'];
+                $stream->setFormatter($dic[$lineFormatter]);
+                return $stream;
+            };
+        }
+        return $this;
+    }
+    /**
+     * @param ContainerInterface $dic
+     *
+     * @return self Fluent interface.
+     */
+    private function wireFingersCrossed(ContainerInterface $dic): self
+    {
+        if (empty($dic['Yapeal.Error.Callable.FingersCrossed'])) {
+            $dic['Yapeal.Error.Callable.FingersCrossed'] = function () use ($dic) {
                 /**
-                 * @var \Monolog\Handler\StreamHandler $handler
+                 * @var string $activationStrategy
+                 * @var string $handler
+                 * @var array  $parameters
                  */
-                if ('cli' === PHP_SAPI) {
-                    $handler = new $dic['Yapeal.Error.Handlers.stream']('php://stderr', 100);
-                    $group[] = $handler->setFormatter($lineFormatter);
+                $activationStrategy = $dic['Yapeal.Error.Parameters.FingersCrossed.activationStrategy'];
+                $handler = $dic['Yapeal.Error.Parameters.FingersCrossed.handler'];
+                $parameters = [
+                    $dic[$handler],
+                    $dic[$activationStrategy],
+                    $dic['Yapeal.Error.Parameters.FingersCrossed.bufferSize'],
+                    $dic['Yapeal.Error.Parameters.FingersCrossed.bubble'],
+                    $dic['Yapeal.Error.Parameters.FingersCrossed.stopBuffering'],
+                    $dic['Yapeal.Error.Parameters.FingersCrossed.passThruLevel'],
+                ];
+                return new $dic['Yapeal.Error.Classes.fingersCrossed'](...$parameters);
+            };
+        }
+        return $this;
+    }
+    /**
+     * @param ContainerInterface $dic
+     *
+     * @return self Fluent interface.
+     */
+    private function wireGroup(ContainerInterface $dic): self
+    {
+        if (empty($dic['Yapeal.Error.Callable.Group'])) {
+            $dic['Yapeal.Error.Callable.Group'] = function () use ($dic) {
+                $handlers = [];
+                foreach (explode(',', $dic['Yapeal.Error.Parameters.Group.handlers']) as $handler) {
+                    if ('' === $handler) {
+                        continue;
+                    }
+                    $handlers[] = $dic[$handler];
                 }
-                $handler = new $dic['Yapeal.Error.Handlers.stream']($dic['Yapeal.Error.dir']
-                    . $dic['Yapeal.Error.fileName'], 100);
-                $group[] = $handler->setFormatter($lineFormatter);
-                $logger->pushHandler(new $dic['Yapeal.Error.Handlers.fingersCrossed'](new $dic['Yapeal.Error.Handlers.group']($group),
-                    $dic['Yapeal.Error.Strategy'],
-                    (int)$dic['Yapeal.Error.bufferSize'],
-                    true,
-                    false));
+                $parameters = [
+                    $handlers,
+                    $bubble = $dic['Yapeal.Error.Parameters.Group.bubble']
+                ];
+                return new $dic['Yapeal.Error.Classes.group'](...$parameters);
+            };
+        }
+        return $this;
+    }
+    /**
+     * @param ContainerInterface $dic
+     *
+     * @return self Fluent interface.
+     */
+    private function wireLineFormatter(ContainerInterface $dic): self
+    {
+        if (empty($dic['Yapeal.Error.Callable.LineFormatter'])) {
+            $dic['Yapeal.Error.Callable.LineFormatter'] = function () use ($dic) {
+                $parameters = [
+                    $dic['Yapeal.Error.Parameters.LineFormatter.format'],
+                    $dic['Yapeal.Error.Parameters.LineFormatter.dateFormat'],
+                    $dic['Yapeal.Error.Parameters.LineFormatter.allowInlineLineBreaks'],
+                    $dic['Yapeal.Error.Parameters.LineFormatter.ignoreEmptyContextAndExtra']
+                ];
+                /**
+                 * @var \Yapeal\Log\LineFormatter $lineFormatter
+                 */
+                $lineFormatter = new $dic['Yapeal.Error.Classes.lineFormatter'](...$parameters);
+                $lineFormatter->includeStacktraces($dic['Yapeal.Error.Parameters.LineFormatter.includeStackTraces']);
+                return $lineFormatter;
+            };
+        }
+        return $this;
+    }
+    /**
+     * @param ContainerInterface $dic
+     */
+    private function wireLogger(ContainerInterface $dic)
+    {
+        if (empty($dic['Yapeal.Error.Callable.Logger'])) {
+            $dic['Yapeal.Error.Callable.Logger'] = function () use ($dic) {
+                  /**
+                 * @var \Yapeal\Log\Logger $logger
+                 */
+                $handlers = [];
+                foreach (explode(',', $dic['Yapeal.Error.Parameters.Logger.handlers']) as $handler) {
+                    if ('' === $handler) {
+                        continue;
+                    }
+                    $handlers[] = $dic[$handler];
+                }
+                $processors = [];
+                foreach (explode(',', $dic['Yapeal.Error.Parameters.Logger.processors']) as $processor) {
+                    if ('' === $processor) {
+                        continue;
+                    }
+                    $processors[] = $dic[$processor];
+                }
+                $parameters = [
+                    $dic['Yapeal.Error.Parameters.Logger.name'],
+                    $handlers,
+                    $processors
+                ];
+                $logger = new $dic['Yapeal.Error.Classes.logger'](...$parameters);
                 /**
                  * @var \Monolog\ErrorHandler $error
                  */
-                $error = $dic['Yapeal.Error.Handlers.error'];
-                $error::register($logger, [], (int)$dic['Yapeal.Error.threshold'], (int)$dic['Yapeal.Error.threshold']);
-                return $error;
+                $error = $dic['Yapeal.Error.Classes.error'];
+                $error::register($logger,
+                    [400, 500, 550, 600],
+                    $dic['Yapeal.Error.Parameters.Error.exceptionLevel'],
+                    $dic['Yapeal.Error.Parameters.Error.fatalLevel']);
+                return $logger;
             };
-            // Activate error logger now since it is needed to log any future fatal
-            // errors or exceptions.
-            $dic['Yapeal.Error.Logger'];
+            // Activate error logger now since it is needed to log any future fatal errors or exceptions.
+            $dic['Yapeal.Error.Callable.Logger'];
         }
+    }
+    /**
+     * @param ContainerInterface $dic
+     *
+     * @return self Fluent interface.
+     */
+    private function wireStrategy(ContainerInterface $dic): self
+    {
+        if (empty($dic['Yapeal.Error.Callable.Strategy'])) {
+            $dic['Yapeal.Error.Callable.Strategy'] = function () use ($dic) {
+                return new $dic['Yapeal.Error.Classes.strategy']((int)$dic['Yapeal.Error.Parameters.Strategy.actionLevel']);
+            };
+        }
+        return $this;
     }
 }
