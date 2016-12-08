@@ -74,8 +74,9 @@ class Wiring implements DicAwareInterface
     public function wireAll(): self
     {
         $dic = $this->getDic();
-        $base = 'Yapeal.Wiring.Handlers.';
+        $base = 'Yapeal.Wiring.Classes.';
         $dic[$base . 'config'] = $dic[$base . 'config'] ?? '\Yapeal\Configuration\ConfigWiring';
+//        $names = ['Config', 'Error', 'Event', 'Log'];
         $names = ['Config', 'Error', 'Event', 'Log', 'Sql', 'Xml', 'Xsd', 'Xsl', 'FileSystem', 'Network', 'EveApi'];
         /**
          * @var WiringInterface $class
