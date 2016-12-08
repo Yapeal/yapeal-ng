@@ -85,7 +85,7 @@ trait ConfigFileProcessingTrait
             return [];
         }
         $depth = 0;
-        $maxDepth = 10;
+        $maxDepth = 25;
         $callback = function ($subject) use ($dic, $settings, &$miss) {
             $regEx = '%(.*)\{(?<name>(?:\w+)(?:\.\w+)+)\}(.*)%';
             if (is_string($subject) && preg_match($regEx, $subject, $matches)) {
