@@ -227,7 +227,7 @@ class ErrorWiring implements WiringInterface
                  */
                 $error = $dic['Yapeal.Error.Classes.error'];
                 $error::register($logger,
-                    [400, 500, 550, 600],
+                    [],
                     $dic['Yapeal.Error.Parameters.Error.exceptionLevel'],
                     $dic['Yapeal.Error.Parameters.Error.fatalLevel']);
                 return $logger;
