@@ -50,7 +50,7 @@ class ActivationStrategy implements ActivationStrategyInterface
      */
     public function __construct(int $actionLevel)
     {
-        $this->actionLevel = Logger::toMonologLevel($actionLevel);
+        $this->actionLevel = $this->setActionLevel($actionLevel);
     }
     /**
      * @param array $record
