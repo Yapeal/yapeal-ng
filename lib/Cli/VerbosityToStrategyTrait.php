@@ -53,18 +53,28 @@ trait VerbosityToStrategyTrait
      */
     protected function setLogThresholdFromVerbosity(OutputInterface $output)
     {
-        $map = [
+        $logMap = [
             $output::VERBOSITY_QUIET => Logger::ERROR,
             $output::VERBOSITY_NORMAL => Logger::WARNING,
             $output::VERBOSITY_VERBOSE => Logger::NOTICE,
             $output::VERBOSITY_VERY_VERBOSE => Logger::INFO,
             $output::VERBOSITY_DEBUG => Logger::DEBUG
         ];
+        $errorMap = [
+            $output::VERBOSITY_QUIET => Logger::CRITICAL,
+            $output::VERBOSITY_NORMAL => Logger::ERROR,
+            $output::VERBOSITY_VERBOSE => Logger::WARNING,
+            $output::VERBOSITY_VERY_VERBOSE => Logger::NOTICE,
+            $output::VERBOSITY_DEBUG => Logger::INFO
+        ];
         /**
          * @var \Yapeal\Log\ActivationStrategy $strategy
          */
-        $strategy = $this->getDic()['Yapeal.Log.Strategy'];
-        $strategy->setActionLevel($map[$output->getVerbosity()]);
+        $verbosity = $output->getVerbosity();
+        $strategy = $this->getDic()['Yapeal.Log.Callable.Strategy'];
+        $strategy->setActionLevel($logMap[$verbosity]);
+        $strategy = $this->getDic()['Yapeal.Error.Callable.Strategy'];
+        $strategy->setActionLevel($errorMap[$verbosity]);
         return $this;
     }
 }
