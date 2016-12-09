@@ -58,6 +58,7 @@ class LogWiring implements WiringInterface
          */
         $mediator = $dic['Yapeal.Event.Mediator'];
         $mediator->addServiceListener('Yapeal.Log.log', ['Yapeal.Log.Callable.Logger', 'logEvent'], 'last');
+        $mediator->addServiceListener('Yapeal.Log.error', ['Yapeal.Log.Callable.Logger', 'logEvent'], 'last');
     }
     /**
      * @param ContainerInterface $dic
@@ -227,8 +228,18 @@ class LogWiring implements WiringInterface
                     $processors
                 ];
                 $logger = new $dic['Yapeal.Log.Classes.logger'](...$parameters);
+                /**
+                 * @var \Monolog\ErrorHandler $error
+                 */
+                $error = $dic['Yapeal.Log.Classes.error'];
+                $error::register($logger,
+                    [],
+                    $dic['Yapeal.Log.Parameters.Error.exceptionLevel'],
+                    $dic['Yapeal.Log.Parameters.Error.fatalLevel']);
                 return $logger;
             };
+            // Activate logger now since it is needed to log any future fatal errors or exceptions.
+            $dic['Yapeal.Log.Callable.Logger'];
         }
         return $this;
     }
