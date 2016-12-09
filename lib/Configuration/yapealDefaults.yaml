@@ -14,7 +14,7 @@ Yapeal:
             lineFormatter: Yapeal\Log\LineFormatter
             logger: Yapeal\Log\Logger
             strategy: Yapeal\Log\ActivationStrategy
-            stream: Monolog\Handler\StreamHandler
+            stream: Yapeal\Log\StreamHandler
         Parameters:
             Cli:
                 bubble: true
@@ -34,7 +34,7 @@ Yapeal:
                 handler: 'Yapeal.Error.Classes.stream'
                 level: 100
                 lineFormatter: 'Yapeal.Error.Callable.LineFormatter'
-                preserve: true
+                preserve: false
                 stream: '{Yapeal.Error.dir}{Yapeal.Error.fileName}'
                 useLocking: false
             FingersCrossed:
@@ -90,7 +90,7 @@ Yapeal:
             lineFormatter: Yapeal\Log\LineFormatter
             logger: Yapeal\Log\Logger
             strategy: Yapeal\Log\ActivationStrategy
-            stream: Monolog\Handler\StreamHandler
+            stream: Yapeal\Log\StreamHandler
         Parameters:
             Cli:
                 bubble: true

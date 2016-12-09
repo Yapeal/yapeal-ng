@@ -76,9 +76,10 @@ class ErrorWiring implements WiringInterface
                     $dic['Yapeal.Error.Parameters.Cli.useLocking']
                 ];
                 /**
-                 * @var \Monolog\Handler\StreamHandler $stream
+                 * @var \Yapeal\Log\StreamHandler $stream
                  */
                 $stream = new $dic['Yapeal.Error.Classes.stream'](...$parameters);
+                $stream->setPreserve($dic['Yapeal.Error.Parameters.Cli.preserve']);
                 $lineFormatter = $dic['Yapeal.Error.Parameters.Cli.lineFormatter'];
                 $stream->setFormatter($dic[$lineFormatter]);
                 return $stream;
@@ -103,9 +104,10 @@ class ErrorWiring implements WiringInterface
                     $dic['Yapeal.Error.Parameters.FileSystem.useLocking']
                 ];
                 /**
-                 * @var \Monolog\Handler\StreamHandler $stream
+                 * @var \Yapeal\Log\StreamHandler $stream
                  */
                 $stream = new $dic['Yapeal.Error.Classes.stream'](...$parameters);
+                $stream->setPreserve($dic['Yapeal.Error.Parameters.FileSystem.preserve']);
                 $lineFormatter = $dic['Yapeal.Error.Parameters.FileSystem.lineFormatter'];
                 $stream->setFormatter($dic[$lineFormatter]);
                 return $stream;

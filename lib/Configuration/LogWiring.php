@@ -76,9 +76,10 @@ class LogWiring implements WiringInterface
                     $dic['Yapeal.Log.Parameters.Cli.useLocking']
                 ];
                 /**
-                 * @var \Monolog\Handler\StreamHandler $stream
+                 * @var \Yapeal\Log\StreamHandler $stream
                  */
                 $stream = new $dic['Yapeal.Log.Classes.stream'](...$parameters);
+                $stream->setPreserve($dic['Yapeal.Log.Parameters.Cli.preserve']);
                 $lineFormatter = $dic['Yapeal.Log.Parameters.Cli.lineFormatter'];
                 $stream->setFormatter($dic[$lineFormatter]);
                 return $stream;
@@ -103,9 +104,10 @@ class LogWiring implements WiringInterface
                     $dic['Yapeal.Log.Parameters.FileSystem.useLocking']
                 ];
                 /**
-                 * @var \Monolog\Handler\StreamHandler $stream
+                 * @var \Yapeal\Log\StreamHandler $stream
                  */
                 $stream = new $dic['Yapeal.Log.Classes.stream'](...$parameters);
+                $stream->setPreserve($dic['Yapeal.Log.Parameters.FileSystem.preserve']);
                 $lineFormatter = $dic['Yapeal.Log.Parameters.FileSystem.lineFormatter'];
                 $stream->setFormatter($dic[$lineFormatter]);
                 return $stream;
