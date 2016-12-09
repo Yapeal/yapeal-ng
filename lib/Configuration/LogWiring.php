@@ -187,6 +187,7 @@ class LogWiring implements WiringInterface
                  */
                 $lineFormatter = new $dic['Yapeal.Log.Classes.lineFormatter'](...$parameters);
                 $lineFormatter->includeStacktraces($dic['Yapeal.Log.Parameters.LineFormatter.includeStackTraces']);
+                $lineFormatter->setPrettyJson($dic['Yapeal.Log.Parameters.LineFormatter.prettyJson']);
                 return $lineFormatter;
             };
         }

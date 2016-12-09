@@ -53,6 +53,7 @@ Yapeal:
                 format: ~
                 ignoreEmptyContextAndExtra: true
                 includeStackTraces: true
+                prettyJson: false
             Logger:
                 handlers: 'Yapeal.Error.Callable.FingersCrossed'
                 name: '{Yapeal.Error.channel}'
@@ -125,6 +126,7 @@ Yapeal:
                 format: ~
                 ignoreEmptyContextAndExtra: true
                 includeStackTraces: true
+                prettyJson: false
             Logger:
                 handlers: 'Yapeal.Log.Callable.FingersCrossed'
                 name: '{Yapeal.Log.channel}'

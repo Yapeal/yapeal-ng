@@ -42,6 +42,23 @@ use Monolog\Formatter\LineFormatter as MLineFormatter;
 class LineFormatter extends MLineFormatter
 {
     /**
+     * @return bool
+     */
+    public function isPrettyJson(): bool
+    {
+        return $this->prettyJson;
+    }
+    /**
+     * @param bool $value
+     */
+    public function setPrettyJson(bool $value = true)
+    {
+        $this->prettyJson = $value;
+        if ($value) {
+            $this->allowInlineLineBreaks($value);
+        }
+    }
+    /**
      * @param mixed $data
      *
      * @return mixed
@@ -55,4 +72,83 @@ class LineFormatter extends MLineFormatter
         }
         return parent::normalize($data);
     }
+    /** @noinspection PhpMissingParentCallCommonInspection */
+    /**
+     * @param \Throwable $exc
+     *
+     * @return array
+     * @throws \InvalidArgumentException
+     * @throws \RuntimeException
+     */
+    protected function normalizeException($exc): array
+    {
+        if (!$exc instanceof \Throwable) {
+            throw new \InvalidArgumentException('Throwable expected, got ' . gettype($exc) . ' / ' . get_class($exc));
+        }
+        $data = [
+            'class' => get_class($exc),
+            'message' => $exc->getMessage(),
+            'code' => $exc->getCode(),
+            'file' => str_replace('\\', '/', $exc->getFile()) . ':' . $exc->getLine()
+        ];
+        if ($exc instanceof \SoapFault) {
+            if (isset($exc->faultcode)) {
+                $data['faultcode'] = $exc->faultcode;
+            }
+            if (isset($exc->faultactor)) {
+                $data['faultactor'] = $exc->faultactor;
+            }
+            if (isset($exc->detail)) {
+                $data['detail'] = $exc->detail;
+            }
+        }
+        if ($this->includeStacktraces) {
+            foreach ($exc->getTrace() as $frame) {
+                if (isset($frame['file'])) {
+                    $data['trace'][] = str_replace('\\', '/', $frame['file']) . ':' . $frame['line'];
+                } elseif (isset($frame['function']) && $frame['function'] === '{closure}') {
+                    // We should again normalize the frames, because it might contain invalid items
+                    $data['trace'][] = $this->normalize($frame['function']);
+                } else {
+                    // We should again normalize the frames, because it might contain invalid items
+                    $data['trace'][] = $this->toJson($this->normalize($frame), true);
+                }
+            }
+        }
+        if (null !== $previous = $exc->getPrevious()) {
+            $data['previous'] = $this->normalizeException($previous);
+        }
+        return $data;
+    }
+    /** @noinspection PhpMissingParentCallCommonInspection */
+    /**
+     * Return the JSON representation of a value
+     *
+     * @param  mixed $data
+     * @param  bool  $ignoreErrors
+     *
+     * @throws \RuntimeException if encoding fails and errors are not ignored
+     * @return string
+     */
+    protected function toJson($data, $ignoreErrors = false): string
+    {
+        $options = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION;
+        if ($this->isPrettyJson()) {
+            $options |= JSON_PRETTY_PRINT;
+        }
+        // suppress json_encode errors since it's twitchy with some inputs
+        if ($ignoreErrors) {
+            /** @noinspection PhpUsageOfSilenceOperatorInspection */
+            return @json_encode($data, $options);
+        }
+        $json = json_encode($data, $options);
+        if (JSON_ERROR_NONE !== json_last_error()) {
+            $json = json_last_error_msg();
+        }
+        return $json;
+    }
+    /**
+     * @var bool $prettyJson
+     */
+    private $prettyJson = false;
 }

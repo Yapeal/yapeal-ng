@@ -187,6 +187,7 @@ class ErrorWiring implements WiringInterface
                  */
                 $lineFormatter = new $dic['Yapeal.Error.Classes.lineFormatter'](...$parameters);
                 $lineFormatter->includeStacktraces($dic['Yapeal.Error.Parameters.LineFormatter.includeStackTraces']);
+                $lineFormatter->setPrettyJson($dic['Yapeal.Error.Parameters.LineFormatter.prettyJson']);
                 return $lineFormatter;
             };
         }
