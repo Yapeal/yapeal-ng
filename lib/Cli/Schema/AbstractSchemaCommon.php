@@ -172,7 +172,7 @@ abstract class AbstractSchemaCommon extends Command implements YEMAwareInterface
                     $exc->getCode(),
                     $exc->getMessage());
                 $yem->triggerLogEvent('Yapeal.Log.error', Logger::CRITICAL, $mess);
-                throw new YapealDatabaseException($mess, 2);
+                throw new YapealDatabaseException($mess, 2, $exc);
             }
         }
         if (null !== $progress) {
