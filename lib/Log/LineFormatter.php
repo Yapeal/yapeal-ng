@@ -91,17 +91,6 @@ class LineFormatter extends MLineFormatter
             'code' => $exc->getCode(),
             'file' => str_replace('\\', '/', $exc->getFile()) . ':' . $exc->getLine()
         ];
-        if ($exc instanceof \SoapFault) {
-            if (isset($exc->faultcode)) {
-                $data['faultcode'] = $exc->faultcode;
-            }
-            if (isset($exc->faultactor)) {
-                $data['faultactor'] = $exc->faultactor;
-            }
-            if (isset($exc->detail)) {
-                $data['detail'] = $exc->detail;
-            }
-        }
         if ($this->includeStacktraces) {
             foreach ($exc->getTrace() as $frame) {
                 if (isset($frame['file'])) {
