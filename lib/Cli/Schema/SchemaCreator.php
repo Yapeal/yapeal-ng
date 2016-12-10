@@ -34,14 +34,12 @@ declare(strict_types = 1);
  */
 namespace Yapeal\Cli\Schema;
 
-use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Yapeal\Container\ContainerInterface;
 use Yapeal\Event\YEMAwareTrait;
-use Yapeal\Exception\YapealDatabaseException;
 use Yapeal\Log\Logger;
 
 /**
@@ -118,17 +116,19 @@ HELP;
      * @return int null or 0 if everything went fine, or an error code
      *
      * @throws \DomainException
+     * @throws \InvalidArgumentException
      * @throws \LogicException
      * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
      * @throws \Symfony\Component\Console\Exception\LogicException
      * @throws \Symfony\Component\Console\Exception\RuntimeException
+     * @throws \UnexpectedValueException
      * @see    setCode()
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         if ($input->getOption('dropSchema')) {
             /**
-             * @var QuestionHelper $question
+             * @var \Symfony\Component\Console\Helper\QuestionHelper $question
              */
             $question = $this->getHelper('question');
             $mess = '<comment>Are you sure you want to drop the schema(database)'
@@ -144,30 +144,30 @@ HELP;
     /**
      * @param OutputInterface $output
      *
-     * @throws YapealDatabaseException
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
      * @throws \Symfony\Component\Console\Exception\LogicException
      * @throws \UnexpectedValueException
+     * @throws \Yapeal\Exception\YapealDatabaseException
      */
     protected function processSql(OutputInterface $output)
     {
         $yem = $this->getYem();
         $fileNames = $this->getCreateFileNames();
         if (0 === count($fileNames)) {
+            $mess = '<error>No SQL create files were found</error>';
+            $yem->triggerLogEvent('Yapeal.Log.log', Logger::ERROR, strip_tags($mess));
             if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
-                $mess = '<error>No SQL create files were found</error>';
-                $yem->triggerLogEvent('Yapeal.Log.error', Logger::ERROR, strip_tags($mess));
                 $output->writeln($mess);
             }
             return;
         }
         foreach ($fileNames as $fileName) {
             if (false === $sqlStatements = $this->safeFileRead($fileName)) {
+                $mess = sprintf('<comment>Could NOT get contents of SQL file for %s</comment>', $fileName);
+                $yem->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, strip_tags($mess));
                 if ($output::VERBOSITY_DEBUG <= $output->getVerbosity()) {
-                    $mess = sprintf('<comment>Could NOT get contents of SQL file for %s</comment>', $fileName);
-                    $yem->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, strip_tags($mess));
                     $output->writeln($mess);
                 }
                 continue;

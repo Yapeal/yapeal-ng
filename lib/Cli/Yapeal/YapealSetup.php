@@ -41,7 +41,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
 use Yapeal\Cli\ConfigFileTrait;
-use Yapeal\Cli\VerbosityToStrategyTrait;
+use Yapeal\Cli\VerbosityMappingTrait;
 use Yapeal\CommonToolsTrait;
 use Yapeal\Container\ContainerInterface;
 use Yapeal\Event\EveApiEventEmitterTrait;
@@ -53,7 +53,7 @@ use Yapeal\Sql\CommonSqlQueries;
  */
 class YapealSetup extends Command implements YEMAwareInterface
 {
-    use CommonToolsTrait, ConfigFileTrait, EveApiEventEmitterTrait, VerbosityToStrategyTrait;
+    use CommonToolsTrait, ConfigFileTrait, EveApiEventEmitterTrait, VerbosityMappingTrait;
     /**
      * @param string             $name
      * @param ContainerInterface $dic
@@ -120,7 +120,7 @@ HELP;
             $output->writeln($mess);
             return 1;
         }
-        $this->setLogThresholdFromVerbosity($output);
+        $this->applyVerbosityMap($output);
         $options = $input->getOptions();
         if (!empty($options['configFile'])) {
             $this->processConfigFile($options['configFile'], $this->getDic());

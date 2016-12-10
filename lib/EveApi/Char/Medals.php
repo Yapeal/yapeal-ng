@@ -71,7 +71,7 @@ class Medals extends CharSection implements EveApiPreserverInterface
         $sql = $this->getCsq()
             ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
         $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, 'sql - ' . $sql);
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [
@@ -100,7 +100,7 @@ class Medals extends CharSection implements EveApiPreserverInterface
         $sql = $this->getCsq()
             ->getDeleteFromTableWithOwnerID($tableName, $ownerID);
         $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, 'sql - ' . $sql);
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [

@@ -40,7 +40,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Yapeal\Cli\ConfigFileTrait;
-use Yapeal\Cli\VerbosityToStrategyTrait;
+use Yapeal\Cli\VerbosityMappingTrait;
 use Yapeal\CommonToolsTrait;
 use Yapeal\Container\DicAwareInterface;
 use Yapeal\Event\YEMAwareInterface;
@@ -57,7 +57,7 @@ abstract class AbstractSchemaCommon extends Command implements YEMAwareInterface
     use CommonToolsTrait;
     use ConfigFileTrait;
     use SqlSubsTrait;
-    use VerbosityToStrategyTrait;
+    use VerbosityMappingTrait;
     use YEMAwareTrait;
     /**
      * Sets the help message and all the common options used by the Database:* commands.
@@ -100,15 +100,14 @@ abstract class AbstractSchemaCommon extends Command implements YEMAwareInterface
      * @return int|null null or 0 if everything went fine, or an error code
      *
      * @throws \DomainException
+     * @throws \InvalidArgumentException
      * @throws \LogicException
+     * @throws \UnexpectedValueException
      * @see    setCode()
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        if (!$this->hasYem()) {
-            $this->setYem($this->getDic()['Yapeal.Event.Mediator']);
-        }
-        $this->setLogThresholdFromVerbosity($output);
+        $this->applyVerbosityMap($output);
         $this->processCliOptions($input);
         $this->processSql($output);
         return 0;
@@ -151,32 +150,28 @@ abstract class AbstractSchemaCommon extends Command implements YEMAwareInterface
             try {
                 // Last minute replacement for procedures that has to be done
                 // here so as not to break statements.
-                $sql = str_replace('{semiColon}', ';', $sql);
+                $sql = str_replace('{semiColon}', ';', trim($sql));
+                null !== $progress && $progress->clear();
+                $yem->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, 'sql - ' . $sql);
                 $pdo->exec($sql);
                 if (null !== $progress) {
+                    $progress->display();
                     $progress->setMessage('<comment>executing</comment>');
                     $progress->advance();
                 }
             } catch (\PDOException $exc) {
                 if (null !== $progress) {
                     $progress->setMessage('<error>Failed</error>');
-                    $progress->finish();
+                    $progress->advance();
                     $output->writeln('');
                 }
-                $mess = '<comment>' . $sql . '</comment>';
-                $yem->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, strip_tags($mess));
+                $mess = '<error>SQL error in statement ' . $statement . '</error>';
                 $output->writeln($mess);
-                $mess = sprintf('Sql failed in %1$s on statement %2$s with (%3$s) %4$s',
-                    $fileName,
-                    $statement,
-                    $exc->getCode(),
-                    $exc->getMessage());
-                $yem->triggerLogEvent('Yapeal.Log.error', Logger::CRITICAL, $mess);
-                throw new YapealDatabaseException($mess, 2, $exc);
+                throw new YapealDatabaseException(strip_tags($mess), 2, $exc);
             }
         }
         if (null !== $progress) {
-            $progress->setMessage('');
+            $progress->setMessage('<info>Finished</info>');
             $progress->finish();
             $output->writeln('');
         }
@@ -233,10 +228,10 @@ abstract class AbstractSchemaCommon extends Command implements YEMAwareInterface
     {
         $progress = new ProgressBar($output);
         $progress->setRedrawFrequency(1);
-        $progress->setFormat(' %current%/%max% [%bar%] %percent:3s%% %elapsed:6s% %message%');
+        $progress->setBarWidth(47);
+        $progress->setFormat('%current:2s%/%max:2s% [%bar%] %percent:3s%% %elapsed:6s% %message%');
         $progress->setMessage('<info>starting</info>');
         $progress->start($statementCount);
-        $progress->setBarWidth(min(4 * $statementCount + 2, 50));
         return $progress;
     }
 }

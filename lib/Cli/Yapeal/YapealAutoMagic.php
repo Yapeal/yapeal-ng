@@ -38,7 +38,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Yapeal\Cli\ConfigFileTrait;
-use Yapeal\Cli\VerbosityToStrategyTrait;
+use Yapeal\Cli\VerbosityMappingTrait;
 use Yapeal\CommonToolsTrait;
 use Yapeal\Container\ContainerInterface;
 use Yapeal\Event\EveApiEventEmitterTrait;
@@ -54,7 +54,7 @@ class YapealAutoMagic extends Command implements YEMAwareInterface
     use CommonToolsTrait;
     use ConfigFileTrait;
     use EveApiEventEmitterTrait;
-    use VerbosityToStrategyTrait;
+    use VerbosityMappingTrait;
     /**
      * @param string|null        $name
      * @param ContainerInterface $dic
@@ -117,7 +117,7 @@ HELP;
         if (!$this->hasYem()) {
             $this->setYem($dic['Yapeal.Event.Mediator']);
         }
-        $this->setLogThresholdFromVerbosity($output);
+        $this->applyVerbosityMap($output);
         if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
             $mess = sprintf('<info>Starting %1$s</info>', $this->getName());
             $output->writeln($mess);

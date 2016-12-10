@@ -51,7 +51,6 @@ trait VerbosityMappingTrait
      * @return $this Fluent Interface.
      * @throws \DomainException
      * @throws \InvalidArgumentException
-     * @throws \RuntimeException
      * @throws \UnexpectedValueException
      */
     protected function applyVerbosityMap(OutputInterface $output)
@@ -61,54 +60,57 @@ trait VerbosityMappingTrait
         /**
          * @var \Yapeal\Event\MediatorInterface $yem
          * @var \Yapeal\Log\ActivationStrategy  $strategy
-         * @var \Yapeal\Log\LineFormatter       $lineFormatter
+         * @var \Yapeal\Log\LineFormatter       $cliLF
+         * @var \Yapeal\Log\LineFormatter       $fileSystemLF
          * @var \Yapeal\Log\StreamHandler       $cliStream
          * @var \Yapeal\Log\StreamHandler       $fileSystemStream
          */
         $yem = $dic['Yapeal.Event.Mediator'];
+        $cliLF = $dic['Yapeal.Log.Callable.CliLF'];
+        $cliLF->setPrettyJson(true);
         $cliStream = $dic['Yapeal.Log.Callable.Cli'];
-        $fileSystemStream = $dic['Yapeal.Log.Callable.FileSystem'];
-        $lineFormatter = $dic['Yapeal.Log.Callable.LineFormatter'];
-        $strategy = $dic['Yapeal.Log.Callable.Strategy'];
         $cliStream->setPreserve(true);
+        $fileSystemLF = $dic['Yapeal.Log.Callable.FileSystemLF'];
+        $fileSystemLF->setPrettyJson(true);
+        $fileSystemStream = $dic['Yapeal.Log.Callable.FileSystem'];
         $fileSystemStream->setPreserve(true);
-        $lineFormatter->setPrettyJson(true);
+        $strategy = $dic['Yapeal.Log.Callable.Strategy'];
         switch ($verbosity) {
             case $output::VERBOSITY_QUIET:
+                $cliLF->setPrettyJson(false);
                 $cliStream->setPreserve(false);
-                $lineFormatter->setPrettyJson(false);
+                $fileSystemLF->setPrettyJson(false);
                 $strategy->setActionLevel(Logger::ERROR);
-                $mess = 'Yapeal-ng has switched to silent running mode where beyond this point only ERROR or higher level messages will trigger logging';
+                $mess = 'Yapeal-ng has switched to quiet mode. Beyond this point only ERROR or higher level messages will trigger logging';
                 $yem->triggerLogEvent('Yapeal.Log.log', Logger::ERROR, $mess);
                 break;
             case $output::VERBOSITY_NORMAL:
+                $cliLF->setPrettyJson(false);
                 $cliStream->setPreserve(false);
-                $lineFormatter->setPrettyJson(false);
+                $fileSystemLF->setPrettyJson(false);
                 $strategy->setActionLevel(Logger::WARNING);
-                $mess = 'Yapeal-ng has switched to normal mode where beyond this point WARNING or higher level messages will trigger logging';
+                $mess = 'Yapeal-ng has switched to normal mode. Beyond this point any WARNING or higher level messages will trigger logging';
                 $yem->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $mess);
                 break;
             case $output::VERBOSITY_VERBOSE:
-                $cliStream->setPreserve(true);
+                $cliLF->setPrettyJson(false);
                 $strategy->setActionLevel(Logger::NOTICE);
-                $mess = 'Yapeal-ng has switched to verbose mode where beyond this point any NOTICE or higher level messages will trigger logging';
+                $mess = 'Yapeal-ng has switched to verbose mode. Beyond this point any NOTICE or higher level messages will trigger logging';
                 $yem->triggerLogEvent('Yapeal.Log.log', Logger::NOTICE, $mess);
                 break;
             case $output::VERBOSITY_VERY_VERBOSE:
-                $cliStream->setPreserve(true);
                 $strategy->setActionLevel(Logger::INFO);
-                $mess = 'Yapeal-ng switched to very verbose mode where beyond this point any INFO or higher level messages will trigger logging';
+                $mess = 'Yapeal-ng switched to very verbose mode. Beyond this point any INFO or higher level messages will trigger logging';
                 $yem->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $mess);
                 break;
             case $output::VERBOSITY_DEBUG:
-                $cliStream->setPreserve(true);
                 $strategy->setActionLevel(Logger::DEBUG);
-                $mess = 'Yapeal-ng has switched to debug mode where beyond this point any kind of message will trigger logging';
+                $mess = 'Yapeal-ng has switched to debug mode. Beyond this point all message levels will trigger logging';
                 $yem->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $mess);
                 break;
             default:
-                $mess = 'Unknown verbosity setting received, Aborting ...';
-                throw new \RuntimeException($mess, 2);
+                $mess = 'Unexpected and unknown verbosity value received from OutputInterface. Aborting ...';
+                throw new \UnexpectedValueException($mess, 2);
         }
         return $this;
     }

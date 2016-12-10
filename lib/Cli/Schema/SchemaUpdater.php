@@ -108,9 +108,9 @@ HELP;
         $latestVersion = $this->getLatestDatabaseVersion($output);
         $fileNames = $this->getUpdateFileNames($latestVersion);
         if (0 === count($fileNames)) {
+            $mess = sprintf('<info>No SQL update files newer then current schema version %s were found</info>', $latestVersion);
+            $yem->triggerLogEvent('Yapeal.Log.log', Logger::INFO, strip_tags($mess));
             if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
-                $mess = sprintf('<info>No SQL updates newer then current version %s were found</info>', $latestVersion);
-                $yem->triggerLogEvent('Yapeal.Log.log', Logger::INFO, strip_tags($mess));
                 $output->writeln($mess);
             }
             return;
@@ -120,7 +120,7 @@ HELP;
                 $mess = sprintf('<error>Could NOT get contents of SQL file %s</error>', $fileName);
                 $yem->triggerLogEvent('Yapeal.Log.log', Logger::INFO, strip_tags($mess));
                 $output->writeln($mess);
-                throw new YapealDatabaseException($mess, 2);
+                throw new YapealDatabaseException(strip_tags($mess), 2);
             }
             $this->executeSqlStatements($sqlStatements, $fileName, $output);
         }
@@ -129,6 +129,7 @@ HELP;
      * @param OutputInterface $output
      *
      * @return string
+     * @throws YapealDatabaseException
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
@@ -138,24 +139,21 @@ HELP;
     {
         $sql = $this->getCsq()
             ->getLatestYapealSchemaVersion();
+        $this->getYem()
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, 'sql - ' . $sql);
+        $version = '19700101000001.000';
         try {
             $result = $this->getPdo()
                 ->query($sql, \PDO::FETCH_NUM);
             $version = (string)$result->fetchColumn();
             $result->closeCursor();
         } catch (\PDOException $exc) {
-            $version = '19700101000001.000';
+            $sql = '<comment>' . $sql . '</comment>';
+            $mess = sprintf('<error>Could NOT query latest database version. Aborting ...</error>', $version);
             if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
-                $mess = sprintf('<error>Could NOT get latest database version using default %s</error>', $version);
-                $this->getYem()
-                    ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, strip_tags($mess));
                 $output->writeln([$sql, $mess]);
-                $mess = sprintf('<info>Error message from database connection was %s</info>',
-                    $exc->getMessage());
-                $this->getYem()
-                    ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, strip_tags($mess));
-                $output->writeln($mess);
             }
+            throw new YapealDatabaseException(strip_tags($mess), 2);
         }
         return $version;
     }

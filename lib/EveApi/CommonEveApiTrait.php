@@ -143,7 +143,7 @@ trait CommonEveApiTrait
                 $data->getEveApiName(),
                 (int)$this->extractOwnerID($data->getEveApiArguments()));
         $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, 'sql - ' . $sql);
         try {
             $expires = $this->getPdo()
                 ->query($sql)
@@ -234,7 +234,7 @@ trait CommonEveApiTrait
                 return [false];
         }
         $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, 'sql - ' . $sql);
         return $this->getPdo()
             ->query($sql)
             ->fetchAll(PDO::FETCH_ASSOC);
@@ -260,7 +260,7 @@ trait CommonEveApiTrait
         $sql = $this->getCsq()
             ->getApiLock(crc32($data->getHash()));
         $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, 'sql - ' . $sql);
         $context = [];
         $success = false;
         try {
@@ -349,7 +349,7 @@ trait CommonEveApiTrait
         $sql = $this->getCsq()
             ->getApiLockRelease(crc32($data->getHash()));
         $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, 'sql - ' . $sql);
         $context = [];
         $success = false;
         try {
@@ -393,7 +393,7 @@ trait CommonEveApiTrait
         $sql = $this->getCsq()
             ->getUpsert('utilCachedUntil', array_keys($row), 1);
         $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, 'sql - ' . $sql);
         $pdo = $this->getPdo();
         $pdo->beginTransaction();
         $context = [];

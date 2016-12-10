@@ -1,6 +1,6 @@
 ---
 Yapeal:
-    consoleAutoExit: false
+    consoleAutoExit: true
     consoleCatchExceptions: false
     consoleName: 'Yapeal-ng Console'
     version: '0.5.0-0-ge18b160'

@@ -69,7 +69,7 @@ class ServerStatus extends ServerSection implements EveApiPreserverInterface
         $sql = $this->getCsq()
             ->getDeleteFromTable($tableName);
         $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, 'sql - ' . $sql);
         $this->getPdo()
             ->exec($sql);
         $columnDefaults = [

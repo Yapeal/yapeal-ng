@@ -85,15 +85,15 @@ class Yapeal
         $sql = $this->getCsq()
             ->getActiveApis();
         $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, 'sql - ' . $sql);
         try {
             $records = $this->getPdo()
                 ->query($sql)
                 ->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\PDOException $exc) {
-            $mess = 'Could not access utilEveApi table';
+            $mess = 'Could not access yapealEveApi table';
             $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.error', Logger::CRITICAL, $mess, ['exception' => $exc]);
+                ->triggerLogEvent('Yapeal.Log.log', Logger::CRITICAL, $mess, ['exception' => $exc]);
             return 1;
         }
         // Always check APIKeyInfo first.

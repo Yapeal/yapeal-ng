@@ -39,7 +39,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Yapeal\Cli\ConfigFileTrait;
-use Yapeal\Cli\VerbosityToStrategyTrait;
+use Yapeal\Cli\VerbosityMappingTrait;
 use Yapeal\CommonToolsTrait;
 use Yapeal\Container\ContainerInterface;
 use Yapeal\Event\EveApiEventEmitterTrait;
@@ -51,7 +51,7 @@ use Yapeal\Xml\EveApiReadWriteInterface;
  */
 class NetworkCache extends Command
 {
-    use CommonToolsTrait, ConfigFileTrait, EveApiEventEmitterTrait, VerbosityToStrategyTrait;
+    use CommonToolsTrait, ConfigFileTrait, EveApiEventEmitterTrait, VerbosityMappingTrait;
     /**
      * @param string|null        $name
      * @param ContainerInterface $dic
@@ -126,7 +126,7 @@ EOF;
         if (!$this->hasYem()) {
             $this->setYem($dic['Yapeal.Event.Mediator']);
         }
-        $this->setLogThresholdFromVerbosity($output);
+        $this->applyVerbosityMap($output);
         /**
          * Get new Data instance from factory.
          *

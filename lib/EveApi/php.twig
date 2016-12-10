@@ -68,7 +68,7 @@ class {{ className }} extends {{ sectionName|ucFirst }}Section
         $sql = $this->getCsq()
             ->getDeleteFromTable{% if hasOwner %}WithOwnerID{% endif %}($tableName{% if hasOwner %}, $ownerID{% endif %});
         $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $sql);
+            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, 'sql - ' . $sql);
         $this->getPdo()
             ->exec($sql);
 {% if table.attributes is defined %}
