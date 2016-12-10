@@ -100,7 +100,7 @@ trait SqlSubsTrait
                 if (0 !== strpos($key, 'Yapeal.Sql.')) {
                     return false;
                 }
-                $filtered = in_array($key, ['Yapeal.Sql.CommonQueries', 'Yapeal.Sql.Connection', 'Yapeal.Sql.Creator'], true)
+                $filtered = in_array($key, ['Yapeal.Sql.Callable.CommonQueries', 'Yapeal.Sql.Callable.Connection', 'Yapeal.Sql.Callable.Creator'], true)
                     || false !== strpos($key, 'Handlers.')
                     || (false !== strpos($key, 'Platforms.') && false === strpos($key, $platform));
                 return !$filtered;

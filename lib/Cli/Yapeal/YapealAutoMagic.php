@@ -115,7 +115,7 @@ HELP;
     {
         $dic = $this->getDic();
         if (!$this->hasYem()) {
-            $this->setYem($dic['Yapeal.Event.Mediator']);
+            $this->setYem($dic['Yapeal.Event.Callable.Mediator']);
         }
         $this->applyVerbosityMap($output);
         if ($output::VERBOSITY_QUIET !== $output->getVerbosity()) {
@@ -128,9 +128,9 @@ HELP;
         if (!empty($options['configFile'])) {
             $this->processConfigFile($options['configFile'], $dic);
         }
-        return (new Yapeal($dic['Yapeal.Sql.CommonQueries'],
-            $dic['Yapeal.Xml.Data'],
-            $dic['Yapeal.Sql.Connection'],
+        return (new Yapeal($dic['Yapeal.Sql.Callable.CommonQueries'],
+            $dic['Yapeal.Xml.Callable.Data'],
+            $dic['Yapeal.Sql.Callable.Connection'],
             $this->getYem()))->autoMagic();
     }
 }

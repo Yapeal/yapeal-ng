@@ -41,7 +41,7 @@ use Yapeal\Log\Logger;
  */
 class Creator
 {
-    use EveApiCreatorTrait, RelativeFileSearchTrait;
+    use EveApiCreatorTrait;
     /**
      * Creator constructor.
      *

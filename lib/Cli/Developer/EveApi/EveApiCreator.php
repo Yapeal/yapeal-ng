@@ -66,7 +66,7 @@ class EveApiCreator extends Command implements YEMAwareInterface
         $this->setDescription($desc);
         $this->setName($name);
         $this->setDic($dic);
-        $this->setYem($dic['Yapeal.Event.Mediator']);
+        $this->setYem($dic['Yapeal.Event.Callable.Mediator']);
         parent::__construct($name);
     }
     /**
@@ -85,7 +85,7 @@ class EveApiCreator extends Command implements YEMAwareInterface
          *
          * @var EveApiReadWriteInterface $data
          */
-        $data = $this->getDic()['Yapeal.Xml.Data'];
+        $data = $this->getDic()['Yapeal.Xml.Callable.Data'];
         $data->setEveApiName($apiName)
             ->setEveApiSectionName($sectionName)
             ->setEveApiArguments($posts);

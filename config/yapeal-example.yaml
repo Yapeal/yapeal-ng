@@ -22,33 +22,7 @@ Yapeal:
         #fileSystemMode: none
 
     Error:
-    # Changes to any settings in the 'Error' section should only be done if directed to by a Yapeal-ng developer for
-    # debugging.
-    # Incorrect changes to these settings could prevent fatal programming errors from being seen in CLI or log file.
-
-        # See Yapeal.Log.bufferSize for full description as this setting is used in the same way but for error level
-        # logging.
-        #bufferSize: 25
-
-        # See Yapeal.Log.channel for more information.
-        #channel: php
-
-        # See Yapeal.Log.dir for full description as this setting is used in the same way but for error level logging.
-        #dir: '{Yapeal.Log.dir}'
-
-        # Same as the Yapeal.Log.fileName setting but for errors.
-        #fileName: '{Yapeal.Log.fileName}'
-
-        Handlers:
-        # list of handlers used.
-
-            # Defaults to an instance of the base logger class without the wrapper.
-            # class: Monolog\Logger
-
-        # Threshold that should trigger the more severe error level logging.
-        # See Yapeal.Log.threshold for allowed values.
-        # Recommended default is 1-2 levels above Yapeal.Log.threshold but capped no higher than 500(CRITICAL)
-        #threshold: 400
+    # DEPRECATED (merged with Log settings) these settings are no longer used and will be removing in future.
 
     FileSystem:
     # Settings for filesystem operations. Most have to do with the optional caching of XML to files from the Eve APIs.
@@ -97,8 +71,6 @@ Yapeal:
 
         # Threshold that should trigger logging. A lower number increase the
         # amount of logging you will see.
-        # NOTE: This setting MUST BE less than Yapeal.Error.threshold to see
-        # any limitting effects on logging.
         # Allowed values:
         # 100(DEBUG), 200(INFO), 250(NOTICE), 300(WARNING), 400(ERROR),
         # 500(CRITICAL), 550(ALERT), 600(EMERGENCY)
@@ -113,8 +85,8 @@ Yapeal:
         # Recommended default for production WARNING or ERROR.
         #threshold: 300
 
-        Handlers:
-        # list of handlers used.
+        Classes:
+        # list of classes used.
 
             # Yapeal by default uses Monolog with a light event wrapper but it can be changed to use any logger that
             # follows PSR-3 and implements the EventAwareLoggerInterface. You can find more information about PSR-3 at
@@ -174,13 +146,14 @@ Yapeal:
         # Name of the database (schema) Yapeal will use for tables.
         # Note that the database user will need create and drop access to this database and it's tables during install
         # and updates but NOT during normal use.
-        # default 'yapeal'
+        # default 'yapeal-ng'
         #database: yapeal-ng
 
         # Database engine to use for tables during table create like when using
         # 'yc D:I' or 'yc D:U'.
         # Note that ONLY transaction compatible engines are supported for example:
         # 'InnoDB', 'tokuDB', etc but NOT 'MyISAM', 'archive', etc.
+        # default 'InnoDB'
         #engine: InnoDB
 
         # Host name of computer where database server is.
@@ -193,7 +166,9 @@ Yapeal:
         password: secret
 
         # Platform of the database server being used.
-        # Currently Yapeal only supports using the default 'mysql' but future versions may allow additional platforms.
+        # Currently Yapeal only includes support for MySQL using the default 'mysql' but future versions may allow
+        # additional platforms.
+        # default 'mysql'
         #platform: mysql
 
         # Port to use for a remote database connection.
@@ -201,9 +176,9 @@ Yapeal:
         # port: ''
 
         # Prefix to add to all database table names.
-        # This default to an empty string and will have no effect on the table names in Yapeal.
-        # This setting is mostly used when you want or need to share a single database between Yapeal and rest of your
-        # application there are table name conflicts.
+        # This default to an empty string and will have no effect on the table names in Yapeal-ng.
+        # This setting is mostly used when you want or need to share a single database between Yapeal-ng and your
+        # application and there are table name conflicts that you need to resolve.
         #tablePrefix: ''
 
         # User name used to access the database.

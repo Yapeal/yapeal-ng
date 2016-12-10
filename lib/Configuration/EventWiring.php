@@ -48,19 +48,19 @@ class EventWiring implements WiringInterface
      */
     public function wire(ContainerInterface $dic)
     {
-        if (empty($dic['Yapeal.Event.EveApiEvent'])) {
-            $dic['Yapeal.Event.EveApi'] = $dic->factory(function ($dic) {
+        if (empty($dic['Yapeal.Event.Callable.EveApiEvent'])) {
+            $dic['Yapeal.Event.Callable.EveApiEvent'] = $dic->factory(function ($dic) {
                 return new $dic['Yapeal.Event.Factories.eveApi']();
             });
         }
-        if (empty($dic['Yapeal.Event.LogEvent'])) {
-            $dic['Yapeal.Event.LogEvent'] = $dic->factory(function ($dic) {
+        if (empty($dic['Yapeal.Event.Callable.LogEvent'])) {
+            $dic['Yapeal.Event.Callable.LogEvent'] = $dic->factory(function ($dic) {
                 return new $dic['Yapeal.Event.Factories.log'];
             });
         }
-        if (empty($dic['Yapeal.Event.Mediator'])) {
-            $dic['Yapeal.Event.Mediator'] = function ($dic) {
-                return new $dic['Yapeal.Event.Handlers.mediator']($dic);
+        if (empty($dic['Yapeal.Event.Callable.Mediator'])) {
+            $dic['Yapeal.Event.Callable.Mediator'] = function ($dic) {
+                return new $dic['Yapeal.Event.Classes.mediator']($dic);
             };
         }
     }

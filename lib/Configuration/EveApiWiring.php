@@ -51,19 +51,15 @@ class EveApiWiring implements WiringInterface
      */
     public function wire(ContainerInterface $dic)
     {
-        if (empty($dic['Yapeal.Event.Mediator'])) {
-            $mess = 'Tried to call Mediator before it has been added';
-            throw new \LogicException($mess);
-        }
         /**
          * @var MediatorInterface $mediator
          */
-        $mediator = $dic['Yapeal.Event.Mediator'];
+        $mediator = $dic['Yapeal.Event.Callable.Mediator'];
         $internal = $this->getFilteredEveApiSubscriberList($dic);
         if (0 !== count($internal)) {
             foreach ($internal as $listener) {
                 $service = sprintf('%1$s.%2$s.%3$s',
-                    'Yapeal.EveApi',
+                    'Yapeal.EveApi.Callable',
                     basename(dirname($listener)),
                     basename($listener, '.php'));
                 if (empty($dic[$service])) {
@@ -73,8 +69,8 @@ class EveApiWiring implements WiringInterface
                          * @var \Yapeal\CommonToolsInterface $callable
                          */
                         $callable = new $class();
-                        $callable->setCsq($dic['Yapeal.Sql.CommonQueries'])
-                            ->setPdo($dic['Yapeal.Sql.Connection']);
+                        $callable->setCsq($dic['Yapeal.Sql.Callable.CommonQueries'])
+                            ->setPdo($dic['Yapeal.Sql.Callable.Connection']);
                         if (false === strpos($service, 'Section')) {
                             /**
                              * @var \Yapeal\Event\EveApiPreserverInterface $callable
@@ -133,8 +129,8 @@ class EveApiWiring implements WiringInterface
      */
     private function wireCreator(ContainerInterface $dic, MediatorInterface $mediator)
     {
-        if (empty($dic['Yapeal.EveApi.Creator'])) {
-            $dic['Yapeal.EveApi.Creator'] = function () use ($dic) {
+        if (empty($dic['Yapeal.EveApi.Callable.Creator'])) {
+            $dic['Yapeal.EveApi.Callable.Creator'] = function () use ($dic) {
                 $loader = new \Twig_Loader_Filesystem($dic['Yapeal.EveApi.dir']);
                 $twig = new \Twig_Environment($loader,
                     ['debug' => true, 'strict_variables' => true, 'autoescape' => false]);
@@ -149,13 +145,13 @@ class EveApiWiring implements WiringInterface
                 /**
                  * @var \Yapeal\EveApi\Creator $create
                  */
-                $create = new $dic['Yapeal.EveApi.Handlers.create']($twig, $dic['Yapeal.EveApi.dir']);
+                $create = new $dic['Yapeal.EveApi.Classes.create']($twig, $dic['Yapeal.EveApi.dir']);
                 if (!empty($dic['Yapeal.Create.overwrite'])) {
                     $create->setOverwrite($dic['Yapeal.Create.overwrite']);
                 }
                 return $create;
             };
-            $mediator->addServiceListener('Yapeal.EveApi.create', ['Yapeal.EveApi.Creator', 'createEveApi'], 'last');
+            $mediator->addServiceListener('Yapeal.EveApi.create', ['Yapeal.EveApi.Callable.Creator', 'createEveApi'], 'last');
         }
     }
 }

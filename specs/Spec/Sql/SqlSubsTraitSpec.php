@@ -60,10 +60,10 @@ class SqlSubsTraitSpec extends ObjectBehavior
         ContainerInterface $dic
     ) {
         $dic->keys()
-            ->willReturn(['Yapeal.Sql.platform', 'Yapeal.Sql.Handlers.create', 'Yapeal.Fake.faked']);
+            ->willReturn(['Yapeal.Sql.platform', 'Yapeal.Sql.Classes.create', 'Yapeal.Fake.faked']);
         $dic->offsetGet('Yapeal.Sql.platform')
             ->willReturn('mysql');
-        $dic->offsetGet('Yapeal.Sql.Handlers.create')
+        $dic->offsetGet('Yapeal.Sql.Classes.create')
             ->shouldNotBeCalled();
         $this->proxyGetSqlSubs($dic)
             ->shouldReturn(['{platform}' => 'mysql']);
@@ -77,10 +77,10 @@ class SqlSubsTraitSpec extends ObjectBehavior
         ContainerInterface $dic
     ) {
         $dic->keys()
-            ->willReturn(['Yapeal.Sql.platform', 'Yapeal.Sql.CommonQueries', 'Yapeal.Fake.faked']);
+            ->willReturn(['Yapeal.Sql.platform', 'Yapeal.Sql.Callable.CommonQueries', 'Yapeal.Fake.faked']);
         $dic->offsetGet('Yapeal.Sql.platform')
             ->willReturn('mysql');
-        $dic->offsetGet('Yapeal.Sql.CommonQueries')
+        $dic->offsetGet('Yapeal.Sql.Callable.CommonQueries')
             ->shouldNotBeCalled();
         $this->proxyGetSqlSubs($dic)
             ->shouldReturn(['{platform}' => 'mysql']);

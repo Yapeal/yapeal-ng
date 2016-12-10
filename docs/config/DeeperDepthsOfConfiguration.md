@@ -148,7 +148,7 @@ well it does not have a legacy BC value or setting.
 
 This setting is another one few if any people will have tried changing
 but on the off chance someone did there is no legacy BC setting and it
-was moved to Yapeal:Sql:Handlers:connection. All of the old bare class
+was moved to Yapeal:Sql:Classes:connection. All of the old bare class
 references like this one have been move under new per section Handlers
 'subsections' for lack of a better word.
 
@@ -162,7 +162,7 @@ will be covered back in [Configuring Yapeal](docs/ConfiguringYapeal.md).
 ### Yapeal:Error Section
 
 No real changes here except for moving the bare class reference to
-Yapeal:Error:Handlers:class and exposing more of the inner works of
+Yapeal:Error:Classes:class and exposing more of the inner works of
 Yapeal-ng under Handlers as well to allow additional customizing (Ways
 for developers to shoot themselves in the foot ;-) if they choose to).
 

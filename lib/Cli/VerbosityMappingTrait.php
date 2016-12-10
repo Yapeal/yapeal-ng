@@ -65,7 +65,7 @@ trait VerbosityMappingTrait
          * @var \Yapeal\Log\StreamHandler       $cliStream
          * @var \Yapeal\Log\StreamHandler       $fileSystemStream
          */
-        $yem = $dic['Yapeal.Event.Mediator'];
+        $yem = $dic['Yapeal.Event.Callable.Mediator'];
         $cliLF = $dic['Yapeal.Log.Callable.CliLF'];
         $cliLF->setPrettyJson(true);
         $cliStream = $dic['Yapeal.Log.Callable.Cli'];

@@ -141,10 +141,10 @@ $test = function (
  * @var \PDO                     $pdo
  * @var MediatorInterface        $yem
  */
-$csq = $dic['Yapeal.Sql.CommonQueries'];
-$data = $dic['Yapeal.Xml.Data'];
-$pdo = $dic['Yapeal.Sql.Connection'];
-$yem = $dic['Yapeal.Event.Mediator'];
+$csq = $dic['Yapeal.Sql.Callable.CommonQueries'];
+$data = $dic['Yapeal.Xml.Callable.Data'];
+$pdo = $dic['Yapeal.Sql.Callable.Connection'];
+$yem = $dic['Yapeal.Event.Callable.Mediator'];
 // Actually registers $test to start receiving events.
 $yem->addListener('Yapeal.EveApi.retrieve', $test);
 $yapeal = new Yapeal($csq, $data, $pdo, $yem);

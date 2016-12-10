@@ -8,19 +8,19 @@ Yapeal:
         dir: '{Yapeal.libDir}EveApi/'
         Cache:
             preserve: true
-        Handlers:
+        Classes:
             create: Yapeal\EveApi\Creator
     Event:
         Factories:
             eveApi: Yapeal\Event\EveApiEvent
             log: Yapeal\Event\LogEvent
-        Handlers:
+        Classes:
             mediator: Yapeal\Event\Mediator
     FileSystem:
         Cache:
             preserve: false
             retrieve: false
-        Handlers:
+        Classes:
             preserve: Yapeal\FileSystem\CachePreserver
             retrieve: Yapeal\FileSystem\CacheRetriever
     Log:
@@ -110,7 +110,7 @@ Yapeal:
             ({osName} {osRelease}; PHP {phpVersion}; Platform {machineType})
         Cache:
             retrieve: true
-        Handlers:
+        Classes:
             client: GuzzleHttp\Client
             retrieve: Yapeal\Network\GuzzleNetworkRetriever
         Headers:
@@ -142,7 +142,7 @@ Yapeal:
                 schema: '{Yapeal.Sql.database}'
                 tablePrefix: '{Yapeal.Sql.tablePrefix}'
                 userName: '{Yapeal.Sql.userName}'
-        Handlers:
+        Classes:
             create: Yapeal\Sql\Creator
             connection: \PDO
             queries: Yapeal\Sql\CommonSqlQueries
@@ -159,16 +159,16 @@ Yapeal:
             xsl: Yapeal\Configuration\XslWiring
     Xml:
         dir: '{Yapeal.libDir}Xml/'
-        Handlers:
+        Classes:
             data: Yapeal\Xml\EveApiXmlData
             error: Yapeal\Xml\ErrorCacheIntervalSubscriber
     Xsd:
         dir: '{Yapeal.libDir}Xsd/'
-        Handlers:
+        Classes:
             create: Yapeal\Xsd\Creator
             validate: Yapeal\Xsd\Validator
     Xsl:
         dir: '{Yapeal.libDir}Xsl/'
-        Handlers:
+        Classes:
             transform: Yapeal\Xsl\Transformer
 ...

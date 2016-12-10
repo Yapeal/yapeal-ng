@@ -48,31 +48,29 @@ class FileSystemWiring implements WiringInterface
      */
     public function wire(ContainerInterface $dic)
     {
-        if (empty($dic['Yapeal.FileSystem.CachePreserver'])) {
-            $dic['Yapeal.FileSystem.CachePreserver'] = function () use ($dic) {
-                return new $dic['Yapeal.FileSystem.Handlers.preserve']($dic['Yapeal.FileSystem.Cache.dir'],
+        if (empty($dic['Yapeal.FileSystem.Callable.CachePreserver'])) {
+            $dic['Yapeal.FileSystem.Callable.CachePreserver'] = function () use ($dic) {
+                return new $dic['Yapeal.FileSystem.Classes.preserve']($dic['Yapeal.FileSystem.Cache.dir'],
                     (bool)$dic['Yapeal.FileSystem.Cache.preserve']);
             };
         }
-        if (empty($dic['Yapeal.FileSystem.CacheRetriever'])) {
-            $dic['Yapeal.FileSystem.CacheRetriever'] = function () use ($dic) {
-                return new $dic['Yapeal.FileSystem.Handlers.retrieve']($dic['Yapeal.FileSystem.Cache.dir'],
+        if (empty($dic['Yapeal.FileSystem.Callable.CacheRetriever'])) {
+            $dic['Yapeal.FileSystem.Callable.CacheRetriever'] = function () use ($dic) {
+                return new $dic['Yapeal.FileSystem.Classes.retrieve']($dic['Yapeal.FileSystem.Cache.dir'],
                     (bool)$dic['Yapeal.FileSystem.Cache.retrieve']);
             };
-        }
-        if (empty($dic['Yapeal.Event.Mediator'])) {
-            $mess = 'Tried to call Mediator before it has been added';
-            throw new \LogicException($mess);
         }
         /**
          * @var \Yapeal\Event\MediatorInterface $mediator
          */
-        $mediator = $dic['Yapeal.Event.Mediator'];
+        $mediator = $dic['Yapeal.Event.Callable.Mediator'];
         foreach (['Yapeal.EveApi.preserve', 'Yapeal.EveApi.Raw.preserve', 'Yapeal.Xml.Error.preserve'] as $event) {
-            $mediator->addServiceListener($event, ['Yapeal.FileSystem.CachePreserver', 'preserveEveApi'], 'last');
+            $mediator->addServiceListener($event,
+                ['Yapeal.FileSystem.Callable.CachePreserver', 'preserveEveApi'],
+                'last');
         }
         $mediator->addServiceListener('Yapeal.EveApi.retrieve',
-            ['Yapeal.FileSystem.CacheRetriever', 'retrieveEveApi'],
+            ['Yapeal.FileSystem.Callable.CacheRetriever', 'retrieveEveApi'],
             'last');
     }
 }

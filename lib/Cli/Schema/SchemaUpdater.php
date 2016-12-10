@@ -61,9 +61,9 @@ class SchemaUpdater extends AbstractSchemaCommon
         if (!empty($dic['Yapeal.Sql.appDir'])) {
             $this->updateDirs[] = $dic['Yapeal.Sql.appDir'];
         }
-        $this->setCsq($dic['Yapeal.Sql.CommonQueries']);
-        $this->setPdo($dic['Yapeal.Sql.Connection']);
-        $this->setYem($dic['Yapeal.Event.Mediator']);
+        $this->setCsq($dic['Yapeal.Sql.Callable.CommonQueries']);
+        $this->setPdo($dic['Yapeal.Sql.Callable.Connection']);
+        $this->setYem($dic['Yapeal.Event.Callable.Mediator']);
         parent::__construct($name);
     }
     /**

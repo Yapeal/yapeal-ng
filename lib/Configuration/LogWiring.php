@@ -61,7 +61,7 @@ class LogWiring implements WiringInterface
         /**
          * @var \Yapeal\Event\MediatorInterface $mediator
          */
-        $mediator = $dic['Yapeal.Event.Mediator'];
+        $mediator = $dic['Yapeal.Event.Callable.Mediator'];
         $mediator->addServiceListener('Yapeal.Log.log', ['Yapeal.Log.Callable.Logger', 'logEvent'], 'last');
         $mediator->addServiceListener('Yapeal.Log.error', ['Yapeal.Log.Callable.Logger', 'logEvent'], 'last');
     }

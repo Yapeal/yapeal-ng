@@ -188,7 +188,7 @@ HELP;
             $sql = $this->getCsq()
                 ->getSchemaNames();
             try {
-                $pdo = $dic['Yapeal.Sql.Connection'];
+                $pdo = $dic['Yapeal.Sql.Callable.Connection'];
                 $result = $pdo->query($sql);
             } catch (\PDOException $exc) {
                 $this->schema = false;

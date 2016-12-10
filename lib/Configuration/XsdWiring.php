@@ -49,8 +49,8 @@ class XsdWiring implements WiringInterface
      */
     public function wire(ContainerInterface $dic)
     {
-        if (empty($dic['Yapeal.Xsd.Creator'])) {
-            $dic['Yapeal.Xsd.Creator'] = function () use ($dic) {
+        if (empty($dic['Yapeal.Xsd.Callable.Creator'])) {
+            $dic['Yapeal.Xsd.Callable.Creator'] = function () use ($dic) {
                 $loader = new \Twig_Loader_Filesystem($dic['Yapeal.Xsd.dir']);
                 $twig = new \Twig_Environment($loader,
                     ['debug' => true, 'strict_variables' => true, 'autoescape' => false]);
@@ -65,27 +65,23 @@ class XsdWiring implements WiringInterface
                 /**
                  * @var \Yapeal\Xsd\Creator $create
                  */
-                $create = new $dic['Yapeal.Xsd.Handlers.create']($twig, $dic['Yapeal.Xsd.dir']);
+                $create = new $dic['Yapeal.Xsd.Classes.create']($twig, $dic['Yapeal.Xsd.dir']);
                 if (!empty($dic['Yapeal.Create.overwrite'])) {
                     $create->setOverwrite($dic['Yapeal.Create.overwrite']);
                 }
                 return $create;
             };
         }
-        if (empty($dic['Yapeal.Xsd.Validator'])) {
-            $dic['Yapeal.Xsd.Validator'] = function () use ($dic) {
-                return new $dic['Yapeal.Xsd.Handlers.validate']($dic['Yapeal.Xsd.dir']);
+        if (empty($dic['Yapeal.Xsd.Callable.Validator'])) {
+            $dic['Yapeal.Xsd.Callable.Validator'] = function () use ($dic) {
+                return new $dic['Yapeal.Xsd.Classes.validate']($dic['Yapeal.Xsd.dir']);
             };
-        }
-        if (empty($dic['Yapeal.Event.Mediator'])) {
-            $mess = 'Tried to call Mediator before it has been added';
-            throw new \LogicException($mess);
         }
         /**
          * @var \Yapeal\Event\MediatorInterface $mediator
          */
-        $mediator = $dic['Yapeal.Event.Mediator'];
-        $mediator->addServiceListener('Yapeal.EveApi.create', ['Yapeal.Xsd.Creator', 'createXsd'], 'last');
-        $mediator->addServiceListener('Yapeal.EveApi.validate', ['Yapeal.Xsd.Validator', 'validateEveApi'], 'last');
+        $mediator = $dic['Yapeal.Event.Callable.Mediator'];
+        $mediator->addServiceListener('Yapeal.EveApi.create', ['Yapeal.Xsd.Callable.Creator', 'createXsd'], 'last');
+        $mediator->addServiceListener('Yapeal.EveApi.validate', ['Yapeal.Xsd.Callable.Validator', 'validateEveApi'], 'last');
     }
 }

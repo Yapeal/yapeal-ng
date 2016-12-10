@@ -53,9 +53,9 @@ class SqlWiring implements WiringInterface
      */
     public function wire(ContainerInterface $dic)
     {
-        if (empty($dic['Yapeal.Sql.CommonQueries'])) {
-            $dic['Yapeal.Sql.CommonQueries'] = function ($dic) {
-                return new $dic['Yapeal.Sql.Handlers.queries']($dic);
+        if (empty($dic['Yapeal.Sql.Callable.CommonQueries'])) {
+            $dic['Yapeal.Sql.Callable.CommonQueries'] = function ($dic) {
+                return new $dic['Yapeal.Sql.Classes.queries']($dic);
             };
         }
         $this->wireConnection($dic);
@@ -68,20 +68,20 @@ class SqlWiring implements WiringInterface
      */
     private function wireConnection(ContainerInterface $dic)
     {
-        if (empty($dic['Yapeal.Sql.Connection'])) {
+        if (empty($dic['Yapeal.Sql.Callable.Connection'])) {
             $replacements = $this->getSqlSubs($dic);
-            $dic['Yapeal.Sql.Connection'] = function () use ($dic, $replacements) {
+            $dic['Yapeal.Sql.Callable.Connection'] = function () use ($dic, $replacements) {
                 $dsn = $replacements['{dsn}'];
                 $dsn = str_replace(array_keys($replacements), array_values($replacements), $dsn);
                 /**
                  * @var \PDO             $pdo
                  * @var CommonSqlQueries $csq
                  */
-                $pdo = new $dic['Yapeal.Sql.Handlers.connection']($dsn,
+                $pdo = new $dic['Yapeal.Sql.Classes.connection']($dsn,
                     $replacements['{userName}'],
                     $replacements['{password}']);
                 $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-                $csq = $dic['Yapeal.Sql.CommonQueries'];
+                $csq = $dic['Yapeal.Sql.Callable.CommonQueries'];
                 $pdo->exec($csq->getInitialization());
                 return $pdo;
             };
@@ -94,8 +94,8 @@ class SqlWiring implements WiringInterface
      */
     private function wireCreator(ContainerInterface $dic)
     {
-        if (empty($dic['Yapeal.Sql.Creator'])) {
-            $dic['Yapeal.Sql.Creator'] = function () use ($dic) {
+        if (empty($dic['Yapeal.Sql.Callable.Creator'])) {
+            $dic['Yapeal.Sql.Callable.Creator'] = function () use ($dic) {
                 $loader = new \Twig_Loader_Filesystem($dic['Yapeal.Sql.dir']);
                 $twig = new \Twig_Environment($loader,
                     ['debug' => true, 'strict_variables' => true, 'autoescape' => false]);
@@ -110,7 +110,7 @@ class SqlWiring implements WiringInterface
                 /**
                  * @var \Yapeal\Sql\Creator $create
                  */
-                $create = new $dic['Yapeal.Sql.Handlers.create']($twig,
+                $create = new $dic['Yapeal.Sql.Classes.create']($twig,
                     $dic['Yapeal.Sql.dir'],
                     $dic['Yapeal.Sql.platform']);
                 if (!empty($dic['Yapeal.Create.overwrite'])) {
@@ -119,14 +119,10 @@ class SqlWiring implements WiringInterface
                 return $create;
             };
         }
-        if (empty($dic['Yapeal.Event.Mediator'])) {
-            $mess = 'Tried to call Mediator before it has been added';
-            throw new \LogicException($mess);
-        }
         /**
          * @var \Yapeal\Event\MediatorInterface $mediator
          */
-        $mediator = $dic['Yapeal.Event.Mediator'];
-        $mediator->addServiceListener('Yapeal.EveApi.create', ['Yapeal.Sql.Creator', 'createSql'], 'last');
+        $mediator = $dic['Yapeal.Event.Callable.Mediator'];
+        $mediator->addServiceListener('Yapeal.EveApi.create', ['Yapeal.Sql.Callable.Creator', 'createSql'], 'last');
     }
 }

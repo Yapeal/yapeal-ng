@@ -56,8 +56,8 @@ class ConfigWiring implements WiringInterface, DicAwareInterface
     public function wire(ContainerInterface $dic)
     {
         $this->setDic($dic);
-        if (empty($dic['Yapeal.Config.Yaml'])) {
-            $dic['Yapeal.Config.Yaml'] = $dic->factory(function () {
+        if (empty($dic['Yapeal.Config.Callable.Yaml'])) {
+            $dic['Yapeal.Config.Callable.Yaml'] = $dic->factory(function () {
                 return new YamlConfigFile();
             });
         }
@@ -100,6 +100,9 @@ class ConfigWiring implements WiringInterface, DicAwareInterface
         foreach ($configFiles as $configFile) {
             $settings = $this->parserConfigFile($configFile, $settings);
         }
+        $lastConfig = end($configFiles);
+        $dic['Yapeal.Daemon.Config.fileName'] = $lastConfig;
+        $dic['Yapeal.Daemon.Config.fileMTime'] = filemtime($lastConfig);
         $settings = $this->gitVersionSetting($settings);
         $settings = $this->doSubstitutions($settings, $dic);
         $additions = array_diff(array_keys($settings), $dic->keys());

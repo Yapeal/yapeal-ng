@@ -62,7 +62,7 @@ class Wiring implements DicAwareInterface
      *
      * _NOTE:_
      *
-     *     The Yapeal.Wiring.Handlers.config setting has extra special handling because everything else is very heavily
+     *     The Yapeal.Wiring.Classes.config setting has extra special handling because everything else is very heavily
      *     dependant on the initial paths it determines which are used to find everything else. An application developer
      *     considering override this setting should shoot yourself in the foot first to help dull the pain you will be
      *     causing yourself by overriding it. For the masochists that go ahead, enjoy it, but I don't want any pictures

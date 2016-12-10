@@ -48,8 +48,8 @@ class NetworkWiring implements WiringInterface
      */
     public function wire(ContainerInterface $dic)
     {
-        if (empty($dic['Yapeal.Network.Client'])) {
-            $dic['Yapeal.Network.Client'] = function ($dic) {
+        if (empty($dic['Yapeal.Network.Callable.Client'])) {
+            $dic['Yapeal.Network.Callable.Client'] = function ($dic) {
                 $userAgent = trim(str_replace([
                     '{machineType}',
                     '{osName}',
@@ -82,26 +82,24 @@ class NetworkWiring implements WiringInterface
                     'timeout' => (int)$dic['Yapeal.Network.timeout'],
                     'verify' => $dic['Yapeal.Network.verify']
                 ];
-                return new $dic['Yapeal.Network.Handlers.client']($defaults);
+                return new $dic['Yapeal.Network.Classes.client']($defaults);
             };
         }
-        if (empty($dic['Yapeal.Network.Retriever'])) {
-            $dic['Yapeal.Network.Retriever'] = function ($dic) {
-                return new $dic['Yapeal.Network.Handlers.retrieve']($dic['Yapeal.Network.Client'],
+        if (empty($dic['Yapeal.Network.Callable.Retriever'])) {
+            $dic['Yapeal.Network.Callable.Retriever'] = function ($dic) {
+                return new $dic['Yapeal.Network.Classes.retrieve']($dic['Yapeal.Network.Callable.Client'],
                     (bool)$dic['Yapeal.Network.Cache.retrieve']);
             };
-        }
-        if (!isset($dic['Yapeal.Event.Mediator'])) {
-            $mess = 'Tried to call Mediator before it has been added';
-            throw new \LogicException($mess);
         }
         /**
          * @var \Yapeal\Event\MediatorInterface $mediator
          */
-        $mediator = $dic['Yapeal.Event.Mediator'];
-        $mediator->addServiceListener('Yapeal.EveApi.retrieve', ['Yapeal.Network.Retriever', 'retrieveEveApi'], 'last');
+        $mediator = $dic['Yapeal.Event.Callable.Mediator'];
+        $mediator->addServiceListener('Yapeal.EveApi.retrieve',
+            ['Yapeal.Network.Callable.Retriever', 'retrieveEveApi'],
+            'last');
         $mediator->addServiceListener('Yapeal.EveApi.Raw.retrieve',
-            ['Yapeal.Network.Retriever', 'retrieveEveApi'],
+            ['Yapeal.Network.Callable.Retriever', 'retrieveEveApi'],
             'last');
     }
 }

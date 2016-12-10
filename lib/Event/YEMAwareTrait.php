@@ -50,7 +50,7 @@ trait YEMAwareTrait
             if ($parent instanceof YEMAwareInterface) {
                 $this->yem = $parent->getYem();
             } elseif (method_exists($this, 'getDic')) {
-                $this->yem = $this->getDic()['Yapeal.Event.Mediator'];
+                $this->yem = $this->getDic()['Yapeal.Event.Callable.Mediator'];
             } else {
                 $mess = 'Tried to use yem before it was set';
                 throw new \LogicException($mess);

@@ -124,7 +124,7 @@ EOF;
         $apiName = $input->getArgument('api_name');
         $sectionName = $input->getArgument('section_name');
         if (!$this->hasYem()) {
-            $this->setYem($dic['Yapeal.Event.Mediator']);
+            $this->setYem($dic['Yapeal.Event.Callable.Mediator']);
         }
         $this->applyVerbosityMap($output);
         /**
@@ -132,7 +132,7 @@ EOF;
          *
          * @var EveApiReadWriteInterface $data
          */
-        $data = $dic['Yapeal.Xml.Data'];
+        $data = $dic['Yapeal.Xml.Callable.Data'];
         $data->setEveApiName($apiName)
             ->setEveApiSectionName($sectionName)
             ->setEveApiArguments($posts);

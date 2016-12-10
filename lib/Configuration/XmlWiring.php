@@ -49,26 +49,22 @@ class XmlWiring implements WiringInterface
      */
     public function wire(ContainerInterface $dic)
     {
-        if (empty($dic['Yapeal.Xml.Data'])) {
-            $dic['Yapeal.Xml.Data'] = $dic->factory(function ($dic) {
-                return new $dic['Yapeal.Xml.Handlers.data']();
-            });
-        }
-        if (empty($dic['Yapeal.Xml.Error.Subscriber'])) {
-            $dic['Yapeal.Xml.Error.Subscriber'] = function () use ($dic) {
-                return new $dic['Yapeal.Xml.Handlers.error']();
+        if (empty($dic['Yapeal.Xml.Callable.Data'])) {
+            $dic['Yapeal.Xml.Callable.Data'] = function ($dic) {
+                return new $dic['Yapeal.Xml.Classes.data']();
             };
         }
-        if (empty($dic['Yapeal.Event.Mediator'])) {
-            $mess = 'Tried to call Mediator before it has been added';
-            throw new \LogicException($mess);
+        if (empty($dic['Yapeal.Xml.Error.Callable.Subscriber'])) {
+            $dic['Yapeal.Xml.Error.Callable.Subscriber'] = function () use ($dic) {
+                return new $dic['Yapeal.Xml.Classes.error']();
+            };
         }
         /**
          * @var \Yapeal\Event\MediatorInterface $mediator
          */
-        $mediator = $dic['Yapeal.Event.Mediator'];
+        $mediator = $dic['Yapeal.Event.Callable.Mediator'];
         $mediator->addServiceListener('Yapeal.Xml.Error.start',
-            ['Yapeal.Xml.Error.Subscriber', 'processXmlError'],
+            ['Yapeal.Xml.Error.Callable.Subscriber', 'processXmlError'],
             'last');
     }
 }

@@ -63,8 +63,8 @@ class SchemaCreator extends AbstractSchemaCommon
         if (!empty($dic['Yapeal.Sql.appDir'])) {
             $this->createDirs[] = $dic['Yapeal.Sql.appDir'];
         }
-        $this->setPdo($dic['Yapeal.Sql.Connection']);
-        $this->setYem($dic['Yapeal.Event.Mediator']);
+        $this->setPdo($dic['Yapeal.Sql.Callable.Connection']);
+        $this->setYem($dic['Yapeal.Event.Callable.Mediator']);
         parent::__construct($name);
     }
     /**

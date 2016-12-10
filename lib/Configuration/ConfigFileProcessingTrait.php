@@ -133,7 +133,7 @@ trait ConfigFileProcessingTrait
         /**
          * @var YamlConfigFile $yaml
          */
-        $yaml = $this->getDic()['Yapeal.Config.Yaml'];
+        $yaml = $this->getDic()['Yapeal.Config.Callable.Yaml'];
         $settings = $yaml->setPathFile($configFile)
             ->read()
             ->flattenYaml();
