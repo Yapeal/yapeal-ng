@@ -41,7 +41,7 @@ Yapeal:
                 filePermission: ~
                 handler: 'Yapeal.Log.Classes.stream'
                 level: 100
-                lineFormatter: 'Yapeal.Log.Callable.LineFormatter'
+                lineFormatter: 'Yapeal.Log.Callable.CliLF'
                 preserve: true
                 stream: 'php://stderr'
                 useLocking: false
@@ -50,7 +50,7 @@ Yapeal:
                 filePermission: ~
                 handler: 'Yapeal.Log.Classes.stream'
                 level: 100
-                lineFormatter: 'Yapeal.Log.Callable.LineFormatter'
+                lineFormatter: 'Yapeal.Log.Callable.FileSystemLF'
                 preserve: true
                 stream: '{Yapeal.Log.dir}{Yapeal.Log.fileName}'
                 useLocking: false

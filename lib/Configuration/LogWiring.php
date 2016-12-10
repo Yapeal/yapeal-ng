@@ -34,8 +34,6 @@ declare(strict_types = 1);
  */
 namespace Yapeal\Configuration;
 
-use Monolog\Handler\AbstractHandler;
-use Monolog\Logger;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Yapeal\Container\ContainerInterface;
@@ -254,9 +252,9 @@ class LogWiring implements WiringInterface
                                 'file' => str_replace('\\', '/', $lastError['file']),
                                 'line' => $lastError['line']
                             ]);
-                        if ($this->logger instanceof Logger) {
+                        if (method_exists($this->logger, 'getHandlers')) {
                             foreach ($this->logger->getHandlers() as $handler) {
-                                if ($handler instanceof AbstractHandler) {
+                                if (method_exists($handler, 'close')) {
                                     $handler->close();
                                 }
                             }
@@ -404,8 +402,8 @@ class LogWiring implements WiringInterface
      */
     private function wireLineFormatter(ContainerInterface $dic): self
     {
-        if (empty($dic['Yapeal.Log.Callable.LineFormatter'])) {
-            $dic['Yapeal.Log.Callable.LineFormatter'] = function () use ($dic) {
+        if (empty($dic['Yapeal.Log.Callable.LFFactory'])) {
+            $dic['Yapeal.Log.Callable.LFFactory'] = $dic->factory(function () use ($dic) {
                 $parameters = [
                     $dic['Yapeal.Log.Parameters.LineFormatter.format'],
                     $dic['Yapeal.Log.Parameters.LineFormatter.dateFormat'],
@@ -419,7 +417,13 @@ class LogWiring implements WiringInterface
                 $lineFormatter->includeStacktraces($dic['Yapeal.Log.Parameters.LineFormatter.includeStackTraces']);
                 $lineFormatter->setPrettyJson($dic['Yapeal.Log.Parameters.LineFormatter.prettyJson']);
                 return $lineFormatter;
-            };
+            });
+        }
+        if (empty($dic['Yapeal.Log.Callable.CliLF'])) {
+            $dic['Yapeal.Log.Callable.CliLF'] = $dic['Yapeal.Log.Callable.LFFactory'];
+        }
+        if (empty($dic['Yapeal.Log.Callable.FileSystemLF'])) {
+            $dic['Yapeal.Log.Callable.FileSystemLF'] = $dic['Yapeal.Log.Callable.LFFactory'];
         }
         return $this;
     }
