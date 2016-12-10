@@ -1,65 +1,9 @@
 ---
 Yapeal:
+    consoleAutoExit: false
+    consoleCatchExceptions: false
+    consoleName: 'Yapeal-ng Console'
     version: '0.5.0-0-ge18b160'
-    Error:
-        bufferSize: 25
-        channel: php
-        dir: '{Yapeal.Log.dir}'
-        fileName: '{Yapeal.Log.fileName}'
-        threshold: 400
-        Classes:
-            error: Monolog\ErrorHandler
-            fingersCrossed: Monolog\Handler\FingersCrossedHandler
-            group: Monolog\Handler\GroupHandler
-            lineFormatter: Yapeal\Log\LineFormatter
-            logger: Yapeal\Log\Logger
-            strategy: Yapeal\Log\ActivationStrategy
-            stream: Yapeal\Log\StreamHandler
-        Parameters:
-            Cli:
-                bubble: true
-                filePermission: ~
-                handler: 'Yapeal.Error.Classes.stream'
-                level: 100
-                lineFormatter: 'Yapeal.Error.Callable.LineFormatter'
-                preserve: true
-                stream: 'php://stderr'
-                useLocking: false
-            Error:
-                exceptionLevel: ~
-                fatalLevel: ~
-            FileSystem:
-                bubble: true
-                filePermission: ~
-                handler: 'Yapeal.Error.Classes.stream'
-                level: 100
-                lineFormatter: 'Yapeal.Error.Callable.LineFormatter'
-                preserve: false
-                stream: '{Yapeal.Error.dir}{Yapeal.Error.fileName}'
-                useLocking: false
-            FingersCrossed:
-                activationStrategy: 'Yapeal.Error.Callable.Strategy'
-                bubble: true
-                bufferSize: '{Yapeal.Error.bufferSize}'
-                handler: 'Yapeal.Error.Callable.Group'
-                passThruLevel: ~
-                stopBuffering: false
-            Group:
-                bubble: true
-                handlers: 'Yapeal.Error.Callable.Cli,Yapeal.Error.Callable.FileSystem'
-            LineFormatter:
-                allowInlineLineBreaks: true
-                dateFormat: U.u
-                format: ~
-                ignoreEmptyContextAndExtra: true
-                includeStackTraces: true
-                prettyJson: false
-            Logger:
-                handlers: 'Yapeal.Error.Callable.FingersCrossed'
-                name: '{Yapeal.Error.channel}'
-                processors: ''
-            Strategy:
-                actionLevel: '{Yapeal.Error.threshold}'
     EveApi:
         dir: '{Yapeal.libDir}EveApi/'
         Cache:
@@ -126,11 +70,30 @@ Yapeal:
                 format: ~
                 ignoreEmptyContextAndExtra: true
                 includeStackTraces: true
-                prettyJson: false
+                prettyJson: true
             Logger:
                 handlers: 'Yapeal.Log.Callable.FingersCrossed'
                 name: '{Yapeal.Log.channel}'
                 processors: ''
+            Register:
+                errorLevelMap: >
+                    {"1": "critical",
+                    "2": "warning",
+                    "4": "alert",
+                    "8": "notice",
+                    "16": "critical",
+                    "32": "warning",
+                    "64": "alert",
+                    "128": "warning",
+                    "256": "error",
+                    "512": "warning",
+                    "1024": "notice",
+                    "2048": "notice",
+                    "4096": "error",
+                    "8192": "notice",
+                    "16384": "notice"}
+                exceptionLevel: 500 # CRITICAL
+                fatalLevel: 550 # ALERT
             Strategy:
                 actionLevel: '{Yapeal.Log.threshold}'
     Network:
@@ -185,7 +148,6 @@ Yapeal:
             queries: Yapeal\Sql\CommonSqlQueries
     Wiring:
         Classes:
-            error: Yapeal\Configuration\ErrorWiring
             eveapi: Yapeal\Configuration\EveApiWiring
             event: Yapeal\Configuration\EventWiring
             filesystem: Yapeal\Configuration\FileSystemWiring
