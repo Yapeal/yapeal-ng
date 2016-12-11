@@ -101,7 +101,7 @@ trait SqlSubsTrait
                     return false;
                 }
                 $filtered = in_array($key, ['Yapeal.Sql.Callable.CommonQueries', 'Yapeal.Sql.Callable.Connection', 'Yapeal.Sql.Callable.Creator'], true)
-                    || false !== strpos($key, 'Handlers.')
+                    || false !== strpos($key, 'Classes.')
                     || (false !== strpos($key, 'Platforms.') && false === strpos($key, $platform));
                 return !$filtered;
             });
