@@ -56,7 +56,7 @@ class SqlSubsTraitSpec extends ObjectBehavior
      *
      * @throws \Prophecy\Exception\InvalidArgumentException
      */
-    public function it_should_not_return_handler_from_get_sql_subs_when_given_handler_in_sql_section(
+    public function it_should_not_return_class_from_get_sql_subs_when_given_class_in_sql_section(
         ContainerInterface $dic
     ) {
         $dic->keys()
