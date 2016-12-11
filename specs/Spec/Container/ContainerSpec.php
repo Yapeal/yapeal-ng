@@ -59,11 +59,16 @@ class ContainerSpec extends ObjectBehavior
     {
         $this->shouldHaveType('Yapeal\Container\Container');
     }
+    /**
+     * @param \Yapeal\Container\ServiceProviderInterface|\PhpSpec\Wrapper\Collaborator $provider
+     *
+     * @throws \Prophecy\Exception\Doubler\ClassNotFoundException
+     * @throws \Prophecy\Exception\Doubler\DoubleException
+     * @throws \Prophecy\Exception\Doubler\InterfaceNotFoundException
+     * @throws \Prophecy\Exception\InvalidArgumentException
+     */
     public function it_provided_fluent_interface_from_register($provider)
     {
-        /**
-         * @var \Yapeal\Container\ServiceProviderInterface $provider
-         */
         $provider->beADoubleOf('\Yapeal\Container\ServiceProviderInterface');
         $provider->register($this)
             ->willReturn();
@@ -106,7 +111,7 @@ class ContainerSpec extends ObjectBehavior
         };
         $this['foo'];
         $this['bar'] = $this->extend('bar',
-            function ($bar, $app) {
+            function ($bar) {
                 return "$bar.baz";
             });
         $this['bar']->shouldReturn('bar.baz');
@@ -269,29 +274,29 @@ class ContainerSpec extends ObjectBehavior
     }
     public function it_throws_exception_for_non_existent_extend_offset()
     {
-        $id = 'param';
-        $mess = sprintf('Identifier "%s" is not defined.', $id);
+        $id1 = 'param';
+        $mess = sprintf('Identifier "%s" is not defined.', $id1);
         $this->shouldThrow(new \InvalidArgumentException($mess))
             ->during('extend',
                 [
-                    $id,
+                    $id1,
                     function () {
                     }
                 ]);
     }
     public function it_throws_exception_for_non_existent_get_offset()
     {
-        $id = 'param';
-        $mess = sprintf('Identifier "%s" is not defined.', $id);
+        $id1 = 'param';
+        $mess = sprintf('Identifier "%s" is not defined.', $id1);
         $this->shouldThrow(new \InvalidArgumentException($mess))
-            ->during('offsetGet', [$id]);
+            ->during('offsetGet', [$id1]);
     }
     public function it_throws_exception_for_non_existent_raw_offset()
     {
-        $id = 'param';
-        $mess = sprintf('Identifier "%s" is not defined.', $id);
+        $id1 = 'param';
+        $mess = sprintf('Identifier "%s" is not defined.', $id1);
         $this->shouldThrow(new \InvalidArgumentException($mess))
-            ->during('raw', [$id]);
+            ->during('raw', [$id1]);
     }
     public function it_throws_exception_when_trying_to_extend_non_invokable()
     {
