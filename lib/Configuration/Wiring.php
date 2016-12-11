@@ -89,13 +89,8 @@ class Wiring implements DicAwareInterface
                 $class->wire($dic);
                 continue;
             }
-            $methodName = 'wire' . $name;
-            if (method_exists($this, $methodName)) {
-                $this->$methodName();
-            } else {
-                $mess = 'Could NOT find class or method for ' . $name;
-                throw new \LogicException($mess);
-            }
+            $mess = sprintf('Could NOT find mandatory %s wiring class. Aborting ...', $name);
+            throw new \LogicException($mess);
         }
         return $this;
     }
