@@ -74,6 +74,13 @@ class Wiring implements DicAwareInterface
     public function wireAll(): self
     {
         $dic = $this->getDic();
+        // First things first, should add self to Container and freeze so can't be overwritten later by oops.
+        if (empty($dic['Yapeal.Wiring.Callable.Wiring'])) {
+            $dic['Yapeal.Wiring.Callable.Wiring'] = function () use ($dic) {
+                return new Wiring($dic);
+            };
+            $dic['Yapeal.Wiring.Callable.Wiring'];
+        }
         $base = 'Yapeal.Wiring.Classes.';
         $dic[$base . 'config'] = $dic[$base . 'config'] ?? '\Yapeal\Configuration\ConfigWiring';
         $names = ['Config', 'Event', 'Log', 'Sql', 'Xml', 'Xsd', 'Xsl', 'FileSystem', 'Network', 'EveApi'];
