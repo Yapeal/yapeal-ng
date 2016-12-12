@@ -131,7 +131,7 @@ Yapeal:
         platform: mysql
         tablePrefix: ''
         userName: YapealUser
-        Platforms:
+        Parameters:
             mysql:
                 characterCollate: utf8mb4_unicode_520_ci
                 characterSet: utf8mb4

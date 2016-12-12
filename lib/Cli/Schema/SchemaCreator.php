@@ -40,6 +40,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Yapeal\Container\ContainerInterface;
 use Yapeal\Event\YEMAwareTrait;
+use Yapeal\Exception\YapealDatabaseException;
 use Yapeal\Log\Logger;
 
 /**
@@ -59,6 +60,7 @@ class SchemaCreator extends AbstractSchemaCommon
         $this->setDescription('Retrieves SQL from files and initializes schema');
         $this->setDic($dic);
         $this->platform = $dic['Yapeal.Sql.platform'];
+        $this->schemaName = $dic['Yapeal.Sql.Platforms.mysql.schema'];
         $this->createDirs = [$dic['Yapeal.Sql.dir']];
         if (!empty($dic['Yapeal.Sql.appDir'])) {
             $this->createDirs[] = $dic['Yapeal.Sql.appDir'];
@@ -154,6 +156,9 @@ HELP;
     protected function processSql(OutputInterface $output)
     {
         $yem = $this->getYem();
+        if ($this->dropSchema) {
+            $this->dropIfSchemaExist($output);
+        }
         $fileNames = $this->getCreateFileNames();
         if (0 === count($fileNames)) {
             $mess = '<error>No SQL create files were found</error>';
@@ -174,6 +179,30 @@ HELP;
             }
             $this->executeSqlStatements($sqlStatements, $fileName, $output);
         }
+    }
+    /**
+     * @param OutputInterface $output
+     *
+     * @throws YapealDatabaseException
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
+     * @throws \UnexpectedValueException
+     */
+    private function dropIfSchemaExist(OutputInterface $output)
+    {
+        $csq = $this->getCsq();
+        $yem = $this->getYem();
+        $pdo = $this->getPdo();
+        $sql = $csq->getSchemaNames();
+        $yem->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, 'sql - ' . $sql);
+        try {
+            if (false === $stmt = $pdo->query($sql)) {
+                $mess = '<error>Failed to get Schema list</error>';
+                $output->writeln($mess);
+                throw new YapealDatabaseException(strip_tags($mess), 2);
+            }
+        } catch (\PDOException $exc) {}
     }
     /**
      * @return array|string[]

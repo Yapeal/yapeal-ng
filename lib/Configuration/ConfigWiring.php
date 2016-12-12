@@ -56,11 +56,7 @@ class ConfigWiring implements WiringInterface, DicAwareInterface
     public function wire(ContainerInterface $dic)
     {
         $this->setDic($dic);
-        if (empty($dic['Yapeal.Config.Callable.Yaml'])) {
-            $dic['Yapeal.Config.Callable.Yaml'] = $dic->factory(function () {
-                return new YamlConfigFile();
-            });
-        }
+        $this->wireYaml($dic);
         $path = dirname(str_replace('\\', '/', __DIR__), 2) . '/';
         // These two paths are critical to Yapeal-ng working and can't be overridden.
         $dic['Yapeal.baseDir'] = $path;
@@ -123,5 +119,41 @@ class ConfigWiring implements WiringInterface, DicAwareInterface
             $settings['Yapeal.version'] = $gitVersion . '-dev';
         }
         return $settings;
+    }
+    /**
+     * @param ContainerInterface $dic
+     *
+     * @return self Fluent interface.
+     */
+    private function wireYaml(ContainerInterface $dic): self
+    {
+        if (empty($dic['Yapeal.Config.Callable.Yaml'])) {
+            $dic['Yapeal.Config.Callable.Yaml'] = $dic->factory(function () {
+                return new YamlConfigFile();
+            });
+        }
+        return $this;
+    }
+    /**
+     * @param ContainerInterface $dic
+     *
+     * @return ConfigWiring Fluent interface.
+     * @throws \InvalidArgumentException
+     */
+    private function wireExtractor(ContainerInterface $dic): self
+    {
+        if (empty($dic['Yapeal.Config.Callable.ExtractByContainerPrefix'])) {
+            $dic['Yapeal.Config.Callable.ExtractByContainerPrefix'] = $dic->protect(function (string $prefix, ContainerInterface $dic) {
+                $candidates = [];
+                $keys = $dic->keys();
+                foreach ($keys as $key) {
+                    if (0 === strpos($key, $prefix) && is_scalar($dic[$key])) {
+                        $candidates[$key] = $dic[$key];
+                    }
+                }
+                return $candidates;
+            });
+        }
+        return $this;
     }
 }

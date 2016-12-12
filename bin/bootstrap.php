@@ -36,7 +36,7 @@ declare(strict_types = 1);
  * Nothing to do if Composer auto loader already exists.
  */
 if (class_exists('\Composer\Autoload\ClassLoader', false)) {
-    return;
+    return 0;
 }
 /*
  * Find Composer auto loader after striping away any vendor path.
@@ -63,5 +63,5 @@ if (!class_exists('\Composer\Autoload\ClassLoader', false)) {
         fwrite(STDOUT, $mess);
     }
     unset($mess);
-    return 1;
+    exit(1);
 }
