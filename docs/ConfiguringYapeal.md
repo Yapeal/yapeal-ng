@@ -43,7 +43,7 @@ NOTE:
 
     In the follow text I use the term 'schema' for what most people know
     as a database. In standards like SQL-92 the correct term is schema
-    and I have choose to use it as well here and most places throughout
+    and I have chosen to use it as well here and most places throughout
     Yapeal-ng. Vendors are slowly move to this term also so expect to start
     seeing it more often.
 
@@ -86,7 +86,7 @@ settings work.
 
 Let say you have a `config/yapeal.yaml` file that has these settings:
 
-```
+```yaml
 Yapeal:
 ...
     Sql:

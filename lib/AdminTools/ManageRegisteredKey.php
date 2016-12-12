@@ -67,12 +67,10 @@ class ManageRegisteredKey
                     $sql = $this->csq->getInsert('yapealRegisteredKey', $columnNames, 1);
                     break;
                 case 'read':
-                    $sql = '';
-                    break;
+                    $sql = $this->csq->getSelect('yapealRegisteredKey', $columnNames, ['keyID' => $this->keyID]);
+                    return $this->readFromTable($sql);
                 case 'update':
-                    $sql = $this->csq->getUpsert('yapealRegisteredKey',
-                        $columnNames,
-                        1);
+                    $sql = $this->csq->getUpsert('yapealRegisteredKey', $columnNames, 1);
                     break;
                 case 'delete':
                     $sql = $this->csq->getDeleteFromTableWithKeyID('yapealRegisteredKey', $this->keyID);
@@ -157,12 +155,12 @@ class ManageRegisteredKey
     {
         if ($keyID !== $this->keyID) {
             $this->keyID = $keyID;
-            $this->command = 'read';
-            $this->setDirty(true);
+            $refresh = true;
         }
         if ($refresh) {
             $this->command = 'read';
             $this->setDirty(true);
+            $this->commit();
         }
         return [
             'active' => $this->active,
@@ -275,4 +273,47 @@ class ManageRegisteredKey
      * @var MediatorInterface $yem
      */
     private $yem;
+    /**
+     * @param string $sql
+     *
+     * @return bool
+     */
+    private function readFromTable(string $sql): bool
+    {
+        $stmt = $this->pdo->query($sql);
+        $result = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        if (1 !== count($result)) {
+            $this->lastErrorString = 'Expected to fetch a single row for ' . $this->command;
+            return false;
+        }
+        $this->active = (bool)$result[0]['active'];
+        $this->activeAPIMask = (int)$result[0]['activeAPIMask'];
+        $this->keyID = (int)$result[0]['keyID'];
+        $this->vCode = (string)$result[0]['vCode'];
+        $this->command = '';
+        $this->setDirty(false);
+        return true;
+    }
+    /**
+     * @param array $columns
+     *
+     * @return array
+     */
+    private function enforceColumnTypes(array $columns): array
+    {
+        array_walk($columns, function (&$value, $key) {
+            switch ($key) {
+                case 'active':
+                    $value = (bool)$value;
+                    break;
+                case 'activeAPIMask':
+                case 'keyID':
+                    $value = (int)$value;
+                    break;
+                default:
+                    $value = (string)$value;
+            }
+        });
+        return $columns;
+    }
 }
