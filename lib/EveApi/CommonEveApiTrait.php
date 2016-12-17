@@ -63,6 +63,9 @@ trait CommonEveApiTrait
         if (!$this->gotApiLock($data, $yem)) {
             return false;
         }
+        if ($this->cachedUntilIsNotExpired($data, $yem)) {
+            return true;
+        }
         $result = $this->processEvents($data, $yem);
         if ($result) {
             $this->updateCachedUntil($data, $yem);
@@ -117,10 +120,6 @@ trait CommonEveApiTrait
                     $aClone->addEveApiArgument('rowCount', '2560');
                 }
             }
-            if ($this->cachedUntilIsNotExpired($aClone, $yem)) {
-                $event->setHandledSufficiently();
-                continue;
-            }
             if ($this->oneShot($aClone, $yem)) {
                 $event->setHandledSufficiently();
             }
@@ -142,7 +141,7 @@ trait CommonEveApiTrait
         $sql = $this->getCsq()
             ->getCachedUntilExpires($data->hasEveApiArgument('accountKey') ? (int)$data->getEveApiArgument('accountKey') : 0,
                 $data->getEveApiName(),
-                (int)$this->extractOwnerID($data->getEveApiArguments()));
+                $this->extractOwnerID($data->getEveApiArguments()));
         $yem->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, 'sql - ' . $sql);
         try {
             $expires = $this->getPdo()
