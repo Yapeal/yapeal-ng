@@ -70,7 +70,7 @@ trait ConfigFileProcessingTrait
      * Subs from within $settings itself are used first with $dic used to
      * fill-in as needed for any unknown ones.
      *
-     * Subs are tried up to 10 times as long as any {Yapeal.*} are found before
+     * Subs are tried up to 25 times as long as any {Yapeal.*} are found before
      * giving up to prevent infinite loop.
      *
      * @param array              $settings
@@ -88,15 +88,26 @@ trait ConfigFileProcessingTrait
         $maxDepth = 25;
         $callback = function ($subject) use ($dic, $settings, &$miss) {
             $regEx = '%(.*)\{(?<name>(?:\w+)(?:\.\w+)+)\}(.*)%';
-            if (is_string($subject) && preg_match($regEx, $subject, $matches)) {
-                $name = $matches['name'];
-                if ($dic->offsetExists($name)) {
-                    $subject = $matches[1] . $dic[$name] . $matches[3];
-                } elseif (array_key_exists($name, $settings)) {
-                    $subject = $matches[1] . $settings[$name] . $matches[3];
-                }
-                if (false !== strpos($subject, '{') && false !== strpos($subject, '}')) {
-                    ++$miss;
+            if (is_string($subject)) {
+                $matched = preg_match($regEx, $subject, $matches);
+                if (1 === $matched) {
+                    $name = $matches['name'];
+                    if ($dic->offsetExists($name)) {
+                        $subject = $matches[1] . $dic[$name] . $matches[3];
+                    } elseif (array_key_exists($name, $settings)) {
+                        $subject = $matches[1] . $settings[$name] . $matches[3];
+                    }
+                    if (false !== strpos($subject, '{') && false !== strpos($subject, '}')) {
+                        ++$miss;
+                    }
+                } elseif (false === $matched) {
+                    $constants = array_flip(array_filter(get_defined_constants(),
+                        function (string $value) {
+                            return fnmatch('PREG_*_ERROR', $value);
+                        },
+                        ARRAY_FILTER_USE_KEY));
+                    $mess = 'Received preg error ' . $constants[preg_last_error()];
+                    throw new \DomainException($mess);
                 }
             }
             return $subject;
@@ -106,13 +117,6 @@ trait ConfigFileProcessingTrait
             $settings = array_map($callback, $settings);
             if (++$depth > $maxDepth) {
                 $mess = 'Exceeded maximum depth, check for possible circular reference(s)';
-                throw new \DomainException($mess);
-            }
-            $lastError = preg_last_error();
-            if (PREG_NO_ERROR !== $lastError) {
-                $constants = array_flip(get_defined_constants(true)['pcre']);
-                $lastError = $constants[$lastError];
-                $mess = 'Received preg error ' . $lastError;
                 throw new \DomainException($mess);
             }
         } while (0 < $miss);
