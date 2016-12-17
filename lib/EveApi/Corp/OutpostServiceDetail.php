@@ -46,7 +46,6 @@ class OutpostServiceDetail extends CorpSection implements EveApiPreserverInterfa
 {
     use PreserverTrait;
 
-    /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
      */

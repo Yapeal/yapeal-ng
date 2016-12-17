@@ -50,6 +50,7 @@ trait CommonEveApiTrait
     use CommonToolsTrait, EveApiEventEmitterTrait;
     /**
      * @param EveApiReadWriteInterface $data
+     * @param MediatorInterface        $yem
      *
      * @return bool
      * @throws \DomainException
@@ -57,17 +58,20 @@ trait CommonEveApiTrait
      * @throws \LogicException
      * @throws \UnexpectedValueException
      */
-    public function oneShot(EveApiReadWriteInterface $data): bool
+    public function oneShot(EveApiReadWriteInterface $data, MediatorInterface $yem): bool
     {
-        if (!$this->gotApiLock($data)) {
+        if (!$this->gotApiLock($data, $yem)) {
             return false;
         }
-        $result = $this->processEvents($data);
+        if ($this->cachedUntilIsNotExpired($data, $yem)) {
+            return true;
+        }
+        $result = $this->processEvents($data, $yem);
         if ($result) {
-            $this->updateCachedUntil($data);
+            $this->updateCachedUntil($data, $yem);
             $this->emitEvents($data, 'end');
         }
-        $this->releaseApiLock($data);
+        $this->releaseApiLock($data, $yem);
         return $result;
     }
     /**
@@ -90,14 +94,13 @@ trait CommonEveApiTrait
             Logger::DEBUG,
             $this->getReceivedEventMessage($data, $eventName, __CLASS__));
         try {
-            $records = $this->getActive($data);
+            $records = $this->getActive($data, $yem);
         } catch (\PDOException $exc) {
             $mess = 'Could NOT get a list of active owners during the processing of';
-            $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log',
-                    Logger::WARNING,
-                    $this->createEveApiMessage($mess, $data),
-                    ['exception' => $exc]);
+            $yem->triggerLogEvent('Yapeal.Log.log',
+                Logger::WARNING,
+                $this->createEveApiMessage($mess, $data),
+                ['exception' => $exc]);
             return $event;
         }
         if (0 === count($records)) {
@@ -117,11 +120,7 @@ trait CommonEveApiTrait
                     $aClone->addEveApiArgument('rowCount', '2560');
                 }
             }
-            if ($this->cachedUntilIsNotExpired($aClone)) {
-                $event->setHandledSufficiently();
-                continue;
-            }
-            if ($this->oneShot($aClone)) {
+            if ($this->oneShot($aClone, $yem)) {
                 $event->setHandledSufficiently();
             }
         }
@@ -129,6 +128,7 @@ trait CommonEveApiTrait
     }
     /**
      * @param EveApiReadWriteInterface $data
+     * @param MediatorInterface        $yem
      *
      * @return bool
      * @throws \DomainException
@@ -136,22 +136,20 @@ trait CommonEveApiTrait
      * @throws \LogicException
      * @throws \UnexpectedValueException
      */
-    protected function cachedUntilIsNotExpired(EveApiReadWriteInterface $data): bool
+    protected function cachedUntilIsNotExpired(EveApiReadWriteInterface $data, MediatorInterface $yem): bool
     {
         $sql = $this->getCsq()
             ->getCachedUntilExpires($data->hasEveApiArgument('accountKey') ? (int)$data->getEveApiArgument('accountKey') : 0,
                 $data->getEveApiName(),
-                (int)$this->extractOwnerID($data->getEveApiArguments()));
-        $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, 'sql - ' . $sql);
+                $this->extractOwnerID($data->getEveApiArguments()));
+        $yem->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, 'sql - ' . $sql);
         try {
             $expires = $this->getPdo()
                 ->query($sql)
                 ->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\PDOException $exc) {
             $mess = 'Could NOT query cache expired during the processing of';
-            $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log',
+            $yem->triggerLogEvent('Yapeal.Log.log',
                     Logger::WARNING,
                     $this->createEveApiMessage($mess, $data),
                     ['exception' => $exc]);
@@ -159,20 +157,17 @@ trait CommonEveApiTrait
         }
         if (0 === count($expires)) {
             $mess = 'No cached until row found during the processing of';
-            $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->createEveApiMessage($mess, $data));
+            $yem->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->createEveApiMessage($mess, $data));
             return false;
         }
         if (1 < count($expires)) {
             $mess = 'Multiple cached until rows found during the processing of';
-            $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $this->createEveApiMessage($mess, $data));
+            $yem->triggerLogEvent('Yapeal.Log.log', Logger::WARNING, $this->createEveApiMessage($mess, $data));
             return false;
         }
         if (strtotime($expires[0]['expires'] . '+00:00') < time()) {
             $mess = 'Expired cached until row found during the processing of';
-            $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->createEveApiMessage($mess, $data));
+            $yem->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->createEveApiMessage($mess, $data));
             return false;
         }
         return true;
@@ -193,6 +188,7 @@ trait CommonEveApiTrait
     }
     /**
      * @param EveApiReadWriteInterface $data
+     * @param MediatorInterface        $yem
      *
      * @return array
      * @throws \DomainException
@@ -200,7 +196,7 @@ trait CommonEveApiTrait
      * @throws \LogicException
      * @throws \UnexpectedValueException
      */
-    protected function getActive(EveApiReadWriteInterface $data)
+    protected function getActive(EveApiReadWriteInterface $data, MediatorInterface $yem)
     {
         switch (strtolower($data->getEveApiSectionName())) {
             case 'account':
@@ -233,8 +229,7 @@ trait CommonEveApiTrait
             default:
                 return [false];
         }
-        $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, 'sql - ' . $sql);
+        $yem->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, 'sql - ' . $sql);
         return $this->getPdo()
             ->query($sql)
             ->fetchAll(PDO::FETCH_ASSOC);
@@ -248,6 +243,7 @@ trait CommonEveApiTrait
     }
     /**
      * @param EveApiReadWriteInterface $data
+     * @param MediatorInterface        $yem
      *
      * @return bool
      * @throws \DomainException
@@ -255,12 +251,11 @@ trait CommonEveApiTrait
      * @throws \LogicException
      * @throws \UnexpectedValueException
      */
-    protected function gotApiLock(EveApiReadWriteInterface $data): bool
+    protected function gotApiLock(EveApiReadWriteInterface $data, MediatorInterface $yem): bool
     {
         $sql = $this->getCsq()
             ->getApiLock(crc32($data->getHash()));
-        $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, 'sql - ' . $sql);
+        $yem->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, 'sql - ' . $sql);
         $context = [];
         $success = false;
         try {
@@ -271,8 +266,7 @@ trait CommonEveApiTrait
             $context = ['exception' => $exc];
         }
         $mess = $success ? 'Got lock during the processing of' : 'Could NOT get lock during the processing of';
-        $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $this->createEveApiMessage($mess, $data), $context);
+        $yem->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $this->createEveApiMessage($mess, $data), $context);
         return $success;
     }
     /**
@@ -293,8 +287,8 @@ trait CommonEveApiTrait
     {
         $replacements = [];
         foreach ($records as $arguments) {
+            $newArgs = $arguments;
             foreach ($this->accountKeys as $accountKey) {
-                $newArgs = $arguments;
                 $newArgs['accountKey'] = $accountKey;
                 $replacements[] = $newArgs;
             }
@@ -303,6 +297,7 @@ trait CommonEveApiTrait
     }
     /**
      * @param EveApiReadWriteInterface $data
+     * @param MediatorInterface        $yem
      *
      * @return bool
      * @throws \DomainException
@@ -310,7 +305,7 @@ trait CommonEveApiTrait
      * @throws \LogicException
      * @throws \UnexpectedValueException
      */
-    protected function processEvents(EveApiReadWriteInterface $data): bool
+    protected function processEvents(EveApiReadWriteInterface $data, MediatorInterface $yem): bool
     {
         $eventSuffixes = ['retrieve', 'transform', 'validate', 'preserve'];
         foreach ($eventSuffixes as $eventSuffix) {
@@ -322,12 +317,10 @@ trait CommonEveApiTrait
                     && 'corp' === strtolower($data->getEveApiSectionName())
                 ) {
                     $mess = 'No faction warfare account data during the processing of';
-                    $this->getYem()
-                        ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $this->createEveApiMessage($mess, $data));
+                    $yem->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $this->createEveApiMessage($mess, $data));
                     return false;
                 }
-                $this->getYem()
-                    ->triggerLogEvent('Yapeal.Log.log',
+                $yem->triggerLogEvent('Yapeal.Log.log',
                         Logger::INFO,
                         $this->getEmptyXmlDataMessage($data, $eventSuffix));
                 return false;
@@ -337,6 +330,7 @@ trait CommonEveApiTrait
     }
     /**
      * @param EveApiReadWriteInterface $data
+     * @param MediatorInterface        $yem
      *
      * @return bool
      * @throws \DomainException
@@ -344,12 +338,11 @@ trait CommonEveApiTrait
      * @throws \LogicException
      * @throws \UnexpectedValueException
      */
-    protected function releaseApiLock(EveApiReadWriteInterface $data): bool
+    protected function releaseApiLock(EveApiReadWriteInterface $data, MediatorInterface $yem): bool
     {
         $sql = $this->getCsq()
             ->getApiLockRelease(crc32($data->getHash()));
-        $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, 'sql - ' . $sql);
+        $yem->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, 'sql - ' . $sql);
         $context = [];
         $success = false;
         try {
@@ -360,12 +353,12 @@ trait CommonEveApiTrait
             $context = ['exception' => $exc];
         }
         $mess = $success ? 'Released lock for' : 'Could NOT release lock for';
-        $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $this->createEveApiMessage($mess, $data), $context);
+        $yem->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $this->createEveApiMessage($mess, $data), $context);
         return $success;
     }
     /**
      * @param EveApiReadWriteInterface $data
+     * @param MediatorInterface        $yem
      *
      * @return static Fluent interface.
      * @throws \DomainException
@@ -373,7 +366,7 @@ trait CommonEveApiTrait
      * @throws \LogicException
      * @throws \UnexpectedValueException
      */
-    protected function updateCachedUntil(EveApiReadWriteInterface $data)
+    protected function updateCachedUntil(EveApiReadWriteInterface $data, MediatorInterface $yem)
     {
         if ('' === $data->getEveApiXml()) {
             return $this;
@@ -392,8 +385,7 @@ trait CommonEveApiTrait
         ];
         $sql = $this->getCsq()
             ->getUpsert('utilCachedUntil', array_keys($row), 1);
-        $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, 'sql - ' . $sql);
+        $yem->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, 'sql - ' . $sql);
         $pdo = $this->getPdo();
         $pdo->beginTransaction();
         $context = [];
@@ -408,8 +400,7 @@ trait CommonEveApiTrait
             $context = ['exception' => $exc];
         }
         $mess = $success ? 'Updated cached until date/time of' : 'Could NOT update cached until date/time of';
-        $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $this->createEveApiMessage($mess, $data), $context);
+        $yem->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $this->createEveApiMessage($mess, $data), $context);
         return $this;
     }
     /**

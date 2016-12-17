@@ -55,8 +55,8 @@ class AdminToolsContext implements Context
     {
         $this->dic = new Container();
         (new Wiring($this->dic))->wireAll();
-        $this->csq = $this->dic['Yapeal.Sql.CommonQueries'];
-        $this->yem = $this->dic['Yapeal.Event.Mediator'];
+        $this->csq = $this->dic['Yapeal.Sql.Callable.CommonQueries'];
+        $this->yem = $this->dic['Yapeal.Event.Callable.Mediator'];
     }
     /**
      * @AfterScenario
@@ -72,6 +72,7 @@ class AdminToolsContext implements Context
             Assert::true($this->pdo->commit(), 'Could not commit test row');
         }
         $this->key = [];
+        $this->tableRow = [];
     }
     /**
      * @Then from the ManageRegisteredKey class I should be able to read back: :active :activeAPIMask :keyID :vCode
@@ -112,7 +113,7 @@ class AdminToolsContext implements Context
      *
      * @param int $keyID
      */
-    public function iDeleteKeyIdInTheManageRegisteredKeyClass(int $keyID)
+    public function iDeleteKeyIDInTheManageRegisteredKeyClass(int $keyID)
     {
         $this->mrk->delete($keyID);
     }
@@ -123,7 +124,7 @@ class AdminToolsContext implements Context
      */
     public function iHaveAnInitializedInstanceOfPDOConnection()
     {
-        $this->pdo = $this->dic['Yapeal.Sql.Connection'];
+        $this->pdo = $this->dic['Yapeal.Sql.Callable.Connection'];
     }
     /**
      * @Given I have an new instance of the ManageRegisteredKey class
@@ -147,6 +148,35 @@ class AdminToolsContext implements Context
         Assert::true($this->mrk->commit(), $this->mrk->getLastErrorString());
     }
     /**
+     * @Given if I set the refresh flag when reading the same keyID in ManageRegisteredKey I get the same data as in the table back.
+     */
+    public function ifISetTheRefreshFlagWhenReadingTheSameKeyIDInManageRegisteredKeyIGetTheSameDataAsInTheTableBack()
+    {
+        $expected = json_encode($this->tableRow);
+        $result = json_encode($this->mrk->read($this->tableRow['keyID'], true));
+        Assert::same($result, $expected);
+    }
+    /**
+     * @Then if I set the refresh flag when reading the same keyID in ManageRegisteredKey I should get: :active :activeAPIMask :keyID :vCode
+     *
+     * @param bool   $active
+     * @param int    $activeAPIMask
+     * @param int    $keyID
+     * @param string $vCode
+     *
+     * @throws \InvalidArgumentException
+     */
+    public function ifISetTheRefreshFlagWhenReadingTheSameKeyIDInManageRegisteredKeyIShouldGet(
+        bool $active,
+        int $activeAPIMask,
+        int $keyID,
+        string $vCode
+    ) {
+        $expected = json_encode(compact('active', 'activeAPIMask', 'keyID', 'vCode'));
+        $result = json_encode($this->mrk->read($keyID, true));
+        Assert::same($result, $expected);
+    }
+    /**
      * @Given that I have the new key information: :active :activeAPIMask :keyID :vCode
      *
      * @param bool   $active
@@ -163,14 +193,14 @@ class AdminToolsContext implements Context
      */
     public function theIsDirtyFlagShouldBeClearedInManageRegisteredKey()
     {
-        Assert::false($this->mrk->isDirty());
+        Assert::false($this->mrk->isDirty(), 'The isDirty flag was not cleared');
     }
     /**
      * @Then the isDirty flag should be set in ManageRegisteredKey
      */
     public function theIsDirtyFlagShouldBeSetInManageRegisteredKey()
     {
-        Assert::true($this->mrk->isDirty());
+        Assert::true($this->mrk->isDirty(), 'The isDirty flag was not set');
     }
     /**
      * @Then there should now exist a row in the :tableName table containing: :active :activeAPIMask :keyID :vCode
@@ -198,9 +228,8 @@ class AdminToolsContext implements Context
         Assert::same($result, $expected);
     }
     /**
-     * @Given there is an existing row in the :tableName table containing: :active :activeAPIMask :keyID :vCode
+     * @Given there is an existing row in the yapealRegisteredKey table containing: :active :activeAPIMask :keyID :vCode
      *
-     * @param string $tableName
      * @param bool   $active
      * @param int    $activeAPIMask
      * @param int    $keyID
@@ -209,65 +238,79 @@ class AdminToolsContext implements Context
      * @throws \InvalidArgumentException
      */
     public function thereIsAnExistingRowInTheTableContaining(
-        string $tableName,
         bool $active,
         int $activeAPIMask,
         int $keyID,
         string $vCode
     ) {
-        Assert::false($this->pdo->inTransaction(), 'Still have pending transaction');
-        $sql = $this->csq->getUpsert($tableName, ['active', 'activeAPIMask', 'keyID', 'vCode'], 1);
+        Assert::false($this->pdo->inTransaction(), 'Still have an existing pending transaction');
+        $sql = $this->csq->getUpsert('yapealRegisteredKey', ['active', 'activeAPIMask', 'keyID', 'vCode'], 1);
         Assert::true($this->pdo->beginTransaction(), 'Could not start transaction for test row');
         $stmt = $this->pdo->prepare($sql);
         Assert::true($stmt->execute([$active ?: 0, $activeAPIMask, $keyID, $vCode]), 'Could not upsert test row');
         Assert::true($this->pdo->commit(), 'Could not commit test row');
+        $this->tableRow = compact('active', 'activeAPIMask', 'keyID', 'vCode');
     }
     /**
-     * @Given there is not a keyID = :keyID row in the :tableName table
-     * @Then there should still not be a keyID = :keyID row in the :tableName table
-     * @Then there should no longer be a keyID = :keyID row in the :tableName table
+     * @Given there is not a keyID = :keyID row in the yapealRegisteredKey table
      *
+     * @param int $keyID
+     *
+     * @throws \InvalidArgumentException
+     */
+    public function thereIsNotAKeyIDRowInTheTable(int $keyID)
+    {
+        Assert::false($this->pdo->inTransaction(), 'Still have an existing pending transaction');
+        $sql = $this->csq->getDeleteFromTableWithKeyID('yapealRegisteredKey', $keyID);
+        Assert::true($this->pdo->beginTransaction(), 'Could not start transaction of test row');
+        $stmt = $this->pdo->prepare($sql);
+        Assert::true($stmt->execute(), 'Could not execute delete of test row');
+        Assert::true($this->pdo->commit(), 'Could not commit delete of test row');
+    }
+    /**
+     * @Then there should still not be a ":primary" = :keyID row in the :tableName table
+     * @Then there should no longer be a ":primary" = :keyID row in the :tableName table
+     *
+     * @param string $primary
      * @param int    $keyID
      * @param string $tableName
      *
      * @throws \InvalidArgumentException
      */
-    public function thereIsNotAKeyIDRowInTheTable(int $keyID, string $tableName)
+    public function thereShouldStillNotBeARowInTheTable(string $primary, int $keyID, string $tableName)
     {
         $mess = 'Found %s unexpected row(s) for keyID in table ' . $tableName;
-        Assert::eq($this->getTableRowCount($keyID, $tableName), 0, $mess);
+        Assert::eq($this->getTableRowCount($primary, $keyID, $tableName), 0, $mess);
     }
     /**
+     * @param string $primary
      * @param int    $keyID
      * @param string $tableName
      *
      * @return int
+     * @throws \InvalidArgumentException
+     * @uses self::getTableRowsByIndex()
      */
-    private function getTableRowCount(int $keyID, string $tableName): int
+    private function getTableRowCount(string $primary, int $keyID, string $tableName): int
     {
-        $sql = sprintf(/** @lang text */
-            'SELECT * FROM "yapeal-ng"."%s" WHERE "keyID"=%s',
-            $tableName,
-            $keyID);
-        $stmt = $this->pdo->query($sql);
-        $stmt->fetchAll();
-        $result = $stmt->rowCount();
-        $stmt->closeCursor();
-        return $result;
+        return count($this->getTableRowsByIndex($tableName, ['*'], [$primary => $keyID]));
     }
     /**
-     * @param string $tableName
-     * @param array  $columnNameList
-     * @param array  $where
+     * @param string $tableName      Plain table name as schema name and prefix will be added automatically.
+     * @param array  $columnNameList A simple array of column names or single item array like ['*'].
+     * @param array  $where          For example ['keyID' => 123, ...]. Does not have to be part of $columnNameList.
      *
-     * @return array
+     * @return array Result from PDO::fetchAll() using FETCH_ASSOC option.
+     * @throws \InvalidArgumentException
      */
     private function getTableRowsByIndex(string $tableName, array $columnNameList, array $where): array
     {
         $sql = $this->csq->getSelect($tableName, $columnNameList, $where);
         $stmt = $this->pdo->query($sql);
-        $result = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-        return $result;
+        Assert::isInstanceOf($stmt,
+            'PDOStatement',
+            'PDO query did not return instance of PDOStatement check query syntax');
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
     /**
      * @var CommonSqlQueries $csq
@@ -290,7 +333,40 @@ class AdminToolsContext implements Context
      */
     private $pdo;
     /**
+     * @var array $tableRow
+     */
+    private $tableRow;
+    /**
      * @var MediatorInterface $yem
      */
     private $yem;
+    /**
+     * @Then I can update :changed = :newValue in ManageRegisteredKey but the other columns don't change
+     *
+     * @param string $changed
+     * @param string $newValue
+     *
+     * @throws \InvalidArgumentException
+     */
+    public function iCanUpdateInManageRegisteredKeyButTheOtherColumnsDonTChange(string $changed, string $newValue)
+    {
+        Assert::oneOf($newValue, ['active', 'activeAPIMask', 'vCode']);
+        switch ($changed) {
+            case 'active':
+                $this->mrk->update((bool)$newValue);
+                $this->tableRow[$changed] = (bool)$newValue;
+                break;
+            case 'activeAPIMask':
+                $this->mrk->update(null, (int)$newValue);
+                $this->tableRow[$changed] = (int)$newValue;
+                break;
+            case 'vCode':
+                $this->mrk->update(null, null, (string)$newValue);
+                $this->tableRow[$changed] = (string)$newValue;
+                break;
+        }
+        $expected = json_encode($this->tableRow);
+        $result = json_encode($this->mrk->read($this->tableRow['keyID']));
+        Assert::same($result, $expected);
+    }
 }

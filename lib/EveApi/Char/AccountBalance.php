@@ -47,7 +47,6 @@ class AccountBalance extends CharSection implements CommonToolsInterface, EveApi
 {
     use PreserverTrait;
 
-    /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
      */

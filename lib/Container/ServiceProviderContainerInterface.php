@@ -1,7 +1,7 @@
 <?php
 declare(strict_types = 1);
 /**
- * Contains interface ServiceProviderInterface.
+ * Contains interface ServiceProviderContainerInterface.
  *
  * PHP version 7.0+
  *
@@ -28,24 +28,24 @@ declare(strict_types = 1);
  * You should be able to find a copy of this license in the COPYING-LESSER.md
  * file. A copy of the GNU GPL should also be available in the COPYING.md file.
  *
+ * @author    Michael Cummings <mgcummings@yahoo.com>
  * @copyright 2016 Michael Cummings
  * @license   LGPL-3.0+
- * @author    Michael Cummings <mgcummings@yahoo.com>
  */
 namespace Yapeal\Container;
 
 /**
- * Interface ServiceProviderInterface.
+ * Interface ServiceProviderContainerInterface.
  */
-interface ServiceProviderInterface
+interface ServiceProviderContainerInterface
 {
     /**
-     * Registers services on the given container.
+     * Registers a service provider.
      *
-     * This method should only be used to configure services and parameters.
-     * It should not get services.
+     * @param ServiceProviderInterface $provider A ServiceProviderInterface instance
+     * @param array              $values   An array of values that customizes the provider
      *
-     * @param ContainerInterface $container A container instance
+     * @return ContainerInterface Fluent interface.
      */
-    public function register(ContainerInterface $container);
+    public function register(ServiceProviderInterface $provider, array $values = []): ContainerInterface;
 }

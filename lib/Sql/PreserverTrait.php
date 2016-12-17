@@ -80,8 +80,7 @@ trait PreserverTrait
         }
         $this->setYem($yem);
         $data = $event->getData();
-        $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log',
+        $yem->triggerLogEvent('Yapeal.Log.log',
                 Logger::DEBUG,
                 $this->getReceivedEventMessage($data, $eventName, __CLASS__));
         if ('' === $data->getEveApiXml()) {
@@ -97,8 +96,7 @@ trait PreserverTrait
                 ->commit();
         } catch (\PDOException $exc) {
             $mess = 'Failed to upsert data of';
-            $this->getYem()
-                ->triggerLogEvent('Yapeal.Log.log',
+            $yem->triggerLogEvent('Yapeal.Log.log',
                     Logger::WARNING,
                     $this->createEveApiMessage($mess, $data),
                     ['exception' => $exc]);
@@ -106,8 +104,7 @@ trait PreserverTrait
                 ->rollBack();
             return $event;
         }
-        $this->getYem()
-            ->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->getFinishedEventMessage($data, $eventName));
+        $yem->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, $this->getFinishedEventMessage($data, $eventName));
         return $event->setHandledSufficiently();
     }
     /**

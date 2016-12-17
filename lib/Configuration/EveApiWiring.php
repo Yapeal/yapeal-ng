@@ -95,33 +95,13 @@ class EveApiWiring implements WiringInterface
      */
     private function getFilteredEveApiSubscriberList(ContainerInterface $dic): array
     {
-        $flags = \FilesystemIterator::CURRENT_AS_FILEINFO
-            | \FilesystemIterator::KEY_AS_PATHNAME
-            | \FilesystemIterator::SKIP_DOTS
-            | \FilesystemIterator::UNIX_PATHS;
-        $rdi = new \RecursiveDirectoryIterator($dic['Yapeal.EveApi.dir']);
-        $rdi->setFlags($flags);
-        /** @noinspection SpellCheckingInspection */
-        $rcfi = new \RecursiveCallbackFilterIterator($rdi,
-            function (\SplFileInfo $current, $key, \RecursiveDirectoryIterator $rdi) {
-                if ($rdi->hasChildren()) {
-                    return true;
-                }
-                $dirs = ['Account', 'Api', 'Char', 'Corp', 'Eve', 'Map', 'Server'];
-                $dirExists = in_array(basename(dirname($key)), $dirs, true);
-                return ($dirExists && $current->isFile() && 'php' === $current->getExtension());
-            });
-        /** @noinspection SpellCheckingInspection */
-        $rii = new \RecursiveIteratorIterator($rcfi,
-            \RecursiveIteratorIterator::LEAVES_ONLY,
-            \RecursiveIteratorIterator::CATCH_GET_CHILD);
-        $rii->setMaxDepth(3);
-        $fpn = $this->getFpn();
-        $files = [];
-        foreach ($rii as $file) {
-            $files[] = $fpn->normalizeFile($file->getPathname());
+        clearstatcache(true);
+        $globPath = $dic['Yapeal.EveApi.dir'] . '{Account,Api,Char,Corp,Eve,Map,Server}/*.php';
+        $fileNames = glob($globPath, GLOB_NOESCAPE | GLOB_BRACE);
+        if (false === $fileNames) {
+            $fileNames = [];
         }
-        return $files;
+        return $fileNames;
     }
     /**
      * @param ContainerInterface $dic

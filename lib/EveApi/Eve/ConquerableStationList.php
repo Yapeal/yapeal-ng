@@ -46,7 +46,6 @@ class ConquerableStationList extends EveSection implements EveApiPreserverInterf
 {
     use PreserverTrait;
 
-    /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
      */

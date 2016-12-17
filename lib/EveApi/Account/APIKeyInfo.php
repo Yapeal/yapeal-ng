@@ -45,7 +45,6 @@ class APIKeyInfo extends AccountSection implements EveApiPreserverInterface
 {
     use PreserverTrait;
 
-    /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
      */

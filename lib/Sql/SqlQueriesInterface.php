@@ -1,7 +1,7 @@
 <?php
 declare(strict_types = 1);
 /**
- * Contains interface ServiceProviderInterface.
+ * Contains interface SqlQueriesInterface.
  *
  * PHP version 7.0+
  *
@@ -28,24 +28,15 @@ declare(strict_types = 1);
  * You should be able to find a copy of this license in the COPYING-LESSER.md
  * file. A copy of the GNU GPL should also be available in the COPYING.md file.
  *
+ * @author    Michael Cummings <mgcummings@yahoo.com>
  * @copyright 2016 Michael Cummings
  * @license   LGPL-3.0+
- * @author    Michael Cummings <mgcummings@yahoo.com>
  */
-namespace Yapeal\Container;
+namespace Yapeal\Sql;
 
 /**
- * Interface ServiceProviderInterface.
+ * Interface SqlQueriesInterface.
  */
-interface ServiceProviderInterface
+interface SqlQueriesInterface
 {
-    /**
-     * Registers services on the given container.
-     *
-     * This method should only be used to configure services and parameters.
-     * It should not get services.
-     *
-     * @param ContainerInterface $container A container instance
-     */
-    public function register(ContainerInterface $container);
 }

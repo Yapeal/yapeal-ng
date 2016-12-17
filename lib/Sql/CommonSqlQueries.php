@@ -65,7 +65,7 @@ use Yapeal\FileSystem\SafeFileHandlingTrait;
  * @method string getSelect(string $tableName, array $columnNameList, array $where)
  * @method string getUpsert(string $tableName, array $columnNameList, int $rowCount)
  */
-class CommonSqlQueries implements DicAwareInterface
+class CommonSqlQueries implements DicAwareInterface, SqlQueriesInterface
 {
     use DicAwareTrait;
     use SafeFileHandlingTrait;
