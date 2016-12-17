@@ -287,8 +287,8 @@ trait CommonEveApiTrait
     {
         $replacements = [];
         foreach ($records as $arguments) {
+            $newArgs = $arguments;
             foreach ($this->accountKeys as $accountKey) {
-                $newArgs = $arguments;
                 $newArgs['accountKey'] = $accountKey;
                 $replacements[] = $newArgs;
             }
