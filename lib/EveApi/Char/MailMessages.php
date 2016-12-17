@@ -46,7 +46,6 @@ class MailMessages extends CharSection implements EveApiPreserverInterface
 {
     use PreserverTrait;
 
-    /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
      */

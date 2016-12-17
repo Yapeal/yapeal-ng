@@ -46,7 +46,6 @@ class WalletTransactions extends CorpSection implements EveApiPreserverInterface
 {
     use PreserverTrait;
 
-    /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
      */

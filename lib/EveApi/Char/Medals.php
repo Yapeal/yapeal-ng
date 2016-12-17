@@ -46,7 +46,6 @@ class Medals extends CharSection implements EveApiPreserverInterface
 {
     use PreserverTrait;
 
-    /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
      */

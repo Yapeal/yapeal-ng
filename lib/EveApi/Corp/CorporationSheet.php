@@ -48,7 +48,6 @@ class CorporationSheet implements EveApiPreserverInterface
 {
     use CommonEveApiTrait, PreserverTrait;
 
-    /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
      */

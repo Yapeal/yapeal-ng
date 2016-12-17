@@ -47,7 +47,6 @@ class AssetList extends CorpSection implements EveApiPreserverInterface
 {
     use PreserverTrait, NestedSetTrait;
 
-    /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
      */

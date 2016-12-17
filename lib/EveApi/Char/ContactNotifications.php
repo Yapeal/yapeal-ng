@@ -46,7 +46,6 @@ class ContactNotifications extends CharSection implements EveApiPreserverInterfa
 {
     use PreserverTrait;
 
-    /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
      */

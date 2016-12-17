@@ -46,7 +46,6 @@ class IndustryJobsHistory extends CorpSection implements EveApiPreserverInterfac
 {
     use PreserverTrait;
 
-    /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
      */

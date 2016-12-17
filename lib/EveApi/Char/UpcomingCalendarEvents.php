@@ -46,7 +46,6 @@ class UpcomingCalendarEvents extends CharSection implements EveApiPreserverInter
 {
     use PreserverTrait;
 
-    /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
      */

@@ -48,7 +48,6 @@ class AssetList extends CharSection implements CommonToolsInterface, EveApiPrese
 {
     use PreserverTrait, NestedSetTrait;
 
-    /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
      */

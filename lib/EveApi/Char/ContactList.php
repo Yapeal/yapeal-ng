@@ -46,7 +46,6 @@ class ContactList extends CharSection implements EveApiPreserverInterface
 {
     use PreserverTrait;
 
-    /** @noinspection MagicMethodsValidityInspection */
     /**
      * Constructor
      */
