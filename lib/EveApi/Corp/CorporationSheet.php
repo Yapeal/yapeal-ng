@@ -36,6 +36,7 @@ namespace Yapeal\EveApi\Corp;
 
 use Yapeal\EveApi\CommonEveApiTrait;
 use Yapeal\Event\EveApiPreserverInterface;
+use Yapeal\Event\MediatorInterface;
 use Yapeal\Log\Logger;
 use Yapeal\Sql\PreserverTrait;
 use Yapeal\Xml\EveApiReadWriteInterface;
@@ -68,7 +69,7 @@ class CorporationSheet implements EveApiPreserverInterface
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
-     * @throws \Yapeal\Exception\YapealDatabaseException
+     * @throws \UnexpectedValueException
      */
     protected function preserverToCorporationSheet(EveApiReadWriteInterface $data)
     {
@@ -110,7 +111,7 @@ class CorporationSheet implements EveApiPreserverInterface
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
-     * @throws \Yapeal\Exception\YapealDatabaseException
+     * @throws \UnexpectedValueException
      */
     protected function preserverToDivisions(EveApiReadWriteInterface $data)
     {
@@ -138,7 +139,7 @@ class CorporationSheet implements EveApiPreserverInterface
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
-     * @throws \Yapeal\Exception\YapealDatabaseException
+     * @throws \UnexpectedValueException
      */
     protected function preserverToLogo(EveApiReadWriteInterface $data)
     {
@@ -171,7 +172,7 @@ class CorporationSheet implements EveApiPreserverInterface
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
-     * @throws \Yapeal\Exception\YapealDatabaseException
+     * @throws \UnexpectedValueException
      */
     protected function preserverToWalletDivisions(EveApiReadWriteInterface $data)
     {
@@ -196,13 +197,15 @@ class CorporationSheet implements EveApiPreserverInterface
      * Special override to work around bug in Eve API server when including both KeyID and corporationID.
      *
      * @param EveApiReadWriteInterface $data
+     * @param MediatorInterface        $yem
      *
      * @return bool
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
+     * @throws \UnexpectedValueException
      */
-    protected function processEvents(EveApiReadWriteInterface $data): bool
+    protected function processEvents(EveApiReadWriteInterface $data, MediatorInterface $yem): bool
     {
         $corpID = 0;
         $eventSuffixes = ['retrieve', 'transform', 'validate', 'preserve'];
@@ -227,14 +230,12 @@ class CorporationSheet implements EveApiPreserverInterface
                     && 'corp' === strtolower($data->getEveApiSectionName())
                 ) {
                     $mess = 'No faction warfare account data in';
-                    $this->getYem()
-                        ->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $this->createEveApiMessage($mess, $data));
+                    $yem->triggerLogEvent('Yapeal.Log.log', Logger::INFO, $this->createEveApiMessage($mess, $data));
                     return false;
                 }
-                $this->getYem()
-                    ->triggerLogEvent('Yapeal.Log.log',
-                        Logger::INFO,
-                        $this->getEmptyXmlDataMessage($data, $eventSuffix));
+                $yem->triggerLogEvent('Yapeal.Log.log',
+                    Logger::INFO,
+                    $this->getEmptyXmlDataMessage($data, $eventSuffix));
                 return false;
             }
         }
