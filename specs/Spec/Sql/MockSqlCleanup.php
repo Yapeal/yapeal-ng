@@ -1,7 +1,7 @@
 <?php
 declare(strict_types = 1);
 /**
- * Contains class MockSqlSubs.
+ * Contains class MockSqlCleanup.
  *
  * PHP version 7.0+
  *
@@ -34,15 +34,14 @@ declare(strict_types = 1);
  */
 namespace Spec\Yapeal\Sql;
 
-use Yapeal\Container\ContainerInterface;
-use Yapeal\Sql\SqlSubsTrait;
+use Yapeal\Sql\SqlCleanupTrait;
 
 /**
- * Class MockSqlSubs.
+ * Class MockSqlCleanup.
  */
-class MockSqlSubs
+class MockSqlCleanup
 {
-    use SqlSubsTrait;
+    use SqlCleanupTrait;
     /**
      * MockSqlSubs constructor.
      */
@@ -50,7 +49,6 @@ class MockSqlSubs
     {
         // Dummy
     }
-    /** @noinspection PhpMethodNamingConventionInspection */
     /**
      * Proxy to allowed access to protected trait method for testing.
      *
@@ -62,17 +60,5 @@ class MockSqlSubs
     public function proxyGetCleanedUpSql(string $sql, array $replacements): string
     {
         return $this->getCleanedUpSql($sql, $replacements);
-    }
-    /** @noinspection PhpMethodNamingConventionInspection */
-    /**
-     * Proxy to allowed access to protected trait method for testing.
-     *
-     * @param \Yapeal\Container\ContainerInterface $dic
-     *
-     * @return array
-     */
-    public function proxyGetSqlSubs(ContainerInterface $dic): array
-    {
-        return $this->getSqlSubs($dic);
     }
 }
