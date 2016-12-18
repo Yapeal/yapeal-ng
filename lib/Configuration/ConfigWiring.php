@@ -56,7 +56,7 @@ class ConfigWiring implements WiringInterface, DicAwareInterface
     public function wire(ContainerInterface $dic)
     {
         $this->setDic($dic);
-        $this->wireYaml($dic);
+        $this->wireYaml($dic)->wireExtractorCallable($dic);
         $path = dirname(str_replace('\\', '/', __DIR__), 2) . '/';
         // These two paths are critical to Yapeal-ng working and can't be overridden.
         $dic['Yapeal.baseDir'] = $path;
@@ -137,21 +137,28 @@ class ConfigWiring implements WiringInterface, DicAwareInterface
     /**
      * @param ContainerInterface $dic
      *
-     * @return ConfigWiring Fluent interface.
+     * @return self Fluent interface.
      * @throws \InvalidArgumentException
      */
-    private function wireExtractor(ContainerInterface $dic): self
+    private function wireExtractorCallable(ContainerInterface $dic): self
     {
-        if (empty($dic['Yapeal.Config.Callable.ExtractByContainerPrefix'])) {
-            $dic['Yapeal.Config.Callable.ExtractByContainerPrefix'] = $dic->protect(function (string $prefix, ContainerInterface $dic) {
-                $candidates = [];
-                $keys = $dic->keys();
-                foreach ($keys as $key) {
-                    if (0 === strpos($key, $prefix) && is_scalar($dic[$key])) {
-                        $candidates[$key] = $dic[$key];
+        if (empty($dic['Yapeal.Config.Callable.ExtractScalarsByKeyPrefix'])) {
+            $dic['Yapeal.Config.Callable.ExtractScalarsByKeyPrefix'] = $dic->protect(function (
+                ContainerInterface $dic,
+                string $prefix
+            ) {
+                $preLen = strlen($prefix);
+                if ($preLen !== strrpos($prefix, '.') + 1) {
+                    $prefix .= '.';
+                    ++$preLen;
+                }
+                foreach ($dic->keys() as $key) {
+                    $lastDotPlusOne = strrpos($key, '.') + 1;
+                    if (0 === strpos($key, $prefix) && $preLen === $lastDotPlusOne && is_scalar($dic[$key])) {
+                        $name = substr($key, $lastDotPlusOne);
+                        yield $name => $dic[$key];
                     }
                 }
-                return $candidates;
             });
         }
         return $this;
