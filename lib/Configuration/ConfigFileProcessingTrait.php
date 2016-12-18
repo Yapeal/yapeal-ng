@@ -87,11 +87,11 @@ trait ConfigFileProcessingTrait
         $depth = 0;
         $maxDepth = 25;
         $callback = function ($subject) use ($dic, $settings, &$miss) {
-            $regEx = '%(.*)\{(?<name>(?:\w+)(?:\.\w+)+)\}(.*)%';
+            $regEx = '%(.*?)\{((?:\w+)(?:\.\w+)+)\}(.*)%';
             if (is_string($subject)) {
                 $matched = preg_match($regEx, $subject, $matches);
                 if (1 === $matched) {
-                    $name = $matches['name'];
+                    $name = $matches[2];
                     if ($dic->offsetExists($name)) {
                         $subject = $matches[1] . $dic[$name] . $matches[3];
                     } elseif (array_key_exists($name, $settings)) {
