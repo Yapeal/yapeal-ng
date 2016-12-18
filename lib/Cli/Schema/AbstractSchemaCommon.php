@@ -47,7 +47,7 @@ use Yapeal\Event\YEMAwareInterface;
 use Yapeal\Event\YEMAwareTrait;
 use Yapeal\Exception\YapealDatabaseException;
 use Yapeal\Log\Logger;
-use Yapeal\Sql\SqlSubsTrait;
+use Yapeal\Sql\SqlCleanupTrait;
 
 /**
  * Class AbstractSchemaCommon
@@ -56,7 +56,7 @@ abstract class AbstractSchemaCommon extends Command implements YEMAwareInterface
 {
     use CommonToolsTrait;
     use ConfigFileTrait;
-    use SqlSubsTrait;
+    use SqlCleanupTrait;
     use VerbosityMappingTrait;
     use YEMAwareTrait;
     /**
@@ -69,20 +69,20 @@ abstract class AbstractSchemaCommon extends Command implements YEMAwareInterface
     protected function addOptions(string $help)
     {
         $this->addConfigFileOption();
-        $this->addOption('database', 'd', InputOption::VALUE_REQUIRED, 'Name of the database.')
+        $this->addOption('schema', 's', InputOption::VALUE_REQUIRED, 'Name of the schema(database).')
             ->addOption('hostName', 'o', InputOption::VALUE_REQUIRED, 'Host name for database server.')
-            ->addOption('password', 'p', InputOption::VALUE_REQUIRED, 'Password used to access database.')
+            ->addOption('password', 'p', InputOption::VALUE_REQUIRED, 'Password used to access schema.')
             ->addOption('platform',
                 'l',
                 InputOption::VALUE_REQUIRED,
-                'Platform of database driver. Currently only "mysql" can be used.',
+                'Platform of PDO driver. Currently only "mysql" can be used.',
                 'mysql')
             ->addOption('port',
                 null,
                 InputOption::VALUE_REQUIRED,
                 'Port number for remote server. Only needed if using http connection.')
-            ->addOption('tablePrefix', 't', InputOption::VALUE_REQUIRED, 'Prefix for database table names.')
-            ->addOption('userName', 'u', InputOption::VALUE_REQUIRED, 'User name used to access database.')
+            ->addOption('tablePrefix', 't', InputOption::VALUE_REQUIRED, 'Prefix for schema table names.')
+            ->addOption('userName', 'u', InputOption::VALUE_REQUIRED, 'User name used to access schema.')
             ->setHelp($help);
     }
     /** @noinspection PhpMissingParentCallCommonInspection */
@@ -128,7 +128,7 @@ abstract class AbstractSchemaCommon extends Command implements YEMAwareInterface
     {
         $pdo = $this->getPdo();
         $yem = $this->getYem();
-        $statements = explode(';', $this->getCleanedUpSql($sqlStatements, $this->getReplacements()));
+        $statements = explode(';', $this->getCleanedUpSql($sqlStatements, $this->getSqlSubs()));
         $statements = array_filter($statements,
             function ($statement) {
                 return '' !== trim($statement);
@@ -180,12 +180,9 @@ abstract class AbstractSchemaCommon extends Command implements YEMAwareInterface
      * @return array
      * @throws \LogicException
      */
-    protected function getReplacements()
+    protected function getSqlSubs()
     {
-        if (null === $this->replacements) {
-            $this->replacements = $this->getSqlSubs($this->getDic());
-        }
-        return $this->replacements;
+        return $this->sqlSubs;
     }
     /**
      * @param InputInterface $input
@@ -203,7 +200,7 @@ abstract class AbstractSchemaCommon extends Command implements YEMAwareInterface
         }
         // TODO: Needs to be fixed for per platform config settings.
         $base = 'Yapeal.Sql.';
-        foreach (['class', 'database', 'hostName', 'password', 'platform', 'tablePrefix', 'userName'] as $option) {
+        foreach (['schema', 'hostName', 'password', 'platform', 'tablePrefix', 'userName'] as $option) {
             if (array_key_exists($option, $options) && null !== $options[$option]) {
                 $dic[$base . $option] = $options[$option];
             }
@@ -215,9 +212,9 @@ abstract class AbstractSchemaCommon extends Command implements YEMAwareInterface
      */
     abstract protected function processSql(OutputInterface $output);
     /**
-     * @var array $replacements Holds a list of Sql section replacement pairs.
+     * @var array $sqlSubs Holds a list of Sql section replacement pairs.
      */
-    protected $replacements;
+    protected $sqlSubs;
     /**
      * @param OutputInterface $output
      * @param int             $statementCount

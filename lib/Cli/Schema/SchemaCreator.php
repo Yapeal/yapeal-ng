@@ -42,12 +42,14 @@ use Yapeal\Container\ContainerInterface;
 use Yapeal\Event\YEMAwareTrait;
 use Yapeal\Exception\YapealDatabaseException;
 use Yapeal\Log\Logger;
+use Yapeal\Sql\CSQAwareTrait;
 
 /**
  * Class SchemaCreator
  */
 class SchemaCreator extends AbstractSchemaCommon
 {
+    use CSQAwareTrait;
     use YEMAwareTrait;
     /**
      * @param string             $name
@@ -59,12 +61,14 @@ class SchemaCreator extends AbstractSchemaCommon
     {
         $this->setDescription('Retrieves SQL from files and initializes schema');
         $this->setDic($dic);
-        $this->platform = $dic['Yapeal.Sql.platform'];
-        $this->schemaName = $dic['Yapeal.Sql.Platforms.mysql.schema'];
-        $this->createDirs = [$dic['Yapeal.Sql.dir']];
-        if (!empty($dic['Yapeal.Sql.appDir'])) {
-            $this->createDirs[] = $dic['Yapeal.Sql.appDir'];
+        $this->sqlSubs = $sqlSubs = $dic['Yapeal.Sql.Callable.GetSqlMergedSubs'];
+        $this->platform = $sqlSubs['{platform}'];
+        $this->schemaName = $sqlSubs['{schema}'];
+        $this->createDirs = [$sqlSubs['{dir}']];
+        if (!empty($sqlSubs['{appDir}'])) {
+            $this->createDirs[] = $sqlSubs['{appDir}'];
         }
+        $this->setCsq($dic['Yapeal.Sql.Callable.CommonQueries']);
         $this->setPdo($dic['Yapeal.Sql.Callable.Connection']);
         $this->setYem($dic['Yapeal.Event.Callable.Mediator']);
         parent::__construct($name);
@@ -89,7 +93,7 @@ your composer.json file is found.
 To use a configuration file in a different location:
     <info>./vendor/bin/yc %command.name% -c /my/very/special/config.yaml</info>
 You can also use the command before setting up a configuration file like so:
-    <info>./vendor/bin/yc %command.name% -o "localhost" -d "yapeal-ng" -u "YapealUser" -p "secret" -l "mysql"</info>
+    <info>./vendor/bin/yc %command.name% -o "localhost" -s "yapeal-ng" -u "YapealUser" -p "secret" -l "mysql"</info>
 
 Windows users can use ./vendor/bin/yc.bat in place of ./vendor/bin/yc above.
 
@@ -197,12 +201,25 @@ HELP;
         $sql = $csq->getSchemaNames();
         $yem->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, 'sql - ' . $sql);
         try {
-            if (false === $stmt = $pdo->query($sql)) {
-                $mess = '<error>Failed to get Schema list</error>';
-                $output->writeln($mess);
-                throw new YapealDatabaseException(strip_tags($mess), 2);
-            }
-        } catch (\PDOException $exc) {}
+            $stmt = $pdo->query($sql);
+            $schemas = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+        } catch (\PDOException $exc) {
+            $mess = '<error>Failed to get Schema list</error>';
+            $output->writeln($mess);
+            throw new YapealDatabaseException(strip_tags($mess), 2, $exc);
+        }
+        if (!in_array($this->schemaName, $schemas)) {
+            return;
+        }
+        $sql = $csq->getDropSchema();
+        $yem->triggerLogEvent('Yapeal.Log.log', Logger::DEBUG, 'sql - ' . $sql);
+        try {
+            $pdo->exec($sql);
+        } catch (\PDOException $exc) {
+            $mess = '<error>Failed to drop Schema</error>';
+            $output->writeln($mess);
+            throw new YapealDatabaseException(strip_tags($mess), 2, $exc);
+        }
     }
     /**
      * @return array|string[]
@@ -213,13 +230,7 @@ HELP;
         $globPath = sprintf('{%1$s}Create/{*%2$s,*/*%2$s}',
             implode(',', $this->createDirs),
             $fileExt);
-        $regex = '%^.+?/\w*\..+$%';
-        $drop = $this->dropSchema;
-        $filteredNames = array_filter(preg_grep($regex, glob($globPath, GLOB_BRACE | GLOB_NOESCAPE)),
-            function (string $fileName) use ($drop) {
-                return $drop || 0 !== strpos(basename($fileName), 'DropSchema');
-            });
-        return $filteredNames;
+        return glob($globPath, GLOB_BRACE | GLOB_NOESCAPE);
     }
     /**
      * @var string[] $createDirs
@@ -233,4 +244,8 @@ HELP;
      * @var string $platform
      */
     private $platform;
+    /**
+     * @var string $schemaName
+     */
+    private $schemaName;
 }
