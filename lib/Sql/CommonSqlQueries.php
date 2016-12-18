@@ -34,9 +34,6 @@ declare(strict_types = 1);
  */
 namespace Yapeal\Sql;
 
-use Yapeal\Container\ContainerInterface;
-use Yapeal\Container\DicAwareInterface;
-use Yapeal\Container\DicAwareTrait;
 use Yapeal\FileSystem\SafeFileHandlingTrait;
 
 /**
@@ -57,6 +54,7 @@ use Yapeal\FileSystem\SafeFileHandlingTrait;
  * @method string getDeleteFromTable(string $tableName)
  * @method string getDeleteFromTableWithKeyID(string $tableName, int $keyID)
  * @method string getDeleteFromTableWithOwnerID(string $tableName, int $ownerID)
+ * @method string getDropSchema()
  * @method string getInitialization()
  * @method string getInsert(string $tableName, array $columnNameList, int $rowCount)
  * @method string getLatestYapealSchemaVersion()
@@ -65,19 +63,19 @@ use Yapeal\FileSystem\SafeFileHandlingTrait;
  * @method string getSelect(string $tableName, array $columnNameList, array $where)
  * @method string getUpsert(string $tableName, array $columnNameList, int $rowCount)
  */
-class CommonSqlQueries implements DicAwareInterface, SqlQueriesInterface
+class CommonSqlQueries implements SqlQueriesInterface
 {
-    use DicAwareTrait;
     use SafeFileHandlingTrait;
-    use SqlSubsTrait;
+    use SqlCleanupTrait;
     /**
-     * @param ContainerInterface $dic
+     * @param array $sqlSubs
+     *
      */
-    public function __construct(ContainerInterface $dic)
+    public function __construct(array $sqlSubs)
     {
-        $this->setDic($dic);
-        $this->platform = $dic['Yapeal.Sql.platform'];
-        $this->queriesDir = $dic['Yapeal.Sql.dir'] . 'Queries/';
+        $this->sqlSubs = $sqlSubs;
+        $this->platform = $sqlSubs['{platform}'];
+        $this->queriesDir = $sqlSubs['{dir}'] . 'Queries/';
     }
     /**
      * @param string $name
@@ -113,7 +111,7 @@ class CommonSqlQueries implements DicAwareInterface, SqlQueriesInterface
      */
     protected function getInsertMysql(string $tableName, array $columnNameList, int $rowCount): string
     {
-        $replacements = $this->getReplacements();
+        $replacements = $this->getSqlSubs();
         $replacements['{tableName}'] = $tableName;
         $replacements['{columnNames}'] = implode('","', $columnNameList);
         $rowPrototype = '(' . implode(',', array_fill(0, count($columnNameList), '?')) . ')';
@@ -132,7 +130,7 @@ class CommonSqlQueries implements DicAwareInterface, SqlQueriesInterface
      */
     protected function getSelectMysql(string $tableName, array $columnNameList, array $where): string
     {
-        $replacements = $this->getReplacements();
+        $replacements = $this->getSqlSubs();
         $replacements['{tableName}'] = $tableName;
         $replacements['{columnNames}'] = '"' . implode('","', $columnNameList) . '"';
         if (1 === count($columnNameList) && false !== strpos($columnNameList[0], '*')) {
@@ -159,7 +157,7 @@ class CommonSqlQueries implements DicAwareInterface, SqlQueriesInterface
      */
     protected function getUpsertMysql(string $tableName, array $columnNameList, int $rowCount): string
     {
-        $replacements = $this->getReplacements();
+        $replacements = $this->getSqlSubs();
         $sql = $this->getInsertMysql($tableName, $columnNameList, $rowCount);
         $sql .= ' ON DUPLICATE KEY UPDATE {updates}';
         $updates = [];
@@ -190,12 +188,9 @@ class CommonSqlQueries implements DicAwareInterface, SqlQueriesInterface
      * @return array
      * @throws \LogicException
      */
-    private function getReplacements(): array
+    private function getSqlSubs(): array
     {
-        if (null === $this->replacements) {
-            $this->replacements = $this->getSqlSubs($this->getDic());
-        }
-        return $this->replacements;
+        return $this->sqlSubs;
     }
     /**
      * @param string $fileName
@@ -217,7 +212,7 @@ class CommonSqlQueries implements DicAwareInterface, SqlQueriesInterface
      */
     private function processSql(string $fileName, string $sql, array $arguments): string
     {
-        $sql = $this->getCleanedUpSql($sql, $this->getReplacements());
+        $sql = $this->getCleanedUpSql($sql, $this->getSqlSubs());
         if (0 !== count($arguments)) {
             $sql = vsprintf($sql, $arguments);
         } else {
@@ -258,11 +253,11 @@ class CommonSqlQueries implements DicAwareInterface, SqlQueriesInterface
      */
     private $queriesDir;
     /**
-     * @var array $replacements Holds a list of Sql section replacement pairs.
-     */
-    private $replacements;
-    /**
      * @var array sqlCache
      */
     private $sqlCache = [];
+    /**
+     * @var array $sqlSubs
+     */
+    private $sqlSubs;
 }

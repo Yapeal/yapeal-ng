@@ -36,14 +36,12 @@ namespace Yapeal\Configuration;
 
 use Yapeal\Container\ContainerInterface;
 use Yapeal\Sql\CommonSqlQueries;
-use Yapeal\Sql\SqlSubsTrait;
 
 /**
  * Class SqlWiring.
  */
 class SqlWiring implements WiringInterface
 {
-    use SqlSubsTrait;
     /**
      * @param ContainerInterface $dic
      *
@@ -53,39 +51,51 @@ class SqlWiring implements WiringInterface
      */
     public function wire(ContainerInterface $dic)
     {
-        if (empty($dic['Yapeal.Sql.Callable.CommonQueries'])) {
-            $dic['Yapeal.Sql.Callable.CommonQueries'] = function ($dic) {
-                return new $dic['Yapeal.Sql.Classes.queries']($dic);
-            };
-        }
-        $this->wireConnection($dic);
-        $this->wireCreator($dic);
+        $this->wireMergedSubsCallable($dic)
+            ->wireCommonQueries($dic)
+            ->wireConnection($dic)
+            ->wireCreator($dic);
     }
     /**
-     * @param \Yapeal\Container\ContainerInterface $dic
+     * @param ContainerInterface $dic
      *
-     * @throws \Yapeal\Exception\YapealDatabaseException
+     * @return self Fluent interface.
      */
-    private function wireConnection(ContainerInterface $dic)
+    private function wireCommonQueries(ContainerInterface $dic): self
+    {
+        if (empty($dic['Yapeal.Sql.Callable.CommonQueries'])) {
+            $dic['Yapeal.Sql.Callable.CommonQueries'] = function ($dic) {
+                return new $dic['Yapeal.Sql.Classes.queries']($dic['Yapeal.Sql.Callable.GetSqlMergedSubs']);
+            };
+        }
+        return $this;
+    }
+    /**
+     * @param ContainerInterface $dic
+     *
+     * @return self Fluent interface.
+     */
+    private function wireConnection(ContainerInterface $dic): self
     {
         if (empty($dic['Yapeal.Sql.Callable.Connection'])) {
-            $replacements = $this->getSqlSubs($dic);
-            $dic['Yapeal.Sql.Callable.Connection'] = function () use ($dic, $replacements) {
-                $dsn = $replacements['{dsn}'];
-                $dsn = str_replace(array_keys($replacements), array_values($replacements), $dsn);
+            $dic['Yapeal.Sql.Callable.Connection'] = function (ContainerInterface $dic) {
+                $sqlSubs = $dic['Yapeal.Sql.Callable.GetSqlMergedSubs'];
+                $dsn = $sqlSubs['{dsn}'];
+                $dsn = str_replace(array_keys($sqlSubs), array_values($sqlSubs), $dsn);
                 /**
                  * @var \PDO             $pdo
                  * @var CommonSqlQueries $csq
                  */
                 $pdo = new $dic['Yapeal.Sql.Classes.connection']($dsn,
-                    $replacements['{userName}'],
-                    $replacements['{password}']);
+                    $sqlSubs['{userName}'],
+                    $sqlSubs['{password}']);
                 $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
                 $csq = $dic['Yapeal.Sql.Callable.CommonQueries'];
                 $pdo->exec($csq->getInitialization());
                 return $pdo;
             };
         }
+        return $this;
     }
     /**
      * @param \Yapeal\Container\ContainerInterface $dic
@@ -124,5 +134,31 @@ class SqlWiring implements WiringInterface
          */
         $mediator = $dic['Yapeal.Event.Callable.Mediator'];
         $mediator->addServiceListener('Yapeal.EveApi.create', ['Yapeal.Sql.Callable.Creator', 'createSql'], 'last');
+    }
+    /**
+     * @param ContainerInterface $dic
+     *
+     * @return self Fluent interface.
+     */
+    private function wireMergedSubsCallable(ContainerInterface $dic): self
+    {
+        if (empty($dic['Yapeal.Sql.Callable.GetSqlMergedSubs'])) {
+            $dic['Yapeal.Sql.Callable.GetSqlMergedSubs'] = function (ContainerInterface $dic) {
+                $getScalars = $dic['Yapeal.Config.Callable.ExtractScalarsByKeyPrefix'];
+                $base = [];
+                foreach ($getScalars($dic, 'Yapeal.Sql.') as $index => $item) {
+                    $base['{' . $index . '}'] = $item;
+                }
+                $perPlatform = [];
+                if (in_array('Yapeal.Sql.platform', $dic->keys())) {
+                    $platformParameters = 'Yapeal.Sql.Parameters.' . $dic['Yapeal.Sql.platform'];
+                    foreach ($getScalars($dic, $platformParameters) as $index => $item) {
+                        $perPlatform['{' . $index . '}'] = $item;
+                    }
+                }
+                return array_merge($base, $perPlatform);
+            };
+        }
+        return $this;
     }
 }

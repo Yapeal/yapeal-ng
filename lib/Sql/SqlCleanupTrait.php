@@ -1,7 +1,7 @@
 <?php
 declare(strict_types = 1);
 /**
- * Contains trait SqlSubsTrait.
+ * Contains trait SqlCleanupTrait.
  *
  * PHP version 7.0+
  *
@@ -34,12 +34,10 @@ declare(strict_types = 1);
  */
 namespace Yapeal\Sql;
 
-use Yapeal\Container\ContainerInterface;
-
 /**
- * Trait SqlSubsTrait.
+ * Trait SqlCleanupTrait.
  */
-trait SqlSubsTrait
+trait SqlCleanupTrait
 {
     /**
      * Takes one or more SQL statements with comments and normalizes EOLs and also removes most comments.
@@ -47,24 +45,25 @@ trait SqlSubsTrait
      * NOTE: Any comment 'code' like used by MySQL are also removed.
      *
      * @param string $sql
-     * @param array  $replacements Expects associative array like from getSqlSubs().
+     * @param array  $sqlSubs Expects associative array with the index being what is being replaced and the value is
+     *                        what it will be replaced with.
      *
      * @return string
      */
-    protected function getCleanedUpSql(string $sql, array $replacements): string
+    protected function getCleanedUpSql(string $sql, array $sqlSubs): string
     {
         // Remove multi-space indents.
         do {
             $sql = str_replace("\n  ", "\n ", $sql, $count);
         } while (0 < $count);
-        $replacements = array_reverse($replacements);
-        $replacements["\n)"] = ')';
-        $replacements["\n "] = ' ';
-        $replacements["\r\n"] = "\n";
-        $replacements = array_reverse($replacements);
+        $sqlSubs = array_reverse($sqlSubs);
+        $sqlSubs["\n)"] = ')';
+        $sqlSubs["\n "] = ' ';
+        $sqlSubs["\r\n"] = "\n";
+        $sqlSubs = array_reverse($sqlSubs);
         // Normalize line ends and change pretty multiple lines sql and comments into single line ones
         // and do replacements.
-        $sql = str_replace(array_keys($replacements), array_values($replacements), $sql);
+        $sql = str_replace(array_keys($sqlSubs), array_values($sqlSubs), $sql);
         /**
          * @var string[] $lines
          */
@@ -80,36 +79,5 @@ trait SqlSubsTrait
                 return !$nonSql;
             });
         return implode("\n", $lines);
-    }
-    /**
-     * Uses Sql section settings to make a filtered list of replacement pairs for SQL statements.
-     *
-     * @param ContainerInterface $dic
-     *
-     * @return array
-     */
-    protected function getSqlSubs(ContainerInterface $dic)
-    {
-        $keys = $dic->keys();
-        $platform = '.' . $dic['Yapeal.Sql.platform'];
-        /**
-         * @var array $filteredKeys
-         */
-        $filteredKeys = array_filter($keys,
-            function ($key) use ($platform) {
-                if (0 !== strpos($key, 'Yapeal.Sql.')) {
-                    return false;
-                }
-                $filtered = in_array($key, ['Yapeal.Sql.Callable.CommonQueries', 'Yapeal.Sql.Callable.Connection', 'Yapeal.Sql.Callable.Creator'], true)
-                    || false !== strpos($key, 'Classes.')
-                    || (false !== strpos($key, 'Platforms.') && false === strpos($key, $platform));
-                return !$filtered;
-            });
-        $replacements = [];
-        foreach ($filteredKeys as $key) {
-            $subName = '{' . substr($key, strrpos($key, '.') + 1) . '}';
-            $replacements[$subName] = $dic[$key];
-        }
-        return $replacements;
     }
 }
