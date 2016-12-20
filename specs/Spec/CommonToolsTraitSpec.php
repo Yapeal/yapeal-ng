@@ -35,8 +35,10 @@ declare(strict_types = 1);
 namespace Spec\Yapeal;
 
 use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Collaborator;
 use Yapeal\Container\ContainerInterface;
 use Yapeal\Sql\CommonSqlQueries;
+use Yapeal\Sql\PDOInterface;
 
 /**
  * Class CommonToolsTraitSpec
@@ -52,7 +54,7 @@ use Yapeal\Sql\CommonSqlQueries;
 class CommonToolsTraitSpec extends ObjectBehavior
 {
     /**
-     * @param \PhpSpec\Wrapper\Collaborator|\Yapeal\Container\ContainerInterface $dic
+     * @param Collaborator|\Yapeal\Container\ContainerInterface $dic
      *
      * @throws \LogicException
      */
@@ -63,17 +65,20 @@ class CommonToolsTraitSpec extends ObjectBehavior
             ->shouldReturn($dic);
     }
     /**
-     * @param \PhpSpec\Wrapper\Collaborator|\Yapeal\Sql\CommonSqlQueries $csq
+     * @param Collaborator|\Yapeal\Sql\CommonSqlQueries $csq
      */
     public function it_should_let_you_set_csq(CommonSqlQueries $csq)
     {
         $this->setCsq($csq);
     }
     /**
-     * @param \PDO|\PhpSpec\Wrapper\Collaborator $pdo
+     * @param \PDO|Collaborator|PDOInterface $pdo
+     *
+     * @throws \InvalidArgumentException
      */
-    public function it_should_let_you_set_pdo(\PDO $pdo)
+    public function it_should_let_you_set_pdo(PDOInterface $pdo)
     {
+        $pdo->isSql92Mode()->willReturn(true);
         $this->setPdo($pdo);
     }
     public function it_throws_exception_when_accessing_dic_before_it_is_set()
@@ -84,6 +89,6 @@ class CommonToolsTraitSpec extends ObjectBehavior
     }
     public function let()
     {
-        $this->beAnInstanceOf('Spec\Yapeal\MockCommonTools');
+        $this->beAnInstanceOf(MockCommonTools::class);
     }
 }

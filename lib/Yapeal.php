@@ -40,6 +40,7 @@ use Yapeal\Log\Logger;
 use Yapeal\Sql\CommonSqlQueries;
 use Yapeal\Sql\CSQAwareTrait;
 use Yapeal\Sql\PDOAwareTrait;
+use Yapeal\Sql\PDOInterface;
 use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
@@ -53,13 +54,15 @@ class Yapeal
     /**
      * @param CommonSqlQueries         $csq
      * @param EveApiReadWriteInterface $data
-     * @param \PDO                     $pdo
+     * @param PDOInterface             $pdo
      * @param MediatorInterface        $yem
+     *
+     * @throws \InvalidArgumentException
      */
     public function __construct(
         CommonSqlQueries $csq,
         EveApiReadWriteInterface $data,
-        \PDO $pdo,
+        PDOInterface $pdo,
         MediatorInterface $yem
     ) {
         $this->setCsq($csq);

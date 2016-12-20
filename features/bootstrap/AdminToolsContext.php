@@ -42,6 +42,7 @@ use Yapeal\Container\Container;
 use Yapeal\Container\ContainerInterface;
 use Yapeal\Event\MediatorInterface;
 use Yapeal\Sql\CommonSqlQueries;
+use Yapeal\Sql\PDOInterface;
 
 /**
  * Class AdminToolsContext.
@@ -83,6 +84,8 @@ class AdminToolsContext implements Context
      * @param string $vCode
      *
      * @throws \InvalidArgumentException
+     * @throws \PDOException
+     * @throws \UnexpectedValueException
      */
     public function fromTheManageRegisteredKeyClassIShouldBeAbleToReadBack(
         bool $active,
@@ -165,6 +168,8 @@ class AdminToolsContext implements Context
      * @param string $vCode
      *
      * @throws \InvalidArgumentException
+     * @throws \PDOException
+     * @throws \UnexpectedValueException
      */
     public function ifISetTheRefreshFlagWhenReadingTheSameKeyIDInManageRegisteredKeyIShouldGet(
         bool $active,
@@ -308,7 +313,7 @@ class AdminToolsContext implements Context
         $sql = $this->csq->getSelect($tableName, $columnNameList, $where);
         $stmt = $this->pdo->query($sql);
         Assert::isInstanceOf($stmt,
-            'PDOStatement',
+            \PDOStatement::class,
             'PDO query did not return instance of PDOStatement check query syntax');
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
@@ -329,7 +334,7 @@ class AdminToolsContext implements Context
      */
     private $mrk;
     /**
-     * @var \PDO $pdo
+     * @var \PDO|PDOInterface $pdo
      */
     private $pdo;
     /**
@@ -347,6 +352,8 @@ class AdminToolsContext implements Context
      * @param string $newValue
      *
      * @throws \InvalidArgumentException
+     * @throws \PDOException
+     * @throws \UnexpectedValueException
      */
     public function iCanUpdateInManageRegisteredKeyButTheOtherColumnsDonTChange(string $changed, string $newValue)
     {

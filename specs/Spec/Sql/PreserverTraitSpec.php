@@ -39,6 +39,8 @@ use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
 use Yapeal\Event\MediatorInterface;
 use Yapeal\Sql\CommonSqlQueries;
+use Yapeal\Sql\PDOInterface;
+use Yapeal\Event\EveApiPreserverInterface;
 
 //use Prophecy\Argument;
 /**
@@ -57,7 +59,7 @@ class PreserverTraitSpec extends ObjectBehavior
 {
     public function it_is_initializable()
     {
-        $this->shouldImplement('Yapeal\Event\EveApiPreserverInterface');
+        $this->shouldImplement(EveApiPreserverInterface::class);
     }
     public function it_should_convert_data_rows_into_sql_upsert_in_attribute_preserve_data()
     {
@@ -97,13 +99,16 @@ class PreserverTraitSpec extends ObjectBehavior
             ->shouldReturn($expected);
     }
     /**
-     * @param Collaborator|CommonSqlQueries $csq
-     * @param Collaborator|\PDO $pdo
+     * @param Collaborator|CommonSqlQueries  $csq
+     * @param Collaborator|PDOInterface      $pdo
      * @param Collaborator|MediatorInterface $yem
+     *
+     * @throws \Prophecy\Exception\InvalidArgumentException
      */
-    public function let(CommonSqlQueries $csq, \PDO $pdo, MediatorInterface $yem)
+    public function let(CommonSqlQueries $csq, PDOInterface $pdo, MediatorInterface $yem)
     {
-        $this->beAnInstanceOf('\Spec\Yapeal\Sql\MockPreserver');
+        $pdo->isSql92Mode()->willReturn(true);
+        $this->beAnInstanceOf(MockPreserver::class);
         $this->beConstructedWith($csq, $pdo, $yem);
         $this->sxe = new \SimpleXMLElement($this->testCorpSheet);
     }

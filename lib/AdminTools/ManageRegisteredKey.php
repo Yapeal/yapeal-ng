@@ -36,6 +36,7 @@ namespace Yapeal\AdminTools;
 
 use Yapeal\Event\MediatorInterface;
 use Yapeal\Sql\CommonSqlQueries;
+use Yapeal\Sql\PDOInterface;
 
 /**
  * Class ManageRegisteredKey provides CRUD access to the RegisteredKey table.
@@ -46,17 +47,21 @@ class ManageRegisteredKey
      * ManageRegisteredKey constructor.
      *
      * @param CommonSqlQueries  $csq
-     * @param \PDO              $pdo
+     * @param PDOInterface $pdo
      * @param MediatorInterface $yem
      */
-    public function __construct(CommonSqlQueries $csq, \PDO $pdo, MediatorInterface $yem)
+    public function __construct(CommonSqlQueries $csq, PDOInterface $pdo, MediatorInterface $yem)
     {
         $this->csq = $csq;
         $this->pdo = $pdo;
         $this->yem = $yem;
+        $this->columnNames = ['active', 'activeAPIMask', 'keyID', 'vCode'];
     }
     /**
      * @return bool
+     * @throws \InvalidArgumentException
+     * @throws \PDOException
+     * @throws \UnexpectedValueException
      */
     public function commit(): bool
     {
@@ -150,6 +155,9 @@ class ManageRegisteredKey
      * @param bool $refresh
      *
      * @return array
+     * @throws \InvalidArgumentException
+     * @throws \PDOException
+     * @throws \UnexpectedValueException
      */
     public function read(int $keyID, bool $refresh = false): array
     {
@@ -186,9 +194,44 @@ class ManageRegisteredKey
         return $this;
     }
     /**
+     * @param array $columns
+     *
+     * @return array
+     * @throws \InvalidArgumentException
+     * @throws \UnexpectedValueException
+     */
+    private function enforceColumnTypesAndStructure(array $columns): array
+    {
+        array_walk($columns,
+            function (&$value, $key) {
+                switch ($key) {
+                    case 'active':
+                        $value = (bool)$value;
+                        break;
+                    case 'activeAPIMask':
+                    case 'keyID':
+                        $value = (int)$value;
+                        break;
+                    case 'vCode':
+                        $value = (string)$value;
+                        break;
+                    default:
+                        $mess = 'Given unknown value ' . $key;
+                        throw new \UnexpectedValueException($mess);
+                }
+            });
+        if (count($this->columnNames) > count($columns)) {
+            $mess = 'Missing one or more of the required values: "' . implode('","', $this->columnNames) . '"';
+            $mess .= ' Was given "' . implode('","', array_keys($columns)) . '"';
+            throw new \InvalidArgumentException($mess);
+        }
+        return $columns;
+    }
+    /**
      * @param string $sql
      *
      * @return bool
+     * @throws \PDOException
      */
     private function executeCommandSql(string $sql)
     {
@@ -222,6 +265,31 @@ class ManageRegisteredKey
         return true;
     }
     /**
+     * @param string $sql
+     *
+     * @return bool
+     * @throws \InvalidArgumentException
+     * @throws \PDOException
+     * @throws \UnexpectedValueException
+     */
+    private function readFromTable(string $sql): bool
+    {
+        $stmt = $this->pdo->query($sql);
+        $columns = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        if (1 !== count($columns)) {
+            $this->lastErrorString = 'Expected to fetch a single row for ' . $this->command;
+            return false;
+        }
+        $columns = $this->enforceColumnTypesAndStructure($columns[0]);
+        foreach ($columns as $index => $column) {
+            /** @noinspection PhpVariableVariableInspection */
+            $this->$index = $column;
+        }
+        $this->command = '';
+        $this->setDirty(false);
+        return true;
+    }
+    /**
      * @param bool $value
      *
      * @return self Fluent interface.
@@ -239,6 +307,10 @@ class ManageRegisteredKey
      * @var int $activeAPIMask
      */
     private $activeAPIMask = 0;
+    /**
+     * @var array $columnNames
+     */
+    private $columnNames;
     /**
      * @var string $command
      */
@@ -262,7 +334,7 @@ class ManageRegisteredKey
      */
     private $lastErrorString = '';
     /**
-     * @var \PDO $pdo
+     * @var PDOInterface $pdo
      */
     private $pdo;
     /**
@@ -273,47 +345,4 @@ class ManageRegisteredKey
      * @var MediatorInterface $yem
      */
     private $yem;
-    /**
-     * @param string $sql
-     *
-     * @return bool
-     */
-    private function readFromTable(string $sql): bool
-    {
-        $stmt = $this->pdo->query($sql);
-        $result = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-        if (1 !== count($result)) {
-            $this->lastErrorString = 'Expected to fetch a single row for ' . $this->command;
-            return false;
-        }
-        $this->active = (bool)$result[0]['active'];
-        $this->activeAPIMask = (int)$result[0]['activeAPIMask'];
-        $this->keyID = (int)$result[0]['keyID'];
-        $this->vCode = (string)$result[0]['vCode'];
-        $this->command = '';
-        $this->setDirty(false);
-        return true;
-    }
-    /**
-     * @param array $columns
-     *
-     * @return array
-     */
-    private function enforceColumnTypes(array $columns): array
-    {
-        array_walk($columns, function (&$value, $key) {
-            switch ($key) {
-                case 'active':
-                    $value = (bool)$value;
-                    break;
-                case 'activeAPIMask':
-                case 'keyID':
-                    $value = (int)$value;
-                    break;
-                default:
-                    $value = (string)$value;
-            }
-        });
-        return $columns;
-    }
 }

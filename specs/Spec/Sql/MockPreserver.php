@@ -40,6 +40,7 @@ use Yapeal\Event\YEMAwareTrait;
 use Yapeal\Sql\CommonSqlQueries;
 use Yapeal\Sql\CSQAwareTrait;
 use Yapeal\Sql\PDOAwareTrait;
+use Yapeal\Sql\PDOInterface;
 use Yapeal\Sql\PreserverTrait;
 
 /**
@@ -55,10 +56,12 @@ class MockPreserver implements EveApiPreserverInterface
      * MockPreserver constructor.
      *
      * @param CommonSqlQueries  $csq
-     * @param \PDO              $pdo
+     * @param PDOInterface      $pdo
      * @param MediatorInterface $yem
+     *
+     * @throws \InvalidArgumentException
      */
-    public function __construct(CommonSqlQueries $csq, \PDO $pdo, MediatorInterface $yem)
+    public function __construct(CommonSqlQueries $csq, PDOInterface $pdo, MediatorInterface $yem)
     {
         $this->setCsq($csq)
             ->setPdo($pdo)

@@ -107,6 +107,7 @@ class YamlConfigFile
     public function read(): self
     {
         $data = $this->safeFileRead($this->getPathFile());
+        $this->modTime = filemtime($this->getPathFile());
         if (false === $data) {
             $this->setSettings([]);
             return $this;
@@ -114,8 +115,7 @@ class YamlConfigFile
         try {
             $data = (new Parser())->parse($data, true, false);
         } catch (ParseException $exc) {
-            $this->setSettings([]);
-            return $this;
+            $data = [];
         }
         $this->setSettings($data);
         return $this;
@@ -201,6 +201,10 @@ class YamlConfigFile
         $array[array_shift($keys)] = $value;
         return $array;
     }
+    /**
+     * @var int $modTime
+     */
+    private $modTime;
     /**
      * @var string $pathFile
      */

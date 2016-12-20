@@ -40,9 +40,9 @@ namespace Yapeal\Sql;
 interface PDOAwareInterface
 {
     /**
-     * @param \PDO $value
+     * @param PDOInterface $value
      *
-     * @return self Fluent interface.
+     * @return static Fluent interface.
      */
-    public function setPdo(\PDO $value);
+    public function setPdo(PDOInterface $value);
 }

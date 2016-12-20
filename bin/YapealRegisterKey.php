@@ -33,6 +33,7 @@ declare(strict_types = 1);
 namespace Yapeal;
 
 use Yapeal\Exception\YapealDatabaseException;
+use Yapeal\Sql\PDOInterface;
 
 /**
  * Class YapealRegisterKey
@@ -50,11 +51,11 @@ use Yapeal\Exception\YapealDatabaseException;
 class YapealRegisterKey
 {
     /**
-     * @param \PDO   $pdo
-     * @param string $databaseName
-     * @param string $tablePrefix
+     * @param PDOInterface $pdo
+     * @param string       $databaseName
+     * @param string       $tablePrefix
      */
-    public function __construct(\PDO $pdo, string $databaseName = 'yapeal-ng', string $tablePrefix = '')
+    public function __construct(PDOInterface $pdo, string $databaseName = 'yapeal-ng', string $tablePrefix = '')
     {
         $this->setPdo($pdo)
             ->setDatabaseName($databaseName)
@@ -290,11 +291,11 @@ class YapealRegisterKey
         return $this;
     }
     /**
-     * @param \PDO $value
+     * @param PDOInterface $value
      *
      * @return self Fluent interface.
      */
-    public function setPdo(\PDO $value): self
+    public function setPdo(PDOInterface $value): self
     {
         $this->pdo = $value;
         return $this;
@@ -344,10 +345,10 @@ class YapealRegisterKey
             $this->getKeyID());
     }
     /**
-     * @return \PDO
+     * @return PDOInterface|\PDO
      * @throws \LogicException
      */
-    private function getPdo(): \PDO
+    private function getPdo()
     {
         if (null === $this->pdo) {
             $mess = 'Tried to use pdo before it was set';
@@ -410,7 +411,7 @@ class YapealRegisterKey
      */
     private $keyID;
     /**
-     * @var \PDO $pdo
+     * @var PDOInterface $pdo
      */
     private $pdo;
     /**

@@ -144,7 +144,7 @@ Yapeal:
                 userName: '{Yapeal.Sql.userName}'
         Classes:
             create: Yapeal\Sql\Creator
-            connection: \PDO
+            connection: Yapeal\Sql\Connection
             queries: Yapeal\Sql\CommonSqlQueries
     Wiring:
         Classes:

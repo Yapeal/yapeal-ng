@@ -36,6 +36,7 @@ namespace Yapeal;
 
 use Yapeal\Container\ContainerInterface;
 use Yapeal\Sql\CommonSqlQueries;
+use Yapeal\Sql\PDOInterface;
 
 /**
  * Interface CommonToolsInterface
@@ -60,9 +61,9 @@ interface CommonToolsInterface
      */
     public function setDic(ContainerInterface $value);
     /**
-     * @param \PDO $value
+     * @param PDOInterface $value
      *
      * @return self Fluent interface.
      */
-    public function setPdo(\PDO $value);
+    public function setPdo(PDOInterface $value);
 }

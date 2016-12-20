@@ -36,6 +36,7 @@ namespace Yapeal\Configuration;
 
 use Yapeal\Container\ContainerInterface;
 use Yapeal\Sql\CommonSqlQueries;
+use Yapeal\Sql\Connection;
 
 /**
  * Class SqlWiring.
@@ -83,15 +84,14 @@ class SqlWiring implements WiringInterface
                 $dsn = $sqlSubs['{dsn}'];
                 $dsn = str_replace(array_keys($sqlSubs), array_values($sqlSubs), $dsn);
                 /**
-                 * @var \PDO             $pdo
-                 * @var CommonSqlQueries $csq
+                 * @var Connection $pdo
+                 * @var CommonSqlQueries  $csq
                  */
-                $pdo = new $dic['Yapeal.Sql.Classes.connection']($dsn,
-                    $sqlSubs['{userName}'],
-                    $sqlSubs['{password}']);
+                $pdo = new $dic['Yapeal.Sql.Classes.connection']($dsn, $sqlSubs['{userName}'], $sqlSubs['{password}']);
                 $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
                 $csq = $dic['Yapeal.Sql.Callable.CommonQueries'];
                 $pdo->exec($csq->getInitialization());
+                $pdo->setSql92Mode();
                 return $pdo;
             };
         }
