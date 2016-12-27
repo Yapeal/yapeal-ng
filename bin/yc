@@ -51,7 +51,7 @@ if (!$dic instanceof ContainerInterface) {
     $dic = new Container();
 }
 (new Wiring($dic))->wireAll();
-$application = new Application('Yapeal Console', $dic['Yapeal.version']);
+$application = new Application($dic['Yapeal.consoleName'], $dic['Yapeal.version']);
 $application->addCommands([
     new EveApiCreator('Developer:EveApi:Creator', $dic),
     new NetworkCache('Network:Cache', $dic),
@@ -61,5 +61,7 @@ $application->addCommands([
     new YapealAutoMagic('Yapeal:AutoMagic', $dic),
     new YapealSetup('Yapeal:Setup', $dic)
 ]);
+$application->setAutoExit($dic['Yapeal.consoleAutoExit']);
+$application->setCatchExceptions($dic['Yapeal.consoleCatchExceptions']);
 unset($dic, $gitVersion, $junk, $status, $version);
-return $application->run();
+$application->run();
