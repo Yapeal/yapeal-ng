@@ -80,19 +80,21 @@ class SqlWiring implements WiringInterface
     {
         if (empty($dic['Yapeal.Sql.Callable.Connection'])) {
             $dic['Yapeal.Sql.Callable.Connection'] = function (ContainerInterface $dic) {
+                /**
+                 * @var Connection       $conn
+                 * @var CommonSqlQueries $csq
+                 * @var array            $sqlSubs
+                 */
                 $sqlSubs = $dic['Yapeal.Sql.Callable.GetSqlMergedSubs'];
                 $dsn = $sqlSubs['{dsn}'];
                 $dsn = str_replace(array_keys($sqlSubs), array_values($sqlSubs), $dsn);
-                /**
-                 * @var Connection $pdo
-                 * @var CommonSqlQueries  $csq
-                 */
-                $pdo = new $dic['Yapeal.Sql.Classes.connection']($dsn, $sqlSubs['{userName}'], $sqlSubs['{password}']);
-                $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+                $conn = new $dic['Yapeal.Sql.Classes.connection']($dsn, $sqlSubs['{userName}'], $sqlSubs['{password}']);
+                $conn->setExposingPdo($dic['Yapeal.Sql.Parameters.connection.exposingPdo'])
+                    ->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
                 $csq = $dic['Yapeal.Sql.Callable.CommonQueries'];
-                $pdo->exec($csq->getInitialization());
-                $pdo->setSql92Mode();
-                return $pdo;
+                $conn->exec($csq->getInitialization());
+                $conn->setSql92Mode();
+                return $conn;
             };
         }
         return $this;

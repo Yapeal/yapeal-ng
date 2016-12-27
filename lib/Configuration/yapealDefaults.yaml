@@ -132,6 +132,8 @@ Yapeal:
         tablePrefix: ''
         userName: YapealUser
         Parameters:
+            connection:
+                exposingPdo: false
             mysql:
                 characterCollate: utf8mb4_unicode_520_ci
                 characterSet: utf8mb4
