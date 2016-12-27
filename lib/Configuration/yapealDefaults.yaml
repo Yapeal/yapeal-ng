@@ -3,7 +3,7 @@ Yapeal:
     consoleAutoExit: true
     consoleCatchExceptions: false
     consoleName: 'Yapeal-ng Console'
-    version: '0.5.0-0-ge18b160'
+    version: '0.6.0-0-gafa3c59'
     EveApi:
         dir: '{Yapeal.libDir}EveApi/'
         Cache:
