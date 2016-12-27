@@ -100,9 +100,10 @@ class SqlWiring implements WiringInterface
     /**
      * @param \Yapeal\Container\ContainerInterface $dic
      *
+     * @return self Fluent interface.
      * @throws \LogicException
      */
-    private function wireCreator(ContainerInterface $dic)
+    private function wireCreator(ContainerInterface $dic): self
     {
         if (empty($dic['Yapeal.Sql.Callable.Creator'])) {
             $dic['Yapeal.Sql.Callable.Creator'] = function () use ($dic) {
@@ -134,6 +135,7 @@ class SqlWiring implements WiringInterface
          */
         $mediator = $dic['Yapeal.Event.Callable.Mediator'];
         $mediator->addServiceListener('Yapeal.EveApi.create', ['Yapeal.Sql.Callable.Creator', 'createSql'], 'last');
+        return $this;
     }
     /**
      * @param ContainerInterface $dic
