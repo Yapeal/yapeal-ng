@@ -135,10 +135,14 @@ class ConfigWiring implements WiringInterface, DicAwareInterface
         return $this;
     }
     /**
+     * Adds a protected function that will extract all scalar settings that share a common prefix.
+     *
+     * The prefix should end with a '.' if not the function will end one before starting search.
+     *
      * @param ContainerInterface $dic
      *
-     * @return self Fluent interface.
-     * @throws \InvalidArgumentException
+     * @return ConfigWiring Fluent interface.
+     * @throws \InvalidArgumentException Could only be thrown if Container or PHP were broken.
      */
     private function wireExtractorCallable(ContainerInterface $dic): self
     {
@@ -152,12 +156,20 @@ class ConfigWiring implements WiringInterface, DicAwareInterface
                     $prefix .= '.';
                     ++$preLen;
                 }
-                foreach ($dic->keys() as $key) {
-                    $lastDotPlusOne = strrpos($key, '.') + 1;
-                    if (0 === strpos($key, $prefix) && $preLen === $lastDotPlusOne && is_scalar($dic[$key])) {
-                        $name = substr($key, $lastDotPlusOne);
-                        yield $name => $dic[$key];
+                try {
+                    foreach ($dic->keys() as $key) {
+                        $lastDotPlusOne = strrpos($key, '.') + 1;
+                        if (0 === strpos($key, $prefix) && $preLen === $lastDotPlusOne && is_scalar($dic[$key])) {
+                            $name = substr($key, $lastDotPlusOne);
+                            yield $name => $dic[$key];
+                        }
                     }
+                } catch (\InvalidArgumentException $exc) {
+                    // Only way this can happen is if the Container or PHP are broken.
+                    $mess = 'Container or PHP are fatally broken;'
+                        . ' Received InvalidArgumentException when accessing setting in Container with known good key';
+                    trigger_error($mess, E_USER_ERROR);
+                    exit(254);
                 }
             });
         }
