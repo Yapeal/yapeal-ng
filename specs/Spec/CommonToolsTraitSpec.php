@@ -38,7 +38,7 @@ use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
 use Yapeal\Container\ContainerInterface;
 use Yapeal\Sql\CommonSqlQueries;
-use Yapeal\Sql\PDOInterface;
+use Yapeal\Sql\ConnectionInterface;
 
 /**
  * Class CommonToolsTraitSpec
@@ -72,11 +72,11 @@ class CommonToolsTraitSpec extends ObjectBehavior
         $this->setCsq($csq);
     }
     /**
-     * @param \PDO|Collaborator|PDOInterface $pdo
+     * @param Collaborator|ConnectionInterface $pdo
      *
      * @throws \InvalidArgumentException
      */
-    public function it_should_let_you_set_pdo(PDOInterface $pdo)
+    public function it_should_let_you_set_pdo(ConnectionInterface $pdo)
     {
         $pdo->isSql92Mode()->willReturn(true);
         $this->setPdo($pdo);

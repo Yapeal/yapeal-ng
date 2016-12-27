@@ -40,12 +40,12 @@ namespace Yapeal\Sql;
 trait PDOAwareTrait
 {
     /**
-     * @param PDOInterface $value
+     * @param ConnectionInterface $value
      *
      * @return static Fluent interface.
      * @throws \InvalidArgumentException
      */
-    public function setPdo(PDOInterface $value = null)
+    public function setPdo(ConnectionInterface $value = null)
     {
         if (!$value->isSql92Mode()) {
             $mess = 'Connection must be already initialized for SQL-92 mode';
@@ -55,10 +55,10 @@ trait PDOAwareTrait
         return $this;
     }
     /**
-     * @return PDOInterface
+     * @return ConnectionInterface
      * @throws \LogicException
      */
-    protected function getPdo(): PDOInterface
+    protected function getPdo(): ConnectionInterface
     {
         if (null === $this->pdo) {
             $mess = 'Tried to use pdo before it was set';
@@ -67,7 +67,7 @@ trait PDOAwareTrait
         return $this->pdo;
     }
     /**
-     * @var PDOInterface $pdo
+     * @var ConnectionInterface $pdo
      */
     private $pdo;
 }

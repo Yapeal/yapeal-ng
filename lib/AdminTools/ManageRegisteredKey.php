@@ -36,7 +36,7 @@ namespace Yapeal\AdminTools;
 
 use Yapeal\Event\MediatorInterface;
 use Yapeal\Sql\CommonSqlQueries;
-use Yapeal\Sql\PDOInterface;
+use Yapeal\Sql\ConnectionInterface;
 
 /**
  * Class ManageRegisteredKey provides CRUD access to the RegisteredKey table.
@@ -46,11 +46,11 @@ class ManageRegisteredKey
     /**
      * ManageRegisteredKey constructor.
      *
-     * @param CommonSqlQueries  $csq
-     * @param PDOInterface $pdo
-     * @param MediatorInterface $yem
+     * @param CommonSqlQueries    $csq
+     * @param ConnectionInterface $pdo
+     * @param MediatorInterface   $yem
      */
-    public function __construct(CommonSqlQueries $csq, PDOInterface $pdo, MediatorInterface $yem)
+    public function __construct(CommonSqlQueries $csq, ConnectionInterface $pdo, MediatorInterface $yem)
     {
         $this->csq = $csq;
         $this->pdo = $pdo;
@@ -334,7 +334,7 @@ class ManageRegisteredKey
      */
     private $lastErrorString = '';
     /**
-     * @var PDOInterface $pdo
+     * @var ConnectionInterface $pdo
      */
     private $pdo;
     /**

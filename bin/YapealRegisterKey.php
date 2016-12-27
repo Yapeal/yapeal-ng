@@ -33,7 +33,7 @@ declare(strict_types = 1);
 namespace Yapeal;
 
 use Yapeal\Exception\YapealDatabaseException;
-use Yapeal\Sql\PDOInterface;
+use Yapeal\Sql\ConnectionInterface;
 
 /**
  * Class YapealRegisterKey
@@ -51,11 +51,11 @@ use Yapeal\Sql\PDOInterface;
 class YapealRegisterKey
 {
     /**
-     * @param PDOInterface $pdo
-     * @param string       $databaseName
-     * @param string       $tablePrefix
+     * @param ConnectionInterface $pdo
+     * @param string              $databaseName
+     * @param string              $tablePrefix
      */
-    public function __construct(PDOInterface $pdo, string $databaseName = 'yapeal-ng', string $tablePrefix = '')
+    public function __construct(ConnectionInterface $pdo, string $databaseName = 'yapeal-ng', string $tablePrefix = '')
     {
         $this->setPdo($pdo)
             ->setDatabaseName($databaseName)
@@ -73,6 +73,7 @@ class YapealRegisterKey
     }
     /**
      * @return bool
+     * @throws \PDOException
      */
     public function delete(): bool
     {
@@ -179,8 +180,10 @@ class YapealRegisterKey
      * Used to load an existing RegisteredKey row from database.
      *
      * @return self Fluent interface.
-     * @throws \LogicException
      * @throws YapealDatabaseException
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
+     * @throws \PDOException
      */
     public function load(): self
     {
@@ -203,10 +206,11 @@ class YapealRegisterKey
      * switched to ANSI mode and use UTF-8.
      *
      * @see UtilRegisteredKey
-     * @return YapealRegisterKey Fluent interface.
+     * @return self Fluent interface.
      * @throws \LogicException
+     * @throws \PDOException
      */
-    public function save(): YapealRegisterKey
+    public function save(): self
     {
         $stmt = $this->initPdo()
             ->getPdo()
@@ -233,7 +237,7 @@ class YapealRegisterKey
     /**
      * @param int $value
      *
-     * @return YapealRegisterKey Fluent interface.
+     * @return self Fluent interface.
      * @throws \InvalidArgumentException
      */
     public function setActiveAPIMask(int $value): self
@@ -291,11 +295,11 @@ class YapealRegisterKey
         return $this;
     }
     /**
-     * @param PDOInterface $value
+     * @param ConnectionInterface $value
      *
      * @return self Fluent interface.
      */
-    public function setPdo(PDOInterface $value): self
+    public function setPdo(ConnectionInterface $value): self
     {
         $this->pdo = $value;
         return $this;
@@ -345,7 +349,7 @@ class YapealRegisterKey
             $this->getKeyID());
     }
     /**
-     * @return PDOInterface|\PDO
+     * @return ConnectionInterface
      * @throws \LogicException
      */
     private function getPdo()
@@ -382,6 +386,7 @@ class YapealRegisterKey
     /**
      * @return self Fluent interface.
      * @throws \LogicException
+     * @throws \PDOException
      */
     private function initPdo(): self
     {
@@ -411,7 +416,7 @@ class YapealRegisterKey
      */
     private $keyID;
     /**
-     * @var PDOInterface $pdo
+     * @var ConnectionInterface $pdo
      */
     private $pdo;
     /**

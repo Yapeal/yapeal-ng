@@ -107,8 +107,7 @@ HELP;
      * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
      * @throws \Symfony\Component\Console\Exception\LogicException
      * @throws \Symfony\Component\Console\Exception\RuntimeException
-     * @throws \Yapeal\Exception\YapealException
-     *
+     * @throws \UnexpectedValueException
      * @see setCode()
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -179,9 +178,9 @@ HELP;
         if (null === $this->schema) {
             $this->schema = true;
             /**
-             * @var ContainerInterface|array $dic
-             * @var \PDO                     $pdo
-             * @var CommonSqlQueries         $csq
+             * @var ContainerInterface|array        $dic
+             * @var \Yapeal\Sql\ConnectionInterface $pdo
+             * @var CommonSqlQueries                $csq
              */
             $dic = $this->getDic();
             $result = false;

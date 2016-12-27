@@ -39,7 +39,7 @@ use PhpSpec\ObjectBehavior;
 use PhpSpec\Wrapper\Collaborator;
 use Yapeal\Event\MediatorInterface;
 use Yapeal\Sql\CommonSqlQueries;
-use Yapeal\Sql\PDOInterface;
+use Yapeal\Sql\ConnectionInterface;
 use Yapeal\Event\EveApiPreserverInterface;
 
 //use Prophecy\Argument;
@@ -99,13 +99,13 @@ class PreserverTraitSpec extends ObjectBehavior
             ->shouldReturn($expected);
     }
     /**
-     * @param Collaborator|CommonSqlQueries  $csq
-     * @param Collaborator|PDOInterface      $pdo
-     * @param Collaborator|MediatorInterface $yem
+     * @param Collaborator|CommonSqlQueries    $csq
+     * @param Collaborator|ConnectionInterface $pdo
+     * @param Collaborator|MediatorInterface   $yem
      *
      * @throws \Prophecy\Exception\InvalidArgumentException
      */
-    public function let(CommonSqlQueries $csq, PDOInterface $pdo, MediatorInterface $yem)
+    public function let(CommonSqlQueries $csq, ConnectionInterface $pdo, MediatorInterface $yem)
     {
         $pdo->isSql92Mode()->willReturn(true);
         $this->beAnInstanceOf(MockPreserver::class);

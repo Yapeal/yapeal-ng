@@ -42,7 +42,7 @@ use Yapeal\Container\Container;
 use Yapeal\Container\ContainerInterface;
 use Yapeal\Event\MediatorInterface;
 use Yapeal\Sql\CommonSqlQueries;
-use Yapeal\Sql\PDOInterface;
+use Yapeal\Sql\ConnectionInterface;
 
 /**
  * Class AdminToolsContext.
@@ -218,6 +218,7 @@ class AdminToolsContext implements Context
      * @param string $vCode
      *
      * @throws \InvalidArgumentException
+     * @throws \PDOException
      */
     public function thereExistsARowInTheTableContaining(
         string $tableName,
@@ -241,6 +242,7 @@ class AdminToolsContext implements Context
      * @param string $vCode
      *
      * @throws \InvalidArgumentException
+     * @throws \PDOException
      */
     public function thereIsAnExistingRowInTheTableContaining(
         bool $active,
@@ -262,6 +264,7 @@ class AdminToolsContext implements Context
      * @param int $keyID
      *
      * @throws \InvalidArgumentException
+     * @throws \PDOException
      */
     public function thereIsNotAKeyIDRowInTheTable(int $keyID)
     {
@@ -281,6 +284,7 @@ class AdminToolsContext implements Context
      * @param string $tableName
      *
      * @throws \InvalidArgumentException
+     * @throws \PDOException
      */
     public function thereShouldStillNotBeARowInTheTable(string $primary, int $keyID, string $tableName)
     {
@@ -294,6 +298,7 @@ class AdminToolsContext implements Context
      *
      * @return int
      * @throws \InvalidArgumentException
+     * @throws \PDOException
      * @uses self::getTableRowsByIndex()
      */
     private function getTableRowCount(string $primary, int $keyID, string $tableName): int
@@ -307,6 +312,7 @@ class AdminToolsContext implements Context
      *
      * @return array Result from PDO::fetchAll() using FETCH_ASSOC option.
      * @throws \InvalidArgumentException
+     * @throws \PDOException
      */
     private function getTableRowsByIndex(string $tableName, array $columnNameList, array $where): array
     {
@@ -334,7 +340,7 @@ class AdminToolsContext implements Context
      */
     private $mrk;
     /**
-     * @var \PDO|PDOInterface $pdo
+     * @var ConnectionInterface $pdo
      */
     private $pdo;
     /**
