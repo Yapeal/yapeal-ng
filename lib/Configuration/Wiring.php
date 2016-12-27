@@ -76,7 +76,7 @@ class Wiring implements DicAwareInterface
         $dic = $this->getDic();
         // First things first, should add self to Container and freeze so can't be overwritten later by oops.
         if (empty($dic['Yapeal.Wiring.Callable.Wiring'])) {
-            $dic['Yapeal.Wiring.Callable.Wiring'] = function () use ($dic) {
+            $dic['Yapeal.Wiring.Callable.Wiring'] = function (ContainerInterface $dic) {
                 return new Wiring($dic);
             };
             $dic['Yapeal.Wiring.Callable.Wiring'];
@@ -90,7 +90,7 @@ class Wiring implements DicAwareInterface
         foreach ($names as $name) {
             $setting = $base . strtolower($name);
             if (!empty($dic[$setting])
-                && is_subclass_of($dic[$setting], '\Yapeal\Configuration\WiringInterface', true)
+                && is_subclass_of($dic[$setting], WiringInterface::class, true)
             ) {
                 $class = new $dic[$setting];
                 $class->wire($dic);
