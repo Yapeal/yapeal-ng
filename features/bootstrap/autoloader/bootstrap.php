@@ -32,10 +32,12 @@ declare(strict_types = 1);
  * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
  * @author    Michael Cummings <mgcummings@yahoo.com>
  */
+use Composer\Autoload\ClassLoader;
+
 /*
  * Nothing to do if Composer auto loader already exists.
  */
-if (class_exists('\Composer\Autoload\ClassLoader', false)) {
+if (class_exists(ClassLoader::class, false)) {
     return;
 }
 /*
@@ -56,7 +58,7 @@ $errorReporting = error_reporting(E_ALL & ~E_WARNING);
 include_once $path;
 error_reporting($errorReporting);
 unset($errorReporting, $path, $vendorPos);
-if (!class_exists('\Composer\Autoload\ClassLoader', false)) {
+if (!class_exists(ClassLoader::class, false)) {
     $mess = 'Could NOT find required Composer class auto loader. Aborting ...';
     if ('cli' === PHP_SAPI) {
         fwrite(STDERR, $mess);
