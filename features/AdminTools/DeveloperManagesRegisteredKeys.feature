@@ -1,3 +1,4 @@
+@suite AdminTools
 Ability: Application developer has ability to manage user keys in Yapeal-ng.
     In order to insure Yapeal-ng retrieves the right Eve APIs
     As an Application Developer

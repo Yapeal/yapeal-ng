@@ -1,6 +1,8 @@
 default:
   suites:
-    yapeal:
+    AdminTools:
       contexts: [ Yapeal\Behat\AdminToolsContext ]
+    ConfigManagement:
+        contexts: [ Yapeal\Behat\ConfigManagerContext ]
 #  extensions:
 #    Cjm\Behat\VersionBasedTestSkipperExtension: ~
