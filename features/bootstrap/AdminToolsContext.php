@@ -35,6 +35,8 @@ declare(strict_types = 1);
 namespace Yapeal\Behat;
 
 use Behat\Behat\Context\Context;
+use Behat\Behat\Tester\Exception\PendingException;
+use Behat\Gherkin\Node\TableNode;
 use Webmozart\Assert\Assert;
 use Yapeal\AdminTools\ManageRegisteredKey;
 use Yapeal\Configuration\Wiring;
@@ -64,13 +66,15 @@ class AdminToolsContext implements Context
      */
     public function clearTestRowAfterScenario()
     {
-        Assert::false($this->pdo->inTransaction(), 'Still have pending transaction');
-        if (is_array($this->key) && array_key_exists('keyID', $this->key)) {
-            $sql = $this->csq->getDeleteFromTableWithKeyID('yapealRegisteredKey', $this->key['keyID']);
-            Assert::true($this->pdo->beginTransaction(), 'Could not start transaction for test row');
-            $stmt = $this->pdo->prepare($sql);
-            Assert::true($stmt->execute(), 'Could not upsert test row');
-            Assert::true($this->pdo->commit(), 'Could not commit test row');
+        if (null !== $this->pdo) {
+            Assert::false($this->pdo->inTransaction(), 'Still have pending transaction');
+            if (is_array($this->key) && array_key_exists('keyID', $this->key)) {
+                $sql = $this->csq->getDeleteFromTableWithKeyID('yapealRegisteredKey', $this->key['keyID']);
+                Assert::true($this->pdo->beginTransaction(), 'Could not start transaction for test row');
+                $stmt = $this->pdo->prepare($sql);
+                Assert::true($stmt->execute(), 'Could not upsert test row');
+                Assert::true($this->pdo->commit(), 'Could not commit test row');
+            }
         }
         $this->key = [];
         $this->tableRow = [];
@@ -381,5 +385,12 @@ class AdminToolsContext implements Context
         $expected = json_encode($this->tableRow);
         $result = json_encode($this->mrk->read($this->tableRow['keyID']));
         Assert::same($result, $expected);
+    }
+    /**
+     * @Then I can update :arg1 = :arg2 in ManageRegisteredKey but the other columns don't change:
+     */
+    public function iCanUpdateInManageRegisteredKeyButTheOtherColumnsDonTChange2($arg1, $arg2, TableNode $table)
+    {
+        throw new PendingException();
     }
 }
