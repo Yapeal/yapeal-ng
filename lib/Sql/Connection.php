@@ -162,23 +162,20 @@ class Connection implements ConnectionInterface
     /**
      * Prepares a statement for execution and returns a statement object.
      *
-     * @param string     $statement      This must be a valid SQL statement for the target database server.
-     * @param array|null $driver_options This array holds one or more key=>value pairs to set attribute values for the
-     *                                   <b>\PDOStatement</b> object that this method returns. You would most commonly
-     *                                   use this to set the <b>\PDO::ATTR_CURSOR</b> value to
-     *                                   <b>\PDO::CURSOR_SCROLL</b> to request a scrollable cursor. Some drivers have
-     *                                   driver specific options that may be set at prepare-time.
+     * @param string $statement      This must be a valid SQL statement for the target database server.
+     * @param array  $driver_options This array holds one or more key=>value pairs to set attribute values for the
+     *                               <b>\PDOStatement</b> object that this method returns. You would most commonly
+     *                               use this to set the <b>\PDO::ATTR_CURSOR</b> value to <b>\PDO::CURSOR_SCROLL</b>
+     *                               to request a scrollable cursor. Some drivers have driver specific options that may
+     *                               be set at prepare-time.
      *
      * @return \PDOStatement|false If the database server successfully prepares the statement, <b>\PDO::prepare</b>
      * returns a <b>\PDOStatement</b> object. If the database server cannot successfully prepare the statement,
      * <b>\PDO::prepare</b> returns <b>false</b> or emits <b>\PDOException</b> (depending on error handling).
      * @throws \PDOException
      */
-    public function prepare(string $statement, array $driver_options = null)
+    public function prepare(string $statement, array $driver_options = [])
     {
-        if (null === $driver_options) {
-            return $this->pdo->prepare($statement);
-        }
         return $this->pdo->prepare($statement, $driver_options);
     }
     /**
