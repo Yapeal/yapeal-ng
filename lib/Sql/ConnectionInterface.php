@@ -111,7 +111,7 @@ interface ConnectionInterface
      * <b>\PDO::prepare</b> returns <b>false</b> or emits <b>\PDOException</b> (depending on error handling).
      * @throws \PDOException
      */
-    public function prepare(string $statement, $driver_options = null);
+    public function prepare(string $statement, array $driver_options = null);
     /**
      * Executes an SQL statement, returning a result set as a PDOStatement object.
      *
