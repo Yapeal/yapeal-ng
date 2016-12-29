@@ -32,10 +32,12 @@ declare(strict_types = 1);
  * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
  * @author    Michael Cummings <mgcummings@yahoo.com>
  */
+use Composer\Autoload\ClassLoader;
+
 /*
  * Nothing to do if Composer auto loader already exists.
  */
-if (class_exists('\Composer\Autoload\ClassLoader', false)) {
+if (class_exists(ClassLoader::class, false)) {
     return 0;
 }
 /*
