@@ -34,6 +34,7 @@ declare(strict_types = 1);
  */
 namespace Yapeal\Configuration;
 
+use Yapeal\Cli\Yapeal\YamlConfigFile;
 use Yapeal\Container\ContainerInterface;
 
 /**
@@ -42,14 +43,25 @@ use Yapeal\Container\ContainerInterface;
 class ConfigManager implements ConfigManagementInterface
 {
     /**
+     * Default priority used with addConfigFile method.
+     */
+    const PRIORITY_DEFAULT = 1000;
+    /**
      * ConfigManager constructor.
      *
-     * @param ContainerInterface $dic
+     * @param ContainerInterface $dic      Container instance.
+     * @param array              $settings Additional parameters or objects from non-config file source. Normally only
+     *                                     used internal by Yapeal-ng for things that need to be added but it should
+     *                                     still be possible for an application developer to override them so they can
+     *                                     not be added to the Container directly and end up being protected. Mostly
+     *                                     things that need to be done at run time like cache/ and log/ directory paths.
      */
-    public function __construct(ContainerInterface $dic)
+    public function __construct(ContainerInterface $dic, array $settings = [])
     {
+        $this->configFiles = [];
         $this->dic = $dic;
         $this->protectedKeys = $dic->keys();
+        $this->settings = $settings;
     }
     /**
      * Add a new config file candidate to be used during the composing of settings.
@@ -71,12 +83,26 @@ class ConfigManager implements ConfigManagementInterface
      *                         future changes ignored. Note that the $force flag of update() can be used to override
      *                         this parameter.
      *
+     * @return array Throws this exception if you try adding the same $pathFile again. Use
+     *                                   hasConfigFile() to see if entry already exists.
      * @throws \InvalidArgumentException Throws this exception if you try adding the same $pathFile again. Use
      *                                   hasConfigFile() to see if entry already exists.
+     * @throws \LogicException
      */
-    public function addConfigFile(string $pathName, int $priority = 1000, bool $watched = true)
+    public function addConfigFile(string $pathName, int $priority = self::PRIORITY_DEFAULT, bool $watched = true): array
     {
-        // TODO: Implement addConfigFile() method.
+        if ($this->hasConfigFile($pathName)) {
+            $mess = sprintf('Already added config file %s', $pathName);
+            throw new \InvalidArgumentException($mess);
+        }
+        clearstatcache(true, $pathName);
+        $this->configFiles[$pathName] = [
+            'instance' => (new YamlConfigFile($pathName))->read(),
+            'timestamp' => filemtime($pathName),
+            'priority' => $priority,
+            'watched' => $watched
+        ];
+        return $this->configFiles[$pathName];
     }
     /**
      * The Create part of the CRUD interface.
@@ -94,42 +120,73 @@ class ConfigManager implements ConfigManagementInterface
      * been processed or an exception will be thrown.
      *
      * The $configFiles parameter can be just a plain list (array) of config file names with directory paths. If given
-     * a plain list like this Yapeal-ng will use the default priority and watch modes as seen in the addConfigFile()
+     * a plain list like this Yapeal-ng will use the default priority and watched modes as seen in the addConfigFile()
      * method. An example of this would look something like this:
      *
-     * ```php
+     * <code>
      * <?php
      * ...
-     * // @var ConfigManagementInterface $config
-     * $configFiles = [__DIR__ . '/yapealDefaults.yaml', dirname(__DIR__, 2) . '/config/yapeal.yaml'];
-     * $config->create($configFiles);
-     * ...
-     * ```
-     *
-     * An example that includes the optional priority and watch flags:
-     * ```php
-     * <?php
-     * ...
-     * // @var ConfigManagementInterface $config
+     * $manager = new ConfigManager($dic);
      * $configFiles = [
-     *     __DIR__ . '/yapealDefaults.yaml' => ['priority' => PHP_INT_MAX, 'watch' => false],
-     *     dirname(__DIR__, 2) . '/config/yapeal.yaml' => ['priority' => 10]
+     *     __DIR__ . '/yapealDefaults.yaml',
+     *     dirname(__DIR__, 2) . '/config/yapeal.yaml'
      * ];
-     * $config->create($configFiles);
+     * $manager->create($configFiles);
      * ...
-     * ```
+     * </code>
      *
-     * Including either 'priority' or 'watch' is optional and they will receive the default value from addConfigFile()
-     * if not given.
+     * An example that includes optional priority and watched flags:
+     * <code>>
+     * <?php
+     * ...
+     * $manager = new ConfigManager($dic);
+     * $configFiles = [
+     *     ['pathName' => __DIR__ . '/yapealDefaults.yaml', 'priority' => PHP_INT_MAX, 'watched' => false],
+     *     ['pathName' => dirname(__DIR__, 2) . '/config/yapeal.yaml', 'priority' => 10],
+     *     ['pathName' => __DIR__ . '/special/run.yaml']
+     * ];
+     * $manager->create($configFiles);
+     * ...
+     * </code>
      *
-     * @param array $configFiles A list of config file names with optional priority and watch flag. See example for how
-     *                           to include them.
+     * Including either 'priority' or 'watched' is optional and they will receive the same default value(s) as from
+     * addConfigFile() if not given.
+     *
+     * @param array $configFiles A list of config file names with optional priority and watched flag. See example for
+     *                           how to include them.
      *
      * @return bool
+     * @throws \DomainException
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
      */
     public function create(array $configFiles): bool
     {
-        // TODO: Implement create() method.
+        $this->delete();
+        $settings = $this->settings;
+        foreach ($configFiles as $value) {
+            if (is_string($value)) {
+                $value = ['pathName' => $value];
+            } elseif (is_array($value)) {
+                if (!array_key_exists('pathName', $value)) {
+                    $mess = 'Config file pathName in required';
+                    throw new \InvalidArgumentException($mess);
+                }
+            } else {
+                $mess = 'Config file element must be a string or an array but was given ' . gettype($value);
+                throw new \InvalidArgumentException($mess);
+            }
+            $configFile = $this->addConfigFile($value['pathName'],
+                $value['priority'] ?? self::PRIORITY_DEFAULT,
+                $value['watched'] ?? true);
+            $settings = $this->parserConfigFile($configFile['instance'], $settings);
+        }
+        $additions = array_diff(array_keys($settings), $this->protectedKeys);
+        $additions = $this->doSubstitutions($additions);
+        foreach ($additions as $add) {
+            $this->dic[$add] = $settings[$add];
+        }
+        return true;
     }
     /**
      * The Delete part of the CRUD interface.
@@ -148,7 +205,9 @@ class ConfigManager implements ConfigManagementInterface
      */
     public function delete(): bool
     {
-        // TODO: Implement delete() method.
+        $this->removeUnprotectedSettings();
+        $this->configFiles = [];
+        return true;
     }
     /**
      * Allows checking if a config file candidate has already been added.
@@ -159,19 +218,24 @@ class ConfigManager implements ConfigManagementInterface
      */
     public function hasConfigFile(string $pathName): bool
     {
-        // TODO: Implement hasConfigFile() method.
+        return array_key_exists($pathName, $this->configFiles);
     }
     /**
      * The Read part of the CRUD interface.
      *
-     * Since the Container where the settings are kept is one of the main shared object inside Yapeal-ng this is mostly
-     * redundant.
+     * Since the Container where the settings are kept is one of the main shared objects inside Yapeal-ng this is mostly
+     * redundant but used this method as a way to return only stuff added by the config files.
      *
-     * @return ContainerInterface
+     * @return array
      */
-    public function read(): ContainerInterface
+    public function read(): array
     {
-        // TODO: Implement read() method.
+        $additions = array_diff($this->dic->keys(), $this->protectedKeys);
+        $settings = [];
+        foreach ($additions as $addition) {
+            $settings[$addition] = $this->dic[$addition];
+        }
+        return $settings;
     }
     /**
      * Remove an existing config file candidate entry.
@@ -184,7 +248,13 @@ class ConfigManager implements ConfigManagementInterface
      */
     public function removeConfigFile(string $pathName): array
     {
-        // TODO: Implement removeConfigFile() method.
+        if (!$this->hasConfigFile($pathName)) {
+            $mess = sprintf('Tried to remove unknown config file %s', $pathName);
+            throw new \InvalidArgumentException($mess);
+        }
+        $result = $this->configFiles[$pathName];
+        unset($this->configFiles[$pathName]);
+        return $result;
     }
     /**
      * @param ContainerInterface $value
@@ -215,17 +285,149 @@ class ConfigManager implements ConfigManagementInterface
      *                           of config files again.
      *
      * @return bool
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
      */
     public function update(bool $force = false): bool
     {
-        // TODO: Implement update() method.
+        $this->removeUnprotectedSettings();
+        $settings = $this->settings;
+        /**
+         * @var YamlConfigFile $instance
+         */
+        foreach ($this->configFiles as $pathName => $configFile) {
+            clearstatcache(true, $pathName);
+            $instance = $configFile['instance'];
+            $currentTS = filemtime($pathName);
+            if (($force || $configFile['watched']) && $configFile['timestamp'] < $currentTS) {
+                $instance->read();
+                $configFile['timestamp'] = $currentTS;
+            }
+            $settings = $this->parserConfigFile($instance, $settings);
+        }
+        $additions = array_diff(array_keys($settings), $this->protectedKeys);
+        $additions = $this->doSubstitutions($additions);
+        foreach ($additions as $add) {
+            $this->dic[$add] = $settings[$add];
+        }
+        return true;
     }
+    /**
+     * Looks for and replaces any {Yapeal.*} it finds in values with the corresponding other setting value.
+     *
+     * This will replace full value or part of the value. Examples:
+     *
+     *     $settings = [
+     *         'Yapeal.baseDir' => '/my/junk/path/Yapeal/',
+     *         'Yapeal.libDir' => '{Yapeal.baseDir}lib/'
+     *         'Yapeal.Sql.dir' => '{Yapeal.libDir}Sql/'
+     *     ];
+     *
+     * After doSubstitutions would be:
+     *
+     *     $settings = [
+     *         'Yapeal.baseDir' => '/my/junk/path/Yapeal/',
+     *         'Yapeal.libDir' => '/my/junk/path/Yapeal/lib/'
+     *         'Yapeal.Sql.dir' => '/my/junk/path/Yapeal/lib/Sql/'
+     *     ];
+     *
+     * Note that order in which subs are done is undefined so it could have
+     * done libDir first and then baseDir into both or done baseDir into libDir
+     * then libDir into Sql.dir.
+     *
+     * Subs from within $settings itself are used first with $dic used to
+     * fill-in as needed for any unknown ones.
+     *
+     * Subs are tried up to 25 times as long as any {Yapeal.*} are found before
+     * giving up to prevent infinite loop.
+     *
+     * @param array $settings
+     *
+     * @return array
+     * @throws \InvalidArgumentException
+     */
+    private function doSubstitutions(array $settings): array
+    {
+        if (0 === count($settings)) {
+            return [];
+        }
+        $depth = 0;
+        $dic = $this->dic;
+        $maxDepth = 25;
+        $callback = function ($subject) use ($dic, $settings, &$miss) {
+            $regEx = '%(.*?)\{((?:\w+)(?:\.\w+)+)\}(.*)%';
+            if (is_string($subject)) {
+                $matched = preg_match($regEx, $subject, $matches);
+                if (1 === $matched) {
+                    $name = $matches[2];
+                    if ($dic->offsetExists($name)) {
+                        $subject = $matches[1] . $dic[$name] . $matches[3];
+                    } elseif (array_key_exists($name, $settings)) {
+                        $subject = $matches[1] . $settings[$name] . $matches[3];
+                    }
+                    if (false !== strpos($subject, '{') && false !== strpos($subject, '}')) {
+                        ++$miss;
+                    }
+                } elseif (false === $matched) {
+                    $constants = array_flip(array_filter(get_defined_constants(),
+                        function (string $value) {
+                            return fnmatch('PREG_*_ERROR', $value);
+                        },
+                        ARRAY_FILTER_USE_KEY));
+                    $mess = 'Received preg error ' . $constants[preg_last_error()];
+                    throw new \InvalidArgumentException($mess);
+                }
+            }
+            return $subject;
+        };
+        do {
+            $miss = 0;
+            $settings = array_map($callback, $settings);
+            if (++$depth > $maxDepth) {
+                $mess = 'Exceeded maximum depth, check for possible circular reference(s)';
+                throw new \InvalidArgumentException($mess);
+            }
+        } while (0 < $miss);
+        return $settings;
+    }
+    /**
+     * @param YamlConfigFile $yaml
+     * @param array          $existing
+     *
+     * @return array
+     * @throws \LogicException
+     */
+    private function parserConfigFile(YamlConfigFile $yaml, array $existing = []): array
+    {
+        $settings = $yaml->flattenYaml();
+        return array_replace($existing, $settings);
+    }
+    /**
+     * Used to remove any parameters or objects that were added from config files.
+     */
+    private function removeUnprotectedSettings()
+    {
+        $subtractions = array_diff($this->dic->keys(), $this->protectedKeys);
+        foreach ($subtractions as $sub) {
+            unset($this->dic[$sub]);
+        }
+    }
+    /**
+     * @var array $configFiles
+     */
+    private $configFiles;
     /**
      * @var ContainerInterface $dic
      */
     private $dic;
     /**
+     * List of Container keys that are protected from being overwritten.
+     *
      * @var array $protectedKeys
      */
     private $protectedKeys;
+    /**
+     * @var array $settings
+     */
+    private $settings;
 }

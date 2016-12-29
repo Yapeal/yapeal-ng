@@ -83,36 +83,40 @@ interface ConfigManagementInterface
      * been processed or an exception will be thrown.
      *
      * The $configFiles parameter can be just a plain list (array) of config file names with directory paths. If given
-     * a plain list like this Yapeal-ng will use the default priority and watch modes as seen in the addConfigFile()
+     * a plain list like this Yapeal-ng will use the default priority and watched modes as seen in the addConfigFile()
      * method. An example of this would look something like this:
      *
-     * ```php
-     * <?php
-     * ...
-     * // @var ConfigManagementInterface $config
-     * $configFiles = [__DIR__ . '/yapealDefaults.yaml', dirname(__DIR__, 2) . '/config/yapeal.yaml'];
-     * $config->create($configFiles);
-     * ...
-     * ```
-     *
-     * An example that includes the optional priority and watch flags:
-     * ```php
+     * <code>
      * <?php
      * ...
      * // @var ConfigManagementInterface $config
      * $configFiles = [
-     *     __DIR__ . '/yapealDefaults.yaml' => ['priority' => PHP_INT_MAX, 'watch' => false],
-     *     dirname(__DIR__, 2) . '/config/yapeal.yaml' => ['priority' => 10]
+     *     __DIR__ . '/yapealDefaults.yaml',
+     *     dirname(__DIR__, 2) . '/config/yapeal.yaml'
      * ];
      * $config->create($configFiles);
      * ...
-     * ```
+     * </code>
      *
-     * Including either 'priority' or 'watch' is optional and they will receive the default value from addConfigFile()
+     * An example that includes optional priority and watched flags:
+     * <code>>
+     * <?php
+     * ...
+     * // @var ConfigManagementInterface $config
+     * $configFiles = [
+     *     ['pathName' => __DIR__ . '/yapealDefaults.yaml', 'priority' => PHP_INT_MAX, 'watched' => false],
+     *     ['pathName' => dirname(__DIR__, 2) . '/config/yapeal.yaml', 'priority' => 10],
+     *     ['pathName' => __DIR__ . '/special/run.yaml']
+     * ];
+     * $config->create($configFiles);
+     * ...
+     * </code>
+     *
+     * Including either 'priority' or 'watched' is optional and they will receive the default value from addConfigFile()
      * if not given.
      *
-     * @param array $configFiles A list of config file names with optional priority and watch flag. See example for how
-     *                           to include them.
+     * @param array $configFiles A list of config file names with optional priority and watched flag. See example for
+     *                           how to include them.
      *
      * @return bool
      */
@@ -144,12 +148,12 @@ interface ConfigManagementInterface
     /**
      * The Read part of the CRUD interface.
      *
-     * Since the Container where the settings are kept is one of the main shared object inside Yapeal-ng this is mostly
-     * redundant.
+     * Since the Container where the settings are kept is one of the main shared objects inside Yapeal-ng this is mostly
+     * redundant but used this method as a way to return only stuff added by the config files.
      *
-     * @return ContainerInterface
+     * @return array
      */
-    public function read(): ContainerInterface;
+    public function read(): array;
     /**
      * Remove an existing config file candidate entry.
      *

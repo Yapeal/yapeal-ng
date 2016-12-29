@@ -35,9 +35,11 @@ declare(strict_types = 1);
 namespace Yapeal\Behat;
 
 use Behat\Behat\Context\Context;
-use Behat\Behat\Tester\Exception\PendingException;
 use Behat\Gherkin\Node\PyStringNode;
 use Behat\Gherkin\Node\TableNode;
+use Symfony\Component\Filesystem\Filesystem;
+use Webmozart\Assert\Assert;
+use Yapeal\Cli\Yapeal\YamlConfigFile;
 use Yapeal\Configuration\ConfigManagementInterface;
 use Yapeal\Configuration\ConfigManager;
 use Yapeal\Container\Container;
@@ -48,12 +50,41 @@ use Yapeal\Container\ContainerInterface;
  */
 class ConfigManagerContext implements Context
 {
+    use FileSystemUtilTrait;
     /**
-     * @Given I have a config file :arg1 that contains:
+     * ConfigManagerContext constructor.
      */
-    public function iHaveAConfigFileThatContains($arg1, PyStringNode $string)
+    public function __construct()
     {
-        throw new PendingException();
+        $this->filesystem = new Filesystem();
+        $this->configFiles = [];
+    }
+    public function __destruct()
+    {
+        /** @noinspection PhpUsageOfSilenceOperatorInspection */
+        @rmdir(dirname($this->workingDirectory));
+    }
+    /**
+     * @AfterScenario
+     */
+    public function afterScenarioClearConfigFiles()
+    {
+        $this->configFiles = [];
+    }
+    /**
+     * @Given I have a config file :pathFile that contains:
+     * @Given I had a config file :pathFile that contained:
+     * @Given I have another config file :pathFile that contains:
+     *
+     * @param string       $pathFile
+     * @param PyStringNode $contents
+     *
+     * @throws \Symfony\Component\Filesystem\Exception\IOException
+     */
+    public function iHaveAConfigFileThatContains(string $pathFile, PyStringNode $contents)
+    {
+        $this->filesystem->dumpFile($this->workingDirectory . $pathFile, (string)$contents);
+        $this->configFiles[] = $this->workingDirectory . $pathFile;
     }
     /**
      * @Given I have an empty Container class
@@ -61,6 +92,7 @@ class ConfigManagerContext implements Context
     public function iHaveAnEmptyContainerClass()
     {
         $this->dic = new Container();
+        $this->dic['protect.me'] = 'Was I protected?';
     }
     /**
      * @Given I have created a new instance of the ConfigManager class
@@ -70,19 +102,68 @@ class ConfigManagerContext implements Context
         $this->manager = new ConfigManager($this->dic);
     }
     /**
-     * @Then I should can find the follows <keys> and their <values> in the Container class:
+     * @Then  I should find the follows <keys> in the Container class:
+     * @Given I could find the follows <keys> in the Container class:
+     *
+     * @param TableNode $table
+     *
+     * @throws \Behat\Gherkin\Exception\NodeException
+     * @throws \InvalidArgumentException
      */
-    public function iShouldCanFindTheFollowsKeysAndTheirValuesInTheContainerClass(TableNode $table)
+    public function iShouldFindTheFollowsKeysInTheContainerClass(TableNode $table)
     {
-        throw new PendingException();
+        $expected = $table->getColumn(0);
+        array_shift($expected);
+        $keys = $this->dic->keys();
+        foreach ($expected as $item) {
+            if (!in_array($item, $keys)) {
+                $mess = sprintf('Expected the key %s to exist.', $item);
+                throw new \InvalidArgumentException($mess);
+            }
+        }
     }
     /**
-     * @When I use the create() method of the ConfigManager class
+     * @Then I should not find the follows <keys> in the Container class:
+     *
+     * @param TableNode $table
+     *
+     * @throws \Behat\Gherkin\Exception\NodeException
+     * @throws \InvalidArgumentException
+     */
+    public function iShouldNotFindTheFollowsKeysInTheContainerClass(TableNode $table)
+    {
+        $notExpected = $table->getColumn(0);
+        array_shift($notExpected);
+        $keys = $this->dic->keys();
+        foreach ($notExpected as $item) {
+            if (in_array($item, $keys)) {
+                $mess = sprintf('Do not expected the key %s to exist.', $item);
+                throw new \InvalidArgumentException($mess);
+            }
+        }
+    }
+    /**
+     * @When  I use the create method of the ConfigManager class
+     * @Given I used the create method of the ConfigManager class
+     * @throws \InvalidArgumentException
      */
     public function iUseTheCreateMethodOfTheConfigManagerClass()
     {
-        throw new PendingException();
+        Assert::true($this->manager->create($this->configFiles));
+        $this->configFiles = [];
     }
+    /**
+     * @When I use the delete method of the ConfigManager class
+     * @throws \InvalidArgumentException
+     */
+    public function iUseTheDeleteMethodOfTheConfigManagerClass()
+    {
+        Assert::true($this->manager->delete());
+    }
+    /**
+     * @var array $configFiles
+     */
+    private $configFiles;
     /**
      * @var ContainerInterface $dic
      */
@@ -91,4 +172,28 @@ class ConfigManagerContext implements Context
      * @var ConfigManagementInterface $manager
      */
     private $manager;
+    /**
+     * @When I give the path name :pathName parameter to the addConfigFile method
+     *
+     * @param string $pathName
+     *
+     * @throws \InvalidArgumentException
+     */
+    public function iGiveThePathNameParameterToTheAddConfigFileMethod(string $pathName)
+    {
+        $result = $this->manager->addConfigFile($this->workingDirectory . $pathName);
+        Assert::isArray($result);
+        Assert::keyExists($result, 'instance');
+        Assert::isInstanceOf($result['instance'], YamlConfigFile::class);
+        Assert::keyExists($result, 'timestamp');
+        Assert::keyExists($result, 'priority');
+        Assert::keyExists($result, 'watched');
+    }
+    /**
+     * @When I use the update method of the ConfigManager class
+     */
+    public function iUseTheUpdateMethodOfTheConfigManagerClass()
+    {
+        Assert::true($this->manager->update());
+    }
 }
