@@ -32,7 +32,7 @@ declare(strict_types = 1);
  * @copyright 2016 Michael Cummings
  * @license   LGPL-3.0+
  */
-namespace Yapeal\Cli\Yapeal;
+namespace Yapeal\Configuration;
 
 use Symfony\Component\Yaml\Dumper;
 use Symfony\Component\Yaml\Exception\ParseException;
@@ -42,7 +42,7 @@ use Yapeal\FileSystem\SafeFileHandlingTrait;
 /**
  * Class YamlConfigFile.
  */
-class YamlConfigFile
+class YamlConfigFile implements ConfigFileInterface
 {
     use SafeFileHandlingTrait;
     /**
