@@ -4,6 +4,9 @@ Yapeal:
     consoleCatchExceptions: false
     consoleName: 'Yapeal-ng Console'
     version: '0.6.0-0-gafa3c59'
+    Configuration:
+        Classes:
+            Yapeal\Configuration\ConfigManager
     EveApi:
         dir: '{Yapeal.libDir}EveApi/'
         Cache:

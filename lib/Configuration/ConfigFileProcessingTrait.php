@@ -34,6 +34,7 @@ declare(strict_types = 1);
  */
 namespace Yapeal\Configuration;
 
+use Yapeal\Cli\Yapeal\ConfigFileInterface;
 use Yapeal\Cli\Yapeal\YamlConfigFile;
 use Yapeal\Container\ContainerInterface;
 use Yapeal\FileSystem\SafeFileHandlingTrait;
@@ -135,7 +136,7 @@ trait ConfigFileProcessingTrait
     protected function parserConfigFile(string $configFile, array $existing = []): array
     {
         /**
-         * @var YamlConfigFile $yaml
+         * @var ConfigFileInterface $yaml
          */
         $yaml = $this->getDic()['Yapeal.Config.Callable.Yaml'];
         $settings = $yaml->setPathFile($configFile)

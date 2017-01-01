@@ -56,7 +56,8 @@ class ConfigWiring implements WiringInterface, DicAwareInterface
     public function wire(ContainerInterface $dic)
     {
         $this->setDic($dic);
-        $this->wireYaml($dic)->wireExtractorCallable($dic);
+        $this->wireYaml($dic)
+            ->wireExtractorCallable($dic);
         $path = dirname(str_replace('\\', '/', __DIR__), 2) . '/';
         // These two paths are critical to Yapeal-ng working and can't be overridden.
         $dic['Yapeal.baseDir'] = $path;
@@ -121,20 +122,6 @@ class ConfigWiring implements WiringInterface, DicAwareInterface
         return $settings;
     }
     /**
-     * @param ContainerInterface $dic
-     *
-     * @return self Fluent interface.
-     */
-    private function wireYaml(ContainerInterface $dic): self
-    {
-        if (empty($dic['Yapeal.Config.Callable.Yaml'])) {
-            $dic['Yapeal.Config.Callable.Yaml'] = $dic->factory(function () {
-                return new YamlConfigFile();
-            });
-        }
-        return $this;
-    }
-    /**
      * Adds a protected function that will extract all scalar settings that share a common prefix.
      *
      * The prefix should end with a '.' if not the function will end one before starting search.
@@ -171,6 +158,20 @@ class ConfigWiring implements WiringInterface, DicAwareInterface
                     trigger_error($mess, E_USER_ERROR);
                     exit(254);
                 }
+            });
+        }
+        return $this;
+    }
+    /**
+     * @param ContainerInterface $dic
+     *
+     * @return self Fluent interface.
+     */
+    private function wireYaml(ContainerInterface $dic): self
+    {
+        if (empty($dic['Yapeal.Config.Callable.Yaml'])) {
+            $dic['Yapeal.Config.Callable.Yaml'] = $dic->factory(function () {
+                return new YamlConfigFile();
             });
         }
         return $this;

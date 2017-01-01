@@ -32,15 +32,16 @@ declare(strict_types = 1);
  * @copyright 2016 Michael Cummings
  * @license   LGPL-3.0
  */
-namespace Spec\Yapeal\Cli\Yapeal;
+namespace Spec\Yapeal\Configuration;
 
 use PhpSpec\ObjectBehavior;
+use Yapeal\Configuration\YamlConfigFile;
 
 //use Prophecy\Argument;
 /**
  * Class YamlConfigFileSpec
  *
- * @mixin \Yapeal\Cli\Yapeal\YamlConfigFile
+ * @mixin \Yapeal\Configuration\YamlConfigFile
  *
  * @method void during($method, array $params)
  * @method void shouldBe($value)
@@ -52,7 +53,7 @@ class YamlConfigFileSpec extends ObjectBehavior
 {
     public function it_is_initializable()
     {
-        $this->shouldHaveType('Yapeal\Cli\Yapeal\YamlConfigFile');
+        $this->shouldHaveType(YamlConfigFile::class);
     }
     public function it_should_return_self_from_set_path_file()
     {

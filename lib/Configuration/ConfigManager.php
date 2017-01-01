@@ -34,7 +34,6 @@ declare(strict_types = 1);
  */
 namespace Yapeal\Configuration;
 
-use Yapeal\Cli\Yapeal\YamlConfigFile;
 use Yapeal\Container\ContainerInterface;
 
 /**
@@ -293,7 +292,7 @@ class ConfigManager implements ConfigManagementInterface
         $this->removeUnprotectedSettings();
         $settings = $this->settings;
         /**
-         * @var YamlConfigFile $instance
+         * @var ConfigFileInterface $instance
          */
         foreach ($this->configFiles as $pathName => $configFile) {
             clearstatcache(true, $pathName);
@@ -391,13 +390,13 @@ class ConfigManager implements ConfigManagementInterface
         return $settings;
     }
     /**
-     * @param YamlConfigFile $yaml
-     * @param array          $existing
+     * @param ConfigFileInterface $yaml
+     * @param array               $existing
      *
      * @return array
      * @throws \LogicException
      */
-    private function parserConfigFile(YamlConfigFile $yaml, array $existing = []): array
+    private function parserConfigFile(ConfigFileInterface $yaml, array $existing = []): array
     {
         $settings = $yaml->flattenYaml();
         return array_replace($existing, $settings);
