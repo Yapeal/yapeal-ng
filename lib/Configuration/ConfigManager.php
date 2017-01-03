@@ -58,9 +58,9 @@ class ConfigManager implements ConfigManagementInterface
     public function __construct(ContainerInterface $dic, array $settings = [])
     {
         $this->configFiles = [];
-        $this->dic = $dic;
+        $this->setDic($dic);
         $this->protectedKeys = $dic->keys();
-        $this->settings = $settings;
+        $this->setSettings($settings);
     }
     /**
      * Add a new config file candidate to be used during the composing of settings.
@@ -97,11 +97,42 @@ class ConfigManager implements ConfigManagementInterface
         clearstatcache(true, $pathName);
         $this->configFiles[$pathName] = [
             'instance' => (new YamlConfigFile($pathName))->read(),
-            'timestamp' => filemtime($pathName),
+            'pathName' => $pathName,
             'priority' => $priority,
+            'timestamp' => filemtime($pathName),
             'watched' => $watched
         ];
         return $this->configFiles[$pathName];
+    }
+    /**
+     * @param string $pathName Configuration file name with path.
+     * @param bool   $force    Override watched flag. Allows checking of normally unwatched files.
+     *
+     * @return bool Returns true if config file was updated, else false
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
+     */
+    public function checkModifiedAndUpdate(string $pathName, bool $force = false): bool
+    {
+        if (!$this->hasConfigFile($pathName)) {
+            $mess = 'Tried to check unknown config file ' . $pathName;
+            throw new \InvalidArgumentException($mess);
+        }
+        $configFile = $this->configFiles[$pathName];
+        /**
+         * @var ConfigFileInterface $instance
+         */
+        if ($force || $configFile['watched']) {
+            clearstatcache(true, $pathName);
+            $currentTS = filemtime($pathName);
+            if ($configFile['timestamp'] < $currentTS) {
+                $instance = $configFile['instance'];
+                $instance->read();
+                $configFile['timestamp'] = $currentTS;
+                return true;
+            }
+        }
+        return false;
     }
     /**
      * The Create part of the CRUD interface.
@@ -161,8 +192,7 @@ class ConfigManager implements ConfigManagementInterface
      */
     public function create(array $configFiles): bool
     {
-        $this->delete();
-        $settings = $this->settings;
+        $this->configFiles = [];
         foreach ($configFiles as $value) {
             if (is_string($value)) {
                 $value = ['pathName' => $value];
@@ -175,17 +205,11 @@ class ConfigManager implements ConfigManagementInterface
                 $mess = 'Config file element must be a string or an array but was given ' . gettype($value);
                 throw new \InvalidArgumentException($mess);
             }
-            $configFile = $this->addConfigFile($value['pathName'],
+            $this->addConfigFile($value['pathName'],
                 $value['priority'] ?? self::PRIORITY_DEFAULT,
                 $value['watched'] ?? true);
-            $settings = $this->parserConfigFile($configFile['instance'], $settings);
         }
-        $additions = array_diff(array_keys($settings), $this->protectedKeys);
-        $additions = $this->doSubstitutions($additions);
-        foreach ($additions as $add) {
-            $this->dic[$add] = $settings[$add];
-        }
-        return true;
+        return $this->update();
     }
     /**
      * The Delete part of the CRUD interface.
@@ -241,7 +265,7 @@ class ConfigManager implements ConfigManagementInterface
      *
      * @param string $pathName
      *
-     * @return array Return the removed config file candidate entry with 'priority' and 'watch'.
+     * @return array Return the removed config file candidate entry with 'priority' and 'watched'.
      * @throws \InvalidArgumentException Throw this exception if there is no matching entry found. Use hasConfigFile()
      *                                   to check if the candidate config file entry exists.
      */
@@ -267,6 +291,16 @@ class ConfigManager implements ConfigManagementInterface
         return $this;
     }
     /**
+     * @param array $value
+     *
+     * @return self Fluent interface
+     */
+    public function setSettings(array $value = []): self
+    {
+        $this->settings = $value;
+        return $this;
+    }
+    /**
      * The Update part of the CRUD interface.
      *
      * It is expected that this will see little or no use if Yapeal-ng is being used in the typical/original mode via
@@ -279,9 +313,7 @@ class ConfigManager implements ConfigManagementInterface
      * Note that it expected that the addConfigFile() and removeConfigFile() methods have been called already to change
      * which config files will be used to compose the new settings.
      *
-     * @param bool $force        Used to force re-reading of the known config file(s) including the unwatched ones.
-     *                           This can be thought of as running create() but without having to give a complete list
-     *                           of config files again.
+     * @param bool $force Override watched flag. Allows checking of normally unwatched files.
      *
      * @return bool
      * @throws \InvalidArgumentException
@@ -295,20 +327,11 @@ class ConfigManager implements ConfigManagementInterface
          * @var ConfigFileInterface $instance
          */
         foreach ($this->configFiles as $pathName => $configFile) {
-            clearstatcache(true, $pathName);
+            $this->checkModifiedAndUpdate($pathName, $force);
             $instance = $configFile['instance'];
-            $currentTS = filemtime($pathName);
-            if (($force || $configFile['watched']) && $configFile['timestamp'] < $currentTS) {
-                $instance->read();
-                $configFile['timestamp'] = $currentTS;
-            }
-            $settings = $this->parserConfigFile($instance, $settings);
+            $settings = array_replace($settings, $instance->flattenYaml());
         }
-        $additions = array_diff(array_keys($settings), $this->protectedKeys);
-        $additions = $this->doSubstitutions($additions);
-        foreach ($additions as $add) {
-            $this->dic[$add] = $settings[$add];
-        }
+        $this->doSubstitutions($settings);
         return true;
     }
     /**
@@ -342,29 +365,25 @@ class ConfigManager implements ConfigManagementInterface
      *
      * @param array $settings
      *
-     * @return array
      * @throws \InvalidArgumentException
      */
-    private function doSubstitutions(array $settings): array
+    protected function doSubstitutions(array $settings)
     {
-        if (0 === count($settings)) {
-            return [];
-        }
+        $additions = array_diff(array_keys($settings), $this->protectedKeys);
         $depth = 0;
-        $dic = $this->dic;
         $maxDepth = 25;
-        $callback = function ($subject) use ($dic, $settings, &$miss) {
-            $regEx = '%(.*?)\{((?:\w+)(?:\.\w+)+)\}(.*)%';
-            if (is_string($subject)) {
-                $matched = preg_match($regEx, $subject, $matches);
+        do {
+            $miss = 0;
+            foreach ($additions as $addition) {
+                if (!is_string($settings[$addition])) {
+                    continue;
+                }
+                $regEx = '%(.*?)\{((?:\w+)(?:\.\w+)+)\}(.*)%';
+                $matched = preg_match($regEx, $settings[$addition], $matches);
                 if (1 === $matched) {
-                    $name = $matches[2];
-                    if ($dic->offsetExists($name)) {
-                        $subject = $matches[1] . $dic[$name] . $matches[3];
-                    } elseif (array_key_exists($name, $settings)) {
-                        $subject = $matches[1] . $settings[$name] . $matches[3];
-                    }
-                    if (false !== strpos($subject, '{') && false !== strpos($subject, '}')) {
+                    $sub = $this->dic[$matches[2]] ?? $settings[$matches[2]] ?? $matches[2];
+                    $settings[$addition] = $matches[1] . $sub . $matches[3];
+                    if (fnmatch('*{*.*}*', $settings[$addition])) {
                         ++$miss;
                     }
                 } elseif (false === $matched) {
@@ -377,29 +396,14 @@ class ConfigManager implements ConfigManagementInterface
                     throw new \InvalidArgumentException($mess);
                 }
             }
-            return $subject;
-        };
-        do {
-            $miss = 0;
-            $settings = array_map($callback, $settings);
             if (++$depth > $maxDepth) {
                 $mess = 'Exceeded maximum depth, check for possible circular reference(s)';
                 throw new \InvalidArgumentException($mess);
             }
         } while (0 < $miss);
-        return $settings;
-    }
-    /**
-     * @param ConfigFileInterface $yaml
-     * @param array               $existing
-     *
-     * @return array
-     * @throws \LogicException
-     */
-    private function parserConfigFile(ConfigFileInterface $yaml, array $existing = []): array
-    {
-        $settings = $yaml->flattenYaml();
-        return array_replace($existing, $settings);
+        foreach ($additions as $add) {
+            $this->dic[$add] = $settings[$add];
+        }
     }
     /**
      * Used to remove any parameters or objects that were added from config files.

@@ -41,6 +41,7 @@ use Symfony\Component\Filesystem\Filesystem;
 use Webmozart\Assert\Assert;
 use Yapeal\Configuration\ConfigFileInterface;
 use Yapeal\Configuration\ConfigManagementInterface;
+use Yapeal\Configuration\ConfigManager;
 use Yapeal\Container\Container;
 use Yapeal\Container\ContainerInterface;
 
