@@ -35,7 +35,7 @@ declare(strict_types = 1);
 namespace Yapeal\Cli;
 
 use Symfony\Component\Console\Input\InputOption;
-use Yapeal\Configuration\ConfigFileProcessingTrait;
+use Yapeal\Configuration\ConfigManagementInterface;
 use Yapeal\Container\ContainerInterface;
 
 /**
@@ -43,7 +43,6 @@ use Yapeal\Container\ContainerInterface;
  */
 trait ConfigFileTrait
 {
-    use ConfigFileProcessingTrait;
     /**
      * @throws \Symfony\Component\Console\Exception\LogicException
      */
@@ -72,11 +71,11 @@ trait ConfigFileTrait
         if ('' === $pathFile) {
             return;
         }
-        $settings = $this->doSubstitutions($this->parserConfigFile($pathFile), $dic);
-        if (0 !== count($settings)) {
-            foreach ($settings as $key => $value) {
-                $dic[$key] = $value;
-            }
-        }
+        /**
+         * @var ConfigManagementInterface $manager
+         */
+        $manager = $dic['Yapeal.Config.Callable.Manager'];
+        $manager->addConfigFile($pathFile, 1);
+        $manager->update();
     }
 }
