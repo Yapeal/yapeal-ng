@@ -5,8 +5,12 @@ Yapeal:
     consoleName: 'Yapeal-ng Console'
     version: '0.6.0-0-gafa3c59'
     Configuration:
+        Parameters:
+            manager:
+                matchYapealOnly: false
         Classes:
-            Yapeal\Configuration\ConfigManager
+            manager: Yapeal\Configuration\ConfigManager
+            yaml: Yapeal\Configuration\YamlConfigFile
     EveApi:
         dir: '{Yapeal.libDir}EveApi/'
         Cache:

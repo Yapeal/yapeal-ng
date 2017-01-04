@@ -74,7 +74,7 @@ trait ConfigFileTrait
         /**
          * @var ConfigManagementInterface $manager
          */
-        $manager = $dic['Yapeal.Config.Callable.Manager'];
+        $manager = $dic['Yapeal.Configuration.Callable.Manager'];
         $manager->addConfigFile($pathFile, 1);
         $manager->update();
     }

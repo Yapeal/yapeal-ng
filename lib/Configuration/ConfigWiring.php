@@ -59,7 +59,8 @@ class ConfigWiring implements WiringInterface
         $dic['Yapeal.libDir'] = $path . 'lib/';
         $settings = $this->gitVersionSetting($dic, []);
         $configFiles = [
-            ['pathName' => str_replace('\\', '/', __DIR__) . '/yapealDefaults.yaml',
+            [
+                'pathName' => str_replace('\\', '/', __DIR__) . '/yapealDefaults.yaml',
                 PHP_INT_MAX,
                 false
             ]
@@ -91,7 +92,7 @@ class ConfigWiring implements WiringInterface
         /**
          * @var ConfigManagementInterface $manager
          */
-        $manager = $dic['Yapeal.Config.Callable.Manager'];
+        $manager = $dic['Yapeal.Configuration.Callable.Manager'];
         $manager->setSettings($settings)
             ->create($configFiles);
     }
@@ -161,9 +162,13 @@ class ConfigWiring implements WiringInterface
      */
     private function wireManager(ContainerInterface $dic): self
     {
-        if (empty($dic['Yapeal.Config.Callable.Manager'])) {
-            $dic['Yapeal.Config.Callable.Manager'] = function (ContainerInterface $dic) {
-                return new ConfigManager($dic);
+        if (empty($dic['Yapeal.Configuration.Callable.Manager'])) {
+            $dic['Yapeal.Configuration.Callable.Manager'] = function (ContainerInterface $dic) {
+                /**
+                 * @var ConfigManager $manager
+                 */
+                $manager = new $dic['Yapeal.Configuration.Classes.manager']($dic);
+                return $manager->setMatchYapealOnly($dic['Yapeal.Configuration.Parameters.manager.matchYapealOnly']);
             };
         }
         return $this;
@@ -176,8 +181,8 @@ class ConfigWiring implements WiringInterface
     private function wireYaml(ContainerInterface $dic): self
     {
         if (empty($dic['Yapeal.Config.Callable.Yaml'])) {
-            $dic['Yapeal.Config.Callable.Yaml'] = $dic->factory(function () {
-                return new YamlConfigFile();
+            $dic['Yapeal.Config.Callable.Yaml'] = $dic->factory(function (ContainerInterface $dic) {
+                return new $dic['Yapeal.Configuration.Classes.yaml']();
             });
         }
         return $this;
