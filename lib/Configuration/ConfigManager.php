@@ -65,25 +65,26 @@ class ConfigManager implements ConfigManagementInterface
     /**
      * Add a new config file candidate to be used during the composing of settings.
      *
-     * This method is expected to be used with the update() method to change the config files use during the composing
+     * This method is expected to be used with the update() method to change the config files used during the composing
      * of settings.
      *
      * Though Yapeal-ng considers and treats all configuration files as optional the individual settings themselves are
      * not and many of them if missing can cause it to not start, to fail, or possible cause other undefined behavior
      * to happen instead.
      *
+     * The behavior when adding the same config file with an absolute and relative path or more than one relative path
+     * is undefined and may change and is considered unsupported. It makes little sense to do so anyway but mentioned
+     * here so developers known to watch for this edge case.
      *
-     *
-     * @param string $pathName Configuration file name with absolute path.
+     * @param string $pathName Configuration file name with path. Path _should_ be absolute but it is not checked.
      * @param int    $priority An integer in the range 0 - PHP_INT_MAX with large number being a higher priority.
-     *                         The range between 100 and 10000 are reserved for application developer use with
-     *                         everything else reserved for internal use only.
+     *                         The range between 100 and 100000 inclusively are reserved for application developer use
+     *                         with everything outside that range reserved for internal use only.
      * @param bool   $watched  Flag to tell if file should be monitored for changes and updates or read initially and
      *                         future changes ignored. Note that the $force flag of update() can be used to override
      *                         this parameter.
      *
-     * @return array Throws this exception if you try adding the same $pathFile again. Use
-     *                                   hasConfigFile() to see if entry already exists.
+     * @return array Return the added config file candidate entry with 'priority' and 'watched'.
      * @throws \InvalidArgumentException Throws this exception if you try adding the same $pathFile again. Use
      *                                   hasConfigFile() to see if entry already exists.
      * @throws \LogicException
@@ -235,7 +236,7 @@ class ConfigManager implements ConfigManagementInterface
     /**
      * Allows checking if a config file candidate has already been added.
      *
-     * @param string $pathName
+     * @param string $pathName Configuration file name with path. Path _should_ be absolute but it is not checked.
      *
      * @return bool Returns true if candidate entry exist, false if unknown.
      */
@@ -263,9 +264,13 @@ class ConfigManager implements ConfigManagementInterface
     /**
      * Remove an existing config file candidate entry.
      *
-     * @param string $pathName
+     * This method is expected to be used with the update() method to change the config files used during the composing
+     * of settings.
+     *
+     * @param string $pathName Configuration file name with path. Path _should_ be absolute but it is not checked.
      *
      * @return array Return the removed config file candidate entry with 'priority' and 'watched'.
+     * @see addConfigFile()
      * @throws \InvalidArgumentException Throw this exception if there is no matching entry found. Use hasConfigFile()
      *                                   to check if the candidate config file entry exists.
      */
@@ -323,6 +328,7 @@ class ConfigManager implements ConfigManagementInterface
     {
         $this->removeUnprotectedSettings();
         $settings = $this->settings;
+        $this->sortConfigFiles();
         /**
          * @var ConfigFileInterface $instance
          */
@@ -414,6 +420,23 @@ class ConfigManager implements ConfigManagementInterface
         foreach ($subtractions as $sub) {
             unset($this->dic[$sub]);
         }
+    }
+    /**
+     * Sorts config files by priority/path name order.
+     *
+     * Sorted the config files by their descending priority order (largest-smallest). If there are config files with
+     * equal priorities they will be sorted by descending path name order.
+     */
+    private function sortConfigFiles()
+    {
+        uasort($this->configFiles,
+            function ($a, $b) {
+                $sort = $b['priority'] <=> $a['priority'];
+                if (0 === $sort) {
+                    $sort = $b['pathName'] <=> $a['pathName'];
+                }
+                return $sort;
+            });
     }
     /**
      * @var array $configFiles

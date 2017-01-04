@@ -35,12 +35,10 @@ declare(strict_types = 1);
 namespace Spec\Yapeal\Configuration;
 
 use PhpSpec\ObjectBehavior;
-use PhpSpec\Wrapper\Collaborator;
 use Spec\Yapeal\FileSystemUtilTrait;
 use Symfony\Component\Filesystem\Filesystem;
 use Webmozart\Assert\Assert;
 use Yapeal\Container\Container;
-use Yapeal\Container\ContainerInterface;
 
 /**
  * Class ConfigManagerSpec
@@ -68,7 +66,7 @@ class ConfigManagerSpec extends ObjectBehavior
         /** @noinspection PhpUsageOfSilenceOperatorInspection */
         @rmdir(dirname($this->workingDirectory));
     }
-    public function it_does_not_allow_overwrite_preexisting_container_settings_during_create()
+    public function it_does_not_allow_overwrite_preexisting_container_settings_in_create()
     {
         $yaml = <<<'yaml'
 ---
@@ -88,7 +86,25 @@ yaml;
         $this->create([$configFile]);
         Assert::eq($dic['Yapeal.Protect.me'], '{Yapeal.version}');
     }
-    public function it_does_subs_during_create()
+    public function it_does_not_do_subs_for_preexisting_container_settings_in_create()
+    {
+        $yaml = <<<'yaml'
+---
+Yapeal:
+    consoleAutoExit: true
+    consoleCatchExceptions: false
+    consoleName: 'Yapeal-ng Console'
+    version: '0.6.0-0-gafa3c59'
+...
+yaml;
+        $dic = new Container(['Yapeal.Test.version' => '{Yapeal.version}']);
+        $configFile = $this->workingDirectory . 'config.yaml';
+        $this->filesystem->dumpFile($configFile, $yaml);
+        $this->beConstructedWith($dic, []);
+        $this->create([$configFile]);
+        Assert::eq($dic['Yapeal.Test.version'], '{Yapeal.version}');
+    }
+    public function it_does_subs_in_create()
     {
         $yaml = <<<'yaml'
 ---
@@ -106,6 +122,60 @@ yaml;
         $this->beConstructedWith($dic, $settings);
         $this->create([$configFile]);
         Assert::eq($dic['Yapeal.Test.version'], $dic['Yapeal.version']);
+    }
+    public function it_processes_config_files_by_priority_order_in_create()
+    {
+        $dic = new Container();
+        $yaml = <<<'yaml'
+---
+Yapeal:
+    config: 'priority second'
+...
+yaml;
+        $configFile2 = $this->workingDirectory . 'config2.yaml';
+        $this->filesystem->dumpFile($configFile2, $yaml);
+        $yaml = <<<'yaml'
+---
+Yapeal:
+    config: 'priority first'
+...
+yaml;
+        $configFile1 = $this->workingDirectory . 'config1.yaml';
+        $this->filesystem->dumpFile($configFile1, $yaml);
+        $this->beConstructedWith($dic);
+        $configFiles = [
+            ['pathName' => $configFile2, 'priority' => PHP_INT_MAX - 1],
+            ['pathName' => $configFile1, 'priority' => PHP_INT_MAX]
+        ];
+        $this->create($configFiles);
+        Assert::eq($dic['Yapeal.config'], 'priority second');
+    }
+    public function it_processes_config_files_with_equal_priority_by_path_name_order_in_create()
+    {
+        $dic = new Container();
+        $yaml = <<<'yaml'
+---
+Yapeal:
+    config: 'priority second'
+...
+yaml;
+        $configFile2 = $this->workingDirectory . 'config2.yaml';
+        $this->filesystem->dumpFile($configFile2, $yaml);
+        $yaml = <<<'yaml'
+---
+Yapeal:
+    config: 'priority first'
+...
+yaml;
+        $configFile1 = $this->workingDirectory . 'config1.yaml';
+        $this->filesystem->dumpFile($configFile1, $yaml);
+        $this->beConstructedWith($dic);
+        $configFiles = [
+            ['pathName' => $configFile2, 'priority' => PHP_INT_MAX],
+            ['pathName' => $configFile1, 'priority' => PHP_INT_MAX]
+        ];
+        $this->create($configFiles);
+        Assert::eq($dic['Yapeal.config'], 'priority first');
     }
     public function it_removes_unprotected_settings_in_delete()
     {
@@ -134,6 +204,33 @@ yaml;
         $this->create([]);
         $this->read()
             ->shouldReturn([]);
+    }
+    public function it_should_return_added_config_file_structure_in_remove_config_file()
+    {
+        $yaml = <<<'yaml'
+---
+Yapeal:
+    consoleAutoExit: true
+    consoleCatchExceptions: false
+    consoleName: 'Yapeal-ng Console'
+    version: '0.6.0-0-gafa3c59'
+...
+yaml;
+        $dic = new Container([]);
+        $configFile = $this->workingDirectory . 'config.yaml';
+        $this->filesystem->dumpFile($configFile, $yaml);
+        $this->beConstructedWith($dic, []);
+        $this->addConfigFile($configFile);
+        /**
+         * @var ObjectBehavior $result
+         */
+        $result = $this->removeConfigFile($configFile);
+        $result->shouldHaveCount(5);
+        $result->shouldHaveKey('instance');
+        $result->shouldHaveKeyWithValue('pathName', $configFile);
+        $result->shouldHaveKey('priority');
+        $result->shouldHaveKey('timestamp');
+        $result->shouldHaveKey('watched');
     }
     public function it_should_return_empty_array_initially_in_read()
     {
@@ -243,13 +340,10 @@ yaml;
             ->during('create', [[$configFile]]);
     }
     /**
-     * @param Collaborator|ContainerInterface $dic
-     *
      * @throws \Symfony\Component\Filesystem\Exception\IOException
      */
-    public function let(ContainerInterface $dic)
+    public function let()
     {
-        $this->dic = $dic;
         $this->prepWorkingDirectory();
     }
     /**
@@ -258,36 +352,5 @@ yaml;
     public function letGo()
     {
         $this->removeWorkingDirectory();
-    }
-    /**
-     * @var Collaborator|ContainerInterface $dic
-     */
-    private $dic;
-    public function it_should_return_added_config_file_structure_in_remove_config_file()
-    {
-        $yaml = <<<'yaml'
----
-Yapeal:
-    consoleAutoExit: true
-    consoleCatchExceptions: false
-    consoleName: 'Yapeal-ng Console'
-    version: '0.6.0-0-gafa3c59'
-...
-yaml;
-        $dic = new Container([]);
-        $configFile = $this->workingDirectory . 'config.yaml';
-        $this->filesystem->dumpFile($configFile, $yaml);
-        $this->beConstructedWith($dic, []);
-        $this->addConfigFile($configFile);
-        /**
-         * @var ObjectBehavior $result
-         */
-        $result = $this->removeConfigFile($configFile);
-        $result->shouldHaveCount(5);
-        $result->shouldHaveKey('instance');
-        $result->shouldHaveKeyWithValue('pathName', $configFile);
-        $result->shouldHaveKey('priority');
-        $result->shouldHaveKey('timestamp');
-        $result->shouldHaveKey('watched');
     }
 }
