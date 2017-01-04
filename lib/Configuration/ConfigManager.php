@@ -58,8 +58,8 @@ class ConfigManager implements ConfigManagementInterface
     public function __construct(ContainerInterface $dic, array $settings = [])
     {
         $this->configFiles = [];
+        $this->matchYapealOnly = false;
         $this->setDic($dic);
-        $this->protectedKeys = $dic->keys();
         $this->setSettings($settings);
     }
     /**
@@ -296,6 +296,19 @@ class ConfigManager implements ConfigManagementInterface
         return $this;
     }
     /**
+     * Sets substitutions to require Yapeal prefix or to be more generic.
+     *
+     * @param bool $value
+     *
+     * @return self Fluent interface
+     * @see doSubstitutions()
+     */
+    public function setMatchYapealOnly(bool $value = true): self
+    {
+        $this->matchYapealOnly = $value;
+        return $this;
+    }
+    /**
      * @param array $value
      *
      * @return self Fluent interface
@@ -378,13 +391,13 @@ class ConfigManager implements ConfigManagementInterface
         $additions = array_diff(array_keys($settings), $this->protectedKeys);
         $depth = 0;
         $maxDepth = 25;
+        $regEx = sprintf('#(.*?)\{((?:%s)(?:\.\w+)+)\}(.*)#', $this->matchYapealOnly ? 'Yapeal' : '\w+');
         do {
             $miss = 0;
             foreach ($additions as $addition) {
                 if (!is_string($settings[$addition])) {
                     continue;
                 }
-                $regEx = '%(.*?)\{((?:\w+)(?:\.\w+)+)\}(.*)%';
                 $matched = preg_match($regEx, $settings[$addition], $matches);
                 if (1 === $matched) {
                     $sub = $this->dic[$matches[2]] ?? $settings[$matches[2]] ?? $matches[2];
@@ -446,6 +459,13 @@ class ConfigManager implements ConfigManagementInterface
      * @var ContainerInterface $dic
      */
     private $dic;
+    /**
+     * Flag used while doing substitutions to decide if generic pattern or Yapeal prefixed one should be used.
+     *
+     * @var bool $matchYapealOnly
+     * @see doSubstitutions()
+     */
+    private $matchYapealOnly;
     /**
      * List of Container keys that are protected from being overwritten.
      *

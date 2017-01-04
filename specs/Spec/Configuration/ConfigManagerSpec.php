@@ -108,10 +108,10 @@ yaml;
     {
         $yaml = <<<'yaml'
 ---
+MyApp:
+    version: '0.0.1-0-g123456'
 Yapeal:
-    consoleAutoExit: true
-    consoleCatchExceptions: false
-    consoleName: 'Yapeal-ng Console'
+    meTo: '{MyApp.version}'
     version: '0.6.0-0-gafa3c59'
 ...
 yaml;
@@ -122,6 +122,28 @@ yaml;
         $this->beConstructedWith($dic, $settings);
         $this->create([$configFile]);
         Assert::eq($dic['Yapeal.Test.version'], $dic['Yapeal.version']);
+        Assert::eq($dic['Yapeal.meTo'], '0.0.1-0-g123456');
+    }
+    public function it_ignores_other_subs_when_match_yapeal_only_is_true_in_create()
+    {
+        $yaml = <<<'yaml'
+---
+MyApp:
+    version: '0.0.1-0-g123456'
+Yapeal:
+    ignored: '{MyApp.version}'
+    version: '0.6.0-0-gafa3c59'
+...
+yaml;
+        $dic = new Container([]);
+        $configFile = $this->workingDirectory . 'config.yaml';
+        $this->filesystem->dumpFile($configFile, $yaml);
+        $settings = ['Yapeal.Test.version' => '{Yapeal.version}'];
+        $this->beConstructedWith($dic, $settings);
+        $this->setMatchYapealOnly()
+            ->create([$configFile]);
+        Assert::eq($dic['Yapeal.Test.version'], $dic['Yapeal.version']);
+        Assert::eq($dic['Yapeal.ignored'], '{MyApp.version}');
     }
     public function it_processes_config_files_by_priority_order_in_create()
     {
@@ -339,16 +361,10 @@ yaml;
         $this->shouldThrow(new \InvalidArgumentException('Exceeded maximum depth, check for possible circular reference(s)'))
             ->during('create', [[$configFile]]);
     }
-    /**
-     * @throws \Symfony\Component\Filesystem\Exception\IOException
-     */
     public function let()
     {
         $this->prepWorkingDirectory();
     }
-    /**
-     *
-     */
     public function letGo()
     {
         $this->removeWorkingDirectory();

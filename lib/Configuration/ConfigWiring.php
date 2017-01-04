@@ -168,7 +168,8 @@ class ConfigWiring implements WiringInterface
                  * @var ConfigManager $manager
                  */
                 $manager = new $dic['Yapeal.Configuration.Classes.manager']($dic);
-                return $manager->setMatchYapealOnly($dic['Yapeal.Configuration.Parameters.manager.matchYapealOnly']);
+                $match = $dic['Yapeal.Configuration.Parameters.manager.matchYapealOnly'] ?? false;
+                return $manager->setMatchYapealOnly($match);
             };
         }
         return $this;
