@@ -50,10 +50,11 @@ trait FileSystemUtilTrait
         $path = str_replace('\\', '/', __DIR__);
         $this->projectBase = substr($path, 0, strpos($path, 'features/'));
         $path = str_replace('\\', '/', sys_get_temp_dir());
-        $this->workingDirectory = sprintf('%s/%s/%s/', $path, basename($this->projectBase), hash('sha1', 'Yapeal-ng' . random_bytes(8)));
-        if ($this->filesystem->exists($this->workingDirectory)) {
-            $this->filesystem->remove($this->workingDirectory);
-        }
+        $this->workingDirectory = sprintf('%s/%s/%s/',
+            $path,
+            basename($this->projectBase),
+            hash('sha1', basename($this->projectBase) . random_bytes(8)));
+        $this->removeWorkingDirectory();
         $this->filesystem->mkdir($this->workingDirectory);
     }
     /**
@@ -61,11 +62,20 @@ trait FileSystemUtilTrait
      */
     public function removeWorkingDirectory()
     {
-        try {
-            $this->filesystem->remove($this->workingDirectory);
-        } catch (IOException $exc) {
-            //ignoring exception
-        }
+        $tries = 0;
+        $maxTries = 5;
+        do {
+            try {
+                if (!$this->filesystem->exists($this->workingDirectory)) {
+                    break;
+                }
+                $this->filesystem->remove($this->workingDirectory);
+            } catch (IOException $exc) {
+                //ignoring exception
+            }
+            // Help prevent deadlocks.
+            usleep(random_int(100, 1000));
+        } while (++$tries < $maxTries);
     }
     /**
      * @var Filesystem $filesystem
