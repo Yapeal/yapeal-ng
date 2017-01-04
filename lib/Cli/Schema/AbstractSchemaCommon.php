@@ -46,6 +46,7 @@ use Yapeal\Container\DicAwareInterface;
 use Yapeal\Event\YEMAwareInterface;
 use Yapeal\Event\YEMAwareTrait;
 use Yapeal\Exception\YapealDatabaseException;
+use Yapeal\FileSystem\SafeFileHandlingTrait;
 use Yapeal\Log\Logger;
 use Yapeal\Sql\SqlCleanupTrait;
 
@@ -56,6 +57,7 @@ abstract class AbstractSchemaCommon extends Command implements YEMAwareInterface
 {
     use CommonToolsTrait;
     use ConfigFileTrait;
+    use SafeFileHandlingTrait;
     use SqlCleanupTrait;
     use VerbosityMappingTrait;
     use YEMAwareTrait;
