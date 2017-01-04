@@ -43,7 +43,6 @@ use Yapeal\Container\DicAwareTrait;
  */
 class Wiring implements DicAwareInterface
 {
-    use ConfigFileProcessingTrait;
     use DicAwareTrait;
     /**
      * @param ContainerInterface $dic
