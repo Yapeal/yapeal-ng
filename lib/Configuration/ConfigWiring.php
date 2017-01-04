@@ -34,18 +34,13 @@ declare(strict_types = 1);
  */
 namespace Yapeal\Configuration;
 
-use Yapeal\Cli\Yapeal\YamlConfigFile;
 use Yapeal\Container\ContainerInterface;
-use Yapeal\Container\DicAwareInterface;
-use Yapeal\Container\DicAwareTrait;
 
 /**
  * Class ConfigWiring.
  */
-class ConfigWiring implements WiringInterface, DicAwareInterface
+class ConfigWiring implements WiringInterface
 {
-    use ConfigFileProcessingTrait;
-    use DicAwareTrait;
     /**
      * @param ContainerInterface $dic
      *
@@ -55,15 +50,20 @@ class ConfigWiring implements WiringInterface, DicAwareInterface
      */
     public function wire(ContainerInterface $dic)
     {
-        $this->setDic($dic);
         $this->wireYaml($dic)
+            ->wireManager($dic)
             ->wireExtractorCallable($dic);
         $path = dirname(str_replace('\\', '/', __DIR__), 2) . '/';
         // These two paths are critical to Yapeal-ng working and can't be overridden.
         $dic['Yapeal.baseDir'] = $path;
         $dic['Yapeal.libDir'] = $path . 'lib/';
-        $configFiles = [str_replace('\\', '/', __DIR__) . '/yapealDefaults.yaml'];
-        $settings = [];
+        $settings = $this->gitVersionSetting($dic, []);
+        $configFiles = [
+            ['pathName' => str_replace('\\', '/', __DIR__) . '/yapealDefaults.yaml',
+                PHP_INT_MAX,
+                false
+            ]
+        ];
         /**
          * Do to the importance that the cache/ and log/ directories and the main configuration file _not_ point to
          * somewhere under Composer's vendor/ directory they are now forced to use either vendor parent directory or
@@ -85,39 +85,31 @@ class ConfigWiring implements WiringInterface, DicAwareInterface
             $settings['Yapeal.Log.dir'] = '{Yapeal.vendorParentDir}log/';
         } else {
             $configFiles[] = $path . 'config/yapeal.yaml';
-            $settings['Yapeal.FileSystem.Cache.dir'] = $path . 'cache/';
-            $settings['Yapeal.Log.dir'] = $path . 'log/';
+            $settings['Yapeal.FileSystem.Cache.dir'] = '{Yapeal.baseDir}cache/';
+            $settings['Yapeal.Log.dir'] = '{Yapeal.baseDir}log/';
         }
-        if (!empty($dic['Yapeal.Config.configFile'])) {
-            $configFiles[] = $dic['Yapeal.Config.configFile'];
-            unset($dic['Yapeal.Config.configFile']);
-        }
-        // Process each file in turn so any substitutions are done in a more
-        // consistent way.
-        foreach ($configFiles as $configFile) {
-            $settings = $this->parserConfigFile($configFile, $settings);
-        }
-        $lastConfig = end($configFiles);
-        $dic['Yapeal.Daemon.Config.fileName'] = $lastConfig;
-        $dic['Yapeal.Daemon.Config.fileMTime'] = filemtime($lastConfig);
-        $settings = $this->gitVersionSetting($settings);
-        $settings = $this->doSubstitutions($settings, $dic);
-        $additions = array_diff(array_keys($settings), $dic->keys());
-        foreach ($additions as $add) {
-            $dic[$add] = $settings[$add];
-        }
+        /**
+         * @var ConfigManagementInterface $manager
+         */
+        $manager = $dic['Yapeal.Config.Callable.Manager'];
+        $manager->setSettings($settings)
+            ->create($configFiles);
     }
     /**
-     * @param $settings
+     * Writes git version to Container if found else default setting that can be overridden latter in config file.
+     *
+     * @param ContainerInterface $dic
+     * @param array              $settings
      *
      * @return array
      */
-    private function gitVersionSetting($settings): array
+    private function gitVersionSetting(ContainerInterface $dic, array $settings): array
     {
-        $version = $settings['Yapeal.version'] ?? '0.0.0-0-dev+noGit-unknown';
         $gitVersion = trim(exec('git describe --always --long 2>&1', $junk, $status));
-        if (0 === $status && '' !== $gitVersion && $gitVersion !== $version) {
-            $settings['Yapeal.version'] = $gitVersion . '-dev';
+        if (0 === $status && '' !== $gitVersion) {
+            $dic['Yapeal.version'] = $gitVersion . '-dev';
+        } else {
+            $settings['Yapeal.version'] = '0.0.0-0-noGit-unknown';
         }
         return $settings;
     }
@@ -159,6 +151,20 @@ class ConfigWiring implements WiringInterface, DicAwareInterface
                     exit(254);
                 }
             });
+        }
+        return $this;
+    }
+    /**
+     * @param ContainerInterface $dic
+     *
+     * @return self Fluent interface.
+     */
+    private function wireManager(ContainerInterface $dic): self
+    {
+        if (empty($dic['Yapeal.Config.Callable.Manager'])) {
+            $dic['Yapeal.Config.Callable.Manager'] = function (ContainerInterface $dic) {
+                return new ConfigManager($dic);
+            };
         }
         return $this;
     }
