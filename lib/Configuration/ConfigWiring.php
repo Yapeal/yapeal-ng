@@ -164,10 +164,11 @@ class ConfigWiring implements WiringInterface
     {
         if (empty($dic['Yapeal.Configuration.Callable.Manager'])) {
             $dic['Yapeal.Configuration.Callable.Manager'] = function (ContainerInterface $dic) {
+                $manager = $dic['Yapeal.Configuration.Classes.manager'] ?? '\Yapeal\Configuration\ConfigManager';
                 /**
                  * @var ConfigManager $manager
                  */
-                $manager = new $dic['Yapeal.Configuration.Classes.manager']($dic);
+                $manager = new $manager($dic);
                 $match = $dic['Yapeal.Configuration.Parameters.manager.matchYapealOnly'] ?? false;
                 return $manager->setMatchYapealOnly($match);
             };
@@ -183,7 +184,8 @@ class ConfigWiring implements WiringInterface
     {
         if (empty($dic['Yapeal.Config.Callable.Yaml'])) {
             $dic['Yapeal.Config.Callable.Yaml'] = $dic->factory(function (ContainerInterface $dic) {
-                return new $dic['Yapeal.Configuration.Classes.yaml']();
+                $yaml = $dic['Yapeal.Configuration.Classes.yaml'] ?? '\Yapeal\Configuration\YamlConfigFile';
+                return new $yaml();
             });
         }
         return $this;
