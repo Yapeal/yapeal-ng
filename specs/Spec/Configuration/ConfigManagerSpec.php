@@ -86,6 +86,24 @@ yaml;
         $this->create([$configFile]);
         Assert::eq($dic['Yapeal.Protect.me'], '{Yapeal.version}');
     }
+    public function it_does_not_allow_self_to_be_overwritten_in_create()
+    {
+        $yaml = <<<'yaml'
+---
+Yapeal:
+    Configuration:
+        Callable:
+            Manager: 'not protected'
+...
+yaml;
+        $dic = new Container();
+        $configFile = $this->workingDirectory . 'config.yaml';
+        $this->filesystem->dumpFile($configFile, $yaml);
+        $this->beConstructedWith($dic);
+        $dic['Yapeal.Configuration.Callable.Manager'] = 'protected';
+        $this->create([$configFile]);
+        Assert::notEq($dic['Yapeal.Configuration.Callable.Manager'], 'not protected');
+    }
     public function it_does_not_do_subs_for_preexisting_container_settings_in_create()
     {
         $yaml = <<<'yaml'

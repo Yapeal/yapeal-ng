@@ -293,6 +293,10 @@ class ConfigManager implements ConfigManagementInterface
     {
         $this->dic = $value;
         $this->protectedKeys = $value->keys();
+        // Make self protected key.
+        $this->protectedKeys[] = 'Yapeal.Configuration.Callable.Manager';
+        // Insure main wiring class is protected key as well.
+        $this->protectedKeys[] = 'Yapeal.Wiring.Callable.Wiring';
         return $this;
     }
     /**
