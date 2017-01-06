@@ -24,7 +24,7 @@ Yapeal:
         Classes:
             mediator: Yapeal\Event\Mediator
     FileSystem:
-        Cache:
+        Parameters:
             preserve: false
             retrieve: false
         Classes:

@@ -49,15 +49,15 @@ class FileSystemWiring implements WiringInterface
     public function wire(ContainerInterface $dic)
     {
         if (empty($dic['Yapeal.FileSystem.Callable.CachePreserver'])) {
-            $dic['Yapeal.FileSystem.Callable.CachePreserver'] = function () use ($dic) {
+            $dic['Yapeal.FileSystem.Callable.CachePreserver'] = function (ContainerInterface $dic) {
                 return new $dic['Yapeal.FileSystem.Classes.preserve']($dic['Yapeal.FileSystem.Cache.dir'],
-                    (bool)$dic['Yapeal.FileSystem.Cache.preserve']);
+                    $dic['Yapeal.FileSystem.Parameters.preserve']);
             };
         }
         if (empty($dic['Yapeal.FileSystem.Callable.CacheRetriever'])) {
-            $dic['Yapeal.FileSystem.Callable.CacheRetriever'] = function () use ($dic) {
+            $dic['Yapeal.FileSystem.Callable.CacheRetriever'] = function (ContainerInterface $dic) {
                 return new $dic['Yapeal.FileSystem.Classes.retrieve']($dic['Yapeal.FileSystem.Cache.dir'],
-                    (bool)$dic['Yapeal.FileSystem.Cache.retrieve']);
+                    $dic['Yapeal.FileSystem.Parameters.retrieve']);
             };
         }
         /**
