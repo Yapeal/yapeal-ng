@@ -1,8 +1,5 @@
 ---
 Yapeal:
-    consoleAutoExit: true
-    consoleCatchExceptions: false
-    consoleName: 'Yapeal-ng Console'
     version: '0.7.0-0-gf1a1652'
     Configuration:
         Parameters:
@@ -11,6 +8,11 @@ Yapeal:
         Classes:
             manager: Yapeal\Configuration\ConfigManager
             yaml: Yapeal\Configuration\YamlConfigFile
+    Console:
+        Parameters:
+            autoExit: true
+            catchExceptions: false
+            name: 'Yapeal-ng Console'
     EveApi:
         dir: '{Yapeal.libDir}EveApi/'
         Parameters:

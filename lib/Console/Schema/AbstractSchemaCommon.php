@@ -77,7 +77,7 @@ abstract class AbstractSchemaCommon extends Command implements YEMAwareInterface
             ->addOption('platform',
                 'l',
                 InputOption::VALUE_REQUIRED,
-                'Platform of PDO driver. Currently only "mysql" can be used.',
+                'Platform of PDO driver. Currently only "mysql" support is complete.',
                 'mysql')
             ->addOption('port',
                 null,
