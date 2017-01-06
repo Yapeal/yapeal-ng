@@ -36,7 +36,7 @@ namespace Yapeal\Configuration;
 
 use Yapeal\Container\ContainerInterface;
 use Yapeal\Sql\CommonSqlQueries;
-use Yapeal\Sql\Connection;
+use Yapeal\Sql\ConnectionInterface;
 
 /**
  * Class SqlWiring.
@@ -65,7 +65,12 @@ class SqlWiring implements WiringInterface
     private function wireCommonQueries(ContainerInterface $dic): self
     {
         if (empty($dic['Yapeal.Sql.Callable.CommonQueries'])) {
-            $dic['Yapeal.Sql.Callable.CommonQueries'] = function ($dic) {
+            /**
+             * @param ContainerInterface $dic
+             *
+             * @return CommonSqlQueries
+             */
+            $dic['Yapeal.Sql.Callable.CommonQueries'] = function (ContainerInterface $dic): CommonSqlQueries {
                 return new $dic['Yapeal.Sql.Classes.queries']($dic['Yapeal.Sql.Callable.GetSqlMergedSubs']);
             };
         }
@@ -79,11 +84,17 @@ class SqlWiring implements WiringInterface
     private function wireConnection(ContainerInterface $dic): self
     {
         if (empty($dic['Yapeal.Sql.Callable.Connection'])) {
-            $dic['Yapeal.Sql.Callable.Connection'] = function (ContainerInterface $dic) {
+            /**
+             * @param ContainerInterface $dic
+             *
+             * @return ConnectionInterface
+             * @throws \PDOException
+             */
+            $dic['Yapeal.Sql.Callable.Connection'] = function (ContainerInterface $dic): ConnectionInterface {
                 /**
-                 * @var Connection       $conn
-                 * @var CommonSqlQueries $csq
-                 * @var array            $sqlSubs
+                 * @var \Yapeal\Sql\Connection $conn
+                 * @var CommonSqlQueries       $csq
+                 * @var array                  $sqlSubs
                  */
                 $sqlSubs = $dic['Yapeal.Sql.Callable.GetSqlMergedSubs'];
                 $dsn = $sqlSubs['{dsn}'];
@@ -108,7 +119,13 @@ class SqlWiring implements WiringInterface
     private function wireCreator(ContainerInterface $dic): self
     {
         if (empty($dic['Yapeal.Sql.Callable.Creator'])) {
-            $dic['Yapeal.Sql.Callable.Creator'] = function () use ($dic) {
+            /**
+             * @param ContainerInterface $dic
+             *
+             * @return \Yapeal\Sql\Creator
+             * @throws \LogicException
+             */
+            $dic['Yapeal.Sql.Callable.Creator'] = function (ContainerInterface $dic) {
                 $loader = new \Twig_Loader_Filesystem($dic['Yapeal.Sql.dir']);
                 $twig = new \Twig_Environment($loader,
                     ['debug' => true, 'strict_variables' => true, 'autoescape' => false]);
@@ -147,7 +164,12 @@ class SqlWiring implements WiringInterface
     private function wireMergedSubsCallable(ContainerInterface $dic): self
     {
         if (empty($dic['Yapeal.Sql.Callable.GetSqlMergedSubs'])) {
-            $dic['Yapeal.Sql.Callable.GetSqlMergedSubs'] = function (ContainerInterface $dic) {
+            /**
+             * @param ContainerInterface $dic
+             *
+             * @return array
+             */
+            $dic['Yapeal.Sql.Callable.GetSqlMergedSubs'] = function (ContainerInterface $dic): array {
                 $getScalars = $dic['Yapeal.Config.Callable.ExtractScalarsByKeyPrefix'];
                 $base = [];
                 foreach ($getScalars($dic, 'Yapeal.Sql.') as $index => $item) {

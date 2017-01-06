@@ -78,6 +78,12 @@ class EveApiWiring implements WiringInterface
     private function wireCreator(ContainerInterface $dic, MediatorInterface $mediator)
     {
         if (empty($dic['Yapeal.EveApi.Callable.Creator'])) {
+            /**
+             * @param ContainerInterface $dic
+             *
+             * @return \Yapeal\EveApi\Creator
+             * @throws \LogicException
+             */
             $dic['Yapeal.EveApi.Callable.Creator'] = function (ContainerInterface $dic) {
                 $loader = new \Twig_Loader_Filesystem($dic['Yapeal.EveApi.dir']);
                 $twig = new \Twig_Environment($loader,
@@ -127,6 +133,9 @@ class EveApiWiring implements WiringInterface
                 basename(dirname($listener)),
                 basename($listener, '.php'));
             if (empty($dic[$service])) {
+                /**
+                 * @return \Yapeal\CommonToolsInterface|\Yapeal\Event\EveApiPreserverInterface
+                 */
                 $dic[$service] = function () use ($connection, $csq, $preserve, $service) {
                     $class = '\\' . str_replace('.', '\\', $service);
                     /**

@@ -34,7 +34,9 @@ declare(strict_types = 1);
  */
 namespace Yapeal\Configuration;
 
+use GuzzleHttp\Client;
 use Yapeal\Container\ContainerInterface;
+use Yapeal\Event\EveApiRetrieverInterface;
 
 /**
  * Class NetworkWiring.
@@ -60,10 +62,12 @@ class NetworkWiring implements WiringInterface
     private function wireClient(ContainerInterface $dic): self
     {
         if (empty($dic['Yapeal.Network.Callable.Client'])) {
-            $dic['Yapeal.Network.Callable.Client'] = function (ContainerInterface $dic) {
-                /**
-                 * @var array $clientParameters
-                 */
+            /**
+             * @param ContainerInterface $dic
+             *
+             * @return Client
+             */
+            $dic['Yapeal.Network.Callable.Client'] = function (ContainerInterface $dic): Client {
                 $clientParameters = $dic['Yapeal.Network.Callable.GetClientMergedParameters'];
                 $headers = [
                     'Accept' => $clientParameters['accept'],
@@ -134,7 +138,13 @@ class NetworkWiring implements WiringInterface
     private function wireMergedParametersCallable(ContainerInterface $dic): self
     {
         if (empty($dic['Yapeal.Network.Callable.GetClientMergedParameters'])) {
-            $dic['Yapeal.Network.Callable.GetClientMergedParameters'] = function (ContainerInterface $dic) {
+            /**
+             * @param ContainerInterface $dic
+             *
+             * @return array
+             * @throws \OutOfBoundsException
+             */
+            $dic['Yapeal.Network.Callable.GetClientMergedParameters'] = function (ContainerInterface $dic): array {
                 $getScalars = $dic['Yapeal.Config.Callable.ExtractScalarsByKeyPrefix'];
                 $base = [];
                 foreach ($getScalars($dic, 'Yapeal.Network.') as $index => $item) {
@@ -173,7 +183,12 @@ class NetworkWiring implements WiringInterface
     private function wireRetriever(ContainerInterface $dic)
     {
         if (empty($dic['Yapeal.Network.Callable.Retriever'])) {
-            $dic['Yapeal.Network.Callable.Retriever'] = function (ContainerInterface $dic) {
+            /**
+             * @param ContainerInterface $dic
+             *
+             * @return EveApiRetrieverInterface
+             */
+            $dic['Yapeal.Network.Callable.Retriever'] = function (ContainerInterface $dic): EveApiRetrieverInterface {
                 return new $dic['Yapeal.Network.Classes.retrieve']($dic['Yapeal.Network.Callable.Client'],
                     $dic['Yapeal.Network.Parameters.retrieve']);
             };

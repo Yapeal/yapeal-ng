@@ -25,7 +25,7 @@ declare(strict_types = 1);
  * available in the GNU-GPL.md file.
  *
  * @copyright 2015-2017 Michael Cummings
- * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
+ * @license   LGPL-3.0+
  * @author    Michael Cummings <mgcummings@yahoo.com>
  */
 namespace Yapeal\Xsd;

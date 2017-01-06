@@ -29,7 +29,7 @@ declare(strict_types = 1);
  * file. A copy of the GNU GPL should also be available in the COPYING.md file.
  *
  * @copyright 2016-2017 Michael Cummings
- * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
+ * @license   LGPL-3.0+
  * @author    Michael Cummings <mgcummings@yahoo.com>
  */
 namespace Spec\Yapeal\Container;

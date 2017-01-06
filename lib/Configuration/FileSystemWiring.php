@@ -35,6 +35,9 @@ declare(strict_types = 1);
 namespace Yapeal\Configuration;
 
 use Yapeal\Container\ContainerInterface;
+use Yapeal\Event\EveApiPreserverInterface;
+use Yapeal\Event\EveApiRetrieverInterface;
+use Yapeal\Event\MediatorInterface;
 
 /**
  * Class FileSystemWiring.
@@ -48,29 +51,60 @@ class FileSystemWiring implements WiringInterface
      */
     public function wire(ContainerInterface $dic)
     {
+        /**
+         * @var MediatorInterface $mediator
+         */
+        $mediator = $dic['Yapeal.Event.Callable.Mediator'];
+        $this->wireCachePreserver($dic, $mediator)
+            ->wireCacheRetriever($dic, $mediator);
+    }
+    /**
+     * @param ContainerInterface $dic
+     * @param MediatorInterface  $mediator
+     *
+     * @return self Fluent interface.
+     */
+    private function wireCachePreserver(ContainerInterface $dic, MediatorInterface $mediator): self
+    {
         if (empty($dic['Yapeal.FileSystem.Callable.CachePreserver'])) {
-            $dic['Yapeal.FileSystem.Callable.CachePreserver'] = function (ContainerInterface $dic) {
+            /**
+             * @param ContainerInterface $dic
+             *
+             * @return EveApiPreserverInterface
+             */
+            $dic['Yapeal.FileSystem.Callable.CachePreserver'] = function (ContainerInterface $dic
+            ): EveApiPreserverInterface {
                 return new $dic['Yapeal.FileSystem.Classes.preserve']($dic['Yapeal.FileSystem.Cache.dir'],
                     $dic['Yapeal.FileSystem.Parameters.preserve']);
             };
+            foreach (['Yapeal.EveApi.preserve', 'Yapeal.EveApi.Raw.preserve', 'Yapeal.Xml.Error.preserve'] as $event) {
+                $mediator->addServiceListener($event,
+                    ['Yapeal.FileSystem.Callable.CachePreserver', 'preserveEveApi'],
+                    'last');
+            }
         }
+        return $this;
+    }
+    /**
+     * @param ContainerInterface $dic
+     * @param MediatorInterface  $mediator
+     */
+    private function wireCacheRetriever(ContainerInterface $dic, MediatorInterface $mediator)
+    {
         if (empty($dic['Yapeal.FileSystem.Callable.CacheRetriever'])) {
-            $dic['Yapeal.FileSystem.Callable.CacheRetriever'] = function (ContainerInterface $dic) {
+            /**
+             * @param ContainerInterface $dic
+             *
+             * @return EveApiRetrieverInterface
+             */
+            $dic['Yapeal.FileSystem.Callable.CacheRetriever'] = function (ContainerInterface $dic
+            ): EveApiRetrieverInterface {
                 return new $dic['Yapeal.FileSystem.Classes.retrieve']($dic['Yapeal.FileSystem.Cache.dir'],
                     $dic['Yapeal.FileSystem.Parameters.retrieve']);
             };
-        }
-        /**
-         * @var \Yapeal\Event\MediatorInterface $mediator
-         */
-        $mediator = $dic['Yapeal.Event.Callable.Mediator'];
-        foreach (['Yapeal.EveApi.preserve', 'Yapeal.EveApi.Raw.preserve', 'Yapeal.Xml.Error.preserve'] as $event) {
-            $mediator->addServiceListener($event,
-                ['Yapeal.FileSystem.Callable.CachePreserver', 'preserveEveApi'],
+            $mediator->addServiceListener('Yapeal.EveApi.retrieve',
+                ['Yapeal.FileSystem.Callable.CacheRetriever', 'retrieveEveApi'],
                 'last');
         }
-        $mediator->addServiceListener('Yapeal.EveApi.retrieve',
-            ['Yapeal.FileSystem.Callable.CacheRetriever', 'retrieveEveApi'],
-            'last');
     }
 }

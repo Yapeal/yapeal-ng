@@ -29,7 +29,7 @@ declare(strict_types = 1);
  * file. A copy of the GNU GPL should also be available in the COPYING.md file.
  *
  * @copyright 2015-2017 Michael Cummings
- * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
+ * @license   LGPL-3.0+
  * @author    Michael Cummings <mgcummings@yahoo.com>
  */
 namespace Yapeal\Log;
@@ -46,6 +46,7 @@ class Logger extends MLogger implements EventAwareLoggerInterface
      * @param LogEventInterface $event
      *
      * @return void
+     * @throws \Psr\Log\InvalidArgumentException
      */
     public function logEvent(LogEventInterface $event)
     {

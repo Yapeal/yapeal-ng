@@ -35,6 +35,8 @@ declare(strict_types = 1);
 namespace Yapeal\Configuration;
 
 use Yapeal\Container\ContainerInterface;
+use Yapeal\Event\MediatorInterface;
+use Yapeal\Xsd\ValidatorInterface;
 
 /**
  * Class XsdWiring.
@@ -49,25 +51,28 @@ class XsdWiring implements WiringInterface
      */
     public function wire(ContainerInterface $dic)
     {
-        $this->wireCreator($dic)
-            ->wireValidator($dic);
         /**
-         * @var \Yapeal\Event\MediatorInterface $mediator
+         * @var MediatorInterface $mediator
          */
         $mediator = $dic['Yapeal.Event.Callable.Mediator'];
-        $mediator->addServiceListener('Yapeal.EveApi.create', ['Yapeal.Xsd.Callable.Creator', 'createXsd'], 'last');
-        $mediator->addServiceListener('Yapeal.EveApi.validate',
-            ['Yapeal.Xsd.Callable.Validator', 'validateEveApi'],
-            'last');
+        $this->wireCreator($dic, $mediator)
+            ->wireValidator($dic, $mediator);
     }
     /**
      * @param ContainerInterface $dic
+     * @param MediatorInterface  $mediator
      *
-     * @return self Fluent interface.
+     * @return XsdWiring Fluent interface.
      */
-    private function wireCreator(ContainerInterface $dic): self
+    private function wireCreator(ContainerInterface $dic, MediatorInterface $mediator): self
     {
         if (empty($dic['Yapeal.Xsd.Callable.Creator'])) {
+            /**
+             * @param ContainerInterface $dic
+             *
+             * @return \Yapeal\Xsd\Creator
+             * @throws \LogicException
+             */
             $dic['Yapeal.Xsd.Callable.Creator'] = function (ContainerInterface $dic) {
                 $loader = new \Twig_Loader_Filesystem($dic['Yapeal.Xsd.dir']);
                 $twig = new \Twig_Environment($loader,
@@ -89,20 +94,30 @@ class XsdWiring implements WiringInterface
                 }
                 return $create;
             };
+            $mediator->addServiceListener('Yapeal.EveApi.create', ['Yapeal.Xsd.Callable.Creator', 'createXsd'], 'last');
         }
         return $this;
     }
     /**
      * @param ContainerInterface $dic
+     * @param MediatorInterface  $mediator
      *
      * @return self Fluent interface.
      */
-    private function wireValidator(ContainerInterface $dic): self
+    private function wireValidator(ContainerInterface $dic, MediatorInterface $mediator): self
     {
         if (empty($dic['Yapeal.Xsd.Callable.Validator'])) {
-            $dic['Yapeal.Xsd.Callable.Validator'] = function (ContainerInterface $dic) {
+            /**
+             * @param ContainerInterface $dic
+             *
+             * @return ValidatorInterface
+             */
+            $dic['Yapeal.Xsd.Callable.Validator'] = function (ContainerInterface $dic): ValidatorInterface {
                 return new $dic['Yapeal.Xsd.Classes.validate']($dic['Yapeal.Xsd.dir']);
             };
+            $mediator->addServiceListener('Yapeal.EveApi.validate',
+                ['Yapeal.Xsd.Callable.Validator', 'validateEveApi'],
+                'last');
         }
         return $this;
     }

@@ -24,13 +24,13 @@ declare(strict_types = 1);
  *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program. If not, see
- * <http://www.gnu.org/licenses/>.
+ * <http://spdx.org/licenses/LGPL-3.0.html>.
  *
  * You should be able to find a copy of this license in the LICENSE.md file. A
  * copy of the GNU GPL should also be available in the GNU-GPL.md file.
  *
  * @copyright 2014-2017 Michael Cummings
- * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
+ * @license   LGPL-3.0+
  * @author    Michael Cummings <mgcummings@yahoo.com>
  */
 require_once __DIR__ . '/bootstrap.php';

@@ -1,7 +1,7 @@
 <?php
 declare(strict_types = 1);
 /**
- * EventAwareLoggerInterface.php
+ * Contains interface EventAwareLoggerInterface.
  *
  * PHP version 7.0+
  *
@@ -29,7 +29,7 @@ declare(strict_types = 1);
  * file. A copy of the GNU GPL should also be available in the COPYING.md file.
  *
  * @copyright 2015-2017 Michael Cummings
- * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
+ * @license   LGPL-3.0+
  * @author    Michael Cummings <mgcummings@yahoo.com>
  */
 namespace Yapeal\Log;
@@ -37,7 +37,7 @@ namespace Yapeal\Log;
 use Yapeal\Event\LogEventInterface;
 
 /**
- * Class Logger
+ * Interface EventAwareLoggerInterface.
  */
 interface EventAwareLoggerInterface
 {

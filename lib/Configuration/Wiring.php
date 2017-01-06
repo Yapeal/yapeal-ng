@@ -29,7 +29,7 @@ declare(strict_types = 1);
  * file. A copy of the GNU GPL should also be available in the COPYING.md file.
  *
  * @copyright 2014-2017 Michael Cummings
- * @license   http://www.gnu.org/copyleft/lesser.html GNU LGPL
+ * @license   LGPL-3.0+
  * @author    Michael Cummings <mgcummings@yahoo.com>
  */
 namespace Yapeal\Configuration;
@@ -72,6 +72,11 @@ class Wiring
         $dic = $this->dic;
         // First things first, should add self to Container and freeze so can't be overwritten later by oops.
         if (empty($dic['Yapeal.Wiring.Callable.Wiring'])) {
+            /**
+             * @param ContainerInterface $dic
+             *
+             * @return Wiring
+             */
             $dic['Yapeal.Wiring.Callable.Wiring'] = function (ContainerInterface $dic) {
                 return new Wiring($dic);
             };

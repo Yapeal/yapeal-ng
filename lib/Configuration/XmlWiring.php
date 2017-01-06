@@ -35,6 +35,7 @@ declare(strict_types = 1);
 namespace Yapeal\Configuration;
 
 use Yapeal\Container\ContainerInterface;
+use Yapeal\Xml\EveApiReadWriteInterface;
 
 /**
  * Class XmlWiring.
@@ -49,22 +50,49 @@ class XmlWiring implements WiringInterface
      */
     public function wire(ContainerInterface $dic)
     {
+        $this->wireData($dic)
+            ->wireSubscriber($dic);
+    }
+    /**
+     * @param ContainerInterface $dic
+     *
+     * @return self Fluent interface.
+     */
+    private function wireData(ContainerInterface $dic): self
+    {
         if (empty($dic['Yapeal.Xml.Callable.Data'])) {
-            $dic['Yapeal.Xml.Callable.Data'] = function ($dic) {
+            /**
+             * @param ContainerInterface $dic
+             *
+             * @return EveApiReadWriteInterface
+             */
+            $dic['Yapeal.Xml.Callable.Data'] = function (ContainerInterface $dic): EveApiReadWriteInterface {
                 return new $dic['Yapeal.Xml.Classes.data']();
             };
         }
+        return $this;
+    }
+    /**
+     * @param ContainerInterface $dic
+     */
+    private function wireSubscriber(ContainerInterface $dic)
+    {
         if (empty($dic['Yapeal.Xml.Error.Callable.Subscriber'])) {
-            $dic['Yapeal.Xml.Error.Callable.Subscriber'] = function () use ($dic) {
+            /**
+             * @param ContainerInterface $dic
+             *
+             * @return \Yapeal\Xml\ErrorCacheIntervalSubscriber
+             */
+            $dic['Yapeal.Xml.Error.Callable.Subscriber'] = function (ContainerInterface $dic) {
                 return new $dic['Yapeal.Xml.Classes.error']();
             };
+            /**
+             * @var \Yapeal\Event\MediatorInterface $mediator
+             */
+            $mediator = $dic['Yapeal.Event.Callable.Mediator'];
+            $mediator->addServiceListener('Yapeal.Xml.Error.start',
+                ['Yapeal.Xml.Error.Callable.Subscriber', 'processXmlError'],
+                'last');
         }
-        /**
-         * @var \Yapeal\Event\MediatorInterface $mediator
-         */
-        $mediator = $dic['Yapeal.Event.Callable.Mediator'];
-        $mediator->addServiceListener('Yapeal.Xml.Error.start',
-            ['Yapeal.Xml.Error.Callable.Subscriber', 'processXmlError'],
-            'last');
     }
 }

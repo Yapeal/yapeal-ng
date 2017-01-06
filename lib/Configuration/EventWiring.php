@@ -35,6 +35,9 @@ declare(strict_types = 1);
 namespace Yapeal\Configuration;
 
 use Yapeal\Container\ContainerInterface;
+use Yapeal\Event\EveApiEventInterface;
+use Yapeal\Event\LogEventInterface;
+use Yapeal\Event\MediatorInterface;
 
 /**
  * Class EventWiring.
@@ -49,17 +52,34 @@ class EventWiring implements WiringInterface
     public function wire(ContainerInterface $dic)
     {
         if (empty($dic['Yapeal.Event.Callable.EveApiEvent'])) {
-            $dic['Yapeal.Event.Callable.EveApiEvent'] = $dic->factory(function ($dic) {
-                return new $dic['Yapeal.Event.Factories.eveApi']();
-            });
+            $dic['Yapeal.Event.Callable.EveApiEvent'] = $dic->factory(
+            /**
+             * @param ContainerInterface $dic
+             *
+             * @return EveApiEventInterface
+             */
+             function (ContainerInterface $dic): EveApiEventInterface {
+                 return new $dic['Yapeal.Event.Factories.eveApi']();
+             });
         }
         if (empty($dic['Yapeal.Event.Callable.LogEvent'])) {
-            $dic['Yapeal.Event.Callable.LogEvent'] = $dic->factory(function ($dic) {
-                return new $dic['Yapeal.Event.Factories.log'];
-            });
+            $dic['Yapeal.Event.Callable.LogEvent'] = $dic->factory(
+            /**
+             * @param ContainerInterface $dic
+             *
+             * @return LogEventInterface
+             */
+             function (ContainerInterface $dic): LogEventInterface {
+                 return new $dic['Yapeal.Event.Factories.log']();
+             });
         }
         if (empty($dic['Yapeal.Event.Callable.Mediator'])) {
-            $dic['Yapeal.Event.Callable.Mediator'] = function ($dic) {
+            /**
+             * @param ContainerInterface $dic
+             *
+             * @return MediatorInterface
+             */
+            $dic['Yapeal.Event.Callable.Mediator'] = function (ContainerInterface $dic): MediatorInterface {
                 return new $dic['Yapeal.Event.Classes.mediator']($dic);
             };
         }

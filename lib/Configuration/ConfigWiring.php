@@ -127,10 +127,14 @@ class ConfigWiring implements WiringInterface
     private function wireExtractorCallable(ContainerInterface $dic): self
     {
         if (empty($dic['Yapeal.Config.Callable.ExtractScalarsByKeyPrefix'])) {
-            $dic['Yapeal.Config.Callable.ExtractScalarsByKeyPrefix'] = $dic->protect(function (
-                ContainerInterface $dic,
-                string $prefix
-            ) {
+            $dic['Yapeal.Config.Callable.ExtractScalarsByKeyPrefix'] = $dic->protect(
+            /**
+             * @param ContainerInterface $dic
+             * @param string             $prefix
+             *
+             * @return \Generator
+             */
+            function (ContainerInterface $dic, string $prefix): \Generator {
                 $preLen = strlen($prefix);
                 if ($preLen !== strrpos($prefix, '.') + 1) {
                     $prefix .= '.';
@@ -163,7 +167,12 @@ class ConfigWiring implements WiringInterface
     private function wireManager(ContainerInterface $dic): self
     {
         if (empty($dic['Yapeal.Configuration.Callable.Manager'])) {
-            $dic['Yapeal.Configuration.Callable.Manager'] = function (ContainerInterface $dic) {
+            /**
+             * @param ContainerInterface $dic
+             *
+             * @return ConfigManagementInterface
+             */
+            $dic['Yapeal.Configuration.Callable.Manager'] = function (ContainerInterface $dic): ConfigManagementInterface {
                 $manager = $dic['Yapeal.Configuration.Classes.manager'] ?? '\Yapeal\Configuration\ConfigManager';
                 /**
                  * @var ConfigManager $manager
@@ -183,9 +192,15 @@ class ConfigWiring implements WiringInterface
     private function wireYaml(ContainerInterface $dic): self
     {
         if (empty($dic['Yapeal.Config.Callable.Yaml'])) {
-            $dic['Yapeal.Config.Callable.Yaml'] = $dic->factory(function (ContainerInterface $dic) {
-                $yaml = $dic['Yapeal.Configuration.Classes.yaml'] ?? '\Yapeal\Configuration\YamlConfigFile';
-                return new $yaml();
+            $dic['Yapeal.Config.Callable.Yaml'] = $dic->factory(
+            /**
+             * @param ContainerInterface $dic
+             *
+             * @return mixed
+             */
+            function (ContainerInterface $dic) {
+            $yaml = $dic['Yapeal.Configuration.Classes.yaml'] ?? '\Yapeal\Configuration\YamlConfigFile';
+            return new $yaml();
             });
         }
         return $this;

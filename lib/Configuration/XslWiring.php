@@ -35,6 +35,7 @@ declare(strict_types = 1);
 namespace Yapeal\Configuration;
 
 use Yapeal\Container\ContainerInterface;
+use Yapeal\Xsl\TransformerInterface;
 
 /**
  * Class XslWiring.
@@ -50,7 +51,12 @@ class XslWiring implements WiringInterface
     public function wire(ContainerInterface $dic)
     {
         if (empty($dic['Yapeal.Xsl.Callable.Transformer'])) {
-            $dic['Yapeal.Xsl.Callable.Transformer'] = function () use ($dic) {
+            /**
+             * @param ContainerInterface $dic
+             *
+             * @return TransformerInterface
+             */
+            $dic['Yapeal.Xsl.Callable.Transformer'] = function (ContainerInterface $dic): TransformerInterface {
                 return new $dic['Yapeal.Xsl.Classes.transform']($dic['Yapeal.Xsl.dir']);
             };
         }
@@ -58,6 +64,8 @@ class XslWiring implements WiringInterface
          * @var \Yapeal\Event\MediatorInterface $mediator
          */
         $mediator = $dic['Yapeal.Event.Callable.Mediator'];
-        $mediator->addServiceListener('Yapeal.EveApi.transform', ['Yapeal.Xsl.Callable.Transformer', 'transformEveApi'], 'last');
+        $mediator->addServiceListener('Yapeal.EveApi.transform',
+            ['Yapeal.Xsl.Callable.Transformer', 'transformEveApi'],
+            'last');
     }
 }
