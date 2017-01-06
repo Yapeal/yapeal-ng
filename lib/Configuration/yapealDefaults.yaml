@@ -13,7 +13,7 @@ Yapeal:
             yaml: Yapeal\Configuration\YamlConfigFile
     EveApi:
         dir: '{Yapeal.libDir}EveApi/'
-        Cache:
+        Parameters:
             preserve: true
         Classes:
             create: Yapeal\EveApi\Creator
