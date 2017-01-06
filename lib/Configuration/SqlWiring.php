@@ -93,8 +93,6 @@ class SqlWiring implements WiringInterface
             $dic['Yapeal.Sql.Callable.Connection'] = function (ContainerInterface $dic): ConnectionInterface {
                 /**
                  * @var \Yapeal\Sql\Connection $conn
-                 * @var CommonSqlQueries       $csq
-                 * @var array                  $sqlSubs
                  */
                 $sqlSubs = $dic['Yapeal.Sql.Callable.GetSqlMergedSubs'];
                 $dsn = $sqlSubs['{dsn}'];

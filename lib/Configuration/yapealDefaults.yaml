@@ -2,12 +2,12 @@
 Yapeal:
     version: '0.7.0-0-gf1a1652'
     Configuration:
-        Parameters:
-            manager:
-                matchYapealOnly: false
         Classes:
             manager: Yapeal\Configuration\ConfigManager
             yaml: Yapeal\Configuration\YamlConfigFile
+        Parameters:
+            manager:
+                matchYapealOnly: false
     Console:
         Parameters:
             autoExit: true
@@ -15,23 +15,23 @@ Yapeal:
             name: 'Yapeal-ng Console'
     EveApi:
         dir: '{Yapeal.libDir}EveApi/'
-        Parameters:
-            preserve: true
         Classes:
             create: Yapeal\EveApi\Creator
+        Parameters:
+            preserve: true
     Event:
+        Classes:
+            mediator: Yapeal\Event\Mediator
         Factories:
             eveApi: Yapeal\Event\EveApiEvent
             log: Yapeal\Event\LogEvent
-        Classes:
-            mediator: Yapeal\Event\Mediator
     FileSystem:
-        Parameters:
-            preserve: false
-            retrieve: false
         Classes:
             preserve: Yapeal\FileSystem\CachePreserver
             retrieve: Yapeal\FileSystem\CacheRetriever
+        Parameters:
+            preserve: false
+            retrieve: false
     Log:
         bufferSize: 25
         channel: yapeal
@@ -148,6 +148,10 @@ Yapeal:
         platform: mysql
         tablePrefix: ''
         userName: YapealUser
+        Classes:
+            create: Yapeal\Sql\Creator
+            connection: Yapeal\Sql\Connection
+            queries: Yapeal\Sql\CommonSqlQueries
         Parameters:
             connection:
                 exposingPdo: false
@@ -161,10 +165,6 @@ Yapeal:
                 schema: '{Yapeal.Sql.database}'
                 tablePrefix: '{Yapeal.Sql.tablePrefix}'
                 userName: '{Yapeal.Sql.userName}'
-        Classes:
-            create: Yapeal\Sql\Creator
-            connection: Yapeal\Sql\Connection
-            queries: Yapeal\Sql\CommonSqlQueries
     Wiring:
         Classes:
             eveapi: Yapeal\Configuration\EveApiWiring
