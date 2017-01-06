@@ -34,7 +34,6 @@ declare(strict_types = 1);
  */
 namespace Yapeal\Configuration;
 
-use FilePathNormalizer\FilePathNormalizerTrait;
 use Yapeal\Container\ContainerInterface;
 use Yapeal\Event\MediatorInterface;
 
@@ -43,7 +42,6 @@ use Yapeal\Event\MediatorInterface;
  */
 class EveApiWiring implements WiringInterface
 {
-    use FilePathNormalizerTrait;
     /**
      * @param ContainerInterface $dic
      *
@@ -55,46 +53,15 @@ class EveApiWiring implements WiringInterface
          * @var MediatorInterface $mediator
          */
         $mediator = $dic['Yapeal.Event.Callable.Mediator'];
-        $internal = $this->getFilteredEveApiSubscriberList($dic);
-        $csq = $dic['Yapeal.Sql.Callable.CommonQueries'];
-        $connection = $dic['Yapeal.Sql.Callable.Connection'];
-        $preserve = $dic['Yapeal.EveApi.Parameters.preserve'];
-        foreach ($internal as $listener) {
-            $service = sprintf('%1$s.%2$s.%3$s',
-                'Yapeal.EveApi.Callable',
-                basename(dirname($listener)),
-                basename($listener, '.php'));
-            if (empty($dic[$service])) {
-                $dic[$service] = function () use ($connection, $csq, $preserve, $service) {
-                    $class = '\\' . str_replace('.', '\\', $service);
-                    /**
-                     * @var \Yapeal\CommonToolsInterface $callable
-                     */
-                    $callable = new $class();
-                    $callable->setCsq($csq)
-                        ->setPdo($connection);
-                    if (false === strpos($service, 'Section')) {
-                        /**
-                         * @var \Yapeal\Event\EveApiPreserverInterface $callable
-                         */
-                        $callable->setPreserve($preserve);
-                    }
-                    return $callable;
-                };
-            }
-            $mediator->addServiceListener($service . '.start', [$service, 'startEveApi'], 'last');
-            if (false === strpos($listener, 'Section')) {
-                $mediator->addServiceListener($service . '.preserve', [$service, 'preserveEveApi'], 'last');
-            }
-        }
-        $this->wireCreator($dic, $mediator);
+        $this->wireListeners($dic, $mediator)
+            ->wireCreator($dic, $mediator);
     }
     /**
      * @param ContainerInterface $dic
      *
      * @return array
      */
-    private function getFilteredEveApiSubscriberList(ContainerInterface $dic): array
+    private function getFilteredEveApiListenerList(ContainerInterface $dic): array
     {
         clearstatcache(true);
         $globPath = $dic['Yapeal.EveApi.dir'] . '{Account,Api,Char,Corp,Eve,Map,Server}/*.php';
@@ -111,7 +78,7 @@ class EveApiWiring implements WiringInterface
     private function wireCreator(ContainerInterface $dic, MediatorInterface $mediator)
     {
         if (empty($dic['Yapeal.EveApi.Callable.Creator'])) {
-            $dic['Yapeal.EveApi.Callable.Creator'] = function () use ($dic) {
+            $dic['Yapeal.EveApi.Callable.Creator'] = function (ContainerInterface $dic) {
                 $loader = new \Twig_Loader_Filesystem($dic['Yapeal.EveApi.dir']);
                 $twig = new \Twig_Environment($loader,
                     ['debug' => true, 'strict_variables' => true, 'autoescape' => false]);
@@ -136,5 +103,49 @@ class EveApiWiring implements WiringInterface
                 ['Yapeal.EveApi.Callable.Creator', 'createEveApi'],
                 'last');
         }
+    }
+    /**
+     * @param ContainerInterface $dic
+     * @param MediatorInterface  $mediator
+     *
+     * @return self Fluent interface.
+     */
+    private function wireListeners(ContainerInterface $dic, MediatorInterface $mediator): self
+    {
+        /**
+         * @var \Yapeal\Sql\CommonSqlQueries    $csq
+         * @var \Yapeal\Sql\ConnectionInterface $connection
+         * @var bool                            $preserve
+         */
+        $listeners = $this->getFilteredEveApiListenerList($dic);
+        $csq = $dic['Yapeal.Sql.Callable.CommonQueries'];
+        $connection = $dic['Yapeal.Sql.Callable.Connection'];
+        $preserve = $dic['Yapeal.EveApi.Parameters.preserve'];
+        foreach ($listeners as $listener) {
+            $service = sprintf('%1$s.%2$s.%3$s',
+                'Yapeal.EveApi.Callable',
+                basename(dirname($listener)),
+                basename($listener, '.php'));
+            if (empty($dic[$service])) {
+                $dic[$service] = function () use ($connection, $csq, $preserve, $service) {
+                    $class = '\\' . str_replace('.', '\\', $service);
+                    /**
+                     * @var \Yapeal\CommonToolsInterface|\Yapeal\Event\EveApiPreserverInterface $callable
+                     */
+                    $callable = new $class();
+                    $callable->setCsq($csq)
+                        ->setPdo($connection);
+                    if (false === strpos($service, 'Section')) {
+                        $callable->setPreserve($preserve);
+                    }
+                    return $callable;
+                };
+            }
+            $mediator->addServiceListener($service . '.start', [$service, 'startEveApi'], 'last');
+            if (false === strpos($listener, 'Section')) {
+                $mediator->addServiceListener($service . '.preserve', [$service, 'preserveEveApi'], 'last');
+            }
+        }
+        return $this;
     }
 }
