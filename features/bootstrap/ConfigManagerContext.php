@@ -39,7 +39,7 @@ use Behat\Gherkin\Node\PyStringNode;
 use Behat\Gherkin\Node\TableNode;
 use Symfony\Component\Filesystem\Filesystem;
 use Webmozart\Assert\Assert;
-use Yapeal\Cli\Yapeal\YamlConfigFile;
+use Yapeal\Configuration\ConfigFileInterface;
 use Yapeal\Configuration\ConfigManagementInterface;
 use Yapeal\Configuration\ConfigManager;
 use Yapeal\Container\Container;
@@ -70,6 +70,23 @@ class ConfigManagerContext implements Context
     public function afterScenarioClearConfigFiles()
     {
         $this->configFiles = [];
+    }
+    /**
+     * @When I give the path name :pathName parameter to the addConfigFile method
+     *
+     * @param string $pathName
+     *
+     * @throws \InvalidArgumentException
+     */
+    public function iGiveThePathNameParameterToTheAddConfigFileMethod(string $pathName)
+    {
+        $result = $this->manager->addConfigFile($this->workingDirectory . $pathName);
+        Assert::isArray($result);
+        Assert::keyExists($result, 'instance');
+        Assert::isInstanceOf($result['instance'], ConfigFileInterface::class);
+        Assert::keyExists($result, 'timestamp');
+        Assert::keyExists($result, 'priority');
+        Assert::keyExists($result, 'watched');
     }
     /**
      * @Given I have a config file :pathFile that contains:
@@ -161,6 +178,14 @@ class ConfigManagerContext implements Context
         Assert::true($this->manager->delete());
     }
     /**
+     * @When I use the update method of the ConfigManager class
+     * @throws \InvalidArgumentException
+     */
+    public function iUseTheUpdateMethodOfTheConfigManagerClass()
+    {
+        Assert::true($this->manager->update());
+    }
+    /**
      * @var array $configFiles
      */
     private $configFiles;
@@ -172,28 +197,4 @@ class ConfigManagerContext implements Context
      * @var ConfigManagementInterface $manager
      */
     private $manager;
-    /**
-     * @When I give the path name :pathName parameter to the addConfigFile method
-     *
-     * @param string $pathName
-     *
-     * @throws \InvalidArgumentException
-     */
-    public function iGiveThePathNameParameterToTheAddConfigFileMethod(string $pathName)
-    {
-        $result = $this->manager->addConfigFile($this->workingDirectory . $pathName);
-        Assert::isArray($result);
-        Assert::keyExists($result, 'instance');
-        Assert::isInstanceOf($result['instance'], YamlConfigFile::class);
-        Assert::keyExists($result, 'timestamp');
-        Assert::keyExists($result, 'priority');
-        Assert::keyExists($result, 'watched');
-    }
-    /**
-     * @When I use the update method of the ConfigManager class
-     */
-    public function iUseTheUpdateMethodOfTheConfigManagerClass()
-    {
-        Assert::true($this->manager->update());
-    }
 }

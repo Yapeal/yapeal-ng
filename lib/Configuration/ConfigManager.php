@@ -34,7 +34,6 @@ declare(strict_types = 1);
  */
 namespace Yapeal\Configuration;
 
-use Yapeal\Cli\Yapeal\YamlConfigFile;
 use Yapeal\Container\ContainerInterface;
 
 /**
@@ -59,32 +58,33 @@ class ConfigManager implements ConfigManagementInterface
     public function __construct(ContainerInterface $dic, array $settings = [])
     {
         $this->configFiles = [];
-        $this->dic = $dic;
-        $this->protectedKeys = $dic->keys();
-        $this->settings = $settings;
+        $this->matchYapealOnly = false;
+        $this->setDic($dic);
+        $this->setSettings($settings);
     }
     /**
      * Add a new config file candidate to be used during the composing of settings.
      *
-     * This method is expected to be used with the update() method to change the config files use during the composing
+     * This method is expected to be used with the update() method to change the config files used during the composing
      * of settings.
      *
      * Though Yapeal-ng considers and treats all configuration files as optional the individual settings themselves are
      * not and many of them if missing can cause it to not start, to fail, or possible cause other undefined behavior
      * to happen instead.
      *
+     * The behavior when adding the same config file with an absolute and relative path or more than one relative path
+     * is undefined and may change and is considered unsupported. It makes little sense to do so anyway but mentioned
+     * here so developers known to watch for this edge case.
      *
-     *
-     * @param string $pathName Configuration file name with absolute path.
+     * @param string $pathName Configuration file name with path. Path _should_ be absolute but it is not checked.
      * @param int    $priority An integer in the range 0 - PHP_INT_MAX with large number being a higher priority.
-     *                         The range between 100 and 10000 are reserved for application developer use with
-     *                         everything else reserved for internal use only.
+     *                         The range between 100 and 100000 inclusively are reserved for application developer use
+     *                         with everything outside that range reserved for internal use only.
      * @param bool   $watched  Flag to tell if file should be monitored for changes and updates or read initially and
      *                         future changes ignored. Note that the $force flag of update() can be used to override
      *                         this parameter.
      *
-     * @return array Throws this exception if you try adding the same $pathFile again. Use
-     *                                   hasConfigFile() to see if entry already exists.
+     * @return array Return the added config file candidate entry with 'priority' and 'watched'.
      * @throws \InvalidArgumentException Throws this exception if you try adding the same $pathFile again. Use
      *                                   hasConfigFile() to see if entry already exists.
      * @throws \LogicException
@@ -98,11 +98,42 @@ class ConfigManager implements ConfigManagementInterface
         clearstatcache(true, $pathName);
         $this->configFiles[$pathName] = [
             'instance' => (new YamlConfigFile($pathName))->read(),
-            'timestamp' => filemtime($pathName),
+            'pathName' => $pathName,
             'priority' => $priority,
+            'timestamp' => filemtime($pathName),
             'watched' => $watched
         ];
         return $this->configFiles[$pathName];
+    }
+    /**
+     * @param string $pathName Configuration file name with path.
+     * @param bool   $force    Override watched flag. Allows checking of normally unwatched files.
+     *
+     * @return bool Returns true if config file was updated, else false
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
+     */
+    public function checkModifiedAndUpdate(string $pathName, bool $force = false): bool
+    {
+        if (!$this->hasConfigFile($pathName)) {
+            $mess = 'Tried to check unknown config file ' . $pathName;
+            throw new \InvalidArgumentException($mess);
+        }
+        $configFile = $this->configFiles[$pathName];
+        /**
+         * @var ConfigFileInterface $instance
+         */
+        if ($force || $configFile['watched']) {
+            clearstatcache(true, $pathName);
+            $currentTS = filemtime($pathName);
+            if ($configFile['timestamp'] < $currentTS) {
+                $instance = $configFile['instance'];
+                $instance->read();
+                $configFile['timestamp'] = $currentTS;
+                return true;
+            }
+        }
+        return false;
     }
     /**
      * The Create part of the CRUD interface.
@@ -162,8 +193,7 @@ class ConfigManager implements ConfigManagementInterface
      */
     public function create(array $configFiles): bool
     {
-        $this->delete();
-        $settings = $this->settings;
+        $this->configFiles = [];
         foreach ($configFiles as $value) {
             if (is_string($value)) {
                 $value = ['pathName' => $value];
@@ -176,17 +206,11 @@ class ConfigManager implements ConfigManagementInterface
                 $mess = 'Config file element must be a string or an array but was given ' . gettype($value);
                 throw new \InvalidArgumentException($mess);
             }
-            $configFile = $this->addConfigFile($value['pathName'],
+            $this->addConfigFile($value['pathName'],
                 $value['priority'] ?? self::PRIORITY_DEFAULT,
                 $value['watched'] ?? true);
-            $settings = $this->parserConfigFile($configFile['instance'], $settings);
         }
-        $additions = array_diff(array_keys($settings), $this->protectedKeys);
-        $additions = $this->doSubstitutions($additions);
-        foreach ($additions as $add) {
-            $this->dic[$add] = $settings[$add];
-        }
-        return true;
+        return $this->update();
     }
     /**
      * The Delete part of the CRUD interface.
@@ -212,7 +236,7 @@ class ConfigManager implements ConfigManagementInterface
     /**
      * Allows checking if a config file candidate has already been added.
      *
-     * @param string $pathName
+     * @param string $pathName Configuration file name with path. Path _should_ be absolute but it is not checked.
      *
      * @return bool Returns true if candidate entry exist, false if unknown.
      */
@@ -240,9 +264,13 @@ class ConfigManager implements ConfigManagementInterface
     /**
      * Remove an existing config file candidate entry.
      *
-     * @param string $pathName
+     * This method is expected to be used with the update() method to change the config files used during the composing
+     * of settings.
      *
-     * @return array Return the removed config file candidate entry with 'priority' and 'watch'.
+     * @param string $pathName Configuration file name with path. Path _should_ be absolute but it is not checked.
+     *
+     * @return array Return the removed config file candidate entry with 'priority' and 'watched'.
+     * @see addConfigFile()
      * @throws \InvalidArgumentException Throw this exception if there is no matching entry found. Use hasConfigFile()
      *                                   to check if the candidate config file entry exists.
      */
@@ -265,6 +293,33 @@ class ConfigManager implements ConfigManagementInterface
     {
         $this->dic = $value;
         $this->protectedKeys = $value->keys();
+        // Make self protected key.
+        $this->protectedKeys[] = 'Yapeal.Configuration.Callable.Manager';
+        // Insure main wiring class is protected key as well.
+        $this->protectedKeys[] = 'Yapeal.Wiring.Callable.Wiring';
+        return $this;
+    }
+    /**
+     * Sets substitutions to require Yapeal prefix or to be more generic.
+     *
+     * @param bool $value
+     *
+     * @return self Fluent interface
+     * @see doSubstitutions()
+     */
+    public function setMatchYapealOnly(bool $value = true): self
+    {
+        $this->matchYapealOnly = $value;
+        return $this;
+    }
+    /**
+     * @param array $value
+     *
+     * @return self Fluent interface
+     */
+    public function setSettings(array $value = []): self
+    {
+        $this->settings = $value;
         return $this;
     }
     /**
@@ -280,9 +335,7 @@ class ConfigManager implements ConfigManagementInterface
      * Note that it expected that the addConfigFile() and removeConfigFile() methods have been called already to change
      * which config files will be used to compose the new settings.
      *
-     * @param bool $force        Used to force re-reading of the known config file(s) including the unwatched ones.
-     *                           This can be thought of as running create() but without having to give a complete list
-     *                           of config files again.
+     * @param bool $force Override watched flag. Allows checking of normally unwatched files.
      *
      * @return bool
      * @throws \InvalidArgumentException
@@ -292,24 +345,16 @@ class ConfigManager implements ConfigManagementInterface
     {
         $this->removeUnprotectedSettings();
         $settings = $this->settings;
+        $this->sortConfigFiles();
         /**
-         * @var YamlConfigFile $instance
+         * @var ConfigFileInterface $instance
          */
         foreach ($this->configFiles as $pathName => $configFile) {
-            clearstatcache(true, $pathName);
+            $this->checkModifiedAndUpdate($pathName, $force);
             $instance = $configFile['instance'];
-            $currentTS = filemtime($pathName);
-            if (($force || $configFile['watched']) && $configFile['timestamp'] < $currentTS) {
-                $instance->read();
-                $configFile['timestamp'] = $currentTS;
-            }
-            $settings = $this->parserConfigFile($instance, $settings);
+            $settings = array_replace($settings, $instance->flattenYaml());
         }
-        $additions = array_diff(array_keys($settings), $this->protectedKeys);
-        $additions = $this->doSubstitutions($additions);
-        foreach ($additions as $add) {
-            $this->dic[$add] = $settings[$add];
-        }
+        $this->doSubstitutions($settings);
         return true;
     }
     /**
@@ -343,29 +388,25 @@ class ConfigManager implements ConfigManagementInterface
      *
      * @param array $settings
      *
-     * @return array
      * @throws \InvalidArgumentException
      */
-    private function doSubstitutions(array $settings): array
+    protected function doSubstitutions(array $settings)
     {
-        if (0 === count($settings)) {
-            return [];
-        }
+        $additions = array_diff(array_keys($settings), $this->protectedKeys);
         $depth = 0;
-        $dic = $this->dic;
         $maxDepth = 25;
-        $callback = function ($subject) use ($dic, $settings, &$miss) {
-            $regEx = '%(.*?)\{((?:\w+)(?:\.\w+)+)\}(.*)%';
-            if (is_string($subject)) {
-                $matched = preg_match($regEx, $subject, $matches);
+        $regEx = sprintf('#(.*?)\{((?:%s)(?:\.\w+)+)\}(.*)#', $this->matchYapealOnly ? 'Yapeal' : '\w+');
+        do {
+            $miss = 0;
+            foreach ($additions as $addition) {
+                if (!is_string($settings[$addition])) {
+                    continue;
+                }
+                $matched = preg_match($regEx, $settings[$addition], $matches);
                 if (1 === $matched) {
-                    $name = $matches[2];
-                    if ($dic->offsetExists($name)) {
-                        $subject = $matches[1] . $dic[$name] . $matches[3];
-                    } elseif (array_key_exists($name, $settings)) {
-                        $subject = $matches[1] . $settings[$name] . $matches[3];
-                    }
-                    if (false !== strpos($subject, '{') && false !== strpos($subject, '}')) {
+                    $sub = $this->dic[$matches[2]] ?? $settings[$matches[2]] ?? $matches[2];
+                    $settings[$addition] = $matches[1] . $sub . $matches[3];
+                    if (fnmatch('*{*.*}*', $settings[$addition])) {
                         ++$miss;
                     }
                 } elseif (false === $matched) {
@@ -378,29 +419,14 @@ class ConfigManager implements ConfigManagementInterface
                     throw new \InvalidArgumentException($mess);
                 }
             }
-            return $subject;
-        };
-        do {
-            $miss = 0;
-            $settings = array_map($callback, $settings);
             if (++$depth > $maxDepth) {
                 $mess = 'Exceeded maximum depth, check for possible circular reference(s)';
                 throw new \InvalidArgumentException($mess);
             }
         } while (0 < $miss);
-        return $settings;
-    }
-    /**
-     * @param YamlConfigFile $yaml
-     * @param array          $existing
-     *
-     * @return array
-     * @throws \LogicException
-     */
-    private function parserConfigFile(YamlConfigFile $yaml, array $existing = []): array
-    {
-        $settings = $yaml->flattenYaml();
-        return array_replace($existing, $settings);
+        foreach ($additions as $add) {
+            $this->dic[$add] = $settings[$add];
+        }
     }
     /**
      * Used to remove any parameters or objects that were added from config files.
@@ -413,6 +439,23 @@ class ConfigManager implements ConfigManagementInterface
         }
     }
     /**
+     * Sorts config files by priority/path name order.
+     *
+     * Sorted the config files by their descending priority order (largest-smallest). If there are config files with
+     * equal priorities they will be sorted by descending path name order.
+     */
+    private function sortConfigFiles()
+    {
+        uasort($this->configFiles,
+            function ($a, $b) {
+                $sort = $b['priority'] <=> $a['priority'];
+                if (0 === $sort) {
+                    $sort = $b['pathName'] <=> $a['pathName'];
+                }
+                return $sort;
+            });
+    }
+    /**
      * @var array $configFiles
      */
     private $configFiles;
@@ -420,6 +463,13 @@ class ConfigManager implements ConfigManagementInterface
      * @var ContainerInterface $dic
      */
     private $dic;
+    /**
+     * Flag used while doing substitutions to decide if generic pattern or Yapeal prefixed one should be used.
+     *
+     * @var bool $matchYapealOnly
+     * @see doSubstitutions()
+     */
+    private $matchYapealOnly;
     /**
      * List of Container keys that are protected from being overwritten.
      *

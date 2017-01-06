@@ -34,8 +34,6 @@ declare(strict_types = 1);
  */
 namespace Yapeal\Configuration;
 
-use Yapeal\Container\ContainerInterface;
-
 /**
  * Interface ConfigManagementInterface.
  *
@@ -164,6 +162,12 @@ interface ConfigManagementInterface
      *                                   to check if the candidate config file entry exists.
      */
     public function removeConfigFile(string $pathName): array;
+    /**
+     * @param array $value
+     *
+     * @return self Fluent interface
+     */
+    public function setSettings(array $value = []);
     /**
      * The Update part of the CRUD interface.
      *

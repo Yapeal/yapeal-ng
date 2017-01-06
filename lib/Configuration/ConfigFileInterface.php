@@ -1,9 +1,9 @@
 <?php
 declare(strict_types = 1);
 /**
- * Contains class YamlConfigFileSpec.
+ * Contains interface ConfigFileInterface.
  *
- * PHP version 7.0
+ * PHP version 7.0+
  *
  * LICENSE:
  * This file is part of Yet Another Php Eve Api Library also know as Yapeal
@@ -30,44 +30,50 @@ declare(strict_types = 1);
  *
  * @author    Michael Cummings <mgcummings@yahoo.com>
  * @copyright 2016 Michael Cummings
- * @license   LGPL-3.0
+ * @license   LGPL-3.0+
  */
-namespace Spec\Yapeal\Cli\Yapeal;
+namespace Yapeal\Configuration;
 
-use PhpSpec\ObjectBehavior;
-
-//use Prophecy\Argument;
 /**
- * Class YamlConfigFileSpec
- *
- * @mixin \Yapeal\Cli\Yapeal\YamlConfigFile
- *
- * @method void during($method, array $params)
- * @method void shouldBe($value)
- * @method void shouldContain($value)
- * @method void shouldNotEqual($value)
- * @method void shouldReturn($result)
+ * Class YamlConfigFile.
  */
-class YamlConfigFileSpec extends ObjectBehavior
+interface ConfigFileInterface
 {
-    public function it_is_initializable()
-    {
-        $this->shouldHaveType('Yapeal\Cli\Yapeal\YamlConfigFile');
-    }
-    public function it_should_return_self_from_set_path_file()
-    {
-        $this->setPathFile('')
-            ->shouldReturn($this);
-    }
-    public function it_should_return_self_from_set_settings()
-    {
-        $this->setSettings([])
-            ->shouldReturn($this);
-    }
-    public function it_throws_exception_in_get_path_file_when_not_set_yet()
-    {
-        $mess = 'Trying to access $pathFile before it was set';
-        $this->shouldThrow(new \LogicException($mess))
-            ->during('getPathFile');
-    }
+    /**
+     * @param array|null $yaml The array to be flattened. If null assumes $settings.
+     *
+     * @return array
+     */
+    public function flattenYaml(array $yaml = null): array;
+    /**
+     * @return string
+     * @throws \LogicException
+     */
+    public function getPathFile(): string;
+    /**
+     * @return array
+     */
+    public function getSettings(): array;
+    /**
+     * @throws \LogicException
+     */
+    public function read();
+    /**
+     * @throws \LogicException
+     */
+    public function save();
+    /**
+     * @param string|null $value File name with absolute path.
+     */
+    public function setPathFile(string $value = null);
+    /**
+     * @param array $value
+     */
+    public function setSettings(array $value = []);
+    /**
+     * @param array|null $yaml The array to be unflattened. If null assumes $settings.
+     *
+     * @return array
+     */
+    public function unflattenYaml(array $yaml = null): array;
 }

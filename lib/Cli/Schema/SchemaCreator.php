@@ -55,6 +55,7 @@ class SchemaCreator extends AbstractSchemaCommon
      * @param string             $name
      * @param ContainerInterface $dic
      *
+     * @throws \InvalidArgumentException
      * @throws \Symfony\Component\Console\Exception\LogicException
      */
     public function __construct(string $name, ContainerInterface $dic)

@@ -43,6 +43,7 @@ use Symfony\Component\Console\Question\ChoiceQuestion;
 use Yapeal\Cli\ConfigFileTrait;
 use Yapeal\Cli\VerbosityMappingTrait;
 use Yapeal\CommonToolsTrait;
+use Yapeal\Configuration\YamlConfigFile;
 use Yapeal\Container\ContainerInterface;
 use Yapeal\Event\EveApiEventEmitterTrait;
 use Yapeal\Event\YEMAwareInterface;
