@@ -48,58 +48,145 @@ class NetworkWiring implements WiringInterface
      */
     public function wire(ContainerInterface $dic)
     {
+        $this->wireMergedParametersCallable($dic)
+            ->wireClient($dic)
+            ->wireRetriever($dic);
+    }
+    /**
+     * @param ContainerInterface $dic
+     *
+     * @return self Fluent interface
+     */
+    private function wireClient(ContainerInterface $dic): self
+    {
         if (empty($dic['Yapeal.Network.Callable.Client'])) {
-            $dic['Yapeal.Network.Callable.Client'] = function ($dic) {
-                $userAgent = trim(str_replace([
-                    '{machineType}',
-                    '{osName}',
-                    '{osRelease}',
-                    '{phpVersion}'
-                ],
-                    [php_uname('m'), php_uname('s'), php_uname('r'), PHP_VERSION],
-                    $dic['Yapeal.Network.userAgent']));
-                $userAgent = ltrim($userAgent, '/ ');
+            $dic['Yapeal.Network.Callable.Client'] = function (ContainerInterface $dic) {
+                /**
+                 * @var array $clientParameters
+                 */
+                $clientParameters = $dic['Yapeal.Network.Callable.GetClientMergedParameters'];
                 $headers = [
-                    'Accept' => $dic['Yapeal.Network.Headers.Accept'],
-                    'Accept-Charset' => $dic['Yapeal.Network.Headers.Accept-Charset'],
-                    'Accept-Encoding' => $dic['Yapeal.Network.Headers.Accept-Encoding'],
-                    'Accept-Language' => $dic['Yapeal.Network.Headers.Accept-Language'],
-                    'Connection' => $dic['Yapeal.Network.Headers.Connection'],
-                    'Keep-Alive' => $dic['Yapeal.Network.Headers.Keep-Alive']
+                    'Accept' => $clientParameters['accept'],
+                    'Accept-Charset' => $clientParameters['acceptCharset'],
+                    'Accept-Encoding' => $clientParameters['acceptEncoding'],
+                    'Accept-Language' => $clientParameters['acceptLanguage'],
+                    'Connection' => $clientParameters['connection'],
+                    'Keep-Alive' => $clientParameters['keepAlive']
                 ];
                 // Clean up any extra spaces and EOL chars from Yaml.
                 array_walk($headers,
                     function (&$value) {
                         $value = trim(str_replace(' ', '', (string)$value));
                     });
+                $agentSubs = [
+                    '{appComment}' => $clientParameters['appComment'],
+                    '{appName}' => $clientParameters['appName'],
+                    '{appVersion}' => $clientParameters['appVersion'],
+                    '{machineType}' => php_uname('m'),
+                    '{osName}' => php_uname('s'),
+                    '{osRelease}' => php_uname('r'),
+                    '{phpVersion}' => PHP_VERSION
+                ];
+                $userAgent = str_replace(array_keys($agentSubs),
+                    array_values($agentSubs),
+                    $dic['Yapeal.Network.userAgent']);
+                $userAgent = ltrim(trim($userAgent), '/ ');
                 if ('' !== $userAgent) {
                     $headers['User-Agent'] = $userAgent;
                 }
                 $defaults = [
-                    'base_uri' => $dic['Yapeal.Network.baseUrl'],
-                    'connect_timeout' => (int)$dic['Yapeal.Network.connect_timeout'],
+                    'base_uri' => $clientParameters['baseUrl'],
+                    'connect_timeout' => $clientParameters['connect_timeout'],
                     'headers' => $headers,
-                    'timeout' => (int)$dic['Yapeal.Network.timeout'],
-                    'verify' => $dic['Yapeal.Network.verify']
+                    'timeout' => $clientParameters['timeout'],
+                    'verify' => $clientParameters['verify']
                 ];
                 return new $dic['Yapeal.Network.Classes.client']($defaults);
             };
         }
-        if (empty($dic['Yapeal.Network.Callable.Retriever'])) {
-            $dic['Yapeal.Network.Callable.Retriever'] = function ($dic) {
-                return new $dic['Yapeal.Network.Classes.retrieve']($dic['Yapeal.Network.Callable.Client'],
-                    (bool)$dic['Yapeal.Network.Cache.retrieve']);
+        return $this;
+    }
+    /**
+     * Used to get an extracted and merged set of client parameters.
+     *
+     * Note that normal Yapeal-ng config file substitutions will have already been applied before this callable sees
+     * the parameters so things like ```{Yapeal.Network.appComment}``` will have already been replaced.
+     *
+     * This extract all scalars parameters with prefixes of:
+     * Yapeal.Network.Parameters.
+     * Yapeal.Network.Parameters.client.
+     * Yapeal.Network.Parameters.client.$server.
+     * Yapeal.Network.Parameters.client.$server.headers.
+     *
+     * where $server is the value of Yapeal.Network.server parameter. Overlapping parameters from the later prefixes
+     * will overwrite values from earlier prefixes.
+     *
+     * __NOTE:__
+     *     ```Yapeal.Network.Parameters.client.server``` is treated differently in that the matching parameter
+     *     ```Yapeal.Network.server``` will _not_ be used. This make sense if you think about it as its only the client
+     *     and nothing else that needs to known which Eve API server is being used.
+     *
+     *
+     * @param ContainerInterface $dic
+     *
+     * @return self Fluent interface.
+     */
+    private function wireMergedParametersCallable(ContainerInterface $dic): self
+    {
+        if (empty($dic['Yapeal.Network.Callable.GetClientMergedParameters'])) {
+            $dic['Yapeal.Network.Callable.GetClientMergedParameters'] = function (ContainerInterface $dic) {
+                $getScalars = $dic['Yapeal.Config.Callable.ExtractScalarsByKeyPrefix'];
+                $base = [];
+                foreach ($getScalars($dic, 'Yapeal.Network.') as $index => $item) {
+                    $base[$index] = $item;
+                }
+                $clientBase = [];
+                foreach ($getScalars($dic, 'Yapeal.Network.Parameters.client.') as $index => $item) {
+                    $clientBase[$index] = $item;
+                }
+                if (!array_key_exists('server', $clientBase)) {
+                    $mess = '"Yapeal.Network.Parameters.client.server" parameter must exist in at least one config file'
+                        . ' that is added to the Container';
+                    throw new \OutOfBoundsException($mess);
+                }
+                $server = $clientBase['server'];
+                $perServer = [];
+                // Per server parameters.
+                $serverParameters = sprintf('Yapeal.Network.Parameters.client.%s.', $server);
+                foreach ($getScalars($dic, $serverParameters) as $index => $item) {
+                    $perServer[$index] = $item;
+                }
+                $perHeader = [];
+                // Per server headers parameters.
+                $headerParameters = sprintf('Yapeal.Network.Parameters.client.%s.headers', $server);
+                foreach ($getScalars($dic, $headerParameters) as $index => $item) {
+                    $perHeader[$index] = $item;
+                }
+                return array_merge($base, $clientBase, $perServer, $perHeader);
             };
         }
-        /**
-         * @var \Yapeal\Event\MediatorInterface $mediator
-         */
-        $mediator = $dic['Yapeal.Event.Callable.Mediator'];
-        $mediator->addServiceListener('Yapeal.EveApi.retrieve',
-            ['Yapeal.Network.Callable.Retriever', 'retrieveEveApi'],
-            'last');
-        $mediator->addServiceListener('Yapeal.EveApi.Raw.retrieve',
-            ['Yapeal.Network.Callable.Retriever', 'retrieveEveApi'],
-            'last');
+        return $this;
+    }
+    /**
+     * @param ContainerInterface $dic
+     */
+    private function wireRetriever(ContainerInterface $dic)
+    {
+        if (empty($dic['Yapeal.Network.Callable.Retriever'])) {
+            $dic['Yapeal.Network.Callable.Retriever'] = function (ContainerInterface $dic) {
+                return new $dic['Yapeal.Network.Classes.retrieve']($dic['Yapeal.Network.Callable.Client'],
+                    $dic['Yapeal.Network.Cache.retrieve']);
+            };
+            /**
+             * @var \Yapeal\Event\MediatorInterface $mediator
+             */
+            $mediator = $dic['Yapeal.Event.Callable.Mediator'];
+            $mediator->addServiceListener('Yapeal.EveApi.retrieve',
+                ['Yapeal.Network.Callable.Retriever', 'retrieveEveApi'],
+                'last');
+            $mediator->addServiceListener('Yapeal.EveApi.Raw.retrieve',
+                ['Yapeal.Network.Callable.Retriever', 'retrieveEveApi'],
+                'last');
+        }
     }
 }

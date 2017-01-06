@@ -104,32 +104,40 @@ Yapeal:
             Strategy:
                 actionLevel: '{Yapeal.Log.threshold}'
     Network:
-        appComment: 'of the instructions'
+        appComment: '(of the instructions)'
         appName: 'I did not follow'
         appVersion: '1'
-        baseUrl: 'https://api.eveonline.com'
-        timeout: 10
-        connect_timeout: 30
-        verify: '{Yapeal.baseDir}config/eveonline.pem'
-        userAgent: >
-            {Yapeal.Network.appName}/{Yapeal.Network.appVersion} {Yapeal.Network.appComment}
-            Yapeal-ng/{Yapeal.version}
-            ({osName} {osRelease}; PHP {phpVersion}; Platform {machineType})
-        Cache:
-            retrieve: true
         Classes:
             client: GuzzleHttp\Client
             retrieve: Yapeal\Network\GuzzleNetworkRetriever
-        Headers:
-            'Accept': >
-                text/xml,application/xml,application/xhtml+xml;
-                q=0.9,text/html;q=0.8,text/plain;q=0.7,image/png;
-                q=0.6,*/*;q=0.5
-            'Accept-Charset': 'utf-8;q=0.9,windows-1251;q=0.7,*;q=0.6'
-            'Accept-Encoding': 'gzip'
-            'Accept-Language': 'en-us;q=0.9,en;q=0.8,*;q=0.7'
-            'Connection': 'Keep-Alive'
-            'Keep-Alive': '300'
+        Parameters:
+            client:
+                appComment: '{Yapeal.Network.appComment}'
+                appName: '{Yapeal.Network.appName}'
+                appVersion: '{Yapeal.Network.appVersion}'
+                connect_timeout: 30
+                server: 'tranquility'
+                timeout: 10
+                headers:
+                    accept: >
+                        text/xml,application/xml,application/xhtml+xml;q=0.9,
+                        text/html;q=0.8,
+                        text/plain;q=0.7,
+                        image/png;q=0.6,
+                        */*;q=0.5
+                    acceptCharset: 'utf-8;q=0.9,windows-1251;q=0.7,*;q=0.6'
+                    acceptEncoding: 'gzip'
+                    acceptLanguage: 'en-us;q=0.9,en;q=0.8,*;q=0.7'
+                    connection: 'Keep-Alive'
+                    keepAlive: '300'
+                    userAgent: >
+                        {appName}/{appVersion} {appComment}
+                         Yapeal-ng/{Yapeal.version}
+                         ({osName} {osRelease}; PHP {phpVersion}; Platform {machineType})
+                tranquility:
+                    baseUrl: 'https://api.eveonline.com'
+                    verify: '{Yapeal.baseDir}config/eveonline.pem'
+            retrieve: true
     Sql:
         database: yapeal-ng
         dir: '{Yapeal.libDir}Sql/'
