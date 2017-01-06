@@ -69,6 +69,7 @@ trait ContainerMagicTrait
         }
         $factory = $this->values[$id];
         $extended = function ($c) use ($callable, $factory) {
+            /** @noinspection PhpMethodParametersCountMismatchInspection */
             return $callable($factory($c), $c);
         };
         if (isset($this->factories[$factory])) {
