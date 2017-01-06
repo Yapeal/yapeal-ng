@@ -35,22 +35,18 @@ declare(strict_types = 1);
 namespace Yapeal\Configuration;
 
 use Yapeal\Container\ContainerInterface;
-use Yapeal\Container\DicAwareInterface;
-use Yapeal\Container\DicAwareTrait;
 
 /**
  * Class Wiring
  */
-class Wiring implements DicAwareInterface
+class Wiring
 {
-    use ConfigFileProcessingTrait;
-    use DicAwareTrait;
     /**
      * @param ContainerInterface $dic
      */
     public function __construct(ContainerInterface $dic)
     {
-        $this->setDic($dic);
+        $this->dic = $dic;
     }
     /**
      * This is used to configure/wire all the pieces of Yapeal-ng together.
@@ -73,7 +69,7 @@ class Wiring implements DicAwareInterface
      */
     public function wireAll(): self
     {
-        $dic = $this->getDic();
+        $dic = $this->dic;
         // First things first, should add self to Container and freeze so can't be overwritten later by oops.
         if (empty($dic['Yapeal.Wiring.Callable.Wiring'])) {
             $dic['Yapeal.Wiring.Callable.Wiring'] = function (ContainerInterface $dic) {
@@ -101,4 +97,8 @@ class Wiring implements DicAwareInterface
         }
         return $this;
     }
+    /**
+     * @var ContainerInterface $dic
+     */
+    private $dic;
 }
