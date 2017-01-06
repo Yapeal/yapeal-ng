@@ -17,6 +17,7 @@ extensions:
             - build
             - composer
             - docs
+            - features
             - specs
             - tests
             - vendor
@@ -32,7 +33,7 @@ extensions:
             - "test*.*"
         format:
             - clover
-            - html
+#            - html
         output:
             clover: build/clover.xml
-            html: build/
+#            html: build/
