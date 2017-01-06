@@ -81,6 +81,7 @@
         "phploc/phploc": "<2.3",
         "phpspec/nyan-formatters": "~2.0.0",
         "phpspec/phpspec": "~3.0.0",
+        "roave/security-advisories": "dev-master",
         "webmozart/assert": "^1.1"
     },
     "support": {
