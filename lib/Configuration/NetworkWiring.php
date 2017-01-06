@@ -175,7 +175,7 @@ class NetworkWiring implements WiringInterface
         if (empty($dic['Yapeal.Network.Callable.Retriever'])) {
             $dic['Yapeal.Network.Callable.Retriever'] = function (ContainerInterface $dic) {
                 return new $dic['Yapeal.Network.Classes.retrieve']($dic['Yapeal.Network.Callable.Client'],
-                    $dic['Yapeal.Network.Cache.retrieve']);
+                    $dic['Yapeal.Network.Parameters.retrieve']);
             };
             /**
              * @var \Yapeal\Event\MediatorInterface $mediator
