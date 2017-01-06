@@ -9,7 +9,7 @@ declare(strict_types = 1);
  * This file is part of Yet Another Php Eve Api Library also know as Yapeal
  * which can be used to access the Eve Online API data and place it into a
  * database.
- * Copyright (C) 2016 Michael Cummings
+ * Copyright (C) 2016-2017 Michael Cummings
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by the
@@ -29,7 +29,7 @@ declare(strict_types = 1);
  * file. A copy of the GNU GPL should also be available in the COPYING.md file.
  *
  * @author    Michael Cummings <mgcummings@yahoo.com>
- * @copyright 2016 Michael Cummings
+ * @copyright 2016-2017 Michael Cummings
  * @license   LGPL-3.0
  */
 namespace Spec\Yapeal\Sql;

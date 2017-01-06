@@ -32,5 +32,7 @@ extensions:
             - "test*.*"
         format:
             - clover
+            - html
         output:
             clover: build/clover.xml
+            html: build/

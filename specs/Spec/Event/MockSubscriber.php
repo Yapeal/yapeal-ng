@@ -8,7 +8,7 @@ declare(strict_types=1);
  * LICENSE:
  * This file is part of Event Mediator - A general event mediator (dispatcher)
  * which has minimal dependencies so it is easy to drop in and use.
- * Copyright (C) 2015-2016 Michael Cummings
+ * Copyright (C) 2015-2017 Michael Cummings
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -33,7 +33,7 @@ declare(strict_types=1);
  * LICENSE file.
  *
  * @author    Michael Cummings <mgcummings@yahoo.com>
- * @copyright 2015-2016 Michael Cummings
+ * @copyright 2015-2017 Michael Cummings
  * @license   GPL-2.0
  */
 namespace Spec\Yapeal\Event;
