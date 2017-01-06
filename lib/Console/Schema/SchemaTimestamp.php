@@ -32,7 +32,7 @@ declare(strict_types = 1);
  * @copyright 2016-2017 Michael Cummings
  * @license   LGPL-3.0+
  */
-namespace Yapeal\Cli\Schema;
+namespace Yapeal\Console\Schema;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;

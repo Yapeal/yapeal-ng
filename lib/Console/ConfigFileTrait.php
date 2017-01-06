@@ -32,7 +32,7 @@ declare(strict_types = 1);
  * @license   LGPL-3.0+
  * @author    Michael Cummings <mgcummings@yahoo.com>
  */
-namespace Yapeal\Cli;
+namespace Yapeal\Console;
 
 use Symfony\Component\Console\Input\InputOption;
 use Yapeal\Configuration\ConfigManagementInterface;

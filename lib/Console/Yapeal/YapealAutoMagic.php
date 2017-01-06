@@ -32,13 +32,13 @@ declare(strict_types = 1);
  * @license   LGPL-3.0+
  * @author    Michael Cummings <mgcummings@yahoo.com>
  */
-namespace Yapeal\Cli\Yapeal;
+namespace Yapeal\Console\Yapeal;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Yapeal\Cli\ConfigFileTrait;
-use Yapeal\Cli\VerbosityMappingTrait;
+use Yapeal\Console\ConfigFileTrait;
+use Yapeal\Console\VerbosityMappingTrait;
 use Yapeal\CommonToolsTrait;
 use Yapeal\Container\ContainerInterface;
 use Yapeal\Event\EveApiEventEmitterTrait;

@@ -32,7 +32,7 @@ declare(strict_types = 1);
  * @copyright 2016-2017 Michael Cummings
  * @license   LGPL-3.0+
  */
-namespace Yapeal\Cli\Yapeal;
+namespace Yapeal\Console\Yapeal;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\QuestionHelper;
@@ -40,8 +40,8 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
-use Yapeal\Cli\ConfigFileTrait;
-use Yapeal\Cli\VerbosityMappingTrait;
+use Yapeal\Console\ConfigFileTrait;
+use Yapeal\Console\VerbosityMappingTrait;
 use Yapeal\CommonToolsTrait;
 use Yapeal\Configuration\YamlConfigFile;
 use Yapeal\Container\ContainerInterface;

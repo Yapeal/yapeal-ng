@@ -32,15 +32,15 @@ declare(strict_types = 1);
  * @license   LGPL-3.0+
  * @author    Michael Cummings <mgcummings@yahoo.com>
  */
-namespace Yapeal\Cli\Schema;
+namespace Yapeal\Console\Schema;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Yapeal\Cli\ConfigFileTrait;
-use Yapeal\Cli\VerbosityMappingTrait;
+use Yapeal\Console\ConfigFileTrait;
+use Yapeal\Console\VerbosityMappingTrait;
 use Yapeal\CommonToolsTrait;
 use Yapeal\Container\DicAwareInterface;
 use Yapeal\Event\YEMAwareInterface;
