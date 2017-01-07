@@ -41,8 +41,10 @@ use Prophecy\Argument;
 use Spec\Yapeal\FileSystemUtilTrait;
 use Symfony\Component\Filesystem\Filesystem;
 use Yapeal\Event\EveApiEventInterface;
+use Yapeal\Event\EveApiRetrieverInterface;
 use Yapeal\Event\LogEventInterface;
 use Yapeal\Event\MediatorInterface;
+use Yapeal\FileSystem\CacheRetriever;
 use Yapeal\Log\Logger;
 use Yapeal\Xml\EveApiXmlData;
 
@@ -74,8 +76,8 @@ class CacheRetrieverSpec extends ObjectBehavior
     }
     public function it_is_initializable()
     {
-        $this->shouldHaveType('Yapeal\FileSystem\CacheRetriever');
-        $this->shouldImplement('Yapeal\Event\EveApiRetrieverInterface');
+        $this->shouldHaveType(CacheRetriever::class);
+        $this->shouldImplement(EveApiRetrieverInterface::class);
     }
     /**
      * @param Collaborator|EveApiEventInterface $event
@@ -255,7 +257,7 @@ XML;
         $yem->triggerLogEvent('Yapeal.Log.log',
             Logger::WARNING,
             Argument::containingString($messagePrefix),
-            Argument::withEntry('exception', Argument::type('\Exception')))
+            Argument::withEntry('exception', Argument::type(\Exception::class)))
             ->willReturn($log)
             ->shouldBeCalled();
         $this->retrieveEveApi($event, 'test', $yem);
@@ -570,7 +572,7 @@ XML;
         /** @noinspection PhpStrictTypeCheckingInspection */
         $yem->triggerLogEvent(Argument::cetera())
             ->willReturn($log);
-        $this->shouldThrow('\LogicException')
+        $this->shouldThrow(\LogicException::class)
             ->duringRetrieveEveApi($event, 'test', $yem);
     }
     /**

@@ -45,13 +45,11 @@ trait SafeFileHandlingTrait
     /**
      * Safely read contents of file.
      *
-     * @param string $pathFile          File name with absolute path.
-     * @param int    $estimatedFileSize This is used to calculate the read buffer size to use as well as the
-     *                                  proportional timeouts.
+     * @param string $pathFile File name with absolute path.
      *
      * @return false|string Returns the file contents or false for any problems that prevent it.
      */
-    protected function safeFileRead(string $pathFile, int $estimatedFileSize = 16777216)
+    protected function safeFileRead(string $pathFile)
     {
         try {
             $pathFile = $this->getFpn()
@@ -64,7 +62,7 @@ trait SafeFileHandlingTrait
         if (!is_readable($pathFile) || !is_file($pathFile)) {
             return false;
         }
-        return $this->safeDataRead($pathFile, $estimatedFileSize);
+        return $this->safeDataRead($pathFile);
     }
     /**
      * Safely write file using lock and temp file.
@@ -95,7 +93,6 @@ trait SafeFileHandlingTrait
         if (false === $this->deleteWithRetry($pathFile)) {
             return false;
         }
-        /** @noinspection PhpUsageOfSilenceOperatorInspection */
         if (false === $renamed = rename($tmpFile, $pathFile)) {
             $this->deleteWithRetry($tmpFile);
         }
@@ -218,20 +215,18 @@ trait SafeFileHandlingTrait
      *   * Read stalls without making any progress or repeatedly stalls to often.
      *   * Exceeds estimated read time based on file size with 2 second minimum enforced.
      *
-     * @param string $pathFile          Name of file to try reading from.
-     * @param int    $estimatedFileSize This is used to calculate the read
-     *                                  buffer size to use as well as the
-     *                                  proportional timeouts.
+     * @param string $pathFile Name of file to try reading from.
      *
      * @return false|string Returns contents of file or false for any errors that prevent it.
      */
-    private function safeDataRead(string $pathFile, int $estimatedFileSize)
+    private function safeDataRead(string $pathFile)
     {
-        // Buffer size between 4KB and 256KB with 16MB value uses a 100KB buffer.
-        $bufferSize = (int)(1 + floor(log($estimatedFileSize, 2))) << 12;
-        // Read timeout calculated by estimated file size and write speed of
+        $fileSize = filesize($pathFile);
+        // Buffer size between 4KB and 256KB with 16MB file uses a 100KB buffer.
+        $bufferSize = (1 + (int)floor(log(max(1, $fileSize), 2))) << 12;
+        // Read timeout calculated by file size and write speed of
         // 16MB/sec with 2 second minimum time enforced.
-        $timeout = max(2, intdiv($estimatedFileSize, 1 << 24));
+        $timeout = max(2, intdiv($fileSize, 1 << 24));
         $handle = $this->acquireLockedHandle($pathFile, 'rb+', $timeout);
         if (false === $handle) {
             return false;

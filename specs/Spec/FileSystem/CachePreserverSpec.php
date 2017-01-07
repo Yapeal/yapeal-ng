@@ -42,8 +42,10 @@ use Prophecy\Argument;
 use Spec\Yapeal\FileSystemUtilTrait;
 use Symfony\Component\Filesystem\Filesystem;
 use Yapeal\Event\EveApiEventInterface;
+use Yapeal\Event\EveApiPreserverInterface;
 use Yapeal\Event\LogEventInterface;
 use Yapeal\Event\MediatorInterface;
+use Yapeal\FileSystem\CachePreserver;
 use Yapeal\Xml\EveApiXmlData;
 
 /**
@@ -74,8 +76,8 @@ class CachePreserverSpec extends ObjectBehavior
     }
     public function it_is_initializable()
     {
-        $this->shouldHaveType('Yapeal\FileSystem\CachePreserver');
-        $this->shouldImplement('Yapeal\Event\EveApiPreserverInterface');
+        $this->shouldHaveType(CachePreserver::class);
+        $this->shouldImplement(EveApiPreserverInterface::class);
     }
     /**
      * @param Collaborator|EveApiEventInterface $event
@@ -282,6 +284,8 @@ class CachePreserverSpec extends ObjectBehavior
      * @throws \DomainException
      * @throws \InvalidArgumentException
      * @throws \LogicException
+     * @throws \PhpSpec\Exception\Fracture\ClassNotFoundException
+     * @throws \PhpSpec\Exception\Fracture\FactoryDoesNotReturnObjectException
      * @throws \Prophecy\Exception\InvalidArgumentException
      * @throws \UnexpectedValueException
      */
