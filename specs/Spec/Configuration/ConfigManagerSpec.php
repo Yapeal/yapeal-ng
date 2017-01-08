@@ -245,6 +245,25 @@ yaml;
         $this->read()
             ->shouldReturn([]);
     }
+    public function it_should_only_remove_settings_that_were_added_by_create_or_update_in_delete()
+    {
+        $yaml = <<<'yaml'
+---
+Yapeal:
+    version: '0.6.0-0-gafa3c59'
+...
+yaml;
+        $dic = new Container([]);
+        $configFile = $this->workingDirectory . 'config.yaml';
+        $this->filesystem->dumpFile($configFile, $yaml);
+        $this->beConstructedWith($dic, []);
+        $this->create([$configFile]);
+        $dic['Yapeal.ignored'] = 'Please ignore me';
+        Assert::count($dic->keys(), 2);
+        $this->delete();
+        Assert::count($dic->keys(), 1);
+        Assert::same($dic['Yapeal.ignored'], 'Please ignore me');
+    }
     public function it_should_return_added_config_file_structure_in_remove_config_file()
     {
         $yaml = <<<'yaml'

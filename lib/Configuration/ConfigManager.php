@@ -57,6 +57,7 @@ class ConfigManager implements ConfigManagementInterface
      */
     public function __construct(ContainerInterface $dic, array $settings = [])
     {
+        $this->addedSettings = [];
         $this->configFiles = [];
         $this->matchYapealOnly = false;
         $this->setDic($dic);
@@ -229,7 +230,7 @@ class ConfigManager implements ConfigManagementInterface
      */
     public function delete(): bool
     {
-        $this->removeUnprotectedSettings();
+        $this->removeAddedSettings();
         $this->configFiles = [];
         return true;
     }
@@ -343,7 +344,7 @@ class ConfigManager implements ConfigManagementInterface
      */
     public function update(bool $force = false): bool
     {
-        $this->removeUnprotectedSettings();
+        $this->removeAddedSettings();
         $settings = $this->settings;
         $this->sortConfigFiles();
         /**
@@ -427,14 +428,16 @@ class ConfigManager implements ConfigManagementInterface
         foreach ($additions as $add) {
             $this->dic[$add] = $settings[$add];
         }
+        $this->addedSettings = $additions;
     }
     /**
-     * Used to remove any parameters or objects that were added from config files.
+     * Used to remove any parameters from the Container that were added before from config files.
+     *
+     * Note that anything that was in $this->settings during the last create() or update() will also be removed.
      */
-    private function removeUnprotectedSettings()
+    private function removeAddedSettings()
     {
-        $subtractions = array_diff($this->dic->keys(), $this->protectedKeys);
-        foreach ($subtractions as $sub) {
+        foreach ($this->addedSettings as $sub) {
             unset($this->dic[$sub]);
         }
     }
@@ -455,6 +458,10 @@ class ConfigManager implements ConfigManagementInterface
                 return $sort;
             });
     }
+    /**
+     * @var array $addedSettings
+     */
+    private $addedSettings;
     /**
      * @var array $configFiles
      */
