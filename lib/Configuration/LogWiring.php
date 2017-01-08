@@ -62,12 +62,6 @@ class LogWiring implements WiringInterface
             ->registerErrorHandler($dic)
             ->registerExceptionHandler($dic)
             ->registerFatalHandler($dic);
-        /**
-         * @var \Yapeal\Event\MediatorInterface $mediator
-         */
-        $mediator = $dic['Yapeal.Event.Callable.Mediator'];
-        $mediator->addServiceListener('Yapeal.Log.log', ['Yapeal.Log.Callable.Logger', 'logEvent'], 'last');
-        $mediator->addServiceListener('Yapeal.Log.error', ['Yapeal.Log.Callable.Logger', 'logEvent'], 'last');
     }
     /**
      * @param ContainerInterface $dic
@@ -76,88 +70,101 @@ class LogWiring implements WiringInterface
      */
     private function registerErrorHandler(ContainerInterface $dic): self
     {
-        $errorLevelMap = $dic['Yapeal.Log.Parameters.Register.errorLevelMap'];
-        if (false !== $errorLevelMap) {
-            $errorLevelMap = (array)json_decode($errorLevelMap);
-            /** @noinspection PhpTooManyParametersInspection */
-            $errorHandler = new class($dic['Yapeal.Log.Callable.Logger'], $errorLevelMap)
-            {
-                /**
-                 *  constructor.
-                 *
-                 * @param LoggerInterface $logger
-                 * @param array           $errorLevelMap
-                 */
-                public function __construct(LoggerInterface $logger, array $errorLevelMap = [])
+        if ($dic['Yapeal.Log.Parameters.Register.errorHandler'] && empty($dic['Yapeal.Log.Callable.ErrorHandler'])) {
+            $dic['Yapeal.Log.Callable.ErrorHandler'] = function (ContainerInterface $dic) {
+                $parameters = [
+                    $dic['Yapeal.Log.Callable.Logger'],
+                    (array)json_decode($dic['Yapeal.Log.Parameters.Register.errorLevelMap'])
+                ];
+                /** @noinspection PhpTooManyParametersInspection */
+                $errorHandler = new class(...$parameters)
                 {
-                    $this->logger = $logger;
-                    $this->errorLevelMap = $errorLevelMap;
-                }
-                /**
-                 * @param int $code
-                 * @param string $message
-                 * @param string $file
-                 * @param int $line
-                 * @param array $context
-                 *
-                 * @return bool
-                 */
-                public function __invoke(
-                    int $code,
-                    string $message,
-                    string $file = '',
-                    int $line = 0,
-                    array $context = []
-                ): bool {
-                    if (!(error_reporting() & $code)) {
-                        return false;
+                    /**
+                     *  constructor.
+                     *
+                     * @param LoggerInterface $logger
+                     * @param array           $errorLevelMap
+                     */
+                    public function __construct(LoggerInterface $logger, array $errorLevelMap = [])
+                    {
+                        $this->logger = $logger;
+                        $this->errorLevelMap = $errorLevelMap;
                     }
-                    if ($code & self::HANDLE_ERRORS) {
-                        $level = $this->errorLevelMap[$code] ?? LogLevel::CRITICAL;
-                        $this->logger->log($level,
-                            $message,
-                            [
-                                'code' => $code,
-                                'message' => $message,
-                                'file' => str_replace('\\', '/', $file),
-                                'line' => $line
-                            ]);
+                    /**
+                     * This is what PHP will actual call to handle any errors.
+                     *
+                     * Note that PHP's 'ini' error mask is ignored so the log files have complete info. This will
+                     * also cause them to be seen on the command line where they might not have been before.
+                     *
+                     * This method acts in a sufficiently handled manner. So if there was a previous error handler it is
+                     * given a chance to process any errors as well and then this method returns true if either itself
+                     * or the previous handler returns true otherwise it'll return false so PHP can decide what to do
+                     * next. This should let any testing frameworks to work without interference from Yapeal-ng.
+                     *
+                     * @param int    $code
+                     * @param string $message
+                     * @param string $file
+                     * @param int    $line
+                     * @param array  $context
+                     *
+                     * @return bool
+                     */
+                    public function __invoke(
+                        int $code,
+                        string $message,
+                        string $file = '',
+                        int $line = 0,
+                        array $context = []
+                    ): bool {
+                        $handled = false;
+                        if ($code & self::HANDLE_ERRORS) {
+                            $level = $this->errorLevelMap[$code] ?? LogLevel::CRITICAL;
+                            $this->logger->log($level,
+                                $message,
+                                [
+                                    'code' => $code,
+                                    'message' => $message,
+                                    'file' => str_replace('\\', '/', $file),
+                                    'line' => $line
+                                ]);
+                            $handled = true;
+                        }
+                        if (null !== $this->previousErrorHandler) {
+                            return $handled
+                                || (bool)call_user_func($this->previousErrorHandler,
+                                    $code,
+                                    $message,
+                                    $file,
+                                    $line,
+                                    $context);
+                        }
+                        return $handled;
                     }
-                    if ($this->previousErrorHandler === true) {
-                        return false;
-                    } elseif ($this->previousErrorHandler) {
-                        return (bool)call_user_func($this->previousErrorHandler,
-                            $code,
-                            $message,
-                            $file,
-                            $line,
-                            $context);
-                    }
-                    return true;
-                }
-                /**
-                 * @var callable|true $previousErrorHandler
-                 */
-                public $previousErrorHandler;
-                /**
-                 * @var array $errorLevelMap
-                 */
-                private $errorLevelMap;
-                /**
-                 * @var LoggerInterface $logger
-                 */
-                private $logger;
-                const IGNORED_ERRORS = E_COMPILE_ERROR
-                | E_COMPILE_WARNING
-                | E_CORE_ERROR
-                | E_CORE_WARNING
-                | E_ERROR
-                | E_PARSE
-                | E_USER_ERROR;
-                const HANDLE_ERRORS = E_ALL & ~self::IGNORED_ERRORS;
+                    /**
+                     * @var callable|null $previousErrorHandler
+                     */
+                    public $previousErrorHandler;
+                    /**
+                     * @var array $errorLevelMap
+                     */
+                    private $errorLevelMap;
+                    /**
+                     * @var LoggerInterface $logger
+                     */
+                    private $logger;
+                    const IGNORED_ERRORS = E_COMPILE_ERROR
+                    | E_COMPILE_WARNING
+                    | E_CORE_ERROR
+                    | E_CORE_WARNING
+                    | E_ERROR
+                    | E_PARSE
+                    | E_USER_ERROR;
+                    const HANDLE_ERRORS = E_ALL & ~self::IGNORED_ERRORS;
+                };
+                $prev = set_error_handler($errorHandler);
+                $errorHandler->previousErrorHandler = $prev;
             };
-            $prev = set_error_handler($errorHandler, $errorHandler::HANDLE_ERRORS);
-            $errorHandler->previousErrorHandler = $prev;
+            $dic['Yapeal.Log.Callable.ErrorHandler'];
         }
         return $this;
     }
@@ -168,54 +175,66 @@ class LogWiring implements WiringInterface
      */
     private function registerExceptionHandler(ContainerInterface $dic): self
     {
-        $exceptionLevel = $dic['Yapeal.Log.Parameters.Register.exceptionLevel'];
-        if (false !== $exceptionLevel) {
-            $exceptionHandler = new class($dic['Yapeal.Log.Callable.Logger'], $exceptionLevel)
-            {
-                /**
-                 *  constructor.
-                 *
-                 * @param LoggerInterface $logger
-                 * @param int|null        $uncaughtExceptionLevel
-                 */
-                public function __construct(LoggerInterface $logger, int $uncaughtExceptionLevel)
-                {
-                    $this->logger = $logger;
-                    $this->uncaughtExceptionLevel = $uncaughtExceptionLevel;
-                }
-                /**
-                 * @param \Throwable $exc
-                 */
-                public function __invoke(\Throwable $exc)
-                {
-                    $level = $this->uncaughtExceptionLevel ?? LogLevel::ERROR;
-                    $this->logger->log($level,
-                        sprintf('Uncaught Exception %s: "%s" at %s line %s',
-                            get_class($exc),
-                            $exc->getMessage(),
-                            str_replace('\\', '/', $exc->getFile()),
-                            $exc->getLine()),
-                        ['exception' => $exc]);
-                    if (null !== $this->previousExceptionHandler) {
-                        call_user_func($this->previousExceptionHandler, $exc);
+        if ($dic['Yapeal.Log.Parameters.Register.exceptionHandler']
+            && empty($dic['Yapeal.Log.Callable.ExceptionHandler'])) {
+            $dic['Yapeal.Log.Callable.ExceptionHandler'] = function (ContainerInterface $dic) {
+                $parameters = [
+                    $dic['Yapeal.Log.Callable.Logger'],
+                    $dic['Yapeal.Log.Parameters.Register.exceptionLevel']
+                ];
+                $exceptionHandler = new class(...$parameters) {
+                    /**
+                     *  constructor.
+                     *
+                     * @param LoggerInterface $logger
+                     * @param int|null        $uncaughtExceptionLevel
+                     */
+                    public function __construct(LoggerInterface $logger, int $uncaughtExceptionLevel)
+                    {
+                        $this->logger = $logger;
+                        $this->uncaughtExceptionLevel = $uncaughtExceptionLevel;
                     }
-                    exit(255);
-                }
-                /**
-                 * @var string|null $previousExceptionHandler
-                 */
-                public $previousExceptionHandler;
-                /**
-                 * @var LoggerInterface $logger
-                 */
-                private $logger;
-                /**
-                 * @var int|null $uncaughtExceptionLevel
-                 */
-                private $uncaughtExceptionLevel;
+                    /**
+                     * This is actually what PHP will call for uncaught error or regular exception.
+                     *
+                     * This method acts in a sufficiently handled manner so if there was a previous handler it'll get a
+                     * chance to see the exception as well. This should let any testing frameworks to work without
+                     * interference from Yapeal-ng.
+                     *
+                     * @param \Throwable $exc
+                     */
+                    public function __invoke(\Throwable $exc)
+                    {
+                        $level = $this->uncaughtExceptionLevel ?? LogLevel::ERROR;
+                        $this->logger->log($level,
+                            sprintf('Uncaught Exception %s: "%s" at %s line %s',
+                                get_class($exc),
+                                $exc->getMessage(),
+                                str_replace('\\', '/', $exc->getFile()),
+                                $exc->getLine()),
+                            ['exception' => $exc]);
+                        if (null !== $this->previousExceptionHandler) {
+                            call_user_func($this->previousExceptionHandler, $exc);
+                        }
+                        exit(254);
+                    }
+                    /**
+                     * @var string|null $previousExceptionHandler
+                     */
+                    public $previousExceptionHandler;
+                    /**
+                     * @var LoggerInterface $logger
+                     */
+                    private $logger;
+                    /**
+                     * @var int|null $uncaughtExceptionLevel
+                     */
+                    private $uncaughtExceptionLevel;
+                };
+                $prev = set_exception_handler($exceptionHandler);
+                $exceptionHandler->previousExceptionHandler = $prev;
             };
-            $prev = set_exception_handler($exceptionHandler);
-            $exceptionHandler->previousExceptionHandler = $prev;
+            $dic['Yapeal.Log.Callable.ExceptionHandler'];
         }
         return $this;
     }
@@ -226,66 +245,81 @@ class LogWiring implements WiringInterface
      */
     private function registerFatalHandler(ContainerInterface $dic): self
     {
-        $fatalLevel = $dic['Yapeal.Log.Parameters.Register.fatalLevel'];
-        if (false !== $fatalLevel) {
-            $fatalHandler = new class($dic['Yapeal.Log.Callable.Logger'], $fatalLevel)
-            {
-                /**
-                 *  constructor.
-                 *
-                 * @param LoggerInterface $logger
-                 * @param int             $level
-                 * @param int             $reservedMemorySize
-                 */
-                public function __construct(LoggerInterface $logger, int $level = null, int $reservedMemorySize = 20)
-                {
-                    $this->logger = $logger;
-                    $this->fatalLevel = $level;
-                    $this->reservedMemory = str_repeat(' ', 1024 * $reservedMemorySize);
-                }
-                public function __invoke()
-                {
-                    $this->reservedMemory = null;
-                    $lastError = error_get_last();
-                    if ($lastError && ($lastError['type'] & self::FATAL_ERRORS)) {
-                        $this->logger->log($this->fatalLevel ?? LogLevel::ALERT,
-                            $lastError['message'],
-                            [
-                                'code' => $lastError['type'],
-                                'message' => $lastError['message'],
-                                'file' => str_replace('\\', '/', $lastError['file']),
-                                'line' => $lastError['line']
-                            ]);
-                        if (method_exists($this->logger, 'getHandlers')) {
-                            foreach ($this->logger->getHandlers() as $handler) {
-                                if (method_exists($handler, 'close')) {
-                                    $handler->close();
+        if ($dic['Yapeal.Log.Parameters.Register.fatalHandler'] && empty($dic['Yapeal.Log.Callable.FatalHandler'])) {
+            $dic['Yapeal.Log.Callable.FatalHandler'] = function (ContainerInterface $dic) {
+                $parameters = [
+                    $dic['Yapeal.Log.Callable.Logger'],
+                    $dic['Yapeal.Log.Parameters.Register.fatalLevel'],
+                    $dic['Yapeal.Log.Parameters.Register.fatalReservedMemorySize']
+                ];
+                $fatalHandler = new class(...$parameters) {
+                    /**
+                     *  constructor.
+                     *
+                     * @param LoggerInterface $logger
+                     * @param int             $level
+                     * @param int             $reservedMemorySize
+                     */
+                    public function __construct(
+                        LoggerInterface $logger,
+                        int $level = null,
+                        int $reservedMemorySize = 20
+                    ) {
+                        $this->logger = $logger;
+                        $this->fatalLevel = $level;
+                        $this->reservedMemory = str_repeat(' ', 1024 * $reservedMemorySize);
+                    }
+                    /**
+                     * This is the actual method PHP will call for any fatal errors.
+                     */
+                    public function __invoke()
+                    {
+                        // Frees up the reserved memory so there's some available to do our work in since one cause of a
+                        // fatal error is running out of memory and cause another out of memory error here would prevent
+                        // it being logged.
+                        $this->reservedMemory = null;
+                        $lastError = error_get_last();
+                        if ($lastError && ($lastError['type'] & self::FATAL_ERRORS)) {
+                            $this->logger->log($this->fatalLevel ?? LogLevel::ALERT,
+                                $lastError['message'],
+                                [
+                                    'code' => $lastError['type'],
+                                    'message' => $lastError['message'],
+                                    'file' => str_replace('\\', '/', $lastError['file']),
+                                    'line' => $lastError['line']
+                                ]);
+                            if (method_exists($this->logger, 'getHandlers')) {
+                                foreach ($this->logger->getHandlers() as $handler) {
+                                    if (method_exists($handler, 'close')) {
+                                        $handler->close();
+                                    }
                                 }
                             }
                         }
                     }
-                }
-                const FATAL_ERRORS = E_COMPILE_ERROR
-                | E_COMPILE_WARNING
-                | E_CORE_ERROR
-                | E_CORE_WARNING
-                | E_ERROR
-                | E_PARSE
-                | E_USER_ERROR;
-                /**
-                 * @var int|null $fatalLevel
-                 */
-                private $fatalLevel;
-                /**
-                 * @var LoggerInterface $logger
-                 */
-                private $logger;
-                /**
-                 * @var string $reservedMemory
-                 */
-                private $reservedMemory;
+                    const FATAL_ERRORS = E_COMPILE_ERROR
+                    | E_COMPILE_WARNING
+                    | E_CORE_ERROR
+                    | E_CORE_WARNING
+                    | E_ERROR
+                    | E_PARSE
+                    | E_USER_ERROR;
+                    /**
+                     * @var int|null $fatalLevel
+                     */
+                    private $fatalLevel;
+                    /**
+                     * @var LoggerInterface $logger
+                     */
+                    private $logger;
+                    /**
+                     * @var string $reservedMemory
+                     */
+                    private $reservedMemory;
+                };
+                register_shutdown_function($fatalHandler);
             };
-            register_shutdown_function($fatalHandler);
+            $dic['Yapeal.Log.Callable.FatalHandler'];
         }
         return $this;
     }
@@ -403,8 +437,9 @@ class LogWiring implements WiringInterface
              * @return HandlerInterface
              */
             $dic['Yapeal.Log.Callable.Group'] = function (ContainerInterface $dic): HandlerInterface {
+                $handlerList = $dic['Yapeal.daemon'] ? $dic['Yapeal.Log.Parameters.Group.daemonHandlers'] : $dic['Yapeal.Log.Parameters.Group.handlers'];
                 $handlers = [];
-                foreach (explode(',', $dic['Yapeal.Log.Parameters.Group.handlers']) as $handler) {
+                foreach (explode(',', $handlerList) as $handler) {
                     if ('' === $handler) {
                         continue;
                     }
@@ -427,27 +462,26 @@ class LogWiring implements WiringInterface
     private function wireLineFormatter(ContainerInterface $dic): self
     {
         if (empty($dic['Yapeal.Log.Callable.LFFactory'])) {
-            $dic['Yapeal.Log.Callable.LFFactory'] = $dic->factory(
-            /**
+            $dic['Yapeal.Log.Callable.LFFactory'] = $dic->factory(/**
              * @param ContainerInterface $dic
              *
              * @return FormatterInterface
              */
-            function (ContainerInterface $dic): FormatterInterface {
-            $parameters = [
-                $dic['Yapeal.Log.Parameters.LineFormatter.format'],
-                $dic['Yapeal.Log.Parameters.LineFormatter.dateFormat'],
-                $dic['Yapeal.Log.Parameters.LineFormatter.allowInlineLineBreaks'],
-                $dic['Yapeal.Log.Parameters.LineFormatter.ignoreEmptyContextAndExtra']
-            ];
-            /**
-             * @var \Yapeal\Log\LineFormatter $lineFormatter
-             */
-            $lineFormatter = new $dic['Yapeal.Log.Classes.lineFormatter'](...$parameters);
-            $lineFormatter->includeStacktraces($dic['Yapeal.Log.Parameters.LineFormatter.includeStackTraces']);
-            $lineFormatter->setPrettyJson($dic['Yapeal.Log.Parameters.LineFormatter.prettyJson']);
-            return $lineFormatter;
-            });
+                function (ContainerInterface $dic): FormatterInterface {
+                    $parameters = [
+                        $dic['Yapeal.Log.Parameters.LineFormatter.format'],
+                        $dic['Yapeal.Log.Parameters.LineFormatter.dateFormat'],
+                        $dic['Yapeal.Log.Parameters.LineFormatter.allowInlineLineBreaks'],
+                        $dic['Yapeal.Log.Parameters.LineFormatter.ignoreEmptyContextAndExtra']
+                    ];
+                    /**
+                     * @var \Yapeal\Log\LineFormatter $lineFormatter
+                     */
+                    $lineFormatter = new $dic['Yapeal.Log.Classes.lineFormatter'](...$parameters);
+                    $lineFormatter->includeStacktraces($dic['Yapeal.Log.Parameters.LineFormatter.includeStackTraces']);
+                    $lineFormatter->setPrettyJson($dic['Yapeal.Log.Parameters.LineFormatter.prettyJson']);
+                    return $lineFormatter;
+                });
         }
         if (empty($dic['Yapeal.Log.Callable.CliLF'])) {
             $dic['Yapeal.Log.Callable.CliLF'] = $dic['Yapeal.Log.Callable.LFFactory'];
@@ -496,6 +530,12 @@ class LogWiring implements WiringInterface
                 $logger = new $dic['Yapeal.Log.Classes.logger'](...$parameters);
                 return $logger;
             };
+            /**
+             * @var \Yapeal\Event\MediatorInterface $mediator
+             */
+            $mediator = $dic['Yapeal.Event.Callable.Mediator'];
+            $mediator->addServiceListener('Yapeal.Log.log', ['Yapeal.Log.Callable.Logger', 'logEvent'], 'last');
+            $mediator->addServiceListener('Yapeal.Log.error', ['Yapeal.Log.Callable.Logger', 'logEvent'], 'last');
         }
         return $this;
     }

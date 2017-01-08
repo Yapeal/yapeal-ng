@@ -1,5 +1,6 @@
 ---
 Yapeal:
+    daemon: false
     version: '0.7.0-0-gf1a1652'
     Configuration:
         Classes:
@@ -73,6 +74,7 @@ Yapeal:
             Group:
                 bubble: true
                 handlers: 'Yapeal.Log.Callable.Cli,Yapeal.Log.Callable.FileSystem'
+                daemonHandlers: 'Yapeal.Log.Callable.FileSystem'
             LineFormatter:
                 allowInlineLineBreaks: true
                 dateFormat: U.u
@@ -85,6 +87,7 @@ Yapeal:
                 name: '{Yapeal.Log.channel}'
                 processors: ''
             Register:
+                errorHandler: true
                 errorLevelMap: >
                     {"1": "critical",
                     "2": "warning",
@@ -101,8 +104,11 @@ Yapeal:
                     "4096": "error",
                     "8192": "notice",
                     "16384": "notice"}
+                exceptionHandler: true
                 exceptionLevel: 500 # CRITICAL
+                fatalHandler: true
                 fatalLevel: 550 # ALERT
+                fatalReservedMemorySize: 20
             Strategy:
                 actionLevel: '{Yapeal.Log.threshold}'
     Network:
