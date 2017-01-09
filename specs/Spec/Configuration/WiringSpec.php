@@ -35,8 +35,11 @@ declare(strict_types = 1);
 namespace Spec\Yapeal\Configuration;
 
 use PhpSpec\ObjectBehavior;
-use Yapeal\Container\ContainerInterface;
+use Webmozart\Assert\Assert;
+use Yapeal\Configuration\WiringInterface;
+use Yapeal\Container\Container;
 
+//use Prophecy\Argument;
 /**
  * Class WiringSpec
  *
@@ -53,12 +56,42 @@ use Yapeal\Container\ContainerInterface;
  */
 class WiringSpec extends ObjectBehavior
 {
-    public function it_is_initializable()
+    public function it_should_add_self_to_container_in_wire_all()
     {
-        $this->shouldHaveType('Yapeal\Configuration\Wiring');
+        $dic = new Container(['Yapeal.Wiring.Classes.config' => 'IDoNotExist']);
+        $this->beConstructedWith($dic);
+        $this->shouldThrow(new \LogicException('Could NOT find mandatory Config wiring class. Aborting ...'))
+            ->duringWireAll();
+        Assert::object($dic['Yapeal.Wiring.Callable.Wiring']);
     }
-    public function let(ContainerInterface $container)
+    /**
+     * @param \PhpSpec\Wrapper\Collaborator|WiringInterface $wiring
+     *
+     * @throws \PhpSpec\Exception\Fracture\ClassNotFoundException
+     * @throws \PhpSpec\Exception\Fracture\FactoryDoesNotReturnObjectException
+     * @throws \Prophecy\Exception\InvalidArgumentException
+     */
+    public function it_should_call_wire_method_of_given_class_that_implements_interface_in_wire_all(
+        WiringInterface $wiring
+    ) {
+        $settings = [
+            'Yapeal.Wiring.Classes.event' => 'IDoNotExist'
+        ];
+        $dic = new Container($settings);
+        $wiring->wire($dic)
+            ->willReturn($wiring);
+        $dic['Yapeal.Wiring.Callable.Config'] = function () use ($wiring) {
+            return $wiring;
+        };
+        $this->beConstructedWith($dic);
+        $this->shouldThrow(new \LogicException('Could NOT find mandatory Event wiring class. Aborting ...'))
+            ->duringWireAll();
+    }
+    public function it_throws_exception_if_given_wiring_class_does_not_exist_in_wire_all()
     {
-        $this->beConstructedWith($container);
+        $dic = new Container(['Yapeal.Wiring.Classes.config' => 'IDoNotExist']);
+        $this->beConstructedWith($dic);
+        $this->shouldThrow(new \LogicException('Could NOT find mandatory Config wiring class. Aborting ...'))
+            ->duringWireAll();
     }
 }

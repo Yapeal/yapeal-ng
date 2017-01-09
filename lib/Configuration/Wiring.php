@@ -64,10 +64,9 @@ class Wiring
      *     causing yourself by overriding it. For the masochists that go ahead, enjoy it, but I don't want any pictures
      *     or descriptive e-mail sent to me about your experience please.
      *
-     * @return self Fluent interface.
      * @throws \LogicException
      */
-    public function wireAll(): self
+    public function wireAll()
     {
         $dic = $this->dic;
         // First things first, should add self to Container and freeze so can't be overwritten later by oops.
@@ -77,30 +76,43 @@ class Wiring
              *
              * @return Wiring
              */
-            $dic['Yapeal.Wiring.Callable.Wiring'] = function (ContainerInterface $dic) {
+            $dic['Yapeal.Wiring.Callable.Wiring'] = function (ContainerInterface $dic): Wiring {
                 return new Wiring($dic);
             };
             $dic['Yapeal.Wiring.Callable.Wiring'];
         }
-        $base = 'Yapeal.Wiring.Classes.';
-        $dic[$base . 'config'] = $dic[$base . 'config'] ?? '\Yapeal\Configuration\ConfigWiring';
+        $callables = 'Yapeal.Wiring.Callable.';
+        $classes = 'Yapeal.Wiring.Classes.';
+        $dic[$classes . 'config'] = $dic[$classes . 'config'] ?? 'Yapeal\Configuration\ConfigWiring';
         $names = ['Config', 'Event', 'Log', 'Sql', 'Xml', 'Xsd', 'Xsl', 'FileSystem', 'Network', 'EveApi'];
         /**
          * @var WiringInterface $class
          */
         foreach ($names as $name) {
-            $setting = $base . strtolower($name);
+            $setting = $classes . strtolower($name);
             if (!empty($dic[$setting])
                 && is_subclass_of($dic[$setting], WiringInterface::class, true)
             ) {
-                $class = new $dic[$setting];
+                $callable = $callables . $name;
+                if (empty($dic[$callable])) {
+                    /**
+                     * Per wiring class closure.
+                     *
+                     * @param ContainerInterface $dic
+                     *
+                     * @return WiringInterface
+                     */
+                    $dic[$callable] =  function (ContainerInterface $dic) use ($setting): WiringInterface {
+                        return new $dic[$setting]();
+                    };
+                }
+                $class = $dic[$callable];
                 $class->wire($dic);
                 continue;
             }
             $mess = sprintf('Could NOT find mandatory %s wiring class. Aborting ...', $name);
             throw new \LogicException($mess);
         }
-        return $this;
     }
     /**
      * @var ContainerInterface $dic
