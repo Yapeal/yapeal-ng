@@ -109,7 +109,8 @@ class YamlConfigFile implements ConfigFileInterface
     /**
      * Used to read data from the config file.
      *
-     * @return self Fluent interface.
+     * @return YamlConfigFile Fluent interface.
+     * @throws ParseException Throws exception if there is a problem with yaml file.
      * @throws \BadMethodCallException Throws exception if path file isn't set.
      */
     public function read(): self
@@ -124,11 +125,7 @@ class YamlConfigFile implements ConfigFileInterface
             $this->setSettings([]);
             return $this;
         }
-        try {
-            $data = (new Parser())->parse($data, true, false);
-        } catch (ParseException $exc) {
-            $data = [];
-        }
+        $data = (new Parser())->parse($data, true, false);
         $this->setSettings($data);
         return $this;
     }
@@ -139,11 +136,11 @@ class YamlConfigFile implements ConfigFileInterface
      */
     public function save()
     {
-        $data = (new Dumper())->dump($this->getSettings());
+        $data = "---\n" . (new Dumper())->dump($this->getSettings(), 9) . "...";
         try {
             $this->safeDataWrite($this->getPathFile(), $data);
         } catch (\LogicException $exc) {
-            $mess = 'Path file must be set before trying to read config file';
+            $mess = 'Path file must be set before trying to save config file';
             throw new \BadMethodCallException($mess, 1, $exc);
         }
     }
@@ -187,7 +184,7 @@ class YamlConfigFile implements ConfigFileInterface
             return [];
         }
         $output = [];
-        foreach ((array)$yaml as $key => $value) {
+        foreach ($yaml as $key => $value) {
             $this->arraySet($output, $key, $value);
             if (is_array($value) && false !== strpos($key, '.')) {
                 $nested = $this->unflattenYaml($value);
@@ -207,10 +204,6 @@ class YamlConfigFile implements ConfigFileInterface
      */
     private function arraySet(array &$array, $key, $value): array
     {
-        if (null === $key) {
-            $array = $value;
-            return $array;
-        }
         if (is_int($key)) {
             $key = (string)$key;
         }
