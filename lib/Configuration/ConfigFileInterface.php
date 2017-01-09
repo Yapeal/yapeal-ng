@@ -40,37 +40,53 @@ namespace Yapeal\Configuration;
 interface ConfigFileInterface
 {
     /**
+     * Flatten array to a single dimension where the new key contains the original keys joined together by a '.'.
+     *
      * @param array|null $yaml The array to be flattened. If null assumes $settings.
      *
      * @return array
      */
     public function flattenYaml(array $yaml = null): array;
     /**
-     * @return string
-     * @throws \LogicException
+     * Getter for path file.
+     *
+     * @return string File name with absolute path.
      */
     public function getPathFile(): string;
     /**
+     * Getter for complete list of settings.
+     *
      * @return array
      */
     public function getSettings(): array;
     /**
-     * @throws \LogicException
+     * Used to read data from the config file.
+     *
+     * @return self Fluent interface.
+     * @throws \BadMethodCallException Throws exception if path file isn't set.
      */
     public function read();
     /**
-     * @throws \LogicException
+     * Used to save data to config file.
+     *
+     * @throws \BadMethodCallException Throws exception if path file isn't set.
      */
     public function save();
     /**
+     * Used to set or reset the config file path name.
+     *
      * @param string|null $value File name with absolute path.
      */
     public function setPathFile(string $value = null);
     /**
-     * @param array $value
+     * Used to give settings in mass.
+     *
+     * @param array $value A multi-dimensional assoc array.
      */
     public function setSettings(array $value = []);
     /**
+     * Expands any keys containing '.' into a multi-dimensional assoc array and their values.
+     *
      * @param array|null $yaml The array to be unflattened. If null assumes $settings.
      *
      * @return array

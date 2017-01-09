@@ -49,7 +49,7 @@ class YamlConfigFile implements ConfigFileInterface
      * YamlConfigFile constructor.
      *
      * @param string|null $pathFile File name with absolute path.
-     * @param array $settings Contents as an associate array.
+     * @param array       $settings Contents as an associate array.
      */
     public function __construct(string $pathFile = null, array $settings = [])
     {
@@ -57,6 +57,8 @@ class YamlConfigFile implements ConfigFileInterface
         $this->settings = $settings;
     }
     /**
+     * Flatten array to a single dimension where the new key contains the original keys joined together by a '.'.
+     *
      * @param array|null $yaml The array to be flattened. If null assumes $settings.
      *
      * @return array
@@ -82,8 +84,10 @@ class YamlConfigFile implements ConfigFileInterface
         return $settings;
     }
     /**
-     * @return string
-     * @throws \LogicException
+     * Getter for path file.
+     *
+     * @return string File name with absolute path.
+     * @throws \LogicException Throws exception if path file isn't set.
      */
     public function getPathFile(): string
     {
@@ -94,6 +98,8 @@ class YamlConfigFile implements ConfigFileInterface
         return $this->pathFile;
     }
     /**
+     * Getter for complete list of settings.
+     *
      * @return array
      */
     public function getSettings(): array
@@ -101,12 +107,19 @@ class YamlConfigFile implements ConfigFileInterface
         return $this->settings;
     }
     /**
+     * Used to read data from the config file.
+     *
      * @return self Fluent interface.
-     * @throws \LogicException
+     * @throws \BadMethodCallException Throws exception if path file isn't set.
      */
     public function read(): self
     {
-        $data = $this->safeFileRead($this->getPathFile());
+        try {
+            $data = $this->safeFileRead($this->getPathFile());
+        } catch (\LogicException $exc) {
+            $mess = 'Path file must be set before trying to read config file';
+            throw new \BadMethodCallException($mess, 1, $exc);
+        }
         if (false === $data) {
             $this->setSettings([]);
             return $this;
@@ -120,14 +133,23 @@ class YamlConfigFile implements ConfigFileInterface
         return $this;
     }
     /**
-     * @throws \LogicException
+     * Used to save data to config file.
+     *
+     * @throws \BadMethodCallException Throws exception if path file isn't set.
      */
     public function save()
     {
         $data = (new Dumper())->dump($this->getSettings());
-        $this->safeDataWrite($this->getPathFile(), $data);
+        try {
+            $this->safeDataWrite($this->getPathFile(), $data);
+        } catch (\LogicException $exc) {
+            $mess = 'Path file must be set before trying to read config file';
+            throw new \BadMethodCallException($mess, 1, $exc);
+        }
     }
     /**
+     * Used to set or reset the config file path name.
+     *
      * @param string|null $value File name with absolute path.
      *
      * @return self Fluent interface.
@@ -138,7 +160,9 @@ class YamlConfigFile implements ConfigFileInterface
         return $this;
     }
     /**
-     * @param array $value
+     * Used to give settings in mass.
+     *
+     * @param array $value A multi-dimensional assoc array.
      *
      * @return self Fluent interface.
      */
@@ -148,6 +172,8 @@ class YamlConfigFile implements ConfigFileInterface
         return $this;
     }
     /**
+     * Expands any keys containing '.' into a multi-dimensional assoc array and their values.
+     *
      * @param array|null $yaml The array to be unflattened. If null assumes $settings.
      *
      * @return array
@@ -171,6 +197,8 @@ class YamlConfigFile implements ConfigFileInterface
         return $output;
     }
     /**
+     * Used by unflattenYaml() to expand keys.
+     *
      * @param array      $array
      * @param string|int $key
      * @param mixed      $value
@@ -201,11 +229,11 @@ class YamlConfigFile implements ConfigFileInterface
         return $array;
     }
     /**
-     * @var string $pathFile
+     * @var string $pathFile Holds Yaml config file name with absolute path.
      */
     private $pathFile;
     /**
-     * @var array $settings
+     * @var array $settings Holds the multi-dimensional assoc array either from the Yaml file or to be saved to it.
      */
     private $settings;
 }
