@@ -184,13 +184,13 @@ yaml;
         $this->filesystem->dumpFile($configFile1, $yaml);
         $this->beConstructedWith($dic);
         $configFiles = [
-            ['pathName' => $configFile2, 'priority' => PHP_INT_MAX - 1],
-            ['pathName' => $configFile1, 'priority' => PHP_INT_MAX]
+            ['pathFile' => $configFile2, 'priority' => PHP_INT_MAX - 1],
+            ['pathFile' => $configFile1, 'priority' => PHP_INT_MAX]
         ];
         $this->create($configFiles);
         Assert::eq($dic['Yapeal.config'], 'priority second');
     }
-    public function it_processes_config_files_with_equal_priority_by_path_name_order_in_create()
+    public function it_processes_config_files_with_equal_priority_by_path_file_order_in_create()
     {
         $dic = new Container();
         $yaml = <<<'yaml'
@@ -211,8 +211,8 @@ yaml;
         $this->filesystem->dumpFile($configFile1, $yaml);
         $this->beConstructedWith($dic);
         $configFiles = [
-            ['pathName' => $configFile2, 'priority' => PHP_INT_MAX],
-            ['pathName' => $configFile1, 'priority' => PHP_INT_MAX]
+            ['pathFile' => $configFile2, 'priority' => PHP_INT_MAX],
+            ['pathFile' => $configFile1, 'priority' => PHP_INT_MAX]
         ];
         $this->create($configFiles);
         Assert::eq($dic['Yapeal.config'], 'priority first');
@@ -244,6 +244,22 @@ yaml;
         $this->create([]);
         $this->read()
             ->shouldReturn([]);
+    }
+    public function it_should_have_included_any_unique_added_setting_to_container_after_create()
+    {
+        $yaml = <<<'yaml'
+---
+Yapeal:
+    version: '0.6.0-0-gafa3c59'
+...
+yaml;
+        $dic = new Container([]);
+        $configFile = $this->workingDirectory . 'config.yaml';
+        $this->filesystem->dumpFile($configFile, $yaml);
+        $this->beConstructedWith($dic, []);
+        $this->addSetting('Yapeal.Test.version', '{Yapeal.version}');
+        $this->create([$configFile]);
+        Assert::eq($dic['Yapeal.Test.version'], $dic['Yapeal.version']);
     }
     public function it_should_only_remove_settings_that_were_added_by_create_or_update_in_delete()
     {
@@ -286,7 +302,7 @@ yaml;
         $result = $this->removeConfigFile($configFile);
         $result->shouldHaveCount(5);
         $result->shouldHaveKey('instance');
-        $result->shouldHaveKeyWithValue('pathName', $configFile);
+        $result->shouldHaveKeyWithValue('pathFile', $configFile);
         $result->shouldHaveKey('priority');
         $result->shouldHaveKey('timestamp');
         $result->shouldHaveKey('watched');
@@ -297,6 +313,22 @@ yaml;
         $this->beConstructedWith($dic, []);
         $this->read()
             ->shouldReturn([]);
+    }
+    public function it_should_return_array_containing_added_settings_after_create_in_read()
+    {
+        $yaml = <<<'yaml'
+---
+Yapeal:
+    version: '0.6.0-0-gafa3c59'
+...
+yaml;
+        $dic = new Container([]);
+        $configFile = $this->workingDirectory . 'config.yaml';
+        $this->filesystem->dumpFile($configFile, $yaml);
+        $this->beConstructedWith($dic, []);
+        $this->create([$configFile]);
+        $this->read()
+            ->shouldReturn(['Yapeal.version' => '0.6.0-0-gafa3c59']);
     }
     public function it_should_return_false_when_path_name_is_not_watched_in_check_modified_and_update()
     {
@@ -344,44 +376,19 @@ yaml;
         $this->shouldThrow(new \InvalidArgumentException('Config file element must be a string or an array but was given integer'))
             ->during('create', [[100]]);
     }
-    public function it_throws_exception_when_config_files_element_is_missing_path_name_in_create()
+    public function it_throws_exception_when_config_files_element_is_missing_path_file_in_create()
     {
         $dic = new Container([]);
         $this->beConstructedWith($dic, []);
-        $this->shouldThrow(new \InvalidArgumentException('Config file pathName in required'))
+        $this->shouldThrow(new \InvalidArgumentException('Config file pathFile in required'))
             ->during('create', [[['junk' => 'do not care']]]);
     }
-    public function it_throws_exception_when_given_duplicate_path_names_in_create()
-    {
-        $yaml = <<<'yaml'
----
-Yapeal:
-    consoleAutoExit: true
-    consoleCatchExceptions: false
-    consoleName: 'Yapeal-ng Console'
-    version: '0.6.0-0-gafa3c59'
-...
-yaml;
-        $dic = new Container([]);
-        $configFile = $this->workingDirectory . 'config.yaml';
-        $this->filesystem->dumpFile($configFile, $yaml);
-        $this->beConstructedWith($dic, []);
-        $this->shouldThrow(new \InvalidArgumentException('Already added config file ' . $configFile))
-            ->during('create', [[$configFile, $configFile]]);
-    }
-    public function it_throws_exception_when_given_unknown_path_name_in_check_modified_and_update()
+    public function it_throws_exception_when_given_unknown_path_file_in_check_modified_and_update()
     {
         $dic = new Container([]);
         $this->beConstructedWith($dic, []);
         $this->shouldThrow(new \InvalidArgumentException('Tried to check unknown config file non-existing'))
             ->during('checkModifiedAndUpdate', ['non-existing']);
-    }
-    public function it_throws_exception_when_given_unknown_path_name_in_remove_config_file()
-    {
-        $dic = new Container([]);
-        $this->beConstructedWith($dic, []);
-        $this->shouldThrow(new \InvalidArgumentException('Tried to remove unknown config file non-existing'))
-            ->during('removeConfigFile', ['non-existing']);
     }
     public function it_throws_exception_when_there_is_a_circular_reference_in_create()
     {
