@@ -42,6 +42,8 @@ use Yapeal\Container\ContainerInterface;
 class ConfigWiring implements WiringInterface
 {
     /**
+     * Used to wire all the configuration section stuff.
+     *
      * @param ContainerInterface $dic
      *
      * @throws \DomainException
@@ -50,21 +52,20 @@ class ConfigWiring implements WiringInterface
      */
     public function wire(ContainerInterface $dic)
     {
-        $this->wireYaml($dic)
-            ->wireManager($dic)
+        $this->wireManager($dic)
             ->wireExtractorCallable($dic);
         $path = dirname(str_replace('\\', '/', __DIR__), 2) . '/';
-        // These two paths are critical to Yapeal-ng working and can't be overridden.
+        // These two paths are critical to Yapeal-ng working and can't be missing or overridden.
         $dic['Yapeal.baseDir'] = $path;
         $dic['Yapeal.libDir'] = $path . 'lib/';
-        $settings = $this->gitVersionSetting($dic, []);
-        $configFiles = [
-            [
-                'pathName' => str_replace('\\', '/', __DIR__) . '/yapealDefaults.yaml',
-                PHP_INT_MAX,
-                false
-            ]
-        ];
+        /**
+         * @var ConfigManagementInterface $manager
+         */
+        $manager = $dic['Yapeal.Configuration.Callable.Manager'];
+        $manager->delete();
+        $this->setGitVersion($dic, $manager);
+        $pathName = str_replace('\\', '/', __DIR__) . '/yapealDefaults.yaml';
+        $manager->addConfigFile($pathName, PHP_INT_MAX, false);
         /**
          * Do to the importance that the cache/ and log/ directories and the main configuration file _not_ point to
          * somewhere under Composer's vendor/ directory they are now forced to use either vendor parent directory or
@@ -72,47 +73,40 @@ class ConfigWiring implements WiringInterface
          *
          * If as an application developer you wish to use a different directory than cache/ or log/ in your
          * application's root directory you __MUST__ set the 'Yapeal.FileSystem.Cache.dir' and/or 'Yapeal.Log.dir'
-         * setting(s) of the Container before you give it to the Wiring class to prevent them being changed here when
-         * Wiring::wireAll() calls this class method during wireAll()'s normal processing. On the command line you have
-         * the -c or --configFile option to override the settings as well.
+         * setting(s) using one of the ConfigManager class methods. Most of the `yc` console commands have a -c or
+         * --configFile option you can use as well.
          *
          * Read the existing [Configuration Files](../../docs/config/ConfigurationFiles.md) docs for more about how to
          * override the optional config/yapeal.yaml file as well.
          */
+        $cacheDir = '{Yapeal.baseDir}cache/';
+        $logDir = '{Yapeal.baseDir}log/';
         if (false !== $vendorPos = strpos($path, 'vendor/')) {
             $dic['Yapeal.vendorParentDir'] = substr($path, 0, $vendorPos);
-            $configFiles[] = $dic['Yapeal.vendorParentDir'] . 'config/yapeal.yaml';
-            $settings['Yapeal.FileSystem.Cache.dir'] = '{Yapeal.vendorParentDir}cache/';
-            $settings['Yapeal.Log.dir'] = '{Yapeal.vendorParentDir}log/';
+            $manager->addConfigFile($dic['Yapeal.vendorParentDir'] . 'config/yapeal.yaml');
+            $cacheDir = '{Yapeal.vendorParentDir}cache/';
+            $logDir = '{Yapeal.vendorParentDir}log/';
         } else {
-            $configFiles[] = $path . 'config/yapeal.yaml';
-            $settings['Yapeal.FileSystem.Cache.dir'] = '{Yapeal.baseDir}cache/';
-            $settings['Yapeal.Log.dir'] = '{Yapeal.baseDir}log/';
+            $manager->addConfigFile($path . 'config/yapeal.yaml');
         }
-        /**
-         * @var ConfigManagementInterface $manager
-         */
-        $manager = $dic['Yapeal.Configuration.Callable.Manager'];
-        $manager->setSettings($settings)
-            ->create($configFiles);
+        $manager->addSetting('Yapeal.FileSystem.Cache.dir', $cacheDir);
+        $manager->addSetting('Yapeal.Log.dir', $logDir);
+        $manager->update();
     }
     /**
-     * Writes git version to Container if found else default setting that can be overridden latter in config file.
+     * Writes git version to Container if found else add default setting that can be overridden latter in config file.
      *
      * @param ContainerInterface $dic
-     * @param array              $settings
-     *
-     * @return array
+     * @param ConfigManagementInterface $manager
      */
-    private function gitVersionSetting(ContainerInterface $dic, array $settings): array
+    private function setGitVersion(ContainerInterface $dic, ConfigManagementInterface $manager)
     {
         $gitVersion = trim(exec('git describe --always --long 2>&1', $junk, $status));
         if (0 === $status && '' !== $gitVersion) {
             $dic['Yapeal.version'] = $gitVersion . '-dev';
         } else {
-            $settings['Yapeal.version'] = '0.0.0-0-noGit-unknown';
+            $manager ->addSetting('Yapeal.version','0.0.0-0-noGit-unknown');
         }
-        return $settings;
     }
     /**
      * Adds a protected function that will extract all scalar settings that share a common prefix.
@@ -181,27 +175,6 @@ class ConfigWiring implements WiringInterface
                 $match = $dic['Yapeal.Configuration.Parameters.manager.matchYapealOnly'] ?? false;
                 return $manager->setMatchYapealOnly($match);
             };
-        }
-        return $this;
-    }
-    /**
-     * @param ContainerInterface $dic
-     *
-     * @return self Fluent interface.
-     */
-    private function wireYaml(ContainerInterface $dic): self
-    {
-        if (empty($dic['Yapeal.Config.Callable.Yaml'])) {
-            $dic['Yapeal.Config.Callable.Yaml'] = $dic->factory(
-            /**
-             * @param ContainerInterface $dic
-             *
-             * @return mixed
-             */
-            function (ContainerInterface $dic) {
-            $yaml = $dic['Yapeal.Configuration.Classes.yaml'] ?? '\Yapeal\Configuration\YamlConfigFile';
-            return new $yaml();
-            });
         }
         return $this;
     }

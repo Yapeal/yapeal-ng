@@ -38,12 +38,13 @@ use PhpSpec\ObjectBehavior;
 use Spec\Yapeal\FileSystemUtilTrait;
 use Symfony\Component\Filesystem\Filesystem;
 use Webmozart\Assert\Assert;
+use Yapeal\Configuration\ConfigManager;
 use Yapeal\Container\Container;
 
 /**
  * Class ConfigManagerSpec
  *
- * @mixin TestConfigManager
+ * @mixin ConfigManager
  *
  * @method void during($method, array $params)
  * @method void shouldBe($value)

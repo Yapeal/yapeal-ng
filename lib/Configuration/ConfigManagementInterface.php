@@ -41,6 +41,7 @@ namespace Yapeal\Configuration;
  */
 interface ConfigManagementInterface
 {
+    /** @noinspection PhpTooManyParametersInspection */
     /**
      * Add a new config file candidate to be used during the composing of settings.
      *
@@ -53,18 +54,20 @@ interface ConfigManagementInterface
      *
      *
      *
-     * @param string $pathName Configuration file name with absolute path.
+     * @param string $pathFile Configuration file name with absolute path.
      * @param int    $priority An integer in the range 0 - PHP_INT_MAX with large number being a higher priority.
      *                         The range between 100 and 10000 are reserved for application developer use with
      *                         everything else reserved for internal use only.
      * @param bool   $watched  Flag to tell if file should be monitored for changes and updates or read initially and
      *                         future changes ignored. Note that the $force flag of update() can be used to override
      *                         this parameter.
+     * @param array $ignored   Any additional parameters given here are ignored. This allows sequences like
+     *                         removeConfigFile(), change something, addConfigFile() to work without any fiddling to
+     *                         remove any of the extra array elements like 'instant' or 'timestamp'.
      *
-     * @throws \InvalidArgumentException Throws this exception if you try adding the same $pathFile again. Use
-     *                                   hasConfigFile() to see if entry already exists.
+     * @see removeConfigFile()
      */
-    public function addConfigFile(string $pathName, int $priority = 1000, bool $watched = true);
+    public function addConfigFile(string $pathFile, int $priority = 1000, bool $watched = true, ...$ignored);
     /**
      * The Create part of the CRUD interface.
      *
@@ -102,9 +105,9 @@ interface ConfigManagementInterface
      * ...
      * // @var ConfigManagementInterface $config
      * $configFiles = [
-     *     ['pathName' => __DIR__ . '/yapealDefaults.yaml', 'priority' => PHP_INT_MAX, 'watched' => false],
-     *     ['pathName' => dirname(__DIR__, 2) . '/config/yapeal.yaml', 'priority' => 10],
-     *     ['pathName' => __DIR__ . '/special/run.yaml']
+     *     ['pathFile' => __DIR__ . '/yapealDefaults.yaml', 'priority' => PHP_INT_MAX, 'watched' => false],
+     *     ['pathFile' => dirname(__DIR__, 2) . '/config/yapeal.yaml', 'priority' => 10],
+     *     ['pathFile' => __DIR__ . '/special/run.yaml']
      * ];
      * $config->create($configFiles);
      * ...
@@ -138,11 +141,11 @@ interface ConfigManagementInterface
     /**
      * Allows checking if a config file candidate has already been added.
      *
-     * @param string $pathName
+     * @param string $pathFile
      *
      * @return bool Returns true if candidate entry exist, false if unknown.
      */
-    public function hasConfigFile(string $pathName): bool;
+    public function hasConfigFile(string $pathFile): bool;
     /**
      * The Read part of the CRUD interface.
      *
@@ -155,19 +158,13 @@ interface ConfigManagementInterface
     /**
      * Remove an existing config file candidate entry.
      *
-     * @param string $pathName
+     * @param string $pathFile
      *
      * @return array Return the removed config file candidate entry with 'priority' and 'watch'.
      * @throws \InvalidArgumentException Throw this exception if there is no matching entry found. Use hasConfigFile()
      *                                   to check if the candidate config file entry exists.
      */
-    public function removeConfigFile(string $pathName): array;
-    /**
-     * @param array $value
-     *
-     * @return self Fluent interface
-     */
-    public function setSettings(array $value = []);
+    public function removeConfigFile(string $pathFile): array;
     /**
      * The Update part of the CRUD interface.
      *
@@ -188,4 +185,16 @@ interface ConfigManagementInterface
      * @return bool
      */
     public function update(bool $force = false): bool;
+    /**
+     * Setter to allow for settings coming from non-config file sources to still be managed.
+     *
+     * This is mostly here because its needed internal to solve some issues but might be useful to application
+     * developers in some cases as well.
+     *
+     * @param string $name
+     * @param mixed  $value
+     *
+     * @return self Fluent interface.
+     */
+    public function addSetting(string $name, $value);
 }
