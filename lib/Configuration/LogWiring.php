@@ -416,7 +416,7 @@ class LogWiring implements WiringInterface
                     $dic['Yapeal.Log.Parameters.FingersCrossed.bufferSize'],
                     $dic['Yapeal.Log.Parameters.FingersCrossed.bubble'],
                     $dic['Yapeal.Log.Parameters.FingersCrossed.stopBuffering'],
-                    $dic['Yapeal.Log.Parameters.FingersCrossed.passThruLevel'],
+                    $dic['Yapeal.Log.Parameters.FingersCrossed.passThruLevel']
                 ];
                 return new $dic['Yapeal.Log.Classes.fingersCrossed'](...$parameters);
             };

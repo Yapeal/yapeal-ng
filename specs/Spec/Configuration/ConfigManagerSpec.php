@@ -56,7 +56,7 @@ class ConfigManagerSpec extends ObjectBehavior
 {
     use FileSystemUtilTrait;
     /**
-     * TransformerSpec constructor.
+     * ConfigManagerSpec constructor.
      */
     public function __construct()
     {
