@@ -54,7 +54,7 @@ trait SafeFileHandlingTrait
         try {
             $pathFile = $this->getFpn()
                 ->normalizeFile($pathFile);
-        } catch (\Exception $exc) {
+        } catch (\Throwable $exc) {
             return false;
         }
         // Insure file info is fresh.
@@ -78,7 +78,7 @@ trait SafeFileHandlingTrait
         try {
             $pathFile = $this->getFpn()
                 ->normalizeFile($pathFile);
-        } catch (\Exception $exc) {
+        } catch (\Throwable $exc) {
             return false;
         }
         $path = dirname($pathFile);
