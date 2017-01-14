@@ -38,9 +38,9 @@ use Yapeal\Event\EveApiPreserverInterface;
 use Yapeal\Event\MediatorInterface;
 use Yapeal\Event\YEMAwareTrait;
 use Yapeal\Sql\CommonSqlQueries;
+use Yapeal\Sql\ConnectionInterface;
 use Yapeal\Sql\CSQAwareTrait;
 use Yapeal\Sql\PDOAwareTrait;
-use Yapeal\Sql\ConnectionInterface;
 use Yapeal\Sql\PreserverTrait;
 
 /**
@@ -50,7 +50,11 @@ class MockPreserver implements EveApiPreserverInterface
 {
     use CSQAwareTrait;
     use PDOAwareTrait;
-    use PreserverTrait;
+    use PreserverTrait {
+        attributePreserveData as public;
+        processXmlRows as public;
+        valuesPreserveData as public;
+    }
     use YEMAwareTrait;
     /**
      * MockPreserver constructor.
@@ -66,43 +70,5 @@ class MockPreserver implements EveApiPreserverInterface
         $this->setCsq($csq)
             ->setPdo($pdo)
             ->setYem($yem);
-    }
-    /**
-     * @param array  $rows
-     * @param array  $columnDefaults
-     * @param string $tableName
-     *
-     * @return static
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws \UnexpectedValueException
-     */
-    public function proxyAttributePreserveData(array $rows, array $columnDefaults, string $tableName)
-    {
-        return $this->attributePreserveData($rows, $columnDefaults, $tableName);
-    }
-    /**
-     * @param \SimpleXMLElement[] $rows
-     * @param array               $columnDefaults
-     *
-     * @return array
-     */
-    public function proxyProcessXmlRows(array $rows, array $columnDefaults): array
-    {
-        return $this->processXmlRows($rows, $columnDefaults);
-    }
-    /**
-     * @param array  $elements
-     * @param array  $columnDefaults
-     * @param string $tableName
-     *
-     * @return static
-     * @throws \DomainException
-     * @throws \InvalidArgumentException
-     * @throws \UnexpectedValueException
-     */
-    public function proxyValuesPreserveData(array $elements, array $columnDefaults, string $tableName)
-    {
-        return $this->valuesPreserveData($elements, $columnDefaults, $tableName);
     }
 }

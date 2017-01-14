@@ -56,7 +56,7 @@ class SqlCleanupTraitSpec extends ObjectBehavior
             "-- A comment\n--\nSELECT * FROM dummy;\n/* multi-\n line\n comment*/\n/** Doc-block */\n \n-- \n";
         $expect = /** @lang MySQL */
             'SELECT * FROM dummy;';
-        $this->proxyGetCleanedUpSql($given, [])
+        $this->getCleanedUpSql($given, [])
             ->shouldReturn($expect);
     }
     public function it_should_return_single_line_sql_statements_from_get_cleaned_up_sql_when_given_multiple_line_ones()
@@ -72,11 +72,11 @@ SQL;
         $expect = /** @lang MySQL */
             'CREATE TABLE "dummy" ( "id"      BIGINT(20) UNSIGNED  NOT NULL,'
             . ' "balance" DECIMAL(17, 2)       NOT NULL, PRIMARY KEY ("id"));';
-        $this->proxyGetCleanedUpSql($given, [])
+        $this->getCleanedUpSql($given, [])
             ->shouldReturn($expect);
         $given = $given . "\n" . $given;
         $expect = $expect . "\n" . $expect;
-        $this->proxyGetCleanedUpSql($given, [])
+        $this->getCleanedUpSql($given, [])
             ->shouldReturn($expect);
     }
     public function let()

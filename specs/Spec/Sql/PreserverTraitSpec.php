@@ -63,10 +63,10 @@ class PreserverTraitSpec extends ObjectBehavior
     }
     public function it_should_convert_data_rows_into_sql_upsert_in_attribute_preserve_data()
     {
+        throw new SkippingException('Incomplete test');
         $defaults = ['accountKey' => null, 'description' => null, 'ownerID' => 3];
         $rows = $this->sxe->xpath('//divisions/row');
         $tableName = 'corpDivisions';
-        throw new SkippingException('Incomplete test');
     }
     public function it_should_convert_simple_xml_element_array_to_flat_array_in_process_xml_rows()
     {
@@ -95,7 +95,7 @@ class PreserverTraitSpec extends ObjectBehavior
             'string7',
             '123'
         ];
-        $this->proxyProcessXmlRows($rows, $defaults)
+        $this->processXmlRows($rows, $defaults)
             ->shouldReturn($expected);
     }
     /**

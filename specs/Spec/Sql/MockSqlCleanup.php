@@ -41,24 +41,14 @@ use Yapeal\Sql\SqlCleanupTrait;
  */
 class MockSqlCleanup
 {
-    use SqlCleanupTrait;
+    use SqlCleanupTrait{
+        getCleanedUpSql as public;
+    }
     /**
      * MockSqlSubs constructor.
      */
     public function __construct()
     {
         // Dummy
-    }
-    /**
-     * Proxy to allowed access to protected trait method for testing.
-     *
-     * @param string $sql
-     * @param array  $replacements
-     *
-     * @return string
-     */
-    public function proxyGetCleanedUpSql(string $sql, array $replacements): string
-    {
-        return $this->getCleanedUpSql($sql, $replacements);
     }
 }
