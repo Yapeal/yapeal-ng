@@ -77,7 +77,7 @@
         "behat/behat": "^3.2",
         "erusev/parsedown": "<1.6",
         "henrikbjorn/phpspec-code-coverage": "~3.0.1",
-        "mikey179/vfsStream": "~1.4",
+        "mikey179/vfsstream": "~1.4",
         "phploc/phploc": "<2.3",
         "phpspec/nyan-formatters": "~2.0.0",
         "phpspec/phpspec": "~3.0.0",
