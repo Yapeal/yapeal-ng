@@ -1,3 +1,5 @@
+Going to archive the project as I'm no longer working on it nor will support it in the future.
+
 ![Yapeal-ng banner](media/yapeal-ng_banner.png)
 # Yapeal-ng (Yet Another PHP Eve Api Library - Next Generation)
 
